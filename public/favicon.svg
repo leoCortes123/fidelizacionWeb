@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Taquería">
+  <rect width="64" height="64" rx="16" fill="#b91c1c"/>
+  <path d="M12 38c4-10 12-16 20-16s16 6 20 16H12Z" fill="#fbbf24"/>
+  <path d="M16 38h32c0 5-4 8-8 8H24c-4 0-8-3-8-8Z" fill="#f59e0b"/>
+  <circle cx="25" cy="33" r="2.5" fill="#16a34a"/>
+  <circle cx="34" cy="30" r="2.5" fill="#16a34a"/>
+  <circle cx="42" cy="34" r="2.5" fill="#dc2626"/>
+</svg>

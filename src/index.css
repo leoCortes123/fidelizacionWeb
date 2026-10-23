@@ -1,0 +1,112 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 42 40% 98%;
+    --foreground: 20 15% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 20 15% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 20 15% 12%;
+    --primary: 3 74% 44%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 42 92% 90%;
+    --secondary-foreground: 24 60% 20%;
+    --muted: 40 20% 94%;
+    --muted-foreground: 25 10% 40%;
+    --accent: 36 90% 85%;
+    --accent-foreground: 24 40% 18%;
+    --destructive: 0 72% 45%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 35 20% 86%;
+    --input: 35 20% 86%;
+    --ring: 3 74% 44%;
+    --radius: 0.9rem;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    min-height: 100vh;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: 'Bricolage Grotesque', 'Inter', ui-sans-serif, sans-serif;
+    letter-spacing: -0.02em;
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+
+  ::selection {
+    @apply bg-primary/20;
+  }
+}
+
+@layer components {
+  .hero-glow {
+    background:
+      radial-gradient(60% 80% at 15% 10%, hsl(42 95% 82% / 0.9), transparent 60%),
+      radial-gradient(50% 70% at 90% 20%, hsl(3 80% 82% / 0.7), transparent 65%),
+      linear-gradient(180deg, hsl(42 50% 98%), hsl(40 40% 96%));
+  }
+
+  .paper-grid {
+    background-image:
+      linear-gradient(hsl(35 20% 88% / 0.5) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(35 20% 88% / 0.5) 1px, transparent 1px);
+    background-size: 28px 28px;
+  }
+
+  .code-display {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    letter-spacing: 0.14em;
+  }
+}
+
+@media print {
+  @page {
+    margin: 12mm;
+  }
+
+  body {
+    background: white;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  .print-area,
+  .print-area * {
+    visibility: visible;
+  }
+
+  .print-area {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    margin: 0;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}
