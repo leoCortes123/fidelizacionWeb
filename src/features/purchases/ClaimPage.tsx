@@ -20,7 +20,7 @@ import { useAuth } from '@/features/auth/AuthProvider';
 import { persistBusinessSelection } from '@/features/loyalty/businessContext';
 import { useClaimPurchase, usePurchaseQrPreview } from './hooks';
 import { errorMessage } from '@/lib/errors';
-import { formatCOP, formatPoints } from '@/lib/format';
+import { formatCOP, formatNumber, formatPoints } from '@/lib/format';
 import { clearPendingClaim, rememberPendingClaim } from '@/lib/pendingClaim';
 import { cn } from '@/lib/utils';
 import type { ClaimResult } from '@/types';
@@ -247,7 +247,7 @@ export function ClaimPage() {
                 Puntos
               </p>
               <p className="mt-1 font-display text-xl font-extrabold text-primary">
-                +{formatPoints(data.points_preview)}
+                +{formatNumber(data.points_preview)}
               </p>
             </div>
           </div>
@@ -277,7 +277,7 @@ export function ClaimPage() {
                 loading={signingIn}
               >
                 <UserPlus aria-hidden="true" />
-                Crear cuenta con Google
+                Continuar con Google
               </Button>
               <Button asChild variant="outline" className="w-full">
                 <Link to={`/login?next=${loginNext}&mode=register`}>

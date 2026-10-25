@@ -103,7 +103,7 @@ describe('ClaimPage', () => {
 
     expect(claim.mutate).toHaveBeenCalledWith(TOKEN, expect.any(Object));
     expect(await screen.findByText(/¡Puntos acreditados!/i)).toBeInTheDocument();
-    expect(screen.getByText(/\+15 puntos/)).toBeInTheDocument();
+    expect(screen.getByText(/\+15/)).toBeInTheDocument();
     expect(screen.getByText(/Taquería El Fogón/)).toBeInTheDocument();
   });
 
@@ -113,7 +113,7 @@ describe('ClaimPage', () => {
     renderClaim();
 
     await user.click(
-      screen.getByRole('button', { name: /crear cuenta con google/i }),
+      screen.getByRole('button', { name: /continuar con google/i }),
     );
     expect(auth.signInWithGoogle).toHaveBeenCalledWith(`/claim/${TOKEN}`);
 
