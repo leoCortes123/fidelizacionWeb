@@ -1,5 +1,8 @@
 import { Link, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/features/auth/AuthProvider';
+import { useBusinessContext } from '@/features/loyalty/businessContext';
+import { businessHomePath } from '@/lib/config';
+import type { BusinessRole } from '@/types';
 import { ErrorState, FullPageLoader } from '@/components/shared/States';
 import { Brand } from '@/components/shared/Brand';
 import { Button } from '@/components/ui/button';
@@ -77,7 +80,33 @@ export function RequireAdmin({ children }: { children: React.ReactNode }) {
     );
   }
   if (!roles.includes('admin')) {
-    return <Navigate to="/unauthorized" replace />;
+    // Un encargado tiene su propio portal; un cliente no debe ver ninguno.
+    const fallback = roles.includes('registrar') ? '/encargado' : '/unauthorized';
+    return <Navigate to={fallback} replace />;
+  }
+  return <>{children}</>;
+}
+
+/**
+ * Refina el acceso por el rol dentro del negocio seleccionado. El servidor
+ * sigue siendo la autoridad: esto solo evita mostrar pantallas inútiles.
+ */
+export function RequireBusinessRole({
+  roles,
+  children,
+}: {
+  roles: BusinessRole[];
+  children: React.ReactNode;
+}) {
+  const { businesses, selectedBusiness, selectedRole } = useBusinessContext();
+
+  if (businesses.length === 0) {
+    return <Navigate to="/business/select" replace />;
+  }
+  // Sin negocio elegido se deja que la página muestre su selector.
+  if (!selectedBusiness) return <>{children}</>;
+  if (!selectedRole || !roles.includes(selectedRole)) {
+    return <Navigate to={businessHomePath(selectedRole)} replace />;
   }
   return <>{children}</>;
 }

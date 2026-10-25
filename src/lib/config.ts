@@ -47,7 +47,15 @@ export function safeNextPath(
 
 export function defaultPathForRoles(roles: string[]): string {
   if (roles.includes('admin')) return '/admin';
+  if (roles.includes('registrar')) return '/encargado';
   return '/customer';
+}
+
+/** Portal de inicio según el rol del usuario dentro de un negocio concreto. */
+export function businessHomePath(role: string | null | undefined): string {
+  if (role === 'admin') return '/admin/dashboard';
+  if (role === 'encargado') return '/encargado';
+  return '/customer/balance';
 }
 
 export function initials(name: string): string {

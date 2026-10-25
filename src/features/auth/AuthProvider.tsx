@@ -123,7 +123,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setRolesLoaded(false);
     setRolesError(null);
     try {
-      const data = await rpc<AppRole[]>('get_my_roles');
+      // get_my_app_roles une los roles legacy con las membresías por negocio.
+      // Si la migración 0009 aún no está aplicada, se usa el RPC anterior.
+      let data: AppRole[];
+      try {
+        data = await rpc<AppRole[]>('get_my_app_roles');
+      } catch {
+        data = await rpc<AppRole[]>('get_my_roles');
+      }
       setRoles(Array.isArray(data) ? data : []);
     } catch (error) {
       if (import.meta.env.DEV) {

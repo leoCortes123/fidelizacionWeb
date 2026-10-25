@@ -4,6 +4,7 @@ import {
   LogOut,
   ReceiptText,
   TicketCheck,
+  Wallet,
   Wrench,
 } from 'lucide-react';
 import { toast } from 'sonner';
@@ -11,11 +12,13 @@ import { Brand } from '@/components/shared/Brand';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/features/auth/AuthProvider';
+import { BusinessSwitcher } from '@/features/loyalty/BusinessSwitcher';
 import { initials } from '@/lib/config';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { to: '/customer', label: 'Inicio', icon: Home, end: true },
+  { to: '/customer/balance', label: 'Balance', icon: Wallet },
   { to: '/customer/purchases', label: 'Compras', icon: ReceiptText },
   { to: '/customer/redemptions', label: 'Canjes', icon: TicketCheck },
 ];
@@ -59,6 +62,7 @@ export function CustomerShell() {
             ))}
           </nav>
           <div className="flex items-center gap-2">
+            <BusinessSwitcher className="hidden md:flex" />
             {isAdmin && (
               <Button variant="outline" size="sm" asChild className="hidden sm:inline-flex">
                 <NavLink to="/admin">
@@ -91,6 +95,10 @@ export function CustomerShell() {
           </div>
         </div>
       </header>
+
+      <div className="border-b bg-card/40 px-4 py-2 md:hidden">
+        <BusinessSwitcher />
+      </div>
 
       <main className="mx-auto w-full max-w-5xl px-4 pb-24 pt-5 md:pb-14">
         <Outlet />

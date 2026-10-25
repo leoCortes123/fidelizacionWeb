@@ -1,7 +1,8 @@
 import { defineConfig, devices } from '@playwright/test';
 
-// Permite usar otro puerto si el 5173 está ocupado por otro proyecto.
-const port = Number(process.env.E2E_PORT ?? 5173);
+// Puerto dedicado a E2E: evita reutilizar un `npm run dev` abierto en 5173
+// que apunte a otro backend (p. ej. Supabase alojado) y haría fallar la sesión.
+const port = Number(process.env.E2E_PORT ?? 5199);
 
 export default defineConfig({
   testDir: './tests/e2e',

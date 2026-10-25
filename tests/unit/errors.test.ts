@@ -27,6 +27,18 @@ describe('mensajes de error', () => {
     expect(isBusinessError(new Error('TypeError: fetch failed'))).toBe(false);
   });
 
+  it('explica los límites de canje y descuentos', () => {
+    expect(errorMessage(new Error('reward_period_limit_reached'))).toContain(
+      'periodo',
+    );
+    expect(errorMessage(new Error('reward_total_limit_reached'))).toContain(
+      'límite total',
+    );
+    expect(
+      errorMessage(new Error('discount_exceeds_min_purchase')),
+    ).toContain('no puede superar la compra mínima');
+  });
+
   it('explica los timeouts de conexión', () => {
     expect(
       errorMessage(new Error('La conexión con el servidor tardó demasiado.')),

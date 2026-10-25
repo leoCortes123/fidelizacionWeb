@@ -16,10 +16,10 @@ import { Label } from '@/components/ui/label';
 import { useAuth } from './AuthProvider';
 import {
   brandName,
-  defaultPathForRoles,
   isSupabaseConfigured,
   safeNextPath,
 } from '@/lib/config';
+import { resolvePostLoginPath } from '@/lib/postLogin';
 import { errorMessage } from '@/lib/errors';
 
 function GoogleIcon() {
@@ -69,8 +69,17 @@ export function LoginPage() {
 
   useEffect(() => {
     if (loading || !session || rolesLoading || !rolesLoaded) return;
-    const destination = params.get('next') ? next : defaultPathForRoles(roles);
-    navigate(destination, { replace: true });
+    if (params.get('next')) {
+      navigate(next, { replace: true });
+      return;
+    }
+    let active = true;
+    void resolvePostLoginPath(roles).then((destination) => {
+      if (active) navigate(destination, { replace: true });
+    });
+    return () => {
+      active = false;
+    };
   }, [loading, session, rolesLoading, rolesLoaded, roles, next, params, navigate]);
 
   async function handleGoogle() {

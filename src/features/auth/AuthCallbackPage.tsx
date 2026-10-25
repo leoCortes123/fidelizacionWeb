@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { FullPageLoader } from '@/components/shared/States';
 import { useAuth } from './AuthProvider';
-import { defaultPathForRoles, safeNextPath } from '@/lib/config';
+import { safeNextPath } from '@/lib/config';
+import { resolvePostLoginPath } from '@/lib/postLogin';
 
 export function AuthCallbackPage() {
   const [params] = useSearchParams();
@@ -19,9 +20,18 @@ export function AuthCallbackPage() {
   useEffect(() => {
     if (loading) return;
     if (!session) return;
-    if (rolesLoading && !next) return;
-    const destination = next ?? defaultPathForRoles(roles);
-    navigate(destination, { replace: true });
+    if (next) {
+      navigate(next, { replace: true });
+      return;
+    }
+    if (rolesLoading) return;
+    let active = true;
+    void resolvePostLoginPath(roles).then((destination) => {
+      if (active) navigate(destination, { replace: true });
+    });
+    return () => {
+      active = false;
+    };
   }, [loading, session, roles, rolesLoading, next, navigate]);
 
   if (oauthError) {

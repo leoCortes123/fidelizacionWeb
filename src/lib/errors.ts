@@ -22,7 +22,27 @@ const MESSAGES: Record<string, string> = {
   redemption_not_found: 'No encontramos un canje con ese código.',
   redemption_already_redeemed: 'Este código ya fue entregado.',
   redemption_cancelled: 'Este canje fue cancelado.',
-  redemption_not_pending: 'Este canje ya no está pendiente de entrega.',
+  redemption_not_pending: 'Este canje ya no está pendiente de validación.',
+  redemption_not_approved:
+    'Primero debes aprobar la solicitud antes de confirmar la entrega.',
+  redemption_not_reissuable:
+    'Solo puedes reemitir el QR mientras la solicitud esté pendiente.',
+  token_not_found: 'Este QR ya no está disponible. Pide al cliente que lo reemita.',
+  token_expired: 'El QR venció. Pide al cliente que reemita uno nuevo.',
+  token_already_consumed: 'Este QR ya fue utilizado.',
+  token_reissue_limit:
+    'Se reemitió el QR demasiadas veces en la última hora. Espera un momento.',
+  program_not_active:
+    'El programa de puntos está inactivo. Actívalo antes de canjear.',
+  account_not_found: 'No tienes una cuenta de puntos en este negocio.',
+  reward_not_yet_valid: 'Esta recompensa aún no está vigente.',
+  reward_expired: 'Esta recompensa expiró.',
+  reward_customer_limit_reached:
+    'Ya alcanzaste el máximo de canjes permitidos para esta recompensa.',
+  reward_period_limit_reached:
+    'Ya alcanzaste el máximo de canjes de esta recompensa para el periodo.',
+  reward_total_limit_reached:
+    'Esta recompensa agotó su límite total de canjes.',
   customer_not_found: 'No encontramos el cliente.',
   invalid_reason: 'Escribe un motivo válido (máximo 300 caracteres).',
   invalid_role: 'Rol no permitido.',
@@ -31,6 +51,61 @@ const MESSAGES: Record<string, string> = {
   last_admin: 'No puedes eliminar al último administrador.',
   cannot_revoke_own_admin: 'No puedes quitarte a ti mismo el rol de administrador.',
   invalid_settings: 'La configuración enviada no es válida.',
+  business_not_found: 'No encontramos ese negocio o ya no está disponible.',
+  business_not_found_or_no_access: 'No tienes acceso a este negocio.',
+  membership_not_found: 'No encontramos esa membresía.',
+  invalid_approval_permission:
+    'Solo los encargados pueden tener permiso de aprobación.',
+  invalid_cop_per_point_unit:
+    'El valor por punto debe estar entre $100 y $1.000.000.',
+  invalid_points_per_cop_unit:
+    'Los puntos por $1.000 deben estar entre 1 y 1.000.000.',
+  invalid_points_expiry_days:
+    'El vencimiento de puntos debe estar entre 1 y 3.650 días.',
+  invalid_budget_rate: 'La tasa de presupuesto debe estar entre 0 % y 100 %.',
+  invalid_qr_expiry_hours: 'La vigencia del QR debe estar entre 1 y 168 horas.',
+  invalid_business_name: 'El nombre del negocio no es válido.',
+  invalid_business_slug: 'El identificador del negocio no es válido.',
+  invalid_timezone: 'La zona horaria no es válida.',
+  invalid_operating_days: 'Selecciona al menos un día de operación válido.',
+  business_slug_duplicate: 'Ya existe un negocio con ese identificador.',
+  invalid_product_name: 'El nombre del producto no es válido (2 a 120 caracteres).',
+  invalid_product_price: 'El precio del producto debe ser mayor que cero.',
+  invalid_product_cost: 'El costo del producto no puede ser negativo.',
+  product_not_found: 'No encontramos ese producto en la carta.',
+  invalid_amount: 'Introduce un importe mayor que cero.',
+  invalid_eligible_amount:
+    'El importe elegible no puede ser negativo ni superar el importe de la compra.',
+  invalid_customer: 'Elige un cliente afiliado al negocio.',
+  invalid_data_status: 'El estado de los datos económicos no es válido.',
+  purchase_event_not_found: 'No encontramos esa compra registrada.',
+  idempotency_key_conflict:
+    'La operación entra en conflicto con otra compra registrada. Inténtalo de nuevo.',
+  invalid_sales: 'Las ventas diarias no pueden ser negativas.',
+  invalid_operation_days: 'Los días de operación deben estar entre 1 y 31.',
+  invalid_daily_gain: 'La ganancia diaria no puede ser negativa.',
+  invalid_gross_margin: 'El margen bruto debe estar entre 0 y 100.',
+  invalid_avg_customers: 'El número de clientes por día no puede ser negativo.',
+  invalid_budget: 'El presupuesto mensual no puede ser negativo.',
+  invalid_campaign_name: 'El nombre de la campaña no es válido (2 a 120 caracteres).',
+  invalid_campaign_multiplier: 'El multiplicador debe estar entre 1 y 10.',
+  invalid_campaign_bonus: 'El bono de puntos no es válido.',
+  invalid_campaign_min_purchase: 'La compra mínima de la campaña no es válida.',
+  invalid_campaign_validity: 'La fecha de fin debe ser posterior al inicio.',
+  invalid_campaign_description: 'La descripción no puede superar 500 caracteres.',
+  campaign_not_found: 'No encontramos esa campaña.',
+  free_product_requires_product:
+    'Elige el producto que se entrega con esta recompensa.',
+  invalid_reward_points: 'Los puntos requeridos no son válidos.',
+  invalid_min_purchase: 'La compra mínima no es válida.',
+  invalid_discount_percentage: 'El porcentaje de descuento debe estar entre 1 y 100.',
+  invalid_max_discount: 'El descuento máximo no es válido.',
+  discount_exceeds_min_purchase:
+    'El descuento no puede superar la compra mínima de la recompensa.',
+  invalid_reward_validity: 'La fecha de fin debe ser posterior al inicio.',
+  invalid_redemption_period:
+    'Indica los días del periodo cuando configures un límite por periodo.',
+  invalid_redemption_limit: 'Los límites de canje deben ser mayores que cero.',
   expiry_disabled: 'El vencimiento de puntos está desactivado en la configuración.',
   negative_points_balance: 'La operación dejaría un saldo negativo.',
   points_ledger_is_immutable: 'El historial de puntos es inmutable.',

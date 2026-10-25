@@ -1,5 +1,9 @@
 import { Badge } from '@/components/ui/badge';
-import type { PurchaseStatus, RedemptionStatus } from '@/types';
+import type {
+  PurchaseStatus,
+  RedemptionRequestStatus,
+  RedemptionStatus,
+} from '@/types';
 
 const purchaseLabels: Record<
   PurchaseStatus,
@@ -30,6 +34,29 @@ export function PurchaseStatusBadge({ status }: { status: PurchaseStatus }) {
 
 export function RedemptionStatusBadge({ status }: { status: RedemptionStatus }) {
   const config = redemptionLabels[status] ?? {
+    label: status,
+    variant: 'muted' as const,
+  };
+  return <Badge variant={config.variant}>{config.label}</Badge>;
+}
+
+const requestLabels: Record<
+  RedemptionRequestStatus,
+  { label: string; variant: 'warning' | 'success' | 'muted' | 'destructive' | 'secondary' | 'outline' }
+> = {
+  pending: { label: 'Pendiente de validar', variant: 'warning' },
+  approved: { label: 'Aprobado', variant: 'secondary' },
+  delivered: { label: 'Entregado', variant: 'success' },
+  cancelled: { label: 'Cancelado', variant: 'muted' },
+  expired: { label: 'Vencido', variant: 'muted' },
+};
+
+export function RedemptionRequestStatusBadge({
+  status,
+}: {
+  status: RedemptionRequestStatus;
+}) {
+  const config = requestLabels[status] ?? {
     label: status,
     variant: 'muted' as const,
   };

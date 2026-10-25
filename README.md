@@ -12,12 +12,19 @@ administración. Consume el backend de Supabase que vive en el repositorio
 
 ## Qué incluye
 
-- **Cliente:** login con Google o correo/contraseña, saldo de puntos, catálogo de
-  recompensas e historial de compras y canjes.
-- **Administrador:** generación del QR de compra, clientes ordenados por puntos,
-  detalle del cliente, canje de recompensas con anulación y configuración.
+- **Cliente:** login con Google o correo/contraseña, selección de negocio, saldo por
+  negocio, historial de puntos, recompensas, solicitud de canje con QR y “Mis
+  canjes” con reemisión.
+- **Administrador:** programa de puntos, carta, recompensas, campañas, solicitudes,
+  miembros, compras con reverso, panel económico, auditoría y wizard de configuración.
+- **Encargado:** validación de QR, aprobación/rechazo y confirmación de entrega.
+- **Multiempresa:** roles por negocio, selector persistido, guards y afiliación
+  pública por `/join/:slug`.
 - **Diseño móvil primero:** navegación inferior, tarjetas, tipografía grande y
   objetivos táctiles amplios.
+
+Estado y cifras de pruebas: ver el README del workspace (`../README.md`) y
+`documentacion/PRUEBAS.md`.
 
 ## Stack
 
@@ -68,14 +75,14 @@ npm run dev          # servidor de desarrollo
 npm run build        # typecheck + build de producción
 npm run preview      # sirve dist/
 npm run typecheck    # tsc -b
-npm test             # Vitest + Testing Library
-npm run test:e2e     # Playwright (backend Supabase simulado)
+npm test             # Vitest + Testing Library (99 pruebas)
+npm run test:e2e     # Playwright, 18 flujos (backend Supabase simulado)
 npm run test:build   # build + smoke test del bundle
 npm run test:all     # typecheck + unitarias + E2E
 ```
 
-Si el puerto 5173 está ocupado, ejecuta los E2E con
-`E2E_PORT=5180 npm run test:e2e`.
+Los E2E usan el puerto **5199** para no reutilizar un `npm run dev` con otro backend.
+Si está ocupado: `E2E_PORT=5200 npm run test:e2e`.
 
 Las pruebas SQL y de concurrencia viven en el repositorio del API.
 
@@ -90,10 +97,12 @@ src/
     ui/                 primitivas reutilizables
   features/
     auth/               sesión, Google OAuth, correo/contraseña, callback
-    customer/           inicio con saldo y catálogo, compras, canjes
-    purchases/          reclamación del QR
-    admin/              QR, clientes, detalle/canje, compras, configuración
-    points/ rewards/    hooks de datos
+    admin/              programa, carta, recompensas, campañas, solicitudes,
+                        miembros, compras, económico, auditoría y onboarding
+    loyalty/            contexto de negocio, selector, afiliación y encargado
+    customer/           saldo por negocio, compras, canjes y QR
+    purchases/          reclamación del QR legacy
+    points/ rewards/    hooks de datos legacy
   lib/                  Supabase, formato COP/fechas, errores, config
   types/                tipos compartidos
 tests/
@@ -110,14 +119,29 @@ scripts/                smoke test del build
 | `/` | Público | Presentación y acceso |
 | `/login` | Público | Google, correo/contraseña y registro simple |
 | `/claim/:token` | Autenticado | Reclamar una compra escaneando el QR |
+| `/join/:slug` | Público | Ficha del negocio y afiliación al programa |
+| `/business/select` | Autenticado | Elegir negocio (la elección se recuerda por usuario) |
+| `/business/register` | Autenticado | Registrar un negocio nuevo como administrador |
 | `/customer` | Cualquier usuario | Saldo, recompensas y compras recientes |
 | `/customer/purchases` | Cualquier usuario | Historial con puntos por compra |
-| `/customer/redemptions` | Cualquier usuario | Canjes aplicados por caja |
-| `/admin` | Solo admin | Generar QR de compra |
+| `/customer/redemptions` | Cualquier usuario | Mis canjes, estado y QR de entrega |
+| `/admin` | Solo admin | QR de compra (sistema anterior) |
+| `/admin/dashboard` | Solo admin | Panel del negocio y accesos rápidos |
+| `/admin/program` | Solo admin | Programa de puntos: acumulación, canje, bonos y presupuesto |
+| `/admin/products` | Solo admin | Carta de productos y costos estimados |
+| `/admin/rewards` | Solo admin | Recompensas: producto gratis, descuentos, vigencia y límites |
+| `/admin/campaigns` | Solo admin | Campañas: multiplicador, bono, mínimo y vigencia |
+| `/admin/redemptions` | Solo admin | Solicitudes: aprobar, rechazar, entregar o cancelar |
+| `/admin/members` | Solo admin | Miembros y permiso de aprobación de canjes |
+| `/admin/purchases/new` | Solo admin | Registrar compra presencial y acreditar puntos |
+| `/admin/economic` | Solo admin | Perfil económico, presupuesto y snapshots |
+| `/admin/audit` | Solo admin | Auditoría paginada por operación |
+| `/admin/onboarding` | Solo admin | Wizard de configuración inicial en cuatro pasos |
 | `/admin/customers` | Solo admin | Clientes con filtros y orden por puntos |
 | `/admin/customers/:id` | Solo admin | Detalle y canje de recompensa |
 | `/admin/purchases` | Solo admin | Compras y cancelaciones |
-| `/admin/settings` | Solo admin | Reglas, catálogo y auditoría |
+| `/admin/settings` | Solo admin | Reglas, catálogo y auditoría (sistema anterior) |
+| `/encargado` | Admin/encargado | Validar QR, aprobar y confirmar entrega |
 
 Las rutas antiguas `/registrar/*` y `/customer/rewards` redirigen a las nuevas.
 

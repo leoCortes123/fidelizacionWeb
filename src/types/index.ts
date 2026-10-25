@@ -242,3 +242,380 @@ export interface AdminCancelRedemptionResult {
   points_refunded: number;
   balance: number;
 }
+
+// ---------------------------------------------------------------------
+// Negocio y membresías (aislamiento multiempresa)
+// ---------------------------------------------------------------------
+export type BusinessRole = 'admin' | 'encargado' | 'cliente';
+
+export interface Business {
+  id: string;
+  name: string;
+  slug: string;
+  timezone: string;
+  operating_days: number[];
+  is_active: boolean;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+  /** Rol del usuario autenticado en este negocio (lo devuelve businesses_list). */
+  role: BusinessRole;
+  can_approve_redemptions: boolean;
+}
+
+export interface BusinessMembership {
+  id: string;
+  business_id: string;
+  user_id: string;
+  role: BusinessRole;
+  can_approve_redemptions: boolean;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BusinessMembershipWithProfile extends BusinessMembership {
+  full_name: string;
+  email: string;
+}
+
+export interface BusinessRegisterResult {
+  business_id: string;
+  membership_id: string;
+  role: BusinessRole;
+  created_at: string;
+}
+
+// ---------------------------------------------------------------------
+// Programa de puntos y productos (por negocio)
+// ---------------------------------------------------------------------
+export interface LoyaltyProgram {
+  id: string;
+  business_id: string;
+  cop_per_point_unit: number;
+  points_per_cop_unit: number;
+  points_expiry_days: number;
+  budget_rate: number;
+  first_purchase_bonus_points: number;
+  recurrence_bonus_points: number;
+  referral_bonus_points: number;
+  qr_expiry_hours: number;
+  is_active: boolean;
+  configured_by: string | null;
+  configured_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type LoyaltyRewardType =
+  | 'free_product'
+  | 'fixed_discount'
+  | 'percentage_discount'
+  | 'configurable_benefit';
+
+export interface LoyaltyReward {
+  id: string;
+  business_id: string;
+  product_id: string | null;
+  type: LoyaltyRewardType;
+  name: string;
+  description: string;
+  points_required: number;
+  min_purchase_amount: number;
+  max_discount_amount: number | null;
+  discount_percentage: number | null;
+  product_price_cop: number | null;
+  product_cost_cop: number | null;
+  is_active: boolean;
+  valid_from: string | null;
+  valid_until: string | null;
+  max_redemptions_per_customer: number | null;
+  max_redemptions_per_period: number | null;
+  redemption_period_days: number | null;
+  total_redemption_limit: number | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+  times_redeemed: number;
+}
+
+export interface LoyaltyRewardAvailable extends LoyaltyReward {
+  balance: number;
+  remaining: number;
+  can_redeem: boolean;
+}
+
+export interface Product {
+  id: string;
+  business_id: string;
+  name: string;
+  description: string | null;
+  price_cop: number;
+  cost_cop: number | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// ---------------------------------------------------------------------
+// Cuenta y movimientos de puntos
+// ---------------------------------------------------------------------
+export interface LoyaltyPointAccount {
+  id: string;
+  business_id: string;
+  customer_id: string;
+  balance: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export type PointMovementType =
+  | 'purchase_credit'
+  | 'redemption_debit'
+  | 'redemption_refund'
+  | 'expiry_debit'
+  | 'admin_adjustment'
+  | 'bonus_credit';
+
+export interface LoyaltyPointTransaction {
+  id: string;
+  business_id: string;
+  account_id: string;
+  movement_type: PointMovementType;
+  points: number;
+  reference_type: string | null;
+  reference_id: string | null;
+  reason: string | null;
+  idempotency_key: string;
+  created_by: string | null;
+  created_at: string;
+}
+
+// ---------------------------------------------------------------------
+// Redenciones y tokens QR
+// ---------------------------------------------------------------------
+export type RedemptionRequestStatus =
+  | 'pending'
+  | 'approved'
+  | 'delivered'
+  | 'cancelled'
+  | 'expired';
+
+export interface LoyaltyRedemption {
+  id: string;
+  business_id: string;
+  account_id: string;
+  reward_id: string;
+  reward_name: string;
+  reward_type: LoyaltyRewardType;
+  points_spent: number;
+  code: string;
+  status: RedemptionRequestStatus;
+  idempotency_key: string;
+  created_by: string | null;
+  created_at: string;
+  approved_by: string | null;
+  approved_at: string | null;
+  delivered_at: string | null;
+  cancelled_at: string | null;
+  cancellation_reason: string | null;
+}
+
+export interface LoyaltyRedemptionWithCustomer extends LoyaltyRedemption {
+  customer_id: string;
+  customer_email: string;
+}
+
+export interface RedemptionTokenValidateResult {
+  redemption_id: string;
+  reward_name: string;
+  reward_type: LoyaltyRewardType;
+  points_spent: number;
+  status: RedemptionRequestStatus;
+  customer_id: string;
+  expires_at: string;
+  can_approve: boolean;
+}
+
+export interface RedemptionRequestResult {
+  redemption_id: string;
+  reward_name: string;
+  points_spent: number;
+  code: string;
+  status: RedemptionRequestStatus;
+  token: string;
+  expires_at: string;
+  duplicate: boolean;
+}
+
+// ---------------------------------------------------------------------
+// Perfil económico del negocio
+// ---------------------------------------------------------------------
+export type EconomicDataStatus = 'confirmed' | 'estimated' | 'unknown';
+
+export type EconomicField =
+  | 'daily_avg_sales'
+  | 'monthly_operation_days'
+  | 'daily_gain'
+  | 'gross_margin'
+  | 'avg_customers_per_day'
+  | 'max_monthly_reward_budget';
+
+export interface BusinessEconomicProfile {
+  id: string;
+  business_id: string;
+  daily_avg_sales: number | null;
+  monthly_operation_days: number | null;
+  daily_gain: number | null;
+  gross_margin: number | null;
+  avg_customers_per_day: number | null;
+  max_monthly_reward_budget: number | null;
+  data_status: Partial<Record<EconomicField, EconomicDataStatus>>;
+  updated_by: string | null;
+  updated_at: string;
+}
+
+export interface BusinessEconomicDashboard {
+  business_id: string;
+  monthly_estimated_sales_cop: number;
+  reference_budget_cop: number;
+  budget_rate: number;
+  redeemed_rewards_cost_cop: number;
+  pending_rewards_cost_cop: number;
+  reserved_rewards_cost_cop: number;
+  remaining_budget_cop: number;
+  budget_committed_percent: number;
+  max_monthly_reward_budget_cop: number;
+  data_status: Record<string, unknown>;
+  estimated: boolean;
+  calculated_at: string;
+}
+
+// ---------------------------------------------------------------------
+// Evento de compra y auditoría del negocio
+// ---------------------------------------------------------------------
+export interface LoyaltyPurchaseEvent {
+  id: string;
+  business_id: string;
+  account_id: string;
+  purchase_id: string | null;
+  amount_cop: number;
+  eligible_amount_cop: number;
+  points_earned: number;
+  rule_version: string | null;
+  created_at: string;
+}
+
+export interface BusinessAuditLog {
+  id: string;
+  business_id: string;
+  actor_email: string | null;
+  operation: string;
+  entity_type: string;
+  entity_id: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+  /** Presente en `business_audit_log_page` (total de filas del filtro). */
+  total_count?: number;
+}
+
+// ---------------------------------------------------------------------
+// Campañas y snapshots de presupuesto
+// ---------------------------------------------------------------------
+export interface LoyaltyCampaign {
+  id: string;
+  business_id: string;
+  name: string;
+  description: string;
+  multiplier: number;
+  bonus_points: number;
+  min_purchase_amount: number;
+  valid_from: string;
+  valid_until: string | null;
+  is_active: boolean;
+  is_current: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BudgetSnapshot {
+  id: string;
+  period_start: string;
+  period_end: string;
+  monthly_sales_cop: number;
+  budget_rate: number;
+  reference_budget_cop: number;
+  max_budget_cop: number;
+  redeemed_cost_cop: number;
+  pending_cost_cop: number;
+  points_issued: number;
+  points_redeemed: number;
+  created_at: string;
+  total_count?: number;
+}
+
+// ---------------------------------------------------------------------
+// Afiliación, búsqueda de perfiles y redenciones del cliente
+// ---------------------------------------------------------------------
+export interface BusinessPublic {
+  id: string;
+  name: string;
+  slug: string;
+  timezone: string;
+  operating_days: number[];
+  is_active: boolean;
+  loyalty_active: boolean;
+}
+
+export interface BusinessJoinResult {
+  business_id: string;
+  business_name: string;
+  slug: string;
+  membership_id: string;
+  role: BusinessRole;
+  already_member: boolean;
+}
+
+export interface ProfileLookup {
+  user_id: string;
+  full_name: string;
+  email: string;
+  already_member: boolean;
+}
+
+export interface MyLoyaltyRedemption {
+  id: string;
+  business_id: string;
+  business_name: string;
+  reward_name: string;
+  reward_type: LoyaltyRewardType;
+  points_spent: number;
+  code: string;
+  status: RedemptionRequestStatus;
+  created_at: string;
+  approved_at: string | null;
+  delivered_at: string | null;
+  cancelled_at: string | null;
+}
+
+export interface RedemptionTokenReissueResult {
+  redemption_id: string;
+  token: string;
+  expires_at: string;
+}
+
+export interface PurchaseRegisterResult {
+  points_earned: number;
+  balance: number;
+  duplicate: boolean;
+  account_id: string;
+  purchase_event_id?: string | null;
+  message?: string;
+}
+
+export interface PurchaseRevertResult {
+  points_reversed: number;
+  balance: number;
+  duplicate: boolean;
+  message?: string;
+}

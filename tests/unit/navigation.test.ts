@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  businessHomePath,
   claimUrl,
   defaultPathForRoles,
   initials,
@@ -34,9 +35,17 @@ describe('navegación segura y OAuth', () => {
 
   it('elige el portal según los roles', () => {
     expect(defaultPathForRoles(['customer'])).toBe('/customer');
-    expect(defaultPathForRoles(['customer', 'registrar'])).toBe('/customer');
+    expect(defaultPathForRoles(['customer', 'registrar'])).toBe('/encargado');
+    expect(defaultPathForRoles(['registrar'])).toBe('/encargado');
     expect(defaultPathForRoles(['admin'])).toBe('/admin');
     expect(defaultPathForRoles([])).toBe('/customer');
+  });
+
+  it('elige el portal según el rol dentro del negocio', () => {
+    expect(businessHomePath('admin')).toBe('/admin/dashboard');
+    expect(businessHomePath('encargado')).toBe('/encargado');
+    expect(businessHomePath('cliente')).toBe('/customer/balance');
+    expect(businessHomePath(null)).toBe('/customer/balance');
   });
 
   it('genera iniciales para el avatar', () => {
