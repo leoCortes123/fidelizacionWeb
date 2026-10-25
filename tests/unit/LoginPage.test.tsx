@@ -81,6 +81,7 @@ describe('LoginPage', () => {
       email: 'carla@example.test',
       password: 'secreto123',
       fullName: 'Carla Cliente',
+      nextPath: '/customer',
     });
   });
 

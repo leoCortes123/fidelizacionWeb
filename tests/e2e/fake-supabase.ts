@@ -111,6 +111,7 @@ export interface FakeReward {
 export interface FakePurchase {
   id: string;
   token: string;
+  businessId?: string;
   amount_cop: number;
   status: 'pending_claim' | 'claimed' | 'expired' | 'cancelled';
   points_awarded: number;
@@ -448,6 +449,55 @@ function fail(route: Route, message: string) {
   );
 }
 
+
+/** Puntos de una compra aplicando la campaña vigente (misma regla del backend). */
+function purchasePoints(
+  state: FakeState,
+  businessId: string,
+  amountCop: number,
+): number {
+  const program = state.loyaltyPrograms[businessId];
+  if (!program) return 0;
+  const base = Math.floor(amountCop / Math.max(program.cop_per_point_unit, 1));
+  const createdAt = now();
+  const campaign = state.campaigns
+    .filter(
+      (item) =>
+        item.businessId === businessId &&
+        item.isActive &&
+        item.validFrom <= createdAt &&
+        (!item.validUntil || item.validUntil > createdAt) &&
+        amountCop >= item.minPurchaseAmount,
+    )
+    .sort((a, b) => b.multiplier - a.multiplier || b.bonusPoints - a.bonusPoints)[0];
+  const points = campaign
+    ? Math.floor(base * campaign.multiplier) + campaign.bonusPoints
+    : base;
+  return Math.min(Math.max(points, 0), 1_000_000);
+}
+
+function purchasePreview(state: FakeState, purchase: FakePurchase) {
+  const business = state.businesses.find((item) => item.id === purchase.businessId);
+  const expired =
+    purchase.status === 'pending_claim' &&
+    new Date(purchase.expiresAt).getTime() <= Date.now();
+  const status = expired ? 'expired' : purchase.status;
+  return {
+    purchase_id: purchase.id,
+    business_id: purchase.businessId ?? '',
+    business_name: business?.name ?? 'Negocio',
+    business_slug: business?.slug ?? '',
+    amount_cop: purchase.amount_cop,
+    points_preview:
+      status === 'claimed'
+        ? purchase.points_awarded
+        : purchasePoints(state, purchase.businessId ?? '', purchase.amount_cop),
+    status,
+    claimed: status === 'claimed',
+    expires_at: purchase.expiresAt,
+  };
+}
+
 function dashboard(state: FakeState, user: FakeUser) {
   const claimed = state.purchases.filter(
     (purchase) =>
@@ -628,6 +678,206 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
               cancelled_at: redemption.cancelled_at,
             })),
         );
+      case 'purchase_qr_create': {
+        if (!isStaff) return fail(route, 'forbidden');
+        const businessId = String(body.p_business_id ?? '');
+        const program = state.loyaltyPrograms[businessId];
+        if (!program?.is_active) return fail(route, 'program_not_active');
+        const amount = Number(body.p_amount_cop ?? 0);
+        if (!Number.isFinite(amount) || amount <= 0) {
+          return fail(route, 'amount_invalid');
+        }
+        if (amount > 50_000_000) return fail(route, 'amount_too_large');
+        const purchase: FakePurchase = {
+          id: newId(),
+          token: newToken(),
+          businessId,
+          amount_cop: amount,
+          status: 'pending_claim',
+          points_awarded: 0,
+          customerId: null,
+          registrarId: user!.id,
+          createdAt: now(),
+          expiresAt: new Date(
+            Date.now() + program.qr_expiry_hours * 3600 * 1000,
+          ).toISOString(),
+          claimed_at: null,
+        };
+        state.purchases.push(purchase);
+        const business = state.businesses.find((item) => item.id === businessId);
+        state.auditLogs.unshift({
+          id: `audit-${crypto.randomUUID().slice(0, 8)}`,
+          businessId,
+          actorEmail: user!.email,
+          operation: 'purchase.qr_created',
+          entityType: 'purchase',
+          entityId: purchase.id,
+          metadata: {
+            amount_cop: amount,
+            points_preview: purchasePoints(state, businessId, amount),
+          },
+          createdAt: purchase.createdAt,
+        });
+        return json(route, {
+          purchase_id: purchase.id,
+          token: purchase.token,
+          business_id: businessId,
+          business_name: business?.name ?? 'Negocio',
+          amount_cop: amount,
+          points_preview: purchasePoints(state, businessId, amount),
+          expires_at: purchase.expiresAt,
+          status: 'pending_claim',
+        });
+      }
+      case 'purchase_qr_preview': {
+        const tokenValue = String(body.p_token ?? '');
+        const purchase = state.purchases.find((item) => item.token === tokenValue);
+        if (!purchase) return fail(route, 'invalid_token');
+        return json(route, purchasePreview(state, purchase));
+      }
+      case 'purchase_qr_claim': {
+        if (!user) return fail(route, 'not_authenticated');
+        const tokenValue = String(body.p_token ?? '');
+        const purchase = state.purchases.find((item) => item.token === tokenValue);
+        if (!purchase) return fail(route, 'invalid_token');
+        if (purchase.status === 'cancelled') return fail(route, 'purchase_cancelled');
+        if (purchase.status === 'claimed') {
+          return fail(route, 'purchase_already_claimed');
+        }
+        if (
+          purchase.status === 'expired' ||
+          new Date(purchase.expiresAt).getTime() <= Date.now()
+        ) {
+          purchase.status = 'expired';
+          return fail(route, 'purchase_expired');
+        }
+        const businessId = purchase.businessId ?? '';
+        const business = state.businesses.find((item) => item.id === businessId);
+        const program = state.loyaltyPrograms[businessId];
+        if (!program?.is_active) return fail(route, 'program_not_active');
+
+        if (!state.memberships.some(
+          (item) => item.businessId === businessId && item.userId === user.id,
+        )) {
+          state.memberships.push({
+            id: newId(),
+            businessId,
+            userId: user.id,
+            role: 'cliente',
+            canApproveRedemptions: false,
+            createdAt: now(),
+          });
+        }
+
+        const points = purchasePoints(state, businessId, purchase.amount_cop);
+        const event: FakePurchaseEvent = {
+          id: `event-${crypto.randomUUID().slice(0, 8)}`,
+          businessId,
+          customerId: user.id,
+          amountCop: purchase.amount_cop,
+          eligibleAmountCop: purchase.amount_cop,
+          pointsEarned: points,
+          idempotencyKey: `purchase_qr:${purchase.id}`,
+          createdAt: now(),
+          reversed: false,
+        };
+        state.purchaseEvents.push(event);
+        state.purchaseCredits[user.id] = (state.purchaseCredits[user.id] ?? 0) + points;
+        purchase.status = 'claimed';
+        purchase.customerId = user.id;
+        purchase.claimed_at = now();
+        purchase.points_awarded = points;
+        state.auditLogs.unshift({
+          id: `audit-${crypto.randomUUID().slice(0, 8)}`,
+          businessId,
+          actorEmail: user.email,
+          operation: 'purchase.qr_claimed',
+          entityType: 'purchase',
+          entityId: purchase.id,
+          metadata: {
+            amount_cop: purchase.amount_cop,
+            points_awarded: points,
+            balance: loyaltyBalance(state, user.id),
+          },
+          createdAt: purchase.claimed_at,
+        });
+        return json(route, {
+          purchase_id: purchase.id,
+          business_id: businessId,
+          business_name: business?.name ?? 'Negocio',
+          business_slug: business?.slug ?? '',
+          amount_cop: purchase.amount_cop,
+          points_awarded: points,
+          balance: loyaltyBalance(state, user.id),
+          claimed_at: purchase.claimed_at,
+          duplicate: false,
+        });
+      }
+      case 'business_purchases_list': {
+        if (!isStaff) return fail(route, 'forbidden');
+        const businessId = String(body.p_business_id ?? '');
+        const status = body.p_status ? String(body.p_status) : '';
+        const limit = Number(body.p_limit ?? 20);
+        const offset = Number(body.p_offset ?? 0);
+        const rows = state.purchases
+          .filter(
+            (purchase) =>
+              purchase.businessId === businessId &&
+              (!status || purchase.status === status),
+          )
+          .sort(
+            (a, b) =>
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+          );
+        return json(
+          route,
+          rows.slice(offset, offset + limit).map((purchase) => {
+            const customer = state.users.find(
+              (item) => item.id === purchase.customerId,
+            );
+            const registrar = state.users.find(
+              (item) => item.id === purchase.registrarId,
+            );
+            return {
+              id: purchase.id,
+              amount_cop: purchase.amount_cop,
+              status: purchase.status,
+              points_awarded: purchase.points_awarded,
+              created_at: purchase.createdAt,
+              expires_at: purchase.expiresAt,
+              claimed_at: purchase.claimed_at,
+              customer_name: customer?.name ?? null,
+              customer_email: customer?.email ?? null,
+              registrar_name: registrar?.name ?? null,
+              total_count: rows.length,
+            };
+          }),
+        );
+      }
+      case 'purchase_qr_cancel': {
+        if (!isStaff) return fail(route, 'forbidden');
+        const purchase = state.purchases.find(
+          (item) =>
+            item.id === String(body.p_purchase_id ?? '') &&
+            item.businessId === String(body.p_business_id ?? ''),
+        );
+        if (!purchase) return fail(route, 'purchase_not_found');
+        if (purchase.status === 'claimed') {
+          return fail(route, 'purchase_already_claimed');
+        }
+        purchase.status = 'cancelled';
+        state.auditLogs.unshift({
+          id: `audit-${crypto.randomUUID().slice(0, 8)}`,
+          businessId: String(body.p_business_id ?? ''),
+          actorEmail: user!.email,
+          operation: 'purchase.qr_cancelled',
+          entityType: 'purchase',
+          entityId: purchase.id,
+          metadata: { reason: String(body.p_reason ?? '') },
+          createdAt: now(),
+        });
+        return json(route, { purchase_id: purchase.id, status: 'cancelled' });
+      }
       case 'claim_purchase': {
         const tokenValue = String(body.p_token ?? '');
         const purchase = state.purchases.find(

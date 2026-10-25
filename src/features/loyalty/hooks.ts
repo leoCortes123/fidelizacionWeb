@@ -18,7 +18,6 @@ import type {
   MyLoyaltyRedemption,
   Product,
   ProfileLookup,
-  PurchaseRegisterResult,
   RedemptionRequestResult,
   RedemptionTokenReissueResult,
   RedemptionTokenValidateResult,
@@ -29,7 +28,6 @@ import type {
   EconomicDataStatus,
   EconomicField,
   LoyaltyCampaign,
-  PurchaseRevertResult,
 } from '@/types';
 
 /* ------------------------------------------------------------------ */
@@ -438,75 +436,6 @@ export function useReissueRedemptionToken() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.myLoyaltyRedemptions });
       void queryClient.invalidateQueries({ queryKey: ['loyalty-redemptions'] });
-    },
-  });
-}
-
-export function useRegisterPurchase() {
-  const queryClient = useQueryClient();
-  return useMutation<PurchaseRegisterResult, Error, {
-    businessId: string;
-    customerId: string;
-    amountCop: number;
-    eligibleAmountCop: number;
-    idempotencyKey: string;
-  }>({
-    mutationFn: (params) =>
-      rpc<PurchaseRegisterResult>('loyalty_purchase_register', {
-        p_business_id: params.businessId,
-        p_customer_id: params.customerId,
-        p_amount_cop: params.amountCop,
-        p_eligible_amount_cop: params.eligibleAmountCop,
-        p_idempotency_key: params.idempotencyKey,
-      }),
-    onSuccess: (_, vars) => {
-      void queryClient.invalidateQueries({
-        queryKey: queryKeys.loyaltyPointAccount(vars.businessId, vars.customerId),
-      });
-      void queryClient.invalidateQueries({
-        queryKey: queryKeys.loyaltyPointTransactions(vars.businessId, vars.customerId),
-      });
-      void queryClient.invalidateQueries({
-        queryKey: queryKeys.loyaltyRedemptions(vars.businessId, ''),
-      });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.myLoyaltyRedemptions });
-      void queryClient.invalidateQueries({
-        queryKey: queryKeys.businessEconomicDashboard(vars.businessId),
-      });
-      void queryClient.invalidateQueries({
-        queryKey: queryKeys.businessAuditLogPrefix(vars.businessId),
-      });
-    },
-  });
-}
-
-export function useRevertPurchase() {
-  const queryClient = useQueryClient();
-  return useMutation<PurchaseRevertResult, Error, {
-    businessId: string;
-    customerId: string;
-    eventId: string;
-    reason: string;
-  }>({
-    mutationFn: (params) =>
-      rpc<PurchaseRevertResult>('loyalty_purchase_revert', {
-        p_business_id: params.businessId,
-        p_event_id: params.eventId,
-        p_reason: params.reason,
-      }),
-    onSuccess: (_, vars) => {
-      void queryClient.invalidateQueries({
-        queryKey: queryKeys.loyaltyPointAccount(vars.businessId, vars.customerId),
-      });
-      void queryClient.invalidateQueries({
-        queryKey: queryKeys.loyaltyPointTransactions(vars.businessId, vars.customerId),
-      });
-      void queryClient.invalidateQueries({
-        queryKey: queryKeys.businessEconomicDashboard(vars.businessId),
-      });
-      void queryClient.invalidateQueries({
-        queryKey: queryKeys.businessAuditLogPrefix(vars.businessId),
-      });
     },
   });
 }

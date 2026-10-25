@@ -8,10 +8,8 @@ import type {
   AdminSettings,
   AuditEntry,
   ConfigHistoryEntry,
-  CreatePurchaseResult,
   CustomerDetail,
   StaffCustomer,
-  StaffPurchase,
 } from '@/types';
 
 export function useAdminSettings() {
@@ -105,19 +103,6 @@ export function useExpirePoints() {
 // ---------------------------------------------------------------------
 // Operación diaria del administrador
 // ---------------------------------------------------------------------
-export function useCreatePurchase() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (amountCop: number) =>
-      rpc<CreatePurchaseResult>('create_purchase', {
-        p_amount_cop: amountCop,
-      }),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['staff-purchases'] });
-    },
-  });
-}
-
 export function useAdminCustomers(
   search: string,
   page: number,
@@ -146,34 +131,6 @@ export function useAdminCustomer(customerId: string | undefined) {
         p_customer_id: customerId,
       }),
     enabled: Boolean(customerId),
-  });
-}
-
-export function useAdminPurchases(page: number, pageSize: number, status: string) {
-  return useQuery({
-    queryKey: queryKeys.staffPurchases(page, status),
-    queryFn: () =>
-      rpc<StaffPurchase[]>('staff_list_purchases', {
-        p_limit: pageSize,
-        p_offset: page * pageSize,
-        p_status: status || null,
-      }),
-  });
-}
-
-export function useCancelPurchase() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (params: { purchaseId: string; reason: string }) =>
-      rpc<{ purchase_id: string; status: string }>('staff_cancel_purchase', {
-        p_purchase_id: params.purchaseId,
-        p_reason: params.reason,
-      }),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['staff-purchases'] });
-      void queryClient.invalidateQueries({ queryKey: ['staff-customers'] });
-      void queryClient.invalidateQueries({ queryKey: ['staff-customer'] });
-    },
   });
 }
 

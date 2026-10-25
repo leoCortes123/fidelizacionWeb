@@ -1,5 +1,12 @@
 const trimSlash = (value: string) => value.replace(/\/+$/, '');
 
+/**
+ * Dominio publicado de la plataforma. Los QR y enlaces de invitación deben
+ * abrir la web pública aunque se generen desde un entorno local, porque la
+ * base de datos es la misma. Se puede sobreescribir con VITE_PUBLIC_APP_URL.
+ */
+export const defaultPublicAppUrl = 'https://fidelizacion01.vercel.app';
+
 export const brandName =
   import.meta.env.VITE_BRAND_NAME?.trim() || 'Mi Negocio';
 
@@ -19,7 +26,7 @@ export const isSupabaseConfigured = Boolean(
 
 export function publicAppUrl(): string {
   return trimSlash(
-    import.meta.env.VITE_PUBLIC_APP_URL?.trim() || window.location.origin,
+    import.meta.env.VITE_PUBLIC_APP_URL?.trim() || defaultPublicAppUrl,
   );
 }
 

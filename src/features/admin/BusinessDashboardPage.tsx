@@ -9,6 +9,7 @@ import {
   Building2,
   LayoutGrid,
   Package,
+  QrCode,
   Rocket,
   Settings2,
   UserPlus,
@@ -227,6 +228,12 @@ export function BusinessDashboardPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-3">
+            <Button className="w-full justify-start" asChild>
+              <Link to="/admin/purchases/new">
+                <QrCode className="mr-2 size-4" aria-hidden="true" />
+                Generar QR de una venta
+              </Link>
+            </Button>
             <div className="flex items-center justify-between gap-3 rounded-lg border bg-muted/40 px-3 py-2 text-sm">
               <span className="font-medium">Estado del programa</span>
               <Badge

@@ -28,9 +28,12 @@ describe('navegación segura y OAuth', () => {
     expect(decodeURIComponent(url.split('next=')[1])).toBe('/claim/token-123');
   });
 
-  it('construye la URL de reclamación del QR', () => {
-    expect(claimUrl('abc_123')).toContain('/claim/abc_123');
-    expect(claimUrl('abc_123')).toMatch(/^https?:\/\//);
+  it('construye la URL de reclamación del QR contra la web publicada', () => {
+    expect(claimUrl('abc_123')).toBe(
+      'https://fidelizacion01.vercel.app/claim/abc_123',
+    );
+    expect(claimUrl('abc_123')).not.toContain('127.0.0.1');
+    expect(claimUrl('abc_123')).not.toContain('localhost');
   });
 
   it('elige el portal según los roles', () => {

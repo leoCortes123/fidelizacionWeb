@@ -59,7 +59,9 @@ export function LoginPage() {
     signInWithPassword,
     signUpWithPassword,
   } = useAuth();
-  const [mode, setMode] = useState<'login' | 'register'>('login');
+  const [mode, setMode] = useState<'login' | 'register'>(
+    params.get('mode') === 'register' ? 'register' : 'login',
+  );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -119,6 +121,7 @@ export function LoginPage() {
           email,
           password,
           fullName,
+          nextPath: next,
         });
         if (needsConfirmation) {
           setNotice('Revisa tu correo para confirmar la cuenta y luego entra.');

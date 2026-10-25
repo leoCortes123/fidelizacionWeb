@@ -642,7 +642,7 @@ test('encargado que entra a /admin es enviado a su portal', async ({ browser }) 
   await context.close();
 });
 
-test('registra una compra, la audita y calcula el panel económico', async ({ browser }) => {
+test('genera una venta con QR, el cliente la reclama y queda auditada', async ({ browser }) => {
   const state = createFakeState();
   seedBusiness(state);
 
@@ -657,15 +657,38 @@ test('registra una compra, la audita y calcula el panel económico', async ({ br
     page.getByRole('heading', { name: /Registrar compra/ }),
   ).toBeVisible();
 
-  await page.getByLabel('Cliente').fill('carla');
-  await page.getByRole('button', { name: /Carla Cliente/ }).click();
   await page.getByLabel('Importe de la compra (COP)').fill('15500');
-  await expect(page.getByText('15', { exact: true })).toBeVisible();
+  await expect(page.getByText(/15 puntos/)).toBeVisible();
 
-  await page.getByRole('button', { name: /Acreditar puntos/ }).click();
-  await expect(page.getByText('Compra registrada')).toBeVisible();
-  await expect(page.getByText('+15')).toBeVisible();
-  expect(state.purchaseCredits['user-customer']).toBe(15);
+  await page
+    .getByRole('button', { name: /Generar QR de la venta/ })
+    .click();
+  await expect(page.getByText(/Escanéalo para sumar puntos/i)).toBeVisible();
+
+  const claimUrl = await page.getByTestId('claim-url').textContent();
+  expect(claimUrl).toContain('https://fidelizacion01.vercel.app/claim/');
+  const token = claimUrl!.split('/claim/')[1];
+
+  await expect.poll(() => state.purchases.length).toBe(1);
+  expect(state.purchases[0].businessId).toBe('biz-test');
+  expect(state.purchases[0].status).toBe('pending_claim');
+  expect(state.purchases[0].customerId).toBeNull();
+
+  // El cliente escanea el QR y confirma desde su cuenta.
+  const customer = await openAs(
+    browser,
+    state,
+    TOKENS.customer,
+    `/claim/${token}`,
+  );
+  await expect(customer.page.getByText('Taquería El Fogón')).toBeVisible();
+  await customer.page
+    .getByRole('button', { name: /Confirmar y sumar puntos/ })
+    .click();
+  await expect(customer.page.getByText(/¡Puntos acreditados!/)).toBeVisible();
+  await expect.poll(() => state.purchaseCredits['user-customer']).toBe(15);
+  expect(state.purchases[0].status).toBe('claimed');
+  await customer.context.close();
 
   // Panel económico: guardar los datos y ver el cálculo.
   await page.getByRole('link', { name: 'Económico' }).click();
@@ -686,7 +709,8 @@ test('registra una compra, la audita y calcula el panel económico', async ({ br
   // Auditoría: la compra y el cambio económico quedaron registrados.
   await page.getByRole('link', { name: 'Auditoría' }).click();
   await expect(page.getByRole('heading', { name: /Auditoría/ })).toBeVisible();
-  await expect(page.getByText('purchase.registered')).toBeVisible();
+  await expect(page.getByText('purchase.qr_created')).toBeVisible();
+  await expect(page.getByText('purchase.qr_claimed')).toBeVisible();
   await expect(page.getByText('economic_profile.updated')).toBeVisible();
 
   await context.close();
@@ -782,17 +806,31 @@ test('crea una campaña y duplica los puntos de una compra', async ({ browser })
   await expect(page.getByText('En vigencia')).toBeVisible();
   await expect.poll(() => state.campaigns.length).toBe(1);
 
-  // La campaña vigente duplica los puntos al registrar una compra.
+  // La campaña vigente duplica los puntos de la venta con QR.
   await page.getByRole('link', { name: 'Registrar compra' }).click();
-  await page.getByLabel('Cliente').fill('carla');
-  await page.getByRole('button', { name: /Carla Cliente/ }).click();
   await page.getByLabel('Importe de la compra (COP)').fill('10000');
-  await expect(page.getByText('10', { exact: true })).toBeVisible();
-  await page.getByRole('button', { name: /Acreditar puntos/ }).click();
+  await expect(page.getByText(/10 puntos/)).toBeVisible();
+  await page
+    .getByRole('button', { name: /Generar QR de la venta/ })
+    .click();
+  await expect(page.getByText(/Escanéalo para sumar puntos/i)).toBeVisible();
+  await expect(page.getByText(/20 puntos estimados/i)).toBeVisible();
 
-  await expect(page.getByText('Compra registrada')).toBeVisible();
-  await expect(page.getByText('+20')).toBeVisible();
+  const claimUrl = await page.getByTestId('claim-url').textContent();
+  const token = claimUrl!.split('/claim/')[1];
+
+  const customer = await openAs(
+    browser,
+    state,
+    TOKENS.customer,
+    `/claim/${token}`,
+  );
+  await customer.page
+    .getByRole('button', { name: /Confirmar y sumar puntos/ })
+    .click();
+  await expect(customer.page.getByText(/¡Puntos acreditados!/)).toBeVisible();
   await expect.poll(() => state.purchaseCredits['user-customer']).toBe(20);
+  await customer.context.close();
 
   await context.close();
 });

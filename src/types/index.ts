@@ -72,19 +72,54 @@ export interface MyRedemption {
 
 export interface ClaimResult {
   purchase_id: string;
+  business_id: string;
+  business_name: string;
+  business_slug: string;
   amount_cop: number;
   points_awarded: number;
   balance: number;
   claimed_at: string;
+  duplicate: boolean;
 }
 
-export interface CreatePurchaseResult {
+/** Datos del QR de venta que se muestran antes de iniciar sesión. */
+export interface PurchaseQrPreview {
+  purchase_id: string;
+  business_id: string;
+  business_name: string;
+  business_slug: string;
+  amount_cop: number;
+  points_preview: number;
+  status: PurchaseStatus;
+  claimed: boolean;
+  expires_at: string;
+}
+
+/** Resultado de generar el QR de una venta en caja. */
+export interface PurchaseQrCreateResult {
   purchase_id: string;
   token: string;
+  business_id: string;
+  business_name: string;
   amount_cop: number;
   points_preview: number;
   expires_at: string;
   status: 'pending_claim';
+}
+
+/** Venta del negocio en el historial de compras. */
+export interface BusinessPurchase {
+  id: string;
+  amount_cop: number;
+  status: PurchaseStatus;
+  points_awarded: number;
+  created_at: string;
+  expires_at: string;
+  claimed_at: string | null;
+  customer_name: string | null;
+  customer_email: string | null;
+  registrar_name: string | null;
+  total_count: number;
 }
 
 export interface StaffCustomer {
@@ -138,20 +173,6 @@ export interface CustomerDetail {
   purchases: CustomerPurchase[];
   movements: CustomerMovement[];
   redemptions: CustomerRedemption[];
-}
-
-export interface StaffPurchase {
-  id: string;
-  amount_cop: number;
-  status: PurchaseStatus;
-  points_awarded: number;
-  created_at: string;
-  expires_at: string;
-  claimed_at: string | null;
-  customer_name: string | null;
-  customer_email: string | null;
-  registrar_name: string | null;
-  total_count: number;
 }
 
 export interface StaffRedemption {
@@ -604,18 +625,3 @@ export interface RedemptionTokenReissueResult {
   expires_at: string;
 }
 
-export interface PurchaseRegisterResult {
-  points_earned: number;
-  balance: number;
-  duplicate: boolean;
-  account_id: string;
-  purchase_event_id?: string | null;
-  message?: string;
-}
-
-export interface PurchaseRevertResult {
-  points_reversed: number;
-  balance: number;
-  duplicate: boolean;
-  message?: string;
-}

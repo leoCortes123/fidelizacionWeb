@@ -1,10 +1,21 @@
 import { useState } from 'react';
-import { Ban, ChevronLeft, ChevronRight, ReceiptText } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import {
+  Ban,
+  ChevronLeft,
+  ChevronRight,
+  PlusCircle,
+  QrCode,
+  ReceiptText,
+} from 'lucide-react';
 import { toast } from 'sonner';
-import { useAdminPurchases, useCancelPurchase } from './hooks';
+import {
+  useBusinessPurchases,
+  useCancelBusinessPurchase,
+} from '@/features/purchases/hooks';
 import { formatCOP, formatDateTimeBogota, formatPoints } from '@/lib/format';
 import { errorMessage } from '@/lib/errors';
-import type { StaffPurchase } from '@/types';
+import type { Business, BusinessPurchase } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
@@ -28,29 +39,44 @@ import { PageHeader } from '@/components/shared/PageHeader';
 import { PurchaseStatusBadge } from '@/components/shared/StatusBadge';
 import { EmptyState, ErrorState, ListSkeleton } from '@/components/shared/States';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
+import { BusinessGate } from './BusinessGate';
 
 const PAGE_SIZE = 15;
 
-function canCancel(purchase: StaffPurchase) {
+function canCancel(purchase: BusinessPurchase) {
   return purchase.status === 'pending_claim' || purchase.status === 'expired';
 }
 
 export function PurchasesPage() {
+  return (
+    <BusinessGate
+      title="Ventas"
+      description="Historial de ventas con QR del negocio."
+      icon={ReceiptText}
+      emptyDescription="Registra un negocio para ver sus ventas."
+    >
+      {(business) => <PurchasesSection key={business.id} business={business} />}
+    </BusinessGate>
+  );
+}
+
+function PurchasesSection({ business }: { business: Business }) {
   const [page, setPage] = useState(0);
   const [status, setStatus] = useState('all');
-  const purchases = useAdminPurchases(
+  const purchases = useBusinessPurchases(
+    business.id,
     page,
     PAGE_SIZE,
     status === 'all' ? '' : status,
   );
-  const cancelPurchase = useCancelPurchase();
-  const [target, setTarget] = useState<StaffPurchase | null>(null);
+  const cancelPurchase = useCancelBusinessPurchase(business.id);
+  const [target, setTarget] = useState<BusinessPurchase | null>(null);
   const [reason, setReason] = useState('');
 
   const total = purchases.data?.[0]?.total_count ?? 0;
   const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
-  function openCancel(purchase: StaffPurchase) {
+  function openCancel(purchase: BusinessPurchase) {
     setTarget(purchase);
     setReason('');
   }
@@ -66,7 +92,7 @@ export function PurchasesPage() {
         purchaseId: target.id,
         reason: reason.trim(),
       });
-      toast.success('Compra cancelada');
+      toast.success('Venta cancelada');
       setTarget(null);
     } catch (error) {
       toast.error(errorMessage(error));
@@ -76,27 +102,35 @@ export function PurchasesPage() {
   return (
     <div className="space-y-6 animate-fade-in">
       <PageHeader
-        title="Compras"
-        description="Historial de QR generados. Puedes cancelar los pendientes o expirados."
+        title={`Ventas — ${business.name}`}
+        description="Cada venta genera un QR que el cliente confirma desde su teléfono. Aquí ves quién lo reclamó y puedes anular los pendientes."
         actions={
-          <Select
-            value={status}
-            onValueChange={(value) => {
-              setStatus(value);
-              setPage(0);
-            }}
-          >
-            <SelectTrigger className="w-full sm:w-44" aria-label="Filtrar por estado">
-              <SelectValue placeholder="Estado" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos los estados</SelectItem>
-              <SelectItem value="pending_claim">Pendientes</SelectItem>
-              <SelectItem value="claimed">Reclamadas</SelectItem>
-              <SelectItem value="expired">Expiradas</SelectItem>
-              <SelectItem value="cancelled">Canceladas</SelectItem>
-            </SelectContent>
-          </Select>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button asChild size="sm">
+              <Link to="/admin/purchases/new">
+                <PlusCircle aria-hidden="true" />
+                Nueva venta
+              </Link>
+            </Button>
+            <Select
+              value={status}
+              onValueChange={(value) => {
+                setStatus(value);
+                setPage(0);
+              }}
+            >
+              <SelectTrigger className="w-full sm:w-44" aria-label="Filtrar por estado">
+                <SelectValue placeholder="Estado" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los estados</SelectItem>
+                <SelectItem value="pending_claim">Pendientes</SelectItem>
+                <SelectItem value="claimed">Reclamadas</SelectItem>
+                <SelectItem value="expired">Expiradas</SelectItem>
+                <SelectItem value="cancelled">Canceladas</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         }
       />
 
@@ -106,9 +140,9 @@ export function PurchasesPage() {
         <ErrorState error={purchases.error} onRetry={() => void purchases.refetch()} />
       ) : !purchases.data || purchases.data.length === 0 ? (
         <EmptyState
-          title="Sin compras en este filtro"
-          description="Genera un QR nuevo o cambia el filtro de estado."
-          icon={ReceiptText}
+          title="Sin ventas en este filtro"
+          description="Genera una venta nueva o cambia el filtro de estado."
+          icon={QrCode}
         />
       ) : (
         <>
@@ -232,7 +266,7 @@ export function PurchasesPage() {
       {total > PAGE_SIZE && (
         <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
           <p className="text-sm text-muted-foreground">
-            {total} compras · página {page + 1} de {pageCount}
+            {total} ventas · página {page + 1} de {pageCount}
           </p>
           <div className="flex w-full gap-2 sm:w-auto">
             <Button
@@ -264,13 +298,13 @@ export function PurchasesPage() {
         onOpenChange={(open) => {
           if (!open) setTarget(null);
         }}
-        title="Cancelar compra"
+        title="Cancelar venta"
         description={
           target
-            ? `La compra de ${formatCOP(target.amount_cop)} quedará cancelada y su QR no podrá reclamarse.`
+            ? `La venta de ${formatCOP(target.amount_cop)} quedará cancelada y su QR no podrá reclamarse.`
             : undefined
         }
-        confirmLabel="Cancelar compra"
+        confirmLabel="Cancelar venta"
         destructive
         loading={cancelPurchase.isPending}
         onConfirm={confirmCancel}

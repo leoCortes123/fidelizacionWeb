@@ -27,6 +27,7 @@ interface AuthContextValue {
     email: string;
     password: string;
     fullName: string;
+    nextPath?: string;
   }) => Promise<{ needsConfirmation: boolean }>;
   signOut: () => Promise<void>;
   refreshRoles: () => Promise<void>;
@@ -193,16 +194,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email,
       password,
       fullName,
+      nextPath,
     }: {
       email: string;
       password: string;
       fullName: string;
+      nextPath?: string;
     }) => {
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
         password,
         options: {
           data: { full_name: fullName.trim() },
+          // Vuelve al QR (o al destino pendiente) después de confirmar el correo.
+          emailRedirectTo: oauthRedirectUrl(nextPath),
         },
       });
       if (error) throw error;

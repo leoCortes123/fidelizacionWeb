@@ -14,8 +14,6 @@ export const queryKeys = {
     direction: string,
   ) => ['staff-customers', search, page, sort, direction] as const,
   staffCustomer: (id: string) => ['staff-customer', id] as const,
-  staffPurchases: (page: number, status: string) =>
-    ['staff-purchases', page, status] as const,
   staffRedemptions: (status: string) => ['staff-redemptions', status] as const,
   adminSettings: ['admin-settings'] as const,
   adminRewards: ['admin-rewards'] as const,
@@ -34,8 +32,7 @@ export const queryKeys = {
     ['profile-search', businessId, query] as const,
 
   // Programa y recompensas
-  loyaltyProgram: (businessId: string) => ['loyalty-program', businessId] as const,
-  products: (businessId: string, onlyActive: boolean) =>
+  loyaltyProgram: (businessId: string) => ['loyalty-program', businessId] as const,  products: (businessId: string, onlyActive: boolean) =>
     ['products', businessId, onlyActive] as const,
   loyaltyRewards: (businessId: string, onlyActive: boolean) =>
     ['loyalty-rewards', businessId, onlyActive] as const,
@@ -50,6 +47,11 @@ export const queryKeys = {
   loyaltyRedemptions: (businessId: string, status: string) =>
     ['loyalty-redemptions', businessId, status] as const,
   myLoyaltyRedemptions: ['my-loyalty-redemptions'] as const,
+
+  // Ventas con QR por negocio
+  purchaseQrPreview: (token: string) => ['purchase-qr-preview', token] as const,
+  businessPurchases: (businessId: string, page: number, status: string) =>
+    ['business-purchases', businessId, page, status] as const,
 
   // Económico y auditoría
   businessEconomicProfile: (businessId: string) =>

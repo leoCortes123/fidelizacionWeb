@@ -14,7 +14,6 @@ import {
   UserRound,
   ClipboardList,
   Megaphone,
-  PlusCircle,
   Rocket,
   TrendingUp,
 } from 'lucide-react';
@@ -47,7 +46,7 @@ const adminNav: AdminNavItem[] = [
     to: '/admin/purchases/new',
     label: 'Registrar compra',
     shortLabel: 'Registrar',
-    icon: PlusCircle,
+    icon: QrCode,
     primary: true,
   },
   { to: '/admin/economic', label: 'Económico', icon: TrendingUp },
@@ -56,7 +55,6 @@ const adminNav: AdminNavItem[] = [
   { to: '/admin/members', label: 'Miembros', icon: UserRound },
   { to: '/admin/customers', label: 'Clientes', icon: Users },
   { to: '/admin/purchases', label: 'Compras', icon: ReceiptText },
-  { to: '/admin', label: 'QR de compras', icon: QrCode, end: true, legacy: true },
   { to: '/admin/settings', label: 'Ajustes anteriores', icon: Settings, legacy: true },
 ];
 
