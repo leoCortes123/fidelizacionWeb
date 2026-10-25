@@ -7,6 +7,11 @@ import {
   oauthRedirectUrl,
   safeNextPath,
 } from '@/lib/config';
+import {
+  clearPendingClaim,
+  pendingClaimPath,
+  rememberPendingClaim,
+} from '@/lib/pendingClaim';
 
 describe('navegación segura y OAuth', () => {
   it('conserva rutas internas', () => {
@@ -54,5 +59,27 @@ describe('navegación segura y OAuth', () => {
   it('genera iniciales para el avatar', () => {
     expect(initials('Carla Cliente')).toBe('CC');
     expect(initials('')).toBe('?');
+  });
+
+  it('recuerda el QR pendiente como respaldo tras autenticarse', () => {
+    const token = 'tok_123456789012345678901234567890';
+    rememberPendingClaim(token);
+    expect(pendingClaimPath()).toBe(`/claim/${token}`);
+    clearPendingClaim();
+    expect(pendingClaimPath()).toBeNull();
+  });
+
+  it('descarta un QR pendiente vencido o con formato inválido', () => {
+    window.localStorage.setItem(
+      'fidelizacion:pending-claim',
+      JSON.stringify({ token: 'tok_123456789012345678901234567890', savedAt: 0 }),
+    );
+    expect(pendingClaimPath()).toBeNull();
+
+    window.localStorage.setItem(
+      'fidelizacion:pending-claim',
+      JSON.stringify({ token: 'corto', savedAt: Date.now() }),
+    );
+    expect(pendingClaimPath()).toBeNull();
   });
 });

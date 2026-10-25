@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import {
   ArrowRight,
@@ -21,6 +21,7 @@ import { persistBusinessSelection } from '@/features/loyalty/businessContext';
 import { useClaimPurchase, usePurchaseQrPreview } from './hooks';
 import { errorMessage } from '@/lib/errors';
 import { formatCOP, formatPoints } from '@/lib/format';
+import { clearPendingClaim, rememberPendingClaim } from '@/lib/pendingClaim';
 import { cn } from '@/lib/utils';
 import type { ClaimResult } from '@/types';
 
@@ -39,6 +40,17 @@ export function ClaimPage() {
   const claimPath = `/claim/${token}`;
   const loginNext = encodeURIComponent(claimPath);
 
+  // Respaldo para volver al QR tras crear la cuenta o confirmar el correo.
+  useEffect(() => {
+    if (tokenLooksValid) rememberPendingClaim(token);
+  }, [token, tokenLooksValid]);
+
+  useEffect(() => {
+    if (preview.data && preview.data.status !== 'pending_claim') {
+      clearPendingClaim();
+    }
+  }, [preview.data]);
+
   async function handleGoogle() {
     setSigningIn(true);
     try {
@@ -54,6 +66,7 @@ export function ClaimPage() {
     claim.mutate(token, {
       onSuccess: (data) => {
         setResult(data);
+        clearPendingClaim();
         persistBusinessSelection(user?.id, data.business_id);
         toast.success(`¡Sumaste ${formatPoints(data.points_awarded)} puntos!`);
       },

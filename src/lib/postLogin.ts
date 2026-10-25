@@ -1,4 +1,5 @@
 import { defaultPathForRoles } from './config';
+import { pendingClaimPath } from './pendingClaim';
 import { rpc } from './supabase';
 
 interface BusinessSummary {
@@ -11,6 +12,8 @@ interface BusinessSummary {
  * corresponda a sus roles globales.
  */
 export async function resolvePostLoginPath(roles: string[]): Promise<string> {
+  const claimPath = pendingClaimPath();
+  if (claimPath) return claimPath;
   const fallback = defaultPathForRoles(roles);
   try {
     const businesses = await rpc<BusinessSummary[]>('businesses_list');

@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowRight, Gift, QrCode, Sparkles, UsersRound } from 'lucide-react';
 import { toast } from 'sonner';
@@ -8,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useAuth } from './AuthProvider';
 import { brandTagline, defaultPathForRoles, isSupabaseConfigured } from '@/lib/config';
+import { pendingClaimPath } from '@/lib/pendingClaim';
 import { errorMessage } from '@/lib/errors';
 
 const steps = [
@@ -31,6 +33,14 @@ const steps = [
 export function LandingPage() {
   const { session, roles, signInWithGoogle } = useAuth();
   const navigate = useNavigate();
+
+  // Si el cliente confirmó su cuenta desde el correo y volvió al inicio,
+  // lo devolvemos al QR que estaba reclamando.
+  useEffect(() => {
+    if (!session) return;
+    const claimPath = pendingClaimPath();
+    if (claimPath) navigate(claimPath, { replace: true });
+  }, [session, navigate]);
 
   async function handleLogin() {
     try {
