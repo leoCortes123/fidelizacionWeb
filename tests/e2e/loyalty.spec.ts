@@ -440,7 +440,7 @@ test('QR escaneado: confirma la entrega y vuelve a registrar compra', async ({ b
   seedBusiness(state);
 
   // El cliente solicita la recompensa y obtiene su token.
-  const customer = await openAs(browser, state, TOKENS.admin, '/customer/balance');
+  const customer = await openAs(browser, state, TOKENS.customer, '/customer/balance');
   await customer.page.getByRole('button', { name: 'Solicitar' }).click();
   await customer.page
     .getByRole('dialog')
@@ -464,7 +464,7 @@ test('QR escaneado: confirma la entrega y vuelve a registrar compra', async ({ b
   ).toBeVisible();
   await expect(business.page.getByText('Taquería El Fogón')).toBeVisible();
   await expect(business.page.getByText('Taco individual')).toBeVisible();
-  await expect(business.page.getByText('@anaadmin')).toBeVisible();
+  await expect(business.page.getByText('@carlacliente')).toBeVisible();
 
   await business.page
     .getByRole('button', { name: 'Confirmar entrega' })
