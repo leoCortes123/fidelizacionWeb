@@ -49,8 +49,8 @@ export const queryKeys = {
     ['loyalty-point-account', businessId, customerId] as const,
   loyaltyPointTransactions: (businessId: string, customerId: string) =>
     ['loyalty-point-transactions', businessId, customerId] as const,
-  loyaltyRedemptions: (businessId: string, status: string) =>
-    ['loyalty-redemptions', businessId, status] as const,
+  loyaltyRedemptions: (businessId: string, status: string, origin: string = '') =>
+    ['loyalty-redemptions', businessId, status, origin] as const,
   myLoyaltyRedemptions: ['my-loyalty-redemptions'] as const,
 
   // Ventas con QR por negocio

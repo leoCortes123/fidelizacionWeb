@@ -145,6 +145,11 @@ const EncargadoPage = lazy(() =>
     default: module.EncargadoPage,
   })),
 );
+const ScanRedemptionPage = lazy(() =>
+  import('@/features/loyalty/ScanRedemptionPage').then((module) => ({
+    default: module.ScanRedemptionPage,
+  })),
+);
 
 export function AppRoutes() {
   return (
@@ -155,6 +160,14 @@ export function AppRoutes() {
         <Route path="/auth/callback" element={<AuthCallbackPage />} />
         <Route path="/claim/:token" element={<ClaimPage />} />
         <Route path="/join/:slug" element={<BusinessJoinPage />} />
+        <Route
+          path="/scan/:token"
+          element={
+            <RequireAuth>
+              <ScanRedemptionPage />
+            </RequireAuth>
+          }
+        />
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
         <Route
           path="/perfil"
@@ -192,6 +205,18 @@ export function AppRoutes() {
               <BusinessLayout>
                 <RequireBusinessRole roles={['admin', 'encargado']}>
                   <EncargadoPage />
+                </RequireBusinessRole>
+              </BusinessLayout>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/encargado/venta"
+          element={
+            <RequireAuth>
+              <BusinessLayout>
+                <RequireBusinessRole roles={['admin', 'encargado']}>
+                  <PurchaseRegistrationPage />
                 </RequireBusinessRole>
               </BusinessLayout>
             </RequireAuth>

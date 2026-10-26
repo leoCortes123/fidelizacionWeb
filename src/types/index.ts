@@ -580,11 +580,53 @@ export interface LoyaltyRedemption {
   delivered_at: string | null;
   cancelled_at: string | null;
   cancellation_reason: string | null;
+  origin: RedemptionOrigin;
 }
 
 export interface LoyaltyRedemptionWithCustomer extends LoyaltyRedemption {
   customer_id: string;
   customer_email: string;
+  customer_nickname: string | null;
+}
+
+export type RedemptionOrigin = 'manual' | 'qr_scan';
+
+/** Contexto de `/scan/:token`: el negocio lo resuelve el servidor. */
+export interface RedemptionScanContext {
+  business_id: string;
+  business_name: string;
+  business_slug: string;
+  business_logo_url: string | null;
+  redemption_id: string;
+  code: string;
+  reward_name: string;
+  reward_type: LoyaltyRewardType;
+  points_spent: number;
+  customer_id: string;
+  customer_nickname: string | null;
+  status: RedemptionRequestStatus;
+  origin: RedemptionOrigin;
+  created_at: string;
+  expires_at: string;
+  consumed_at: string | null;
+  approved_at: string | null;
+  delivered_at: string | null;
+  can_redeem: boolean;
+  reason: string | null;
+  role: BusinessRole;
+}
+
+export interface RedemptionRedeemResult {
+  business_id: string;
+  redemption_id: string;
+  code: string;
+  reward_name: string;
+  points_spent: number;
+  customer_nickname: string | null;
+  status: 'delivered';
+  origin: RedemptionOrigin;
+  delivered_at: string;
+  role: BusinessRole;
 }
 
 export interface RedemptionTokenValidateResult {

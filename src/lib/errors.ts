@@ -23,6 +23,8 @@ const MESSAGES: Record<string, string> = {
   redemption_already_redeemed: 'Este código ya fue entregado.',
   redemption_cancelled: 'Este canje fue cancelado.',
   redemption_not_pending: 'Este canje ya no está pendiente de validación.',
+  redemption_already_delivered: 'Este canje ya fue entregado.',
+  redemption_expired: 'Este canje expiró. El cliente debe solicitarlo de nuevo.',
   redemption_not_approved:
     'Primero debes aprobar la solicitud antes de confirmar la entrega.',
   redemption_not_reissuable:
@@ -141,6 +143,7 @@ const MESSAGES: Record<string, string> = {
   'User already registered': 'Ya existe una cuenta con ese correo. Inicia sesión.',
   'Password should be at least 6 characters':
     'La contraseña debe tener al menos 6 caracteres.',
+  invalid_origin: 'El origen del canje no es válido.',
   redemption_requires_admin:
     'Un administrador debe aplicar el canje desde el panel.',
   'Auth session missing': 'Tu sesión expiró. Vuelve a iniciar sesión.',

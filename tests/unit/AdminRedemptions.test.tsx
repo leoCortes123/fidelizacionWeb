@@ -72,8 +72,10 @@ function redemption(
     delivered_at: null,
     cancelled_at: null,
     cancellation_reason: null,
+    origin: 'manual',
     customer_id: 'user-customer',
     customer_email: 'carla@example.test',
+    customer_nickname: 'carla',
     ...overrides,
   };
 }

@@ -121,6 +121,7 @@ export interface FakeRedemptionRequest {
   approvedAt: string | null;
   deliveredAt?: string | null;
   cancelledAt?: string | null;
+  origin: 'manual' | 'qr_scan';
 }
 
 export interface FakeToken {
@@ -2519,6 +2520,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           approvedAt: null,
           deliveredAt: null,
           cancelledAt: null,
+          origin: 'manual',
         };
         state.redemptionRequests.push(redemption);
         state.tokens.push({
@@ -2627,6 +2629,148 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           can_approve: true,
         });
       }
+      case 'redemption_token_context': {
+        if (!user) return fail(route, 'not_authenticated');
+        const tokenValue = String(body.p_token ?? '');
+        const foundToken = state.tokens.find((tok) => tok.token === tokenValue);
+        if (!foundToken) return fail(route, 'invalid_token');
+        const redemption = state.redemptionRequests.find(
+          (r) => r.id === foundToken.redemptionId,
+        );
+        if (!redemption) return fail(route, 'redemption_not_found');
+        const membership = state.memberships.find(
+          (m) =>
+            m.businessId === foundToken.businessId && m.userId === user.id,
+        );
+        if (!membership) return fail(route, 'business_not_found_or_no_access');
+        if (
+          membership.role !== 'admin' &&
+          !(membership.role === 'encargado' && membership.canApproveRedemptions)
+        ) {
+          return fail(route, 'forbidden');
+        }
+        const business = state.businesses.find(
+          (b) => b.id === foundToken.businessId,
+        );
+        const customer = state.users.find((u) => u.id === redemption.accountId);
+        const expired = new Date(foundToken.expiresAt).getTime() <= Date.now();
+        let reason: string | null = null;
+        if (redemption.status === 'delivered') {
+          reason = 'redemption_already_delivered';
+        } else if (redemption.status === 'cancelled') {
+          reason = 'redemption_cancelled';
+        } else if (redemption.status === 'expired') {
+          reason = 'redemption_expired';
+        } else if (redemption.status !== 'pending') {
+          reason = 'redemption_not_pending';
+        } else if (foundToken.consumedAt) {
+          reason = 'token_already_consumed';
+        } else if (expired) {
+          reason = 'token_expired';
+        }
+        return json(route, {
+          business_id: foundToken.businessId,
+          business_name: business?.name ?? 'Negocio',
+          business_slug: business?.slug ?? '',
+          business_logo_url: business?.logoUrl ?? null,
+          redemption_id: redemption.id,
+          code: redemption.code,
+          reward_name: redemption.rewardName,
+          reward_type: redemption.rewardType,
+          points_spent: redemption.pointsSpent,
+          customer_id: customer?.id ?? redemption.accountId,
+          customer_nickname: customer?.nickname ?? null,
+          status: redemption.status,
+          origin: redemption.origin,
+          created_at: redemption.createdAt,
+          expires_at: foundToken.expiresAt,
+          consumed_at: foundToken.consumedAt,
+          approved_at: redemption.approvedAt,
+          delivered_at: redemption.deliveredAt ?? null,
+          can_redeem: reason === null,
+          reason,
+          role: membership.role,
+        });
+      }
+      case 'redemption_redeem_by_token': {
+        if (!user) return fail(route, 'not_authenticated');
+        const tokenValue = String(body.p_token ?? '');
+        const foundToken = state.tokens.find((tok) => tok.token === tokenValue);
+        if (!foundToken) return fail(route, 'invalid_token');
+        const redemption = state.redemptionRequests.find(
+          (r) => r.id === foundToken.redemptionId,
+        );
+        if (!redemption) return fail(route, 'redemption_not_found');
+        const membership = state.memberships.find(
+          (m) =>
+            m.businessId === foundToken.businessId && m.userId === user.id,
+        );
+        if (!membership) return fail(route, 'business_not_found_or_no_access');
+        if (
+          membership.role !== 'admin' &&
+          !(membership.role === 'encargado' && membership.canApproveRedemptions)
+        ) {
+          return fail(route, 'forbidden');
+        }
+        if (redemption.status === 'delivered') {
+          return fail(route, 'redemption_already_delivered');
+        }
+        if (redemption.status !== 'pending') {
+          return fail(route, 'redemption_not_pending');
+        }
+        if (foundToken.consumedAt) return fail(route, 'token_already_consumed');
+        if (new Date(foundToken.expiresAt).getTime() <= Date.now()) {
+          return fail(route, 'token_expired');
+        }
+        redemption.status = 'delivered';
+        redemption.origin = 'qr_scan';
+        redemption.approvedBy = user.id;
+        redemption.approvedAt = now();
+        redemption.deliveredAt = now();
+        foundToken.consumedAt = now();
+        const customer = state.users.find((u) => u.id === redemption.accountId);
+        state.auditLogs.unshift({
+          id: newId(),
+          businessId: foundToken.businessId,
+          actorEmail: user.email,
+          operation: 'redemption.scanned',
+          entityType: 'loyalty_redemption',
+          entityId: redemption.id,
+          metadata: {
+            code: redemption.code,
+            reward_name: redemption.rewardName,
+            points_spent: redemption.pointsSpent,
+            channel: 'qr_scan',
+          },
+          createdAt: now(),
+        });
+        state.auditLogs.unshift({
+          id: newId(),
+          businessId: foundToken.businessId,
+          actorEmail: user.email,
+          operation: 'redemption.delivered',
+          entityType: 'loyalty_redemption',
+          entityId: redemption.id,
+          metadata: {
+            reward_name: redemption.rewardName,
+            points_spent: redemption.pointsSpent,
+            via: 'qr_scan',
+          },
+          createdAt: now(),
+        });
+        return json(route, {
+          business_id: foundToken.businessId,
+          redemption_id: redemption.id,
+          code: redemption.code,
+          reward_name: redemption.rewardName,
+          points_spent: redemption.pointsSpent,
+          customer_nickname: customer?.nickname ?? null,
+          status: 'delivered',
+          origin: 'qr_scan',
+          delivered_at: redemption.deliveredAt,
+          role: membership.role,
+        });
+      }
       case 'redemption_approve': {
         if (!user) return fail(route, 'not_authenticated');
         const businessId = String(body.p_business_id ?? '');
@@ -2704,11 +2848,13 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
         if (!user) return fail(route, 'not_authenticated');
         const businessId = String(body.p_business_id ?? '');
         const status = body.p_status ? String(body.p_status) : '';
+        const origin = body.p_origin ? String(body.p_origin) : '';
         return json(
           route,
           state.redemptionRequests
             .filter((r) => r.businessId === businessId)
             .filter((r) => !status || r.status === status)
+            .filter((r) => !origin || r.origin === origin)
             .map((r) => {
               const u = state.users.find((x) => x.id === r.accountId);
               return {
@@ -2724,6 +2870,8 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
                 cancelled_at: r.cancelledAt ?? null,
                 customer_id: r.accountId,
                 customer_email: u?.email ?? '',
+                customer_nickname: u?.nickname ?? null,
+                origin: r.origin,
               };
             }),
         );

@@ -47,8 +47,9 @@ async function waitForServer(timeoutMs = 30_000) {
 }
 
 const routes = [
-  { path: '/', expected: /Cada compra cuenta/i },
-  { path: '/login', expected: /Entra a tus puntos/i },
+  // La landing comercial se retiró: sin sesión `/` redirige a /login.
+  { path: '/', expected: /Entra a tus loopoints/i },
+  { path: '/login', expected: /Entra a tus loopoints/i },
   { path: '/ruta-inexistente', expected: /Página no encontrada/i },
 ];
 

@@ -1,7 +1,8 @@
 import { QRCodeCanvas } from 'qrcode.react';
-import { AlertTriangle, Clock, Copy, RefreshCw, ShieldCheck } from 'lucide-react';
+import { AlertTriangle, Clock, Copy, Link2, RefreshCw, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatDateTimeBogota, formatRedemptionCode } from '@/lib/format';
+import { redemptionScanUrl } from '@/lib/config';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
@@ -40,6 +41,7 @@ export function RedemptionQrDialog({
   const countdown = useCountdown(expiresAt);
   const expired = Boolean(expiresAt) && countdown.expired;
   const usable = Boolean(token) && !expired;
+  const scanUrl = token ? redemptionScanUrl(token) : '';
 
   async function copyToken() {
     if (!token) return;
@@ -51,6 +53,16 @@ export function RedemptionQrDialog({
     }
   }
 
+  async function copyScanUrl() {
+    if (!scanUrl) return;
+    try {
+      await navigator.clipboard.writeText(scanUrl);
+      toast.success('Enlace copiado.');
+    } catch {
+      toast.error('No se pudo copiar el enlace.');
+    }
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto">
@@ -58,7 +70,8 @@ export function RedemptionQrDialog({
           <DialogTitle>Tu código QR</DialogTitle>
           <DialogDescription>
             Muestra este código al encargado de {businessName ?? 'el negocio'} para
-            recibir <strong>{rewardName}</strong>. No contiene datos personales.
+            recibir <strong>{rewardName}</strong>. El encargado lo escanea y confirma
+            la entrega desde Loopoint. No contiene datos personales.
           </DialogDescription>
         </DialogHeader>
 
@@ -76,7 +89,7 @@ export function RedemptionQrDialog({
             <div className="flex flex-col items-center gap-3">
               <div className="rounded-2xl border bg-white p-4 shadow-sm">
                 <QRCodeCanvas
-                  value={token}
+                  value={scanUrl}
                   size={220}
                   marginSize={2}
                   level="M"
@@ -99,15 +112,38 @@ export function RedemptionQrDialog({
               <p className="text-center text-xs text-muted-foreground">
                 Válido hasta {formatDateTimeBogota(expiresAt)}.
               </p>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => void copyToken()}
-              >
-                <Copy aria-hidden="true" />
-                Copiar código
-              </Button>
+
+              <div className="w-full space-y-2 rounded-xl border bg-muted/30 p-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  Código manual de respaldo
+                </p>
+                <p className="break-all rounded-lg bg-background px-2 py-1.5 font-mono text-[11px] leading-relaxed">
+                  {token}
+                </p>
+                <p className="break-all text-[11px] text-muted-foreground">
+                  {scanUrl}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => void copyToken()}
+                  >
+                    <Copy aria-hidden="true" />
+                    Copiar código
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => void copyScanUrl()}
+                  >
+                    <Link2 aria-hidden="true" />
+                    Copiar enlace
+                  </Button>
+                </div>
+              </div>
             </div>
           ) : (
             <div className="space-y-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
@@ -136,7 +172,7 @@ export function RedemptionQrDialog({
           <p className="flex items-start gap-2 text-xs text-muted-foreground">
             <ShieldCheck className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
             El QR solo lleva un token aleatorio; no incluye correo, nombre ni saldo.
-            Al aprobar el canje, el token deja de ser válido.
+            Al confirmar la entrega, el token deja de ser válido.
           </p>
         </div>
 

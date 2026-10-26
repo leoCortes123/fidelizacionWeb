@@ -308,7 +308,7 @@ test('encargado valida QR y aprueba redención', async ({ browser }) => {
   const token = state.tokens.find((t) => t.redemptionId === redemption.id);
   expect(token).toBeTruthy();
 
-  await encargado.page.getByLabel('Código QR / token').fill(token!.token);
+  await encargado.page.getByLabel('Código manual del QR').fill(token!.token);
   await encargado.page.getByRole('button', { name: 'Validar token' }).click();
 
   // Debe mostrar el diálogo de validación
@@ -404,7 +404,7 @@ test('flujo completo de QR: solicitud, recuperación, entrega y estado final', a
 
   // El encargado valida el token, aprueba y confirma la entrega.
   const encargado = await openAs(browser, state, TOKENS.admin, '/encargado');
-  await encargado.page.getByLabel('Código QR / token').fill(activeToken!.token);
+  await encargado.page.getByLabel('Código manual del QR').fill(activeToken!.token);
   await encargado.page.getByRole('button', { name: 'Validar token' }).click();
   await expect(
     encargado.page.getByRole('dialog').getByText('Taco individual'),
@@ -435,6 +435,76 @@ test('flujo completo de QR: solicitud, recuperación, entrega y estado final', a
   await encargado.context.close();
 });
 
+test('QR escaneado: confirma la entrega y vuelve a registrar compra', async ({ browser }) => {
+  const state = createFakeState();
+  seedBusiness(state);
+
+  // El cliente solicita la recompensa y obtiene su token.
+  const customer = await openAs(browser, state, TOKENS.admin, '/customer/balance');
+  await customer.page.getByRole('button', { name: 'Solicitar' }).click();
+  await customer.page
+    .getByRole('dialog')
+    .getByRole('button', { name: 'Confirmar solicitud' })
+    .click();
+  await expect(
+    customer.page.getByRole('dialog').getByText('Tu código QR'),
+  ).toBeVisible();
+
+  const redemption = state.redemptionRequests[0];
+  const stored = await customer.page.evaluate(
+    (id) => sessionStorage.getItem(`loyalty:token:${id}`),
+    redemption.id,
+  );
+  const token = JSON.parse(stored!).token as string;
+
+  // El negocio abre el enlace del QR con su sesión.
+  const business = await openAs(browser, state, TOKENS.admin, `/scan/${token}`);
+  await expect(
+    business.page.getByRole('heading', { name: 'Confirmar canje' }),
+  ).toBeVisible();
+  await expect(business.page.getByText('Taquería El Fogón')).toBeVisible();
+  await expect(business.page.getByText('Taco individual')).toBeVisible();
+  await expect(business.page.getByText('@anaadmin')).toBeVisible();
+
+  await business.page
+    .getByRole('button', { name: 'Confirmar entrega' })
+    .click();
+  await business.page
+    .getByRole('dialog')
+    .getByRole('button', { name: 'Confirmar entrega' })
+    .click();
+
+  await expect(
+    business.page.getByRole('heading', { name: 'Entrega confirmada' }),
+  ).toBeVisible();
+  expect(state.redemptionRequests[0].status).toBe('delivered');
+  expect(state.redemptionRequests[0].origin).toBe('qr_scan');
+  expect(state.tokens.find((item) => item.token === token)?.consumedAt).toBeTruthy();
+
+  // Tras confirmar, el flujo vuelve a la ventana de registrar compra.
+  await business.page.getByRole('link', { name: 'Registrar compra' }).click();
+  await expect(business.page).toHaveURL(/\/admin\/purchases\/new$/);
+  await expect(
+    business.page.getByRole('heading', { name: 'Registrar compra' }),
+  ).toBeVisible();
+
+  // La solicitud aparece como QR escaneado en el listado del negocio.
+  const admin = await openAs(browser, state, TOKENS.admin, '/admin/redemptions');
+  await expect(
+    admin.page.getByText('QR escaneado', { exact: true }),
+  ).toBeVisible();
+  await expect(
+    admin.page
+      .getByRole('row')
+      .filter({ hasText: 'Taco individual' })
+      .getByRole('link', { name: 'Registrar compra' }),
+  ).toBeVisible();
+
+  await customer.context.close();
+  await business.context.close();
+  await admin.context.close();
+});
+
 test('admin aprueba, entrega y cancela solicitudes con motivo', async ({ browser }) => {
   const state = createFakeState();
   seedBusiness(state);
@@ -454,6 +524,7 @@ test('admin aprueba, entrega y cancela solicitudes con motivo', async ({ browser
       createdAt: created,
       approvedBy: null,
       approvedAt: null,
+      origin: 'manual',
     },
     {
       id: 'red-diego',
@@ -469,6 +540,7 @@ test('admin aprueba, entrega y cancela solicitudes con motivo', async ({ browser
       createdAt: created,
       approvedBy: null,
       approvedAt: null,
+      origin: 'manual',
     },
   );
   for (const redemption of state.redemptionRequests) {
@@ -539,7 +611,7 @@ test('encargado sin permiso no puede aprobar redenciones', async ({ browser }) =
 
   const { page, context } = await openAs(browser, state, TOKENS.registrar, '/encargado');
   await expect(page.getByRole('heading', { name: 'Sin permiso de aprobación' })).toBeVisible();
-  await expect(page.getByLabel('Código QR / token')).toHaveCount(0);
+  await expect(page.getByLabel('Código manual del QR')).toHaveCount(0);
   await context.close();
 });
 

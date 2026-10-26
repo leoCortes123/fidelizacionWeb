@@ -7,6 +7,7 @@ import {
   readRedemptionToken,
   saveRedemptionToken,
 } from '@/features/loyalty/redemptionTokens';
+import { redemptionScanUrl } from '@/lib/config';
 import type { MyLoyaltyRedemption } from '@/types';
 
 const reissue = vi.hoisted(() => vi.fn());
@@ -87,7 +88,7 @@ describe('RedemptionsPage del cliente', () => {
     const dialog = within(screen.getByRole('dialog'));
     expect(dialog.getByTestId('qr')).toHaveAttribute(
       'data-value',
-      'tok_guardado_1234567890',
+      redemptionScanUrl('tok_guardado_1234567890'),
     );
     expect(dialog.getByRole('timer')).toHaveTextContent(/Vence en/);
   });
@@ -107,7 +108,7 @@ describe('RedemptionsPage del cliente', () => {
     const dialog = within(await screen.findByRole('dialog'));
     expect(dialog.getByTestId('qr')).toHaveAttribute(
       'data-value',
-      'tok_reemitido_abcdefghij',
+      redemptionScanUrl('tok_reemitido_abcdefghij'),
     );
     expect(readRedemptionToken(pending.id)?.token).toBe('tok_reemitido_abcdefghij');
   });

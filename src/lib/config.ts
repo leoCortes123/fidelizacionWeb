@@ -34,6 +34,14 @@ export function claimUrl(token: string): string {
   return `${publicAppUrl()}/claim/${encodeURIComponent(token)}`;
 }
 
+/**
+ * URL que se codifica dentro del QR de canje. Al escanearla, el encargado
+ * autenticado confirma la entrega desde `/scan/:token`.
+ */
+export function redemptionScanUrl(token: string): string {
+  return `${publicAppUrl()}/scan/${encodeURIComponent(token)}`;
+}
+
 export function oauthRedirectUrl(nextPath?: string): string {
   const base = `${window.location.origin}/auth/callback`;
   if (!nextPath) return base;

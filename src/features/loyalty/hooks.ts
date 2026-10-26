@@ -21,6 +21,8 @@ import type {
   ProductKind,
   ProfileLookup,
   RedemptionRequestResult,
+  RedemptionRedeemResult,
+  RedemptionScanContext,
   RedemptionTokenReissueResult,
   RedemptionTokenValidateResult,
   BusinessEconomicDashboard,
@@ -547,13 +549,18 @@ export function useRequestRedemption() {
   });
 }
 
-export function useLoyaltyRedemptions(businessId: string, status: string) {
+export function useLoyaltyRedemptions(
+  businessId: string,
+  status: string,
+  origin: string = '',
+) {
   return useQuery<LoyaltyRedemptionWithCustomer[]>({
-    queryKey: queryKeys.loyaltyRedemptions(businessId, status),
+    queryKey: queryKeys.loyaltyRedemptions(businessId, status, origin),
     queryFn: () =>
       rpc<LoyaltyRedemptionWithCustomer[]>('loyalty_redemptions_list', {
         p_business_id: businessId,
         p_status: status || null,
+        p_origin: origin || null,
       }),
     enabled: Boolean(businessId),
   });
@@ -594,6 +601,48 @@ export function useValidateRedemptionToken() {
         p_business_id: params.businessId,
         p_token: params.token,
       }),
+  });
+}
+
+/**
+ * Resuelve el negocio y la recompensa de un token QR. El navegador no envía
+ * `business_id`: el servidor lo deriva del token y valida la membresía.
+ */
+export function useRedemptionScanContext(token: string) {
+  return useQuery<RedemptionScanContext>({
+    queryKey: ['redemption-scan', token],
+    queryFn: () =>
+      rpc<RedemptionScanContext>('redemption_token_context', { p_token: token }),
+    enabled: Boolean(token),
+    retry: false,
+    staleTime: 0,
+    refetchOnWindowFocus: false,
+  });
+}
+
+export function useRedeemRedemptionByToken() {
+  const queryClient = useQueryClient();
+  return useMutation<RedemptionRedeemResult, Error, { token: string }>({
+    mutationFn: (params) =>
+      rpc<RedemptionRedeemResult>('redemption_redeem_by_token', {
+        p_token: params.token,
+      }),
+    onSuccess: (result) => {
+      void queryClient.invalidateQueries({ queryKey: ['redemption-scan'] });
+      void queryClient.invalidateQueries({
+        queryKey: ['loyalty-redemptions', result.business_id],
+      });
+      void queryClient.invalidateQueries({
+        queryKey: ['loyalty-point-account', result.business_id],
+      });
+      void queryClient.invalidateQueries({
+        queryKey: ['loyalty-point-transactions', result.business_id],
+      });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.myLoyaltyRedemptions });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.businessAuditLogPrefix(result.business_id),
+      });
+    },
   });
 }
 
