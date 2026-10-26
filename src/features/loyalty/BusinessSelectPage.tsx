@@ -103,7 +103,7 @@ export function BusinessSelectPage() {
               className="cursor-pointer hover:shadow-md transition-shadow"
               onClick={() => {
                 setSelectedBusiness(business);
-                navigate(businessHomePath(business.role));
+                navigate(businessHomePath(business.role, business.id));
               }}
             >
               <CardContent className="p-6 text-center">
@@ -120,7 +120,7 @@ export function BusinessSelectPage() {
                   onClick={(event) => {
                     event.stopPropagation();
                     setSelectedBusiness(business);
-                    navigate(businessHomePath(business.role));
+                    navigate(businessHomePath(business.role, business.id));
                   }}
                 >
                   <ArrowRight aria-hidden="true" /> Seleccionar

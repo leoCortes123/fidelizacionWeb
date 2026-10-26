@@ -60,7 +60,7 @@ export function BusinessJoinPage() {
           ? `Ya participabas en ${result.business_name}.`
           : `¡Bienvenido a ${result.business_name}!`,
       );
-      navigate(businessHomePath(result.role), { replace: true });
+      navigate(businessHomePath(result.role, result.business_id), { replace: true });
     } catch (error) {
       toast.error(errorMessage(error));
     } finally {

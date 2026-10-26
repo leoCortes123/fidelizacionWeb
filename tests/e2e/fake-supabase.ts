@@ -252,6 +252,8 @@ export interface FakeState {
   auditLogs: FakeAuditLog[];
   purchaseEvents: FakePurchaseEvent[];
   purchaseCredits: Record<string, number>;
+  /** Saldo explícito por negocio (`businessId:userId`) para pruebas multi-negocio. */
+  businessBalances: Record<string, number>;
   campaigns: FakeCampaign[];
   budgetSnapshots: FakeBudgetSnapshot[];
   loyaltyPrograms: Record<string, {
@@ -376,6 +378,7 @@ export function createFakeState(): FakeState {
     auditLogs: [],
     purchaseEvents: [],
     purchaseCredits: {},
+    businessBalances: {},
     campaigns: [],
     budgetSnapshots: [],
     loyaltyPrograms: {},
@@ -414,19 +417,25 @@ function userFor(state: FakeState, token: string) {
  * Saldo simulado del programa: parte de 100 loopoints y descuenta las solicitudes
  * que reservaron loopoints (pendientes, aprobadas o entregadas).
  */
-function loyaltyBalance(state: FakeState, userId: string) {
+function loyaltyBalance(
+  state: FakeState,
+  userId: string,
+  businessId?: string,
+) {
   const reserved = state.redemptionRequests
     .filter(
       (request) =>
         request.accountId === userId &&
+        (!businessId || request.businessId === businessId) &&
         request.status !== 'cancelled' &&
         request.status !== 'expired',
     )
     .reduce((sum, request) => sum + request.pointsSpent, 0);
-  return Math.max(
-    100 + (state.purchaseCredits[userId] ?? 0) - reserved,
-    0,
-  );
+  const explicit = businessId
+    ? state.businessBalances[`${businessId}:${userId}`]
+    : undefined;
+  const base = explicit ?? 100 + (state.purchaseCredits[userId] ?? 0);
+  return Math.max(base - reserved, 0);
 }
 
 function customerFrequency(
@@ -1050,7 +1059,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           metadata: {
             amount_cop: purchase.amount_cop,
             points_awarded: points,
-            balance: loyaltyBalance(state, user.id),
+            balance: loyaltyBalance(state, user.id, businessId),
           },
           createdAt: purchase.claimed_at,
         });
@@ -1061,7 +1070,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           business_slug: business?.slug ?? '',
           amount_cop: purchase.amount_cop,
           points_awarded: points,
-          balance: loyaltyBalance(state, user.id),
+          balance: loyaltyBalance(state, user.id, businessId),
           claimed_at: purchase.claimed_at,
           duplicate: false,
         });
@@ -1950,6 +1959,57 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           }),
         );
       }
+      case 'customer_businesses_summary': {
+        if (!user) return fail(route, 'not_authenticated');
+        const rows = state.memberships
+          .filter((membership) => membership.userId === user.id)
+          .map((membership) => {
+            const business = state.businesses.find(
+              (item) => item.id === membership.businessId,
+            );
+            if (!business) return null;
+            const frequency = customerFrequency(
+              state,
+              user.id,
+              business.id,
+            );
+            const balance = loyaltyBalance(state, user.id, business.id);
+            const program = state.loyaltyPrograms[business.id];
+            return {
+              business_id: business.id,
+              name: business.name,
+              slug: business.slug,
+              logo_url: business.logoUrl ?? null,
+              role: membership.role,
+              loyalty_active: program?.is_active ?? true,
+              balance,
+              ready_rewards: state.loyaltyRewards.filter(
+                (reward) =>
+                  reward.businessId === business.id &&
+                  reward.isActive &&
+                  reward.pointsRequired <= balance,
+              ).length,
+              pending_redemptions: state.redemptionRequests.filter(
+                (request) =>
+                  request.accountId === user.id &&
+                  request.businessId === business.id &&
+                  (request.status === 'pending' ||
+                    request.status === 'approved'),
+              ).length,
+              last_purchase_at: frequency.last_purchase_at,
+              is_frequent: frequency.is_frequent,
+              is_frequent_active: frequency.is_frequent_active,
+            };
+          })
+          .filter((row): row is NonNullable<typeof row> => row !== null)
+          .sort((a, b) => {
+            const left = a.last_purchase_at ?? '';
+            const right = b.last_purchase_at ?? '';
+            if (left !== right) return right.localeCompare(left);
+            return a.name.localeCompare(b.name);
+          });
+        return json(route, rows);
+      }
       case 'business_update': {
         if (!isAdmin) return fail(route, 'forbidden');
         const business = state.businesses.find(
@@ -2397,7 +2457,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
         if (!user) return fail(route, 'not_authenticated');
         const businessId = String(body.p_business_id ?? '');
         // Saldo simulado para los flujos de UI; el saldo real lo valida la RPC.
-        const balance = loyaltyBalance(state, user.id);
+        const balance = loyaltyBalance(state, user.id, businessId);
         return json(
           route,
           state.loyaltyRewards
@@ -2467,7 +2527,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
         return json(route, {
           business_id: businessId,
           customer_id: customerId,
-          balance: loyaltyBalance(state, customerId),
+          balance: loyaltyBalance(state, customerId, businessId),
         });
       }
       case 'loyalty_account_transactions': {
@@ -2499,7 +2559,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
         }
         const reward = state.loyaltyRewards.find((r) => r.id === rewardId);
         if (!reward || !reward.isActive) return fail(route, 'reward_unavailable');
-        if (loyaltyBalance(state, user.id) < reward.pointsRequired) {
+        if (loyaltyBalance(state, user.id, businessId) < reward.pointsRequired) {
           return fail(route, 'insufficient_points');
         }
         const token = `tok_${crypto.randomUUID().replace(/-/g, '')}`;
@@ -2561,6 +2621,8 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
                 id: request.id,
                 business_id: request.businessId,
                 business_name: business?.name ?? 'Negocio',
+                business_slug: business?.slug ?? '',
+                business_logo_url: business?.logoUrl ?? null,
                 reward_name: request.rewardName,
                 reward_type: request.rewardType,
                 points_spent: request.pointsSpent,
@@ -2900,7 +2962,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
         if (existing) {
           return json(route, {
             points_earned: 0,
-            balance: loyaltyBalance(state, customerId),
+            balance: loyaltyBalance(state, customerId, businessId),
             duplicate: true,
             account_id: `acc-${customerId}`,
             purchase_event_id: existing.id,
@@ -2962,7 +3024,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
 
         return json(route, {
           points_earned: campaignPoints,
-          balance: loyaltyBalance(state, customerId),
+          balance: loyaltyBalance(state, customerId, businessId),
           duplicate: false,
           account_id: `acc-${customerId}`,
           purchase_event_id: event.id,
@@ -2986,7 +3048,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
         if (event.reversed) {
           return json(route, {
             points_reversed: 0,
-            balance: loyaltyBalance(state, event.customerId),
+            balance: loyaltyBalance(state, event.customerId, event.businessId),
             duplicate: true,
             message: 'La compra ya fue revertida.',
           });
@@ -3012,7 +3074,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
 
         return json(route, {
           points_reversed: event.pointsEarned,
-          balance: loyaltyBalance(state, event.customerId),
+          balance: loyaltyBalance(state, event.customerId, event.businessId),
           duplicate: false,
         });
       }

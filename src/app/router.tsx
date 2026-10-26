@@ -50,9 +50,14 @@ const NotFoundPage = lazy(() =>
     default: module.NotFoundPage,
   })),
 );
-const DashboardPage = lazy(() =>
-  import('@/features/customer/DashboardPage').then((module) => ({
-    default: module.DashboardPage,
+const CustomerBusinessesPage = lazy(() =>
+  import('@/features/customer/CustomerBusinessesPage').then((module) => ({
+    default: module.CustomerBusinessesPage,
+  })),
+);
+const CustomerBusinessHomePage = lazy(() =>
+  import('@/features/customer/CustomerBusinessHomePage').then((module) => ({
+    default: module.CustomerBusinessHomePage,
   })),
 );
 const CustomerPurchasesPage = lazy(() =>
@@ -63,11 +68,6 @@ const CustomerPurchasesPage = lazy(() =>
 const CustomerRedemptionsPage = lazy(() =>
   import('@/features/customer/RedemptionsPage').then((module) => ({
     default: module.RedemptionsPage,
-  })),
-);
-const CustomerBusinessBalancePage = lazy(() =>
-  import('@/features/customer/BusinessBalancePage').then((module) => ({
-    default: module.BusinessBalancePage,
   })),
 );
 const ClaimPage = lazy(() =>
@@ -233,10 +233,14 @@ export function AppRoutes() {
             </RequireAuth>
           }
         >
-          <Route index element={<DashboardPage />} />
-          <Route path="balance" element={<CustomerBusinessBalancePage />} />
+          <Route index element={<CustomerBusinessesPage />} />
+          <Route path="business/:businessId" element={<CustomerBusinessHomePage />} />
+          <Route path="balance" element={<Navigate to="/customer" replace />} />
           <Route path="purchases" element={<CustomerPurchasesPage />} />
+          <Route path="compras" element={<Navigate to="/customer/purchases" replace />} />
           <Route path="redemptions" element={<CustomerRedemptionsPage />} />
+          <Route path="canjes" element={<Navigate to="/customer/redemptions" replace />} />
+          <Route path="perfil" element={<ProfilePage />} />
         </Route>
 
         <Route

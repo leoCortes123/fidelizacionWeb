@@ -822,10 +822,28 @@ export interface ProfileLookup {
   already_member: boolean;
 }
 
+/** Fila del resumen multi-negocio del cliente (RPC customer_businesses_summary). */
+export interface CustomerBusinessSummary {
+  business_id: string;
+  name: string;
+  slug: string;
+  logo_url: string | null;
+  role: BusinessRole;
+  loyalty_active: boolean;
+  balance: number;
+  ready_rewards: number;
+  pending_redemptions: number;
+  last_purchase_at: string | null;
+  is_frequent: boolean;
+  is_frequent_active: boolean;
+}
+
 export interface MyLoyaltyRedemption {
   id: string;
   business_id: string;
   business_name: string;
+  business_slug?: string;
+  business_logo_url?: string | null;
   reward_name: string;
   reward_type: LoyaltyRewardType;
   points_spent: number;

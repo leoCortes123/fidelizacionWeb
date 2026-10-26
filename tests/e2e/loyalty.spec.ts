@@ -109,6 +109,79 @@ function seedBusiness(state: FakeState) {
   });
 }
 
+/**
+ * Afilia al cliente de pruebas a un negocio adicional con un saldo explícito.
+ * El saldo se define por negocio para comprobar que el portal no los mezcla.
+ */
+function seedCustomerBusiness(
+  state: FakeState,
+  seed: {
+    id: string;
+    name: string;
+    slug: string;
+    balance: number;
+    rewardPoints?: number;
+  },
+) {
+  state.businesses.push({
+    id: seed.id,
+    name: seed.name,
+    slug: seed.slug,
+    timezone: 'America/Bogota',
+    logoUrl: `https://cdn.example.test/${seed.slug}.png`,
+    createdBy: 'user-admin',
+    createdAt: '2026-01-03T12:00:00.000Z',
+  });
+  state.memberships.push({
+    id: `mem-${seed.id}`,
+    businessId: seed.id,
+    userId: 'user-customer',
+    role: 'cliente',
+    canApproveRedemptions: false,
+    createdAt: '2026-01-03T12:00:00.000Z',
+  });
+  state.loyaltyPrograms[seed.id] = {
+    cop_per_point_unit: 1000,
+    points_per_cop_unit: 100,
+    points_expiry_days: 365,
+    budget_rate: 0.01,
+    first_purchase_bonus_points: 0,
+    recurrence_bonus_points: 0,
+    referral_bonus_points: 0,
+    qr_expiry_hours: 24,
+    frequent_min_purchases: 3,
+    frequent_period_days: 90,
+    frequent_min_spend_cop: 0,
+    frequent_active_days: 30,
+    recovery_inactive_days: 60,
+    is_active: true,
+  };
+  state.businessBalances[`${seed.id}:user-customer`] = seed.balance;
+  if (seed.rewardPoints !== undefined) {
+    state.loyaltyRewards.push({
+      id: `rew-${seed.id}`,
+      businessId: seed.id,
+      productId: null,
+      type: 'configurable_benefit',
+      name: `Beneficio ${seed.name}`,
+      description: 'Beneficio de prueba.',
+      pointsRequired: seed.rewardPoints,
+      minPurchaseAmount: 0,
+      maxDiscountAmount: 5000,
+      discountPercentage: null,
+      productPriceCop: null,
+      productCostCop: null,
+      validFrom: null,
+      validUntil: null,
+      maxRedemptionsPerCustomer: null,
+      maxRedemptionsPerPeriod: null,
+      redemptionPeriodDays: null,
+      totalRedemptionLimit: null,
+      isActive: true,
+    });
+  }
+}
+
 test('registro de negocio como administrador', async ({ browser }) => {
   const state = createFakeState();
   const admin = await openAs(browser, state, TOKENS.admin, '/business/register');
@@ -250,11 +323,11 @@ test('cliente ve saldo por negocio y solicita recompensa', async ({ browser }) =
     browser,
     state,
     TOKENS.customer,
-    '/customer/balance',
+    '/customer/business/biz-test',
   );
 
   await expect(
-    customer.page.getByRole('heading', { name: /Tus loopoints/ }),
+    customer.page.getByRole('heading', { name: 'Taquería El Fogón', exact: true }),
   ).toBeVisible();
   await expect(customer.page.getByText('Taco individual')).toBeVisible();
   await expect(customer.page.getByText('Disponible', { exact: true })).toBeVisible();
@@ -274,6 +347,204 @@ test('cliente ve saldo por negocio y solicita recompensa', async ({ browser }) =
   await customer.context.close();
 });
 
+test('portal cliente multi-negocio: tarjetas, saldos separados y sin Balance', async ({ browser }) => {
+  const state = createFakeState();
+  seedBusiness(state);
+  seedCustomerBusiness(state, {
+    id: 'biz-two',
+    name: 'Café Central',
+    slug: 'cafe-central',
+    balance: 10,
+    rewardPoints: 100,
+  });
+  seedCustomerBusiness(state, {
+    id: 'biz-three',
+    name: 'Tienda Verde',
+    slug: 'tienda-verde',
+    balance: 0,
+  });
+  state.businessBalances['biz-test:user-customer'] = 50;
+
+  const customer = await openAs(browser, state, TOKENS.customer, '/customer');
+
+  await expect(
+    customer.page.getByRole('heading', { name: /¡Hola, Carla!/ }),
+  ).toBeVisible();
+  await expect(customer.page.getByTestId('total-points-balance')).toHaveText('60');
+
+  const tacoCard = customer.page.locator('a[href="/customer/business/biz-test"]');
+  const cafeCard = customer.page.locator('a[href="/customer/business/biz-two"]');
+  const shopCard = customer.page.locator('a[href="/customer/business/biz-three"]');
+
+  await expect(tacoCard.getByText('50', { exact: true })).toBeVisible();
+  await expect(tacoCard.getByText('1 lista')).toBeVisible();
+  await expect(cafeCard.getByText('10', { exact: true })).toBeVisible();
+  await expect(cafeCard.getByText('0 listas')).toHaveCount(0);
+  await expect(shopCard.getByText('0', { exact: true })).toBeVisible();
+  await expect(
+    customer.page
+      .getByRole('navigation', { name: 'Navegación del cliente' })
+      .getByRole('link', { name: 'Balance' }),
+  ).toHaveCount(0);
+
+  await tacoCard.click();
+  await expect(customer.page).toHaveURL(/\/customer\/business\/biz-test$/);
+  await expect(customer.page.getByTestId('points-balance')).toHaveText('50');
+  await expect(customer.page.getByText('Taco individual')).toBeVisible();
+
+  // La antigua pantalla de Balance ya no existe: redirige al inicio del portal.
+  await customer.page.goto('/customer/balance');
+  await expect(customer.page).toHaveURL(/\/customer$/);
+  await expect(
+    customer.page.getByRole('heading', { name: /¡Hola, Carla!/ }),
+  ).toBeVisible();
+
+  await customer.context.close();
+});
+
+test('compras y canjes globales del cliente con filtro y detalle', async ({ browser }) => {
+  const state = createFakeState();
+  seedBusiness(state);
+  seedCustomerBusiness(state, {
+    id: 'biz-two',
+    name: 'Café Central',
+    slug: 'cafe-central',
+    balance: 10,
+    rewardPoints: 100,
+  });
+
+  state.purchases.push(
+    {
+      id: 'pur-taco',
+      token: 'tok_purchase_taco_1234567890',
+      businessId: 'biz-test',
+      amount_cop: 5000,
+      status: 'claimed',
+      points_awarded: 5,
+      customerId: 'user-customer',
+      registrarId: 'user-admin',
+      createdAt: '2026-10-20T15:00:00.000Z',
+      expiresAt: '2026-10-20T16:00:00.000Z',
+      claimed_at: '2026-10-20T15:05:00.000Z',
+      items: [
+        {
+          id: 'line-taco',
+          product_id: 'prod-taco',
+          name: 'Taco de guisado',
+          quantity: 2,
+          unit_price_cop: 2500,
+          line_total_cop: 5000,
+          is_combo: false,
+          combo_detail: [],
+        },
+      ],
+    },
+    {
+      id: 'pur-cafe',
+      token: 'tok_purchase_cafe_1234567890',
+      businessId: 'biz-two',
+      amount_cop: 8000,
+      status: 'claimed',
+      points_awarded: 8,
+      customerId: 'user-customer',
+      registrarId: 'user-admin',
+      createdAt: '2026-10-21T15:00:00.000Z',
+      expiresAt: '2026-10-21T16:00:00.000Z',
+      claimed_at: '2026-10-21T15:05:00.000Z',
+      items: [
+        {
+          id: 'line-cafe',
+          product_id: null as unknown as string,
+          name: 'Café americano',
+          quantity: 2,
+          unit_price_cop: 4000,
+          line_total_cop: 8000,
+          is_combo: false,
+          combo_detail: [],
+        },
+      ],
+    },
+  );
+
+  state.redemptionRequests.push(
+    {
+      id: 'red-taco',
+      businessId: 'biz-test',
+      accountId: 'user-customer',
+      rewardId: 'rew-taco',
+      rewardName: 'Taco individual',
+      rewardType: 'free_product',
+      pointsSpent: 40,
+      code: 'TACOF70001',
+      status: 'delivered',
+      idempotencyKey: 'f7-e2e-red-taco',
+      createdAt: '2026-10-19T12:00:00.000Z',
+      approvedBy: 'user-admin',
+      approvedAt: '2026-10-19T12:10:00.000Z',
+      deliveredAt: '2026-10-19T12:15:00.000Z',
+      origin: 'manual',
+    },
+    {
+      id: 'red-cafe',
+      businessId: 'biz-two',
+      accountId: 'user-customer',
+      rewardId: 'rew-biz-two',
+      rewardName: 'Beneficio Café Central',
+      rewardType: 'configurable_benefit',
+      pointsSpent: 10,
+      code: 'CAFEF70001',
+      status: 'pending',
+      idempotencyKey: 'f7-e2e-red-cafe',
+      createdAt: '2026-10-22T12:00:00.000Z',
+      approvedBy: null,
+      approvedAt: null,
+      origin: 'manual',
+    },
+  );
+
+  const customer = await openAs(browser, state, TOKENS.customer, '/customer/compras');
+  await expect(customer.page).toHaveURL(/\/customer\/purchases$/);
+
+  const tacoRow = customer.page.getByRole('row', { name: /Taquería El Fogón/ });
+  const cafeRow = customer.page.getByRole('row', { name: /Café Central/ });
+  await expect(tacoRow).toBeVisible();
+  await expect(cafeRow).toBeVisible();
+
+  await customer.page
+    .getByRole('combobox', { name: 'Filtrar compras por negocio' })
+    .click();
+  await customer.page.getByRole('option', { name: 'Café Central' }).click();
+  await expect(tacoRow).toHaveCount(0);
+  await expect(cafeRow).toBeVisible();
+
+  await cafeRow.getByRole('button', { name: 'Ver detalle' }).click();
+  const purchaseDialog = customer.page.getByRole('dialog');
+  await expect(purchaseDialog.getByText('Café americano')).toBeVisible();
+  await expect(purchaseDialog.getByText('Café Central').first()).toBeVisible();
+  await customer.page.keyboard.press('Escape');
+
+  await customer.page.goto('/customer/canjes');
+  await expect(customer.page).toHaveURL(/\/customer\/redemptions$/);
+  await expect(customer.page.getByText('Taco individual')).toBeVisible();
+  await expect(customer.page.getByText('Beneficio Café Central')).toBeVisible();
+
+  await customer.page
+    .getByRole('combobox', { name: 'Filtrar canjes por negocio' })
+    .click();
+  await customer.page
+    .getByRole('option', { name: 'Taquería El Fogón' })
+    .click();
+  await expect(customer.page.getByText('Beneficio Café Central')).toHaveCount(0);
+  await expect(customer.page.getByText('Taco individual')).toBeVisible();
+
+  await customer.page.getByRole('button', { name: 'Ver detalle' }).click();
+  const redemptionDialog = customer.page.getByRole('dialog');
+  await expect(redemptionDialog.getByText('Taquería El Fogón')).toBeVisible();
+  await expect(redemptionDialog.getByText('@taqueria-el-fogon')).toBeVisible();
+
+  await customer.context.close();
+});
+
 test('encargado valida QR y aprueba redención', async ({ browser }) => {
   const state = createFakeState();
   seedBusiness(state);
@@ -281,7 +552,7 @@ test('encargado valida QR y aprueba redención', async ({ browser }) => {
     browser,
     state,
     TOKENS.admin,
-    '/customer/balance',
+    '/customer/business/biz-test',
   );
 
   // Cliente solicita redención (genera token QR)
@@ -361,7 +632,7 @@ test('flujo completo de QR: solicitud, recuperación, entrega y estado final', a
   const state = createFakeState();
   seedBusiness(state);
 
-  const customer = await openAs(browser, state, TOKENS.admin, '/customer/balance');
+  const customer = await openAs(browser, state, TOKENS.admin, '/customer/business/biz-test');
   await customer.page.getByRole('button', { name: 'Solicitar' }).click();
   const redeemDialog = customer.page.getByRole('dialog');
   await redeemDialog.getByRole('button', { name: 'Confirmar solicitud' }).click();
@@ -440,7 +711,7 @@ test('QR escaneado: confirma la entrega y vuelve a registrar compra', async ({ b
   seedBusiness(state);
 
   // El cliente solicita la recompensa y obtiene su token.
-  const customer = await openAs(browser, state, TOKENS.customer, '/customer/balance');
+  const customer = await openAs(browser, state, TOKENS.customer, '/customer/business/biz-test');
   await customer.page.getByRole('button', { name: 'Solicitar' }).click();
   await customer.page
     .getByRole('dialog')
@@ -641,8 +912,10 @@ test('afiliación pública por enlace /join/:slug', async ({ browser }) => {
     '/join/taqueria-el-fogon',
   );
   await page.getByRole('button', { name: /Unirme a Taquería El Fogón/i }).click();
-  await expect(page).toHaveURL(/\/customer\/balance/);
-  await expect(page.getByRole('heading', { name: /Tus loopoints/ })).toBeVisible();
+  await expect(page).toHaveURL(/\/customer\/business\/biz-test/);
+  await expect(
+    page.getByRole('heading', { name: 'Taquería El Fogón', exact: true }),
+  ).toBeVisible();
 
   expect(
     state.memberships.some(
@@ -1320,10 +1593,12 @@ test('compra con carta y combos: total, líneas y detalle en ambos portales', as
     TOKENS.customer,
     '/customer/purchases',
   );
-  await expect(customerView.page.getByText('Taquería El Fogón').first()).toBeVisible();
-  await customerView.page
+  const customerPurchaseRow = customerView.page.getByRole('row', {
+    name: /Taquería El Fogón/,
+  });
+  await expect(customerPurchaseRow).toBeVisible();
+  await customerPurchaseRow
     .getByRole('button', { name: 'Ver detalle' })
-    .last()
     .click();
   await expect(customerView.page.getByRole('dialog')).toContainText(
     'Combo enganche',

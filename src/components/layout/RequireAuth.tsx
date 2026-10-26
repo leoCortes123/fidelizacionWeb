@@ -106,7 +106,7 @@ export function RequireBusinessRole({
   // Sin negocio elegido se deja que la página muestre su selector.
   if (!selectedBusiness) return <>{children}</>;
   if (!selectedRole || !roles.includes(selectedRole)) {
-    return <Navigate to={businessHomePath(selectedRole)} replace />;
+    return <Navigate to={businessHomePath(selectedRole, selectedBusiness?.id)} replace />;
   }
   return <>{children}</>;
 }

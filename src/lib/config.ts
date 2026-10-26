@@ -67,10 +67,14 @@ export function defaultPathForRoles(roles: string[]): string {
 }
 
 /** Portal de inicio según el rol del usuario dentro de un negocio concreto. */
-export function businessHomePath(role: string | null | undefined): string {
+export function businessHomePath(
+  role: string | null | undefined,
+  businessId?: string | null,
+): string {
   if (role === 'admin') return '/admin/dashboard';
   if (role === 'encargado') return '/encargado';
-  return '/customer/balance';
+  if (businessId) return `/customer/business/${businessId}`;
+  return '/customer';
 }
 
 export function initials(name: string): string {

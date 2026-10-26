@@ -1,4 +1,5 @@
 import { Building2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import {
   Select,
   SelectContent,
@@ -18,9 +19,17 @@ const roleLabels: Record<string, string> = {
 /**
  * Selector de negocio para las cabeceras. Solo aparece cuando la cuenta
  * participa en más de un negocio; el rol mostrado es el del negocio activo.
+ * En el portal del cliente navega al inicio del negocio elegido.
  */
-export function BusinessSwitcher({ className }: { className?: string }) {
+export function BusinessSwitcher({
+  className,
+  linkToCustomerHome = false,
+}: {
+  className?: string;
+  linkToCustomerHome?: boolean;
+}) {
   const { businesses, selectedBusiness, setSelectedBusiness } = useBusinessContext();
+  const navigate = useNavigate();
 
   if (businesses.length <= 1) return null;
 
@@ -34,7 +43,11 @@ export function BusinessSwitcher({ className }: { className?: string }) {
         value={value}
         onValueChange={(id) => {
           const business = businesses.find((item) => item.id === id);
-          if (business) setSelectedBusiness(business);
+          if (!business) return;
+          setSelectedBusiness(business);
+          if (linkToCustomerHome) {
+            navigate(`/customer/business/${business.id}`);
+          }
         }}
       >
         <SelectTrigger

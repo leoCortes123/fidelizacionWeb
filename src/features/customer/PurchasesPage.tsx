@@ -9,6 +9,13 @@ import { formatCOP, formatDateBogota } from '@/lib/format';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Table,
   TableBody,
   TableCell,
@@ -22,23 +29,57 @@ import { EmptyState, ErrorState, ListSkeleton } from '@/components/shared/States
 export function PurchasesPage() {
   const [page, setPage] = useState(0);
   const [detailId, setDetailId] = useState<string | null>(null);
-  const { selectedBusiness } = useBusinessContext();
+  const [businessFilter, setBusinessFilter] = useState('');
+  const { businesses } = useBusinessContext();
   const settings = useProgramSettings();
   const pageSize = settings.data?.history_page_size ?? 10;
-  const purchases = useMyPurchasesPage(selectedBusiness?.id ?? '', page, pageSize);
+  const purchases = useMyPurchasesPage(businessFilter, page, pageSize);
   const total = purchases.data?.[0]?.total_count ?? 0;
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
+  const businessLabel =
+    businesses.find((business) => business.id === businessFilter)?.name ?? null;
 
   return (
     <div className="space-y-6 animate-fade-in">
       <PageHeader
         title="Mis compras"
         description={
-          selectedBusiness
-            ? `Compras acreditadas en ${selectedBusiness.name}.`
-            : 'Historial de compras acreditadas y los loopoints ganados.'
+          businessLabel
+            ? `Compras acreditadas en ${businessLabel}.`
+            : 'Historial global de compras acreditadas y los loopoints ganados.'
         }
       />
+
+      {businesses.length > 1 && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            Filtrar por negocio
+          </span>
+          <Select
+            value={businessFilter || 'all'}
+            onValueChange={(value) => {
+              setBusinessFilter(value === 'all' ? '' : value);
+              setPage(0);
+            }}
+          >
+            <SelectTrigger
+              className="w-full sm:w-64"
+              aria-label="Filtrar compras por negocio"
+            >
+              <SelectValue placeholder="Todos los negocios" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos los negocios</SelectItem>
+              {businesses.map((business) => (
+                <SelectItem key={business.id} value={business.id}>
+                  {business.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
 
       {purchases.isLoading ? (
         <ListSkeleton rows={4} />

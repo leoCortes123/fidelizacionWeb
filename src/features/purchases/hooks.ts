@@ -77,6 +77,9 @@ export function useClaimPurchase() {
       void queryClient.invalidateQueries({ queryKey: queryKeys.businesses });
       void queryClient.invalidateQueries({ queryKey: queryKeys.myRedemptions });
       void queryClient.invalidateQueries({ queryKey: ['my-loyalty-redemptions'] });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.customerBusinessesSummary,
+      });
     },
   });
 }

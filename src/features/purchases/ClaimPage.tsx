@@ -175,7 +175,7 @@ export function ClaimPage() {
               </span>
             </div>
             <Button asChild size="lg" className="w-full">
-              <Link to="/customer/balance">
+              <Link to={`/customer/business/${result.business_id}`}>
                 Ir a mis loopoints
                 <ArrowRight aria-hidden="true" />
               </Link>
@@ -206,7 +206,13 @@ export function ClaimPage() {
             </h1>
             <p className="text-sm text-muted-foreground">{messages[data.status]}</p>
             <Button asChild className="w-full">
-              <Link to={session ? '/customer/balance' : `/login?next=${loginNext}`}>
+              <Link
+                to={
+                  session
+                    ? `/customer/business/${data.business_id}`
+                    : `/login?next=${loginNext}`
+                }
+              >
                 {session ? 'Ir a mis loopoints' : 'Entrar a mi cuenta'}
               </Link>
             </Button>
@@ -326,7 +332,7 @@ export function ClaimPage() {
                 Confirmar y sumar loopoints
               </Button>
               <Button asChild variant="ghost" className="w-full">
-                <Link to="/customer/balance">Ahora no</Link>
+                <Link to={`/customer/business/${data.business_id}`}>Ahora no</Link>
               </Button>
             </>
           )}

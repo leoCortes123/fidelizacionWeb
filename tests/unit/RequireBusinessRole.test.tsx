@@ -54,7 +54,7 @@ function renderGuard(roles: Array<'admin' | 'encargado' | 'cliente'>) {
             </RequireBusinessRole>
           }
         />
-        <Route path="/customer/balance" element={<p>Portal del cliente</p>} />
+        <Route path="/customer/business/:businessId" element={<p>Portal del cliente</p>} />
         <Route path="/encargado" element={<p>Portal del encargado</p>} />
         <Route path="/business/select" element={<p>Selector de negocio</p>} />
       </Routes>

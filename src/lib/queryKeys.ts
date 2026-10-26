@@ -28,6 +28,7 @@ export const queryKeys = {
 
   // Negocio y membresías
   businesses: ['businesses'] as const,
+  customerBusinessesSummary: ['customer-businesses-summary'] as const,
   business: (id: string) => ['business', id] as const,
   businessProfile: (id: string) => ['business-profile', id] as const,
   businessPublic: (slug: string) => ['business-public', slug] as const,

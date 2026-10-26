@@ -60,7 +60,7 @@ function renderPage() {
     <MemoryRouter initialEntries={['/join/taqueria-el-fogon']}>
       <Routes>
         <Route path="/join/:slug" element={<BusinessJoinPage />} />
-        <Route path="/customer/balance" element={<p>Saldo del cliente</p>} />
+        <Route path="/customer/business/:businessId" element={<p>Saldo del cliente</p>} />
         <Route path="/admin/dashboard" element={<p>Panel de administración</p>} />
       </Routes>
     </MemoryRouter>,

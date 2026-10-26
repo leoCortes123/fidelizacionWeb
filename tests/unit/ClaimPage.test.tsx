@@ -73,7 +73,7 @@ function renderClaim(path = `/claim/${TOKEN}`) {
       <Routes>
         <Route path="/claim/:token" element={<ClaimPage />} />
         <Route path="/customer" element={<div>Panel cliente</div>} />
-        <Route path="/customer/balance" element={<div>Saldo cliente</div>} />
+        <Route path="/customer/business/:businessId" element={<div>Saldo cliente</div>} />
       </Routes>
     </MemoryRouter>,
   );

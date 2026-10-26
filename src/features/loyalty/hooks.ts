@@ -9,6 +9,7 @@ import type {
   BusinessPublic,
   BusinessProfile,
   BusinessRegisterResult,
+  CustomerBusinessSummary,
   LoyaltyProgram,
   LoyaltyReward,
   LoyaltyRewardAvailable,
@@ -45,6 +46,18 @@ export function useBusinesses() {
   });
 }
 
+/**
+ * Resumen del cliente por negocio: saldo, recompensas listas, solicitudes
+ * pendientes, última compra y frecuencia. El servidor solo devuelve las
+ * membresías del usuario autenticado.
+ */
+export function useCustomerBusinessesSummary() {
+  return useQuery<CustomerBusinessSummary[]>({
+    queryKey: queryKeys.customerBusinessesSummary,
+    queryFn: () => rpc<CustomerBusinessSummary[]>('customer_businesses_summary'),
+  });
+}
+
 export function useRegisterBusiness() {
   const queryClient = useQueryClient();
   return useMutation<BusinessRegisterResult, Error, { name: string; slug: string; timezone?: string }>({
@@ -57,6 +70,9 @@ export function useRegisterBusiness() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.businesses });
       void queryClient.invalidateQueries({ queryKey: queryKeys.roles });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.customerBusinessesSummary,
+      });
     },
   });
 }
@@ -186,6 +202,9 @@ export function useJoinBusiness() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.businesses });
       void queryClient.invalidateQueries({ queryKey: queryKeys.roles });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.customerBusinessesSummary,
+      });
     },
   });
 }
@@ -545,6 +564,9 @@ export function useRequestRedemption() {
         queryKey: ['loyalty-point-transactions', vars.businessId],
       });
       void queryClient.invalidateQueries({ queryKey: queryKeys.myLoyaltyRedemptions });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.customerBusinessesSummary,
+      });
     },
   });
 }
@@ -640,6 +662,9 @@ export function useRedeemRedemptionByToken() {
       });
       void queryClient.invalidateQueries({ queryKey: queryKeys.myLoyaltyRedemptions });
       void queryClient.invalidateQueries({
+        queryKey: queryKeys.customerBusinessesSummary,
+      });
+      void queryClient.invalidateQueries({
         queryKey: queryKeys.businessAuditLogPrefix(result.business_id),
       });
     },
@@ -690,6 +715,9 @@ export function useDeliverRedemption() {
         queryKey: ['loyalty-point-transactions', vars.businessId],
       });
       void queryClient.invalidateQueries({ queryKey: queryKeys.myLoyaltyRedemptions });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.customerBusinessesSummary,
+      });
     },
   });
 }
@@ -718,6 +746,9 @@ export function useCancelRedemption() {
         queryKey: ['loyalty-point-transactions', vars.businessId],
       });
       void queryClient.invalidateQueries({ queryKey: queryKeys.myLoyaltyRedemptions });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.customerBusinessesSummary,
+      });
       void queryClient.invalidateQueries({
         queryKey: queryKeys.businessAuditLogPrefix(vars.businessId),
       });

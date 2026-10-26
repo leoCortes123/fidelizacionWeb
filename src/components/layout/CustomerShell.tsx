@@ -60,7 +60,10 @@ export function CustomerShell() {
             ))}
           </nav>
           <div className="flex items-center gap-2">
-            <BusinessSwitcher className="hidden md:flex" />
+            <BusinessSwitcher
+              className="hidden md:flex"
+              linkToCustomerHome
+            />
             {isAdmin && (
               <Button variant="outline" size="sm" asChild className="hidden sm:inline-flex">
                 <Link to="/admin">
@@ -73,7 +76,7 @@ export function CustomerShell() {
           </div>
         </div>
         <div className="border-t px-4 py-2 md:hidden">
-          <BusinessSwitcher />
+          <BusinessSwitcher linkToCustomerHome />
         </div>
       </header>
 
