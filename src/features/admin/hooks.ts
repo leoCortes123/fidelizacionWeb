@@ -136,9 +136,13 @@ export function useAdminCustomers(
   pageSize: number,
   sort: string,
   direction: string,
+  onlyFrequent = false,
 ) {
   return useQuery({
-    queryKey: queryKeys.staffCustomers(businessId, search, page, sort, direction),
+    queryKey: [
+      ...queryKeys.staffCustomers(businessId, search, page, sort, direction),
+      onlyFrequent,
+    ],
     queryFn: () =>
       rpc<StaffCustomer[]>('staff_list_customers', {
         p_search: search,
@@ -147,6 +151,7 @@ export function useAdminCustomers(
         p_sort: sort,
         p_direction: direction,
         p_business_id: businessId,
+        p_only_frequent: onlyFrequent,
       }),
     enabled: Boolean(businessId),
   });

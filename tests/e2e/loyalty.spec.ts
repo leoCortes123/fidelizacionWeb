@@ -1293,3 +1293,87 @@ test('compra manual: el detalle indica que no hay productos', async ({ browser }
 
   await admin.context.close();
 });
+
+test('clientes: detalle sin canje manual, compras clicables y filtro de frecuentes', async ({ browser }) => {
+  const state = createFakeState();
+  seedBusiness(state);
+  const claimedAt = new Date().toISOString();
+  state.purchases.push({
+    id: 'purchase-f5',
+    token: 'tok_f5_123456789012345678901',
+    businessId: 'biz-test',
+    amount_cop: 12500,
+    status: 'claimed',
+    points_awarded: 12,
+    customerId: 'user-customer',
+    registrarId: 'user-admin',
+    createdAt: claimedAt,
+    expiresAt: claimedAt,
+    claimed_at: claimedAt,
+    items: [
+      {
+        id: 'line-f5-combo',
+        product_id: 'prod-combo',
+        name: 'Combo enganche',
+        quantity: 2,
+        unit_price_cop: 5000,
+        line_total_cop: 10000,
+        is_combo: true,
+        combo_detail: [
+          {
+            product_id: 'prod-taco',
+            name: 'Taco de guisado',
+            quantity: 2,
+            unit_price_cop: 2500,
+          },
+        ],
+      },
+      {
+        id: 'line-f5-taco',
+        product_id: 'prod-taco',
+        name: 'Taco de guisado',
+        quantity: 1,
+        unit_price_cop: 2500,
+        line_total_cop: 2500,
+        is_combo: false,
+        combo_detail: [],
+      },
+    ],
+  });
+  for (let index = 0; index < 2; index += 1) {
+    state.purchases.push({
+      id: `purchase-f5-extra-${index}`,
+      token: `tok_f5_extra_${index}_123456789012345`,
+      businessId: 'biz-test',
+      amount_cop: 5000,
+      status: 'claimed',
+      points_awarded: 5,
+      customerId: 'user-customer',
+      registrarId: 'user-admin',
+      createdAt: claimedAt,
+      expiresAt: claimedAt,
+      claimed_at: claimedAt,
+      items: [],
+    });
+  }
+
+  const admin = await openAs(browser, state, TOKENS.admin, '/admin/customers');
+  await expect(admin.page.getByText('Frecuente activo').last()).toBeVisible();
+  await admin.page.getByRole('button', { name: /Todos los clientes/ }).click();
+  await expect(
+    admin.page.getByRole('button', { name: /Solo frecuentes/ }),
+  ).toBeVisible();
+  await admin.page.getByRole('link', { name: 'Ver detalle' }).last().click();
+
+  await expect(
+    admin.page.getByRole('heading', { name: 'Carla Cliente' }),
+  ).toBeVisible();
+  await expect(admin.page.getByText('Canjear recompensa')).toHaveCount(0);
+  await expect(admin.page.getByText('Anular y devolver')).toHaveCount(0);
+
+  await admin.page.getByRole('button', { name: 'Detalle' }).first().click();
+  await expect(admin.page.getByRole('dialog')).toContainText('Combo enganche');
+  await expect(admin.page.getByRole('dialog')).toContainText('Taco de guisado');
+
+  await admin.context.close();
+});

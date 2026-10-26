@@ -159,6 +159,8 @@ export interface CustomerPurchase {
   points_awarded: number;
   claimed_at: string;
   status: PurchaseStatus;
+  items_count?: number;
+  source?: 'qr' | 'manual';
 }
 
 export interface CustomerMovement {

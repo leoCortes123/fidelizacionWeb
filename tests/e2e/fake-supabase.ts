@@ -1363,6 +1363,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
         const businessId = body.p_business_id
           ? String(body.p_business_id)
           : null;
+        const onlyFrequent = Boolean(body.p_only_frequent);
         const rows = state.users
           .filter((item) => item.roles.includes('customer'))
           .filter((item) => !item.roles.includes('admin'))
@@ -1382,6 +1383,11 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
               item.name.toLowerCase().includes(search) ||
               item.email.toLowerCase().includes(search) ||
               (item.nickname ?? '').toLowerCase().includes(search),
+          )
+          .filter(
+            (item) =>
+              !onlyFrequent ||
+              customerFrequency(state, item.id, businessId).is_frequent,
           )
           .map((item) => {
             const claimed = state.purchases.filter(
@@ -1491,26 +1497,74 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           total_spent: businessId
             ? frequency.total_spent_cop
             : claimed.reduce((sum, purchase) => sum + purchase.amount_cop, 0),
-          purchases: claimed.map((purchase) => ({
-            id: purchase.id,
-            amount_cop: purchase.amount_cop,
-            points_awarded: purchase.points_awarded,
-            claimed_at: purchase.claimed_at,
-            status: purchase.status,
-          })),
-          movements,
-          redemptions: state.redemptions
-            .filter((redemption) => redemption.customerId === customer.id)
-            .map((redemption) => ({
-              id: redemption.id,
-              reward_name: redemption.reward_name,
-              points_spent: redemption.points_spent,
-              code: redemption.code,
-              status: redemption.status,
-              created_at: redemption.createdAt,
-              delivered_at: redemption.delivered_at,
-              cancelled_at: redemption.cancelled_at,
+          purchases: [
+            ...claimed.map((purchase) => ({
+              id: purchase.id,
+              amount_cop: purchase.amount_cop,
+              points_awarded: purchase.points_awarded,
+              claimed_at: purchase.claimed_at,
+              status: purchase.status,
+              items_count: purchase.items?.length ?? 0,
+              source: 'qr',
             })),
+            ...state.purchaseEvents
+              .filter(
+                (event) =>
+                  event.customerId === customer.id &&
+                  (!businessId || event.businessId === businessId) &&
+                  !event.idempotencyKey.startsWith('purchase_qr:') &&
+                  !event.reversed,
+              )
+              .map((event) => ({
+                id: event.id,
+                amount_cop: event.amountCop,
+                points_awarded: event.pointsEarned,
+                claimed_at: event.createdAt,
+                status: 'claimed',
+                items_count: 0,
+                source: 'manual',
+              })),
+          ].sort(
+            (a, b) =>
+              new Date(b.claimed_at ?? 0).getTime() -
+              new Date(a.claimed_at ?? 0).getTime(),
+          ),
+          movements,
+          redemptions: [
+            ...state.redemptions
+              .filter((redemption) => redemption.customerId === customer.id)
+              .map((redemption) => ({
+                id: redemption.id,
+                reward_name: redemption.reward_name,
+                points_spent: redemption.points_spent,
+                code: redemption.code,
+                status: redemption.status,
+                created_at: redemption.createdAt,
+                delivered_at: redemption.delivered_at,
+                cancelled_at: redemption.cancelled_at,
+              })),
+            ...state.redemptionRequests
+              .filter(
+                (request) =>
+                  request.accountId === customer.id &&
+                  (!businessId || request.businessId === businessId),
+              )
+              .map((request) => ({
+                id: request.id,
+                reward_name: request.rewardName,
+                points_spent: request.pointsSpent,
+                code: request.code,
+                status:
+                  request.status === 'delivered'
+                    ? 'redeemed'
+                    : request.status === 'cancelled' || request.status === 'expired'
+                      ? 'cancelled'
+                      : 'pending_delivery',
+                created_at: request.createdAt,
+                delivered_at: request.deliveredAt ?? null,
+                cancelled_at: request.cancelledAt ?? null,
+              })),
+          ],
         });
       }
       case 'staff_list_purchases': {

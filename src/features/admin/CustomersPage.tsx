@@ -6,11 +6,17 @@ import {
   ChevronRight,
   Search,
   Sparkles,
+  Star,
   Users,
 } from 'lucide-react';
 import { useAdminCustomers } from './hooks';
 import { useBusinessContext } from '@/features/loyalty/businessContext';
-import { formatCOP, formatDateBogota, formatPoints } from '@/lib/format';
+import {
+  formatCOP,
+  formatDateBogota,
+  formatDateTimeBogota,
+  formatPoints,
+} from '@/lib/format';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -45,6 +51,7 @@ export function CustomersPage() {
   const [page, setPage] = useState(0);
   const [sort, setSort] = useState('points');
   const [direction, setDirection] = useState('desc');
+  const [onlyFrequent, setOnlyFrequent] = useState(false);
   const customers = useAdminCustomers(
     businessId,
     search,
@@ -52,6 +59,7 @@ export function CustomersPage() {
     PAGE_SIZE,
     sort,
     direction,
+    onlyFrequent,
   );
 
   const total = customers.data?.[0]?.total_count ?? 0;
@@ -131,6 +139,19 @@ export function CustomersPage() {
             </div>
             <Button
               type="button"
+              variant={onlyFrequent ? 'default' : 'outline'}
+              className="w-full sm:w-auto"
+              onClick={() => {
+                setOnlyFrequent((current) => !current);
+                setPage(0);
+              }}
+              aria-pressed={onlyFrequent}
+            >
+              <Star aria-hidden="true" />
+              {onlyFrequent ? 'Solo frecuentes' : 'Todos los clientes'}
+            </Button>
+            <Button
+              type="button"
               variant="outline"
               className="w-full sm:w-auto"
               onClick={() => {
@@ -154,8 +175,10 @@ export function CustomersPage() {
           title="Sin clientes para mostrar"
           description={
             search
-              ? 'No encontramos coincidencias. Prueba con otro nombre o correo.'
-              : 'Los clientes aparecen cuando inician sesión por primera vez.'
+              ? onlyFrequent
+                ? 'No hay clientes frecuentes con esa búsqueda. Prueba sin el filtro.'
+                : 'No encontramos coincidencias. Prueba con otro nombre o correo.'
+              : 'Los clientes aparecen cuando se afilian al negocio.'
           }
           icon={Users}
         />
@@ -183,6 +206,12 @@ export function CustomersPage() {
                         isFrequent={customer.is_frequent}
                         isActive={customer.is_frequent_active}
                       />
+                      {customer.last_purchase_at && (
+                        <p className="text-[11px] text-muted-foreground">
+                          Última compra:{' '}
+                          {formatDateTimeBogota(customer.last_purchase_at)}
+                        </p>
+                      )}
                     </div>
                     <div className="shrink-0 text-right">
                       <p className="font-display text-2xl font-extrabold text-primary">
