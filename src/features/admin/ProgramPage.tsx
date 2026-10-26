@@ -25,6 +25,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { FrequentCriteriaCard } from './FrequentCriteriaCard';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { Field } from '@/components/shared/Field';
 import { EmptyState, ErrorState, ListSkeleton, LoadingScreen } from '@/components/shared/States';
@@ -597,6 +598,8 @@ function ProgramForm({ business, program }: { business: Business; program: Loyal
           </Card>
         </div>
       </div>
+
+      <FrequentCriteriaCard business={business} program={program} />
     </div>
   );
 }

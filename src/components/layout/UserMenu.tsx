@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { ChevronDown, LogOut, Moon, Sun } from 'lucide-react';
+import { ChevronDown, LogOut, Moon, Sun, UserRound } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   DropdownMenu,
@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useAuth } from '@/features/auth/AuthProvider';
+import { useMyProfile } from '@/features/profile/hooks';
 import { useTheme } from '@/components/theme/ThemeProvider';
 import { initials } from '@/lib/config';
 import { cn } from '@/lib/utils';
@@ -22,6 +23,8 @@ interface UserMenuProps {
 
 export function UserMenu({ compact = false, className, align = 'end' }: UserMenuProps) {
   const { displayName, user, signOut } = useAuth();
+  const profile = useMyProfile(Boolean(user));
+  const nickname = profile.data?.nickname ?? null;
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
 
@@ -52,7 +55,7 @@ export function UserMenu({ compact = false, className, align = 'end' }: UserMenu
                 {displayName || 'Mi cuenta'}
               </span>
               <span className="block truncate text-[11px] text-muted-foreground">
-                {user?.email}
+                {nickname ? `@${nickname}` : user?.email}
               </span>
             </span>
           )}
@@ -66,10 +69,14 @@ export function UserMenu({ compact = false, className, align = 'end' }: UserMenu
             {displayName || 'Mi cuenta'}
           </span>
           <span className="block truncate text-[11px] font-normal text-muted-foreground">
-            {user?.email}
+            {nickname ? `@${nickname} · ${user?.email}` : user?.email}
           </span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem onSelect={() => navigate('/perfil')}>
+          <UserRound aria-hidden="true" />
+          Mi perfil
+        </DropdownMenuItem>
         <DropdownMenuItem onSelect={() => toggleTheme()}>
           {theme === 'dark' ? (
             <Sun aria-hidden="true" />

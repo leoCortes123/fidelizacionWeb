@@ -14,6 +14,8 @@ export interface FakeUser {
   id: string;
   name: string;
   email: string;
+  nickname?: string;
+  nicknameChanges?: number;
   token: string;
   roles: FakeRole[];
   balance: number;
@@ -26,6 +28,15 @@ export interface FakeBusiness {
   slug: string;
   timezone: string;
   operatingDays?: number[];
+  description?: string | null;
+  address?: string | null;
+  neighborhood?: string | null;
+  city?: string | null;
+  phoneWhatsapp?: string | null;
+  phone?: string | null;
+  instagram?: string | null;
+  website?: string | null;
+  logoUrl?: string | null;
   createdBy: string;
   createdAt: string;
 }
@@ -227,6 +238,11 @@ export interface FakeState {
     recurrence_bonus_points: number;
     referral_bonus_points: number;
     qr_expiry_hours: number;
+    frequent_min_purchases: number;
+    frequent_period_days: number;
+    frequent_min_spend_cop: number;
+    frequent_active_days: number;
+    recovery_inactive_days: number;
     is_active: boolean;
   }>;
   settings: {
@@ -256,6 +272,8 @@ export function createFakeState(): FakeState {
         id: 'user-registrar',
         name: 'Regina Caja',
         email: 'registradora@example.test',
+        nickname: 'reginacaja',
+        nicknameChanges: 0,
         token: TOKENS.registrar,
         roles: ['customer'],
         balance: 0,
@@ -265,6 +283,8 @@ export function createFakeState(): FakeState {
         id: 'user-customer',
         name: 'Carla Cliente',
         email: 'carla@example.test',
+        nickname: 'carlacliente',
+        nicknameChanges: 0,
         token: TOKENS.customer,
         roles: ['customer'],
         balance: 0,
@@ -274,6 +294,8 @@ export function createFakeState(): FakeState {
         id: 'user-customer2',
         name: 'Diego Cliente',
         email: 'diego@example.test',
+        nickname: 'diegocliente',
+        nicknameChanges: 0,
         token: TOKENS.customer2,
         roles: ['customer'],
         balance: 0,
@@ -283,6 +305,8 @@ export function createFakeState(): FakeState {
         id: 'user-admin',
         name: 'Ana Admin',
         email: 'admin@example.test',
+        nickname: 'anaadmin',
+        nicknameChanges: 0,
         token: TOKENS.admin,
         roles: ['admin'],
         balance: 0,
@@ -378,6 +402,40 @@ function loyaltyBalance(state: FakeState, userId: string) {
     100 + (state.purchaseCredits[userId] ?? 0) - reserved,
     0,
   );
+}
+
+function customerFrequency(
+  state: FakeState,
+  userId: string,
+  businessId?: string | null,
+) {
+  const purchases = state.purchases.filter(
+    (purchase) =>
+      purchase.customerId === userId &&
+      purchase.status === 'claimed' &&
+      (!businessId || purchase.businessId === businessId),
+  );
+  const last = purchases
+    .map((purchase) => purchase.claimed_at ?? purchase.createdAt)
+    .sort()
+    .at(-1) ?? null;
+  const ageDays = last
+    ? (Date.now() - new Date(last).getTime()) / (24 * 3600 * 1000)
+    : null;
+  const isFrequent = purchases.length >= 3;
+  const isActive = isFrequent && ageDays !== null && ageDays <= 30;
+  const isRecovering = last !== null && !isActive && (ageDays ?? 0) > 60;
+  return {
+    purchase_count: purchases.length,
+    total_spent_cop: purchases.reduce(
+      (sum, purchase) => sum + purchase.amount_cop,
+      0,
+    ),
+    last_purchase_at: last,
+    is_frequent: isFrequent,
+    is_frequent_active: isActive,
+    is_recovering: isRecovering,
+  };
 }
 
 export function sessionFor(user: FakeUser) {
@@ -613,8 +671,70 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           id: user?.id,
           full_name: user?.name,
           email: user?.email,
+          nickname: user?.nickname ?? null,
+          nickname_changes: user?.nicknameChanges ?? 0,
+          nickname_changes_left: 2 - (user?.nicknameChanges ?? 0),
+          business_count: state.memberships.filter((m) => m.userId === user?.id)
+            .length,
           created_at: user?.createdAt,
         });
+      case 'profile_nickname_ensure':
+        return json(route, user?.nickname ?? 'cliente');
+      case 'profile_nickname_available': {
+        const candidate = String(body.p_nickname ?? '').trim().toLowerCase();
+        if (!/^[a-z0-9._-]{3,24}$/.test(candidate)) return json(route, false);
+        if (['admin', 'loopoint', 'soporte', 'sistema'].includes(candidate)) {
+          return json(route, false);
+        }
+        return json(
+          route,
+          !state.users.some(
+            (item) => item.id !== user?.id && item.nickname === candidate,
+          ),
+        );
+      }
+      case 'profile_update': {
+        if (!user) return fail(route, 'not_authenticated');
+        const nextName = String(body.p_full_name ?? user.name).trim();
+        const nextNickname = String(body.p_nickname ?? user.nickname ?? '')
+          .trim()
+          .toLowerCase();
+        if (nextName.length < 2 || nextName.length > 120) {
+          return fail(route, 'invalid_full_name');
+        }
+        if (!/^[a-z0-9._-]{3,24}$/.test(nextNickname)) {
+          return fail(route, 'invalid_nickname');
+        }
+        if (['admin', 'loopoint', 'soporte', 'sistema'].includes(nextNickname)) {
+          return fail(route, 'nickname_reserved');
+        }
+        if (
+          state.users.some(
+            (item) => item.id !== user.id && item.nickname === nextNickname,
+          )
+        ) {
+          return fail(route, 'nickname_taken');
+        }
+        const previous = user.nickname;
+        if (previous && previous !== nextNickname) {
+          if ((user.nicknameChanges ?? 0) >= 2) {
+            return fail(route, 'nickname_change_limit');
+          }
+          user.nicknameChanges = (user.nicknameChanges ?? 0) + 1;
+        }
+        user.name = nextName;
+        user.nickname = nextNickname;
+        return json(route, {
+          id: user.id,
+          full_name: user.name,
+          email: user.email,
+          nickname: user.nickname,
+          nickname_changes: user.nicknameChanges ?? 0,
+          nickname_changes_left: 2 - (user.nicknameChanges ?? 0),
+          business_count: state.memberships.filter((m) => m.userId === user.id)
+            .length,
+        });
+      }
       case 'get_program_settings':
         return json(route, state.settings);
       case 'get_my_dashboard':
@@ -1009,30 +1129,51 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
         const offset = Number(body.p_offset ?? 0);
         const sort = String(body.p_sort ?? 'created_at');
         const direction = String(body.p_direction ?? 'desc') === 'asc' ? 1 : -1;
+        const businessId = body.p_business_id
+          ? String(body.p_business_id)
+          : null;
         const rows = state.users
           .filter((item) => item.roles.includes('customer'))
           .filter((item) => !item.roles.includes('admin'))
           .filter(
             (item) =>
+              !businessId ||
+              state.memberships.some(
+                (membership) =>
+                  membership.businessId === businessId &&
+                  membership.userId === item.id &&
+                  membership.role === 'cliente',
+              ),
+          )
+          .filter(
+            (item) =>
               !search ||
               item.name.toLowerCase().includes(search) ||
-              item.email.toLowerCase().includes(search),
+              item.email.toLowerCase().includes(search) ||
+              (item.nickname ?? '').toLowerCase().includes(search),
           )
           .map((item) => {
             const claimed = state.purchases.filter(
               (purchase) =>
                 purchase.customerId === item.id && purchase.status === 'claimed',
             );
+            const frequency = customerFrequency(state, item.id, businessId);
             return {
               id: item.id,
               full_name: item.name,
               email: item.email,
+              nickname: item.nickname ?? null,
               points_balance: item.balance,
-              purchase_count: claimed.length,
-              total_spent: claimed.reduce(
-                (sum, purchase) => sum + purchase.amount_cop,
-                0,
-              ),
+              purchase_count: businessId ? frequency.purchase_count : claimed.length,
+              total_spent: businessId
+                ? frequency.total_spent_cop
+                : claimed.reduce(
+                    (sum, purchase) => sum + purchase.amount_cop,
+                    0,
+                  ),
+              is_frequent: frequency.is_frequent,
+              is_frequent_active: frequency.is_frequent_active,
+              last_purchase_at: frequency.last_purchase_at,
               created_at: item.createdAt,
             };
           });
@@ -1096,19 +1237,29 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
               created_at: redemption.createdAt,
             })),
         ];
+        const businessId = body.p_business_id
+          ? String(body.p_business_id)
+          : null;
+        const frequency = customerFrequency(state, customer.id, businessId);
         return json(route, {
           profile: {
             id: customer.id,
             full_name: customer.name,
             email: customer.email,
+            nickname: customer.nickname ?? null,
             created_at: customer.createdAt,
           },
+          business_id: businessId,
+          nickname: customer.nickname ?? null,
+          is_frequent: frequency.is_frequent,
+          is_frequent_active: frequency.is_frequent_active,
+          is_recovering: frequency.is_recovering,
+          last_purchase_at: frequency.last_purchase_at,
           points_balance: customer.balance,
-          purchase_count: claimed.length,
-          total_spent: claimed.reduce(
-            (sum, purchase) => sum + purchase.amount_cop,
-            0,
-          ),
+          purchase_count: businessId ? frequency.purchase_count : claimed.length,
+          total_spent: businessId
+            ? frequency.total_spent_cop
+            : claimed.reduce((sum, purchase) => sum + purchase.amount_cop, 0),
           purchases: claimed.map((purchase) => ({
             id: purchase.id,
             amount_cop: purchase.amount_cop,
@@ -1402,6 +1553,88 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
       // ------------------------------------------------------------------
       // Negocio y membresías
       // ------------------------------------------------------------------
+      case 'business_profile_get': {
+        if (!user) return fail(route, 'not_authenticated');
+        const business = state.businesses.find(
+          (item) => item.id === String(body.p_business_id ?? ''),
+        );
+        if (!business) return fail(route, 'business_not_found');
+        return json(route, {
+          id: business.id,
+          name: business.name,
+          slug: business.slug,
+          timezone: business.timezone,
+          operating_days: business.operatingDays ?? [1, 2, 3, 4, 5, 6],
+          is_active: true,
+          description: business.description ?? null,
+          address: business.address ?? null,
+          neighborhood: business.neighborhood ?? null,
+          city: business.city ?? null,
+          phone_whatsapp: business.phoneWhatsapp ?? null,
+          phone: business.phone ?? null,
+          instagram: business.instagram ?? null,
+          website: business.website ?? null,
+          logo_url: business.logoUrl ?? null,
+          updated_at: now(),
+        });
+      }
+      case 'business_profile_update': {
+        if (!isAdmin) return fail(route, 'forbidden');
+        const business = state.businesses.find(
+          (item) => item.id === String(body.p_business_id ?? ''),
+        );
+        if (!business) return fail(route, 'business_not_found');
+        const name = String(body.p_name ?? business.name).trim();
+        if (name.length < 2 || name.length > 120) {
+          return fail(route, 'invalid_business_name');
+        }
+        business.name = name;
+        const nullable = (value: unknown) => {
+          const text = String(value ?? '').trim();
+          return text === '' ? null : text;
+        };
+        business.description = nullable(body.p_description);
+        business.address = nullable(body.p_address);
+        business.neighborhood = nullable(body.p_neighborhood);
+        business.city = nullable(body.p_city);
+        const whatsapp = nullable(body.p_phone_whatsapp)?.replace(/[\s().-]/g, '');
+        if (whatsapp && !/^\+?[0-9]{7,15}$/.test(whatsapp)) {
+          return fail(route, 'invalid_whatsapp');
+        }
+        business.phoneWhatsapp = whatsapp ?? null;
+        business.phone = nullable(body.p_phone)?.replace(/[\s().-]/g, '') ?? null;
+        business.instagram = nullable(body.p_instagram)?.replace(/^@/, '') ?? null;
+        business.website = nullable(body.p_website);
+        return json(route, {
+          business_id: business.id,
+          name: business.name,
+          slug: business.slug,
+          description: business.description,
+          address: business.address,
+          neighborhood: business.neighborhood,
+          city: business.city,
+          phone_whatsapp: business.phoneWhatsapp,
+          phone: business.phone,
+          instagram: business.instagram,
+          website: business.website,
+        });
+      }
+      case 'business_logo_set': {
+        if (!isAdmin) return fail(route, 'forbidden');
+        const business = state.businesses.find(
+          (item) => item.id === String(body.p_business_id ?? ''),
+        );
+        if (!business) return fail(route, 'business_not_found');
+        const logoUrl = body.p_logo_url ? String(body.p_logo_url) : null;
+        if (
+          logoUrl &&
+          !logoUrl.includes(`/business-assets/business/${business.id}/`)
+        ) {
+          return fail(route, 'logo_outside_business');
+        }
+        business.logoUrl = logoUrl;
+        return json(route, { business_id: business.id, logo_url: logoUrl });
+      }
       case 'businesses_list': {
         if (!user) return fail(route, 'not_authenticated');
         const userMemberships = state.memberships.filter(
@@ -1467,6 +1700,14 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
             operating_days: [1, 2, 3, 4, 5, 6],
             is_active: true,
             loyalty_active: Boolean(program?.is_active),
+            description: business.description ?? null,
+            logo_url: business.logoUrl ?? null,
+            address: business.address ?? null,
+            neighborhood: business.neighborhood ?? null,
+            city: business.city ?? null,
+            phone_whatsapp: business.phoneWhatsapp ?? null,
+            instagram: business.instagram ?? null,
+            website: business.website ?? null,
           },
         ]);
       }
@@ -1644,6 +1885,11 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           recurrence_bonus_points: 0,
           referral_bonus_points: 0,
           qr_expiry_hours: 24,
+          frequent_min_purchases: 3,
+          frequent_period_days: 90,
+          frequent_min_spend_cop: 0,
+          frequent_active_days: 30,
+          recovery_inactive_days: 60,
           is_active: false,
         };
         return json(route, {
@@ -1674,6 +1920,16 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           recurrence_bonus_points: Number(body.p_recurrence_bonus_points ?? 0),
           referral_bonus_points: Number(body.p_referral_bonus_points ?? 0),
           qr_expiry_hours: Number(body.p_qr_expiry_hours ?? 24),
+          frequent_min_purchases:
+            state.loyaltyPrograms[businessId]?.frequent_min_purchases ?? 3,
+          frequent_period_days:
+            state.loyaltyPrograms[businessId]?.frequent_period_days ?? 90,
+          frequent_min_spend_cop:
+            state.loyaltyPrograms[businessId]?.frequent_min_spend_cop ?? 0,
+          frequent_active_days:
+            state.loyaltyPrograms[businessId]?.frequent_active_days ?? 30,
+          recovery_inactive_days:
+            state.loyaltyPrograms[businessId]?.recovery_inactive_days ?? 60,
           is_active: isActive,
         };
         return json(route, {
@@ -1683,6 +1939,42 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           is_active: isActive,
           configured_at: now(),
         });
+      }
+      case 'loyalty_program_frequent_update': {
+        if (!isAdmin) return fail(route, 'forbidden');
+        const businessId = String(body.p_business_id ?? '');
+        const current = state.loyaltyPrograms[businessId] ?? {
+          cop_per_point_unit: 1000,
+          points_per_cop_unit: 100,
+          points_expiry_days: 365,
+          budget_rate: 0.01,
+          first_purchase_bonus_points: 0,
+          recurrence_bonus_points: 0,
+          referral_bonus_points: 0,
+          qr_expiry_hours: 24,
+          frequent_min_purchases: 3,
+          frequent_period_days: 90,
+          frequent_min_spend_cop: 0,
+          frequent_active_days: 30,
+          recovery_inactive_days: 60,
+          is_active: false,
+        };
+        const next = {
+          ...current,
+          frequent_min_purchases: Number(body.p_min_purchases ?? 3),
+          frequent_period_days: Number(body.p_period_days ?? 90),
+          frequent_min_spend_cop: Number(body.p_min_spend_cop ?? 0),
+          frequent_active_days: Number(body.p_active_days ?? 30),
+          recovery_inactive_days: Number(body.p_recovery_days ?? 60),
+        };
+        if (next.frequent_min_purchases < 1 || next.frequent_min_purchases > 100) {
+          return fail(route, 'invalid_frequent_min_purchases');
+        }
+        if (next.recovery_inactive_days <= next.frequent_active_days) {
+          return fail(route, 'invalid_recovery_inactive_days');
+        }
+        state.loyaltyPrograms[businessId] = next;
+        return json(route, { business_id: businessId, ...next });
       }
 
       // ------------------------------------------------------------------

@@ -48,6 +48,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { useBusinessContext } from '@/features/loyalty/businessContext';
+import { FrequencyBadge } from '@/components/shared/StatusBadge';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { RedemptionStatusBadge } from '@/components/shared/StatusBadge';
 import { EmptyState, ErrorState, LoadingScreen } from '@/components/shared/States';
@@ -59,6 +61,7 @@ const movementLabels: Record<PointsMovementType, string> = {
   redemption_refund: 'Devolución de canje',
   expiry_debit: 'Vencimiento de loopoints',
   admin_adjustment: 'Ajuste administrativo',
+  bonus_credit: 'Bono acreditado',
 };
 
 function newIdempotencyKey(): string {
@@ -70,7 +73,9 @@ function newIdempotencyKey(): string {
 
 export function CustomerDetailPage() {
   const { id } = useParams();
-  const customer = useAdminCustomer(id);
+  const { selectedBusiness } = useBusinessContext();
+  const businessId = selectedBusiness?.id ?? '';
+  const customer = useAdminCustomer(businessId, id);
   const rewards = useAdminRewards();
   const redeem = useAdminRedeemReward();
   const cancelRedemption = useAdminCancelRedemption();
@@ -180,7 +185,20 @@ export function CustomerDetailPage() {
 
       <PageHeader
         title={data.profile.full_name || 'Cliente sin nombre'}
-        description={`Registrado el ${formatDateTimeBogota(data.profile.created_at)}`}
+        description={
+          data.profile.nickname
+            ? `@${data.profile.nickname} · registrado el ${formatDateTimeBogota(
+                data.profile.created_at,
+              )}`
+            : `Registrado el ${formatDateTimeBogota(data.profile.created_at)}`
+        }
+        actions={
+          <FrequencyBadge
+            isFrequent={Boolean(data.is_frequent)}
+            isActive={Boolean(data.is_frequent_active)}
+            isRecovering={Boolean(data.is_recovering)}
+          />
+        }
       />
 
       <Card className="border-0 bg-foreground text-background shadow-lg">

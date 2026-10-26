@@ -39,6 +39,11 @@ function unconfiguredProgram(): LoyaltyProgram {
     recurrence_bonus_points: 0,
     referral_bonus_points: 0,
     qr_expiry_hours: 24,
+    frequent_min_purchases: 3,
+    frequent_period_days: 90,
+    frequent_min_spend_cop: 0,
+    frequent_active_days: 30,
+    recovery_inactive_days: 60,
     is_active: false,
     configured_by: null,
     configured_at: null,
@@ -58,6 +63,10 @@ vi.mock('@/features/loyalty/hooks', () => ({
   }),
   useConfigureLoyaltyProgram: () => ({ mutateAsync: configure, isPending: false }),
   useExpirePointsDue: () => ({ mutateAsync: expirePoints, isPending: false }),
+  useUpdateFrequentCriteria: () => ({
+    mutateAsync: vi.fn(),
+    isPending: false,
+  }),
 }));
 
 vi.mock('@/features/loyalty/businessContext', () => ({

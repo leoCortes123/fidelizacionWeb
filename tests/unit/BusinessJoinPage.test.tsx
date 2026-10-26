@@ -25,6 +25,14 @@ const business: BusinessPublic = {
   operating_days: [1, 2, 3, 4, 5, 6],
   is_active: true,
   loyalty_active: true,
+  description: null,
+  logo_url: null,
+  address: null,
+  neighborhood: null,
+  city: null,
+  phone_whatsapp: null,
+  instagram: null,
+  website: null,
 };
 
 vi.mock('@/features/auth/AuthProvider', () => ({

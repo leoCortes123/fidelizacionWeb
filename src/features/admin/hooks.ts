@@ -104,6 +104,7 @@ export function useExpirePoints() {
 // Operación diaria del administrador
 // ---------------------------------------------------------------------
 export function useAdminCustomers(
+  businessId: string,
   search: string,
   page: number,
   pageSize: number,
@@ -111,7 +112,7 @@ export function useAdminCustomers(
   direction: string,
 ) {
   return useQuery({
-    queryKey: queryKeys.staffCustomers(search, page, sort, direction),
+    queryKey: queryKeys.staffCustomers(businessId, search, page, sort, direction),
     queryFn: () =>
       rpc<StaffCustomer[]>('staff_list_customers', {
         p_search: search,
@@ -119,18 +120,24 @@ export function useAdminCustomers(
         p_offset: page * pageSize,
         p_sort: sort,
         p_direction: direction,
+        p_business_id: businessId,
       }),
+    enabled: Boolean(businessId),
   });
 }
 
-export function useAdminCustomer(customerId: string | undefined) {
+export function useAdminCustomer(
+  businessId: string,
+  customerId: string | undefined,
+) {
   return useQuery({
-    queryKey: queryKeys.staffCustomer(customerId ?? ''),
+    queryKey: queryKeys.staffCustomer(businessId, customerId ?? ''),
     queryFn: () =>
       rpc<CustomerDetail>('staff_get_customer', {
         p_customer_id: customerId,
+        p_business_id: businessId,
       }),
-    enabled: Boolean(customerId),
+    enabled: Boolean(customerId) && Boolean(businessId),
   });
 }
 

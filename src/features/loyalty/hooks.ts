@@ -7,6 +7,7 @@ import type {
   BusinessMembership,
   BusinessMembershipWithProfile,
   BusinessPublic,
+  BusinessProfile,
   BusinessRegisterResult,
   LoyaltyProgram,
   LoyaltyReward,
@@ -83,6 +84,83 @@ export function useUpdateBusiness() {
       }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.businesses });
+    },
+  });
+}
+
+export function useBusinessProfile(businessId: string) {
+  return useQuery<BusinessProfile>({
+    queryKey: queryKeys.businessProfile(businessId),
+    queryFn: () =>
+      rpc<BusinessProfile>('business_profile_get', {
+        p_business_id: businessId,
+      }),
+    enabled: Boolean(businessId),
+  });
+}
+
+export interface BusinessProfilePayload {
+  businessId: string;
+  name: string;
+  description: string;
+  address: string;
+  neighborhood: string;
+  city: string;
+  phoneWhatsapp: string;
+  phone: string;
+  instagram: string;
+  website: string;
+}
+
+export function useUpdateBusinessProfile() {
+  const queryClient = useQueryClient();
+  return useMutation<BusinessProfile, Error, BusinessProfilePayload>({
+    mutationFn: (params) =>
+      rpc<BusinessProfile>('business_profile_update', {
+        p_business_id: params.businessId,
+        p_name: params.name,
+        p_description: params.description,
+        p_address: params.address,
+        p_neighborhood: params.neighborhood,
+        p_city: params.city,
+        p_phone_whatsapp: params.phoneWhatsapp,
+        p_phone: params.phone,
+        p_instagram: params.instagram,
+        p_website: params.website,
+      }),
+    onSuccess: (_, vars) => {
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.businessProfile(vars.businessId),
+      });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.businesses });
+      void queryClient.invalidateQueries({ queryKey: ['business-public'] });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.businessAuditLogPrefix(vars.businessId),
+      });
+    },
+  });
+}
+
+export function useSetBusinessLogo() {
+  const queryClient = useQueryClient();
+  return useMutation<{ business_id: string; logo_url: string | null }, Error, {
+    businessId: string;
+    logoUrl: string | null;
+  }>({
+    mutationFn: (params) =>
+      rpc<{ business_id: string; logo_url: string | null }>('business_logo_set', {
+        p_business_id: params.businessId,
+        p_logo_url: params.logoUrl,
+      }),
+    onSuccess: (_, vars) => {
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.businessProfile(vars.businessId),
+      });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.businesses });
+      void queryClient.invalidateQueries({ queryKey: ['business-public'] });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.businessAuditLogPrefix(vars.businessId),
+      });
     },
   });
 }
@@ -215,6 +293,49 @@ export function useConfigureLoyaltyProgram() {
       }),
     onSuccess: (_, vars) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.loyaltyProgram(vars.businessId) });
+    },
+  });
+}
+
+export interface FrequentCriteriaPayload {
+  businessId: string;
+  minPurchases: number;
+  periodDays: number;
+  minSpendCop: number;
+  activeDays: number;
+  recoveryDays: number;
+}
+
+export interface FrequentCriteriaResult {
+  business_id: string;
+  frequent_min_purchases: number;
+  frequent_period_days: number;
+  frequent_min_spend_cop: number;
+  frequent_active_days: number;
+  recovery_inactive_days: number;
+}
+
+export function useUpdateFrequentCriteria() {
+  const queryClient = useQueryClient();
+  return useMutation<FrequentCriteriaResult, Error, FrequentCriteriaPayload>({
+    mutationFn: (params) =>
+      rpc<FrequentCriteriaResult>('loyalty_program_frequent_update', {
+        p_business_id: params.businessId,
+        p_min_purchases: params.minPurchases,
+        p_period_days: params.periodDays,
+        p_min_spend_cop: params.minSpendCop,
+        p_active_days: params.activeDays,
+        p_recovery_days: params.recoveryDays,
+      }),
+    onSuccess: (_, vars) => {
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.loyaltyProgram(vars.businessId),
+      });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.businessAuditLogPrefix(vars.businessId),
+      });
+      void queryClient.invalidateQueries({ queryKey: ['staff-customers'] });
+      void queryClient.invalidateQueries({ queryKey: ['staff-customer'] });
     },
   });
 }

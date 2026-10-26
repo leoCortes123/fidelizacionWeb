@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import {
   ArrowRight,
   Banknote,
+  Building2,
   Gift,
   Package,
   Settings2,
@@ -13,6 +14,12 @@ import { PageHeader } from '@/components/shared/PageHeader';
 import { Card, CardContent } from '@/components/ui/card';
 
 const sections = [
+  {
+    to: '/admin/business',
+    title: 'Negocio',
+    description: 'Nombre, descripción, ubicación, contacto, redes y logo.',
+    icon: Building2,
+  },
   {
     to: '/admin/program',
     title: 'Programa',

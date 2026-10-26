@@ -120,6 +120,16 @@ const ConfigHomePage = lazy(() =>
     default: module.ConfigHomePage,
   })),
 );
+const BusinessProfilePage = lazy(() =>
+  import('@/features/admin/BusinessProfilePage').then((module) => ({
+    default: module.BusinessProfilePage,
+  })),
+);
+const ProfilePage = lazy(() =>
+  import('@/features/profile/ProfilePage').then((module) => ({
+    default: module.ProfilePage,
+  })),
+);
 const RewardsPage = lazy(() =>
   import('@/features/admin/RewardsPage').then((module) => ({
     default: module.RewardsPage,
@@ -186,6 +196,14 @@ export function AppRoutes() {
         <Route path="/claim/:token" element={<ClaimPage />} />
         <Route path="/join/:slug" element={<BusinessJoinPage />} />
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
+        <Route
+          path="/perfil"
+          element={
+            <RequireAuth>
+              <ProfilePage />
+            </RequireAuth>
+          }
+        />
 
         {/* Selección y registro de negocio (multiempresa) */}
         <Route
@@ -251,6 +269,7 @@ export function AppRoutes() {
           <Route index element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="dashboard" element={<BusinessDashboardPage />} />
           <Route path="config" element={<ConfigHomePage />} />
+          <Route path="business" element={<BusinessProfilePage />} />
           <Route path="program" element={<ProgramPage />} />
           <Route path="products" element={<ProductsPage />} />
           <Route path="rewards" element={<RewardsPage />} />

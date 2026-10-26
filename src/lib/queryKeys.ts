@@ -8,12 +8,16 @@ export const queryKeys = {
   rewards: ['rewards'] as const,
   myRedemptions: ['my-redemptions'] as const,
   staffCustomers: (
+    businessId: string,
     search: string,
     page: number,
     sort: string,
     direction: string,
-  ) => ['staff-customers', search, page, sort, direction] as const,
-  staffCustomer: (id: string) => ['staff-customer', id] as const,
+  ) => ['staff-customers', businessId, search, page, sort, direction] as const,
+  staffCustomer: (businessId: string, id: string) =>
+    ['staff-customer', businessId, id] as const,
+  nicknameAvailable: (nickname: string) =>
+    ['nickname-available', nickname] as const,
   staffRedemptions: (status: string) => ['staff-redemptions', status] as const,
   adminSettings: ['admin-settings'] as const,
   adminRewards: ['admin-rewards'] as const,
@@ -25,6 +29,7 @@ export const queryKeys = {
   // Negocio y membresías
   businesses: ['businesses'] as const,
   business: (id: string) => ['business', id] as const,
+  businessProfile: (id: string) => ['business-profile', id] as const,
   businessPublic: (slug: string) => ['business-public', slug] as const,
   businessMemberships: (businessId: string) =>
     ['business-memberships', businessId] as const,

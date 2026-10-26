@@ -6,7 +6,8 @@ export type PointsMovementType =
   | 'redemption_debit'
   | 'redemption_refund'
   | 'expiry_debit'
-  | 'admin_adjustment';
+  | 'admin_adjustment'
+  | 'bonus_credit';
 
 export interface ProgramSettings {
   cop_per_point_unit: number;
@@ -22,6 +23,17 @@ export interface AdminSettings extends ProgramSettings {
   updated_at?: string;
   updated_by?: string | null;
   updated_by_email?: string | null;
+}
+
+export interface MyProfile {
+  id: string;
+  full_name: string;
+  email: string;
+  nickname: string | null;
+  nickname_changes: number;
+  nickname_changes_left: number;
+  business_count: number;
+  created_at: string;
 }
 
 export interface Dashboard {
@@ -126,9 +138,13 @@ export interface StaffCustomer {
   id: string;
   full_name: string;
   email: string;
+  nickname: string | null;
   points_balance: number;
   purchase_count: number;
   total_spent: number;
+  is_frequent: boolean;
+  is_frequent_active: boolean;
+  last_purchase_at: string | null;
   created_at: string;
   total_count: number;
 }
@@ -165,8 +181,14 @@ export interface CustomerDetail {
     id: string;
     full_name: string;
     email: string;
+    nickname?: string | null;
     created_at: string;
   };
+  business_id?: string | null;
+  is_frequent?: boolean;
+  is_frequent_active?: boolean;
+  is_recovering?: boolean;
+  last_purchase_at?: string | null;
   points_balance: number;
   purchase_count: number;
   total_spent: number;
@@ -321,6 +343,11 @@ export interface LoyaltyProgram {
   recurrence_bonus_points: number;
   referral_bonus_points: number;
   qr_expiry_hours: number;
+  frequent_min_purchases: number;
+  frequent_period_days: number;
+  frequent_min_spend_cop: number;
+  frequent_active_days: number;
+  recovery_inactive_days: number;
   is_active: boolean;
   configured_by: string | null;
   configured_at: string | null;
@@ -586,6 +613,42 @@ export interface BusinessPublic {
   operating_days: number[];
   is_active: boolean;
   loyalty_active: boolean;
+  description: string | null;
+  logo_url: string | null;
+  address: string | null;
+  neighborhood: string | null;
+  city: string | null;
+  phone_whatsapp: string | null;
+  instagram: string | null;
+  website: string | null;
+}
+
+export interface BusinessProfile {
+  id: string;
+  name: string;
+  slug: string;
+  timezone: string;
+  operating_days: number[];
+  is_active: boolean;
+  description: string | null;
+  address: string | null;
+  neighborhood: string | null;
+  city: string | null;
+  phone_whatsapp: string | null;
+  phone: string | null;
+  instagram: string | null;
+  website: string | null;
+  logo_url: string | null;
+  updated_at: string;
+}
+
+export interface BusinessCustomerFrequency {
+  purchase_count: number;
+  total_spent_cop: number;
+  last_purchase_at: string | null;
+  is_frequent: boolean;
+  is_frequent_active: boolean;
+  is_recovering: boolean;
 }
 
 export interface BusinessJoinResult {

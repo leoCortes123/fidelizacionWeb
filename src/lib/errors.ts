@@ -65,6 +65,32 @@ const MESSAGES: Record<string, string> = {
   invalid_budget_rate: 'La tasa de presupuesto debe estar entre 0 % y 100 %.',
   invalid_qr_expiry_hours: 'La vigencia del QR debe estar entre 1 y 168 horas.',
   invalid_business_name: 'El nombre del negocio no es válido.',
+  invalid_full_name: 'Escribe tu nombre completo (2 a 120 caracteres).',
+  invalid_nickname:
+    'El alias debe tener entre 3 y 24 caracteres: minúsculas, números, punto, guion o guion bajo.',
+  nickname_reserved: 'Ese alias está reservado. Elige otro.',
+  nickname_taken: 'Ese alias ya está en uso. Prueba con otro.',
+  nickname_change_limit:
+    'Ya usaste tus 2 cambios de alias. El alias actual se mantiene.',
+  invalid_business_description: 'La descripción no puede superar 500 caracteres.',
+  invalid_business_address:
+    'La dirección, el barrio o la ciudad superan 160 caracteres.',
+  invalid_whatsapp: 'El WhatsApp no es válido (7 a 15 dígitos).',
+  invalid_phone: 'El teléfono no es válido (7 a 15 dígitos).',
+  invalid_instagram: 'El usuario de Instagram no es válido.',
+  invalid_website: 'La dirección web no es válida.',
+  invalid_logo_url: 'El logo debe ser una URL pública del almacenamiento de Loopoint.',
+  logo_outside_business: 'El logo debe pertenecer a este negocio.',
+  invalid_frequent_min_purchases:
+    'El número de compras para ser frecuente debe estar entre 1 y 100.',
+  invalid_frequent_period_days:
+    'La ventana de frecuencia debe estar entre 7 y 3.650 días.',
+  invalid_frequent_min_spend:
+    'El gasto mínimo debe estar entre $0 y $50.000.000.',
+  invalid_frequent_active_days:
+    'Los días para seguir activo deben estar entre 1 y 365.',
+  invalid_recovery_inactive_days:
+    'Los días para recuperación deben ser mayores que los días de actividad (7 a 3.650).',
   invalid_business_slug: 'El identificador del negocio no es válido.',
   invalid_timezone: 'La zona horaria no es válida.',
   invalid_operating_days: 'Selecciona al menos un día de operación válido.',

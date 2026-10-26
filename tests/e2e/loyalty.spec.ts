@@ -68,6 +68,11 @@ function seedBusiness(state: FakeState) {
     recurrence_bonus_points: 0,
     referral_bonus_points: 0,
     qr_expiry_hours: 24,
+    frequent_min_purchases: 3,
+    frequent_period_days: 90,
+    frequent_min_spend_cop: 0,
+    frequent_active_days: 30,
+    recovery_inactive_days: 60,
     is_active: true,
   };
   state.products.push({
@@ -939,4 +944,152 @@ test('shell móvil: menú fijo, cabecera auto-oculta, FAB y modo oscuro persiste
   await expect(page.getByLabel('Registrar compra')).toHaveCount(0);
 
   await context.close();
+});
+
+test('perfil: edita nombre y alias, y persiste tras recargar', async ({ browser }) => {
+  const state = createFakeState();
+  const customer = await openAs(browser, state, TOKENS.customer, '/perfil');
+
+  await expect(
+    customer.page.getByRole('heading', { name: 'Mi perfil' }),
+  ).toBeVisible();
+  await expect(customer.page.getByText('@carlacliente').first()).toBeVisible();
+  await expect(
+    customer.page.getByText(/Te quedan 2 de 2 cambios/i),
+  ).toBeVisible();
+
+  const name = customer.page.getByLabel(/Nombre completo/);
+  await name.fill('Carla Cliente Nueva');
+  const nickname = customer.page.getByLabel(/Alias público/);
+  await nickname.fill('carla-nueva');
+
+  await expect(
+    customer.page.getByTestId('nickname-availability'),
+  ).toContainText('está disponible');
+
+  await customer.page
+    .getByRole('button', { name: /Guardar perfil/i })
+    .click();
+  await expect(customer.page.getByText(/Perfil guardado/i)).toBeVisible();
+
+  await customer.page.reload();
+  await expect(customer.page.getByLabel(/Nombre completo/)).toHaveValue(
+    'Carla Cliente Nueva',
+  );
+  await expect(customer.page.getByLabel(/Alias público/)).toHaveValue(
+    'carla-nueva',
+  );
+  await expect(
+    customer.page.getByText(/Te quedan 1 de 2 cambios/i),
+  ).toBeVisible();
+
+  await customer.context.close();
+});
+
+test('negocio: edita la ficha pública y persiste tras recargar', async ({ browser }) => {
+  const state = createFakeState();
+  seedBusiness(state);
+  const admin = await openAs(browser, state, TOKENS.admin, '/admin/business');
+
+  await expect(
+    admin.page.getByRole('heading', { name: 'Negocio', exact: true }),
+  ).toBeVisible();
+
+  await admin.page
+    .getByLabel(/Nombre del negocio/)
+    .fill('Taquería Centro');
+  await admin.page
+    .getByLabel(/Descripción/)
+    .fill('Tacos al pastor y aguas frescas.');
+  await admin.page.getByLabel(/WhatsApp/).fill('+57 300 111 2233');
+  await admin.page.getByLabel(/Instagram/).fill('@taqueria.centro');
+  await admin.page.getByLabel(/Sitio web/).fill('taqueria-centro.co');
+
+  await admin.page
+    .getByRole('button', { name: /Guardar datos del negocio/i })
+    .click();
+  await expect(
+    admin.page.getByText(/Datos del negocio guardados/i),
+  ).toBeVisible();
+
+  await admin.page.reload();
+  await expect(admin.page.getByLabel(/Nombre del negocio/)).toHaveValue(
+    'Taquería Centro',
+  );
+  await expect(admin.page.getByLabel(/Descripción/)).toHaveValue(
+    'Tacos al pastor y aguas frescas.',
+  );
+  await expect(admin.page.getByLabel(/WhatsApp/)).toHaveValue(
+    '+573001112233',
+  );
+  await expect(admin.page.getByLabel(/Instagram/)).toHaveValue(
+    'taqueria.centro',
+  );
+
+  await admin.context.close();
+});
+
+test('programa: configura los criterios de cliente frecuente', async ({ browser }) => {
+  const state = createFakeState();
+  seedBusiness(state);
+  const admin = await openAs(browser, state, TOKENS.admin, '/admin/program');
+
+  await expect(
+    admin.page.getByRole('heading', { name: /Cliente frecuente/i }),
+  ).toBeVisible();
+  await expect(
+    admin.page.getByText(/Será/i).first(),
+  ).toContainText('3 compra(s)');
+
+  const minPurchases = admin.page.getByLabel(/Compras para ser frecuente/);
+  await minPurchases.fill('4');
+  await admin.page.getByLabel(/Ventana móvil/).fill('120');
+  await admin.page.getByLabel(/Gasto mínimo/).fill('25000');
+  await admin.page.getByLabel(/Días para seguir activo/).fill('45');
+  await admin.page.getByLabel(/Días para recuperación/).fill('90');
+  await admin.page
+    .getByRole('button', { name: /Guardar criterios/i })
+    .click();
+  await expect(
+    admin.page.getByText(/Criterios de cliente frecuente guardados/i),
+  ).toBeVisible();
+
+  await admin.page.reload();
+  await expect(
+    admin.page.getByLabel(/Compras para ser frecuente/),
+  ).toHaveValue('4');
+  await expect(admin.page.getByLabel(/Ventana móvil/)).toHaveValue('120');
+  await expect(admin.page.getByLabel(/Gasto mínimo/)).toHaveValue('25000');
+
+  await admin.context.close();
+});
+
+test('clientes: muestra alias y distintivo de frecuente activo', async ({ browser }) => {
+  const state = createFakeState();
+  seedBusiness(state);
+  const claimedAt = new Date().toISOString();
+  for (let index = 0; index < 3; index += 1) {
+    state.purchases.push({
+      id: `purchase-frequent-${index}`,
+      token: `tok_frequent_${index}`,
+      businessId: 'biz-test',
+      amount_cop: 12000,
+      status: 'claimed',
+      points_awarded: 12,
+      customerId: 'user-customer',
+      registrarId: 'user-admin',
+      createdAt: claimedAt,
+      expiresAt: claimedAt,
+      claimed_at: claimedAt,
+    });
+  }
+
+  const admin = await openAs(browser, state, TOKENS.admin, '/admin/customers');
+
+  await expect(admin.page.getByText('@carlacliente').last()).toBeVisible();
+  await expect(
+    admin.page.getByText('Frecuente activo').last(),
+  ).toBeVisible();
+
+  await admin.context.close();
 });

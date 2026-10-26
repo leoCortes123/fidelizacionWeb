@@ -50,6 +50,7 @@ const mainNav: AdminNavItem[] = [
 
 const configPaths = [
   '/admin/config',
+  '/admin/business',
   '/admin/program',
   '/admin/products',
   '/admin/rewards',

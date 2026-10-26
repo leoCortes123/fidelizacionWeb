@@ -6,7 +6,10 @@ import {
   CalendarDays,
   Clock,
   Gift,
+  Globe,
+  Instagram,
   MapPin,
+  Phone,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { Brand } from '@/components/shared/Brand';
@@ -132,13 +135,26 @@ export function BusinessJoinPage() {
 
         <Card className="overflow-hidden shadow-lg">
           <div className="bg-foreground px-6 py-8 text-background">
-            <span className="grid size-12 place-items-center rounded-2xl bg-background/10">
-              <Building2 className="size-6" aria-hidden="true" />
-            </span>
+            {data.logo_url ? (
+              <img
+                src={data.logo_url}
+                alt={`Logo de ${data.name}`}
+                className="size-14 rounded-2xl border border-background/20 object-cover"
+              />
+            ) : (
+              <span className="grid size-12 place-items-center rounded-2xl bg-background/10">
+                <Building2 className="size-6" aria-hidden="true" />
+              </span>
+            )}
             <h1 className="mt-4 font-display text-3xl font-extrabold leading-tight">
               {data.name}
             </h1>
             <p className="mt-1 text-sm text-background/70">@{data.slug}</p>
+            {data.description && (
+              <p className="mt-3 max-w-md text-sm leading-relaxed text-background/80">
+                {data.description}
+              </p>
+            )}
             <div className="mt-4 flex flex-wrap gap-2">
               <Badge variant={data.loyalty_active ? 'success' : 'warning'}>
                 {data.loyalty_active
@@ -161,6 +177,16 @@ export function BusinessJoinPage() {
             </p>
 
             <div className="space-y-2 rounded-lg border bg-muted/30 p-3 text-sm">
+              {(data.address || data.neighborhood || data.city) && (
+                <p className="flex items-start gap-2">
+                  <MapPin className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                  <span>
+                    {[data.address, data.neighborhood, data.city]
+                      .filter(Boolean)
+                      .join(', ')}
+                  </span>
+                </p>
+              )}
               <p className="flex items-center gap-2">
                 <Clock className="size-4 text-muted-foreground" aria-hidden="true" />
                 Zona horaria: {data.timezone}
@@ -169,6 +195,45 @@ export function BusinessJoinPage() {
                 <CalendarDays className="size-4 text-muted-foreground" aria-hidden="true" />
                 {operatingDaysLabel(data.operating_days)}
               </p>
+              {data.phone_whatsapp && (
+                <p className="flex items-center gap-2">
+                  <Phone className="size-4 text-muted-foreground" aria-hidden="true" />
+                  <a
+                    className="font-semibold underline-offset-4 hover:underline"
+                    href={`https://wa.me/${data.phone_whatsapp.replace(/\D/g, '')}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    WhatsApp {data.phone_whatsapp}
+                  </a>
+                </p>
+              )}
+              {data.instagram && (
+                <p className="flex items-center gap-2">
+                  <Instagram className="size-4 text-muted-foreground" aria-hidden="true" />
+                  <a
+                    className="font-semibold underline-offset-4 hover:underline"
+                    href={`https://instagram.com/${data.instagram}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    @{data.instagram}
+                  </a>
+                </p>
+              )}
+              {data.website && (
+                <p className="flex items-center gap-2">
+                  <Globe className="size-4 text-muted-foreground" aria-hidden="true" />
+                  <a
+                    className="font-semibold underline-offset-4 hover:underline"
+                    href={data.website}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {data.website.replace(/^https?:\/\//, '')}
+                  </a>
+                </p>
+              )}
             </div>
 
             {!data.loyalty_active && (
