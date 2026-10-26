@@ -196,8 +196,7 @@ test('configura programa, carta y recompensas y persiste tras recargar', async (
   expect(state.loyaltyPrograms['biz-test'].is_active).toBe(true);
 
   // Carta: crear un producto.
-  await page.getByRole('link', { name: 'Configuración', exact: true }).click();
-  await page.getByRole('link', { name: /^Carta/ }).click();
+  await page.getByRole('tab', { name: 'Carta' }).click();
   await expect(page.getByRole('heading', { name: /Carta —/ })).toBeVisible();
   await page.getByRole('button', { name: /Nuevo producto/ }).click();
   const productDialog = page.getByRole('dialog');
@@ -210,8 +209,7 @@ test('configura programa, carta y recompensas y persiste tras recargar', async (
   expect(createdProduct?.priceCop).toBe(3500);
 
   // Recompensas: producto gratis vinculado al producto creado.
-  await page.getByRole('link', { name: 'Configuración', exact: true }).click();
-  await page.getByRole('link', { name: /^Recompensas/ }).click();
+  await page.getByRole('tab', { name: 'Recompensas' }).click();
   await expect(page.getByRole('heading', { name: /Recompensas/ })).toBeVisible();
   await page.getByRole('button', { name: /Nueva recompensa/ }).click();
   const rewardDialog = page.getByRole('dialog');
@@ -234,11 +232,9 @@ test('configura programa, carta y recompensas y persiste tras recargar', async (
   // Recargar: los datos vienen del backend y siguen ahí.
   await page.reload();
   await expect(page.getByText('Quesadilla gratis')).toBeVisible();
-  await page.getByRole('link', { name: 'Configuración', exact: true }).click();
-  await page.getByRole('link', { name: /^Carta/ }).click();
+  await page.getByRole('tab', { name: 'Carta' }).click();
   await expect(page.getByText('Quesadilla', { exact: true })).toBeVisible();
-  await page.getByRole('link', { name: 'Configuración', exact: true }).click();
-  await page.getByRole('link', { name: /^Programa/ }).click();
+  await page.getByRole('tab', { name: 'Programa' }).click();
   await expect(page.getByLabel('COP por loopoint ganado')).toHaveValue('2000');
   await expect(page.getByLabel('Tasa de presupuesto (%)')).toHaveValue('2');
 
@@ -609,7 +605,7 @@ test('admin invita clientes con enlace y QR, y añade un encargado por correo', 
 
   // Añadir un encargado buscando por correo.
   await page.getByRole('link', { name: 'Configuración', exact: true }).click();
-  await page.getByRole('link', { name: /Equipo/ }).click();
+  await page.getByRole('tab', { name: 'Equipo' }).click();
   await expect(page.getByRole('heading', { name: /Miembros/ })).toBeVisible();
   await page.getByRole('button', { name: /Añadir miembro/i }).click();
   const dialog = page.getByRole('dialog');
@@ -704,7 +700,7 @@ test('genera una venta con QR, el cliente la reclama y queda auditada', async ({
 
   // Panel económico: guardar los datos y ver el cálculo.
   await page.getByRole('link', { name: 'Configuración', exact: true }).click();
-  await page.getByRole('link', { name: /^Económico/ }).click();
+  await page.getByRole('tab', { name: 'Económico' }).click();
   await expect(
     page.getByRole('heading', { name: /Panel económico/ }),
   ).toBeVisible();
@@ -789,7 +785,7 @@ test('dashboard enlaza a completar la configuración si el programa está inacti
   );
 
   await page.getByRole('link', { name: /Completar configuración/ }).click();
-  await expect(page).toHaveURL(/\/admin\/onboarding/);
+  await expect(page).toHaveURL(/onboarding=1/);
   await expect(
     page.getByRole('heading', { name: /Paso 1 · Datos del negocio/ }),
   ).toBeVisible();
@@ -1090,6 +1086,81 @@ test('clientes: muestra alias y distintivo de frecuente activo', async ({ browse
   await expect(
     admin.page.getByText('Frecuente activo').last(),
   ).toBeVisible();
+
+  await admin.context.close();
+});
+
+
+test('configuración unificada: pestañas, borrador y redirección de rutas antiguas', async ({ browser }) => {
+  const state = createFakeState();
+  seedBusiness(state);
+  const admin = await openAs(browser, state, TOKENS.admin, '/admin/config');
+
+  await expect(
+    admin.page.getByRole('heading', { name: 'Configuración', exact: true }),
+  ).toBeVisible();
+  await expect(
+    admin.page.getByRole('tab', { name: 'Negocio' }),
+  ).toHaveAttribute('aria-selected', 'true');
+
+  // Rutas antiguas redirigen a su pestaña.
+  await admin.page.goto('/admin/products');
+  await expect(admin.page).toHaveURL(/tab=carta/);
+  await expect(
+    admin.page.getByRole('heading', { name: /Carta —/i }).first(),
+  ).toBeVisible();
+
+  // Cambio de pestaña y persistencia en la URL tras recargar.
+  await admin.page.getByRole('tab', { name: 'Programa' }).click();
+  await expect(admin.page).toHaveURL(/tab=programa/);
+  await expect(
+    admin.page.getByRole('heading', { name: /Programa de loopoints/i }),
+  ).toBeVisible();
+  await admin.page.reload();
+  await expect(
+    admin.page.getByRole('tab', { name: 'Programa' }),
+  ).toHaveAttribute('aria-selected', 'true');
+
+  // El borrador sobrevive al cambiar de pestaña.
+  const cop = admin.page.getByLabel(/COP por loopoint ganado/);
+  await cop.fill('1250');
+  await admin.page.getByRole('tab', { name: 'Carta' }).click();
+  await admin.page.getByRole('tab', { name: 'Programa' }).click();
+  await expect(admin.page.getByLabel(/COP por loopoint ganado/)).toHaveValue(
+    '1250',
+  );
+
+  await admin.context.close();
+});
+
+test('configuración móvil: sin scroll horizontal y pestañas utilizables a 360 px', async ({ browser }) => {
+  const state = createFakeState();
+  seedBusiness(state);
+  const admin = await openAs(
+    browser,
+    state,
+    TOKENS.admin,
+    '/admin/config?tab=negocio',
+    { width: 360, height: 640 },
+  );
+
+  await expect(
+    admin.page.getByRole('heading', { name: 'Configuración', exact: true }),
+  ).toBeVisible();
+  await admin.page.getByRole('tab', { name: 'Recompensas' }).click();
+  await expect(
+    admin.page.getByRole('heading', { name: /Recompensas/i }).first(),
+  ).toBeVisible();
+
+  const overflow = await admin.page.evaluate(() => {
+    const main = document.querySelector('#contenido-principal');
+    return {
+      document: document.documentElement.scrollWidth - window.innerWidth,
+      main: main ? main.scrollWidth - main.clientWidth : 0,
+    };
+  });
+  expect(overflow.document).toBeLessThanOrEqual(1);
+  expect(overflow.main).toBeLessThanOrEqual(1);
 
   await admin.context.close();
 });
