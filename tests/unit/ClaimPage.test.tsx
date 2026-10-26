@@ -51,6 +51,8 @@ const pendingPreview: PurchaseQrPreview = {
   status: 'pending_claim',
   claimed: false,
   expires_at: '2026-10-26T02:00:00.000Z',
+  items: [],
+  items_count: 0,
 };
 
 const result: ClaimResult = {

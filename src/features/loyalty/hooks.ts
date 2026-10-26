@@ -18,6 +18,7 @@ import type {
   LoyaltyPointTransaction,
   MyLoyaltyRedemption,
   Product,
+  ProductKind,
   ProfileLookup,
   RedemptionRequestResult,
   RedemptionTokenReissueResult,
@@ -362,6 +363,7 @@ export function useUpsertProduct() {
     priceCop: number;
     costCop?: number | null;
     isActive: boolean;
+    kind?: ProductKind;
   }>({
     mutationFn: (params) =>
       rpc<Product>('product_upsert', {
@@ -372,6 +374,27 @@ export function useUpsertProduct() {
         p_price_cop: params.priceCop,
         p_cost_cop: params.costCop ?? null,
         p_is_active: params.isActive,
+        p_kind: params.kind ?? 'simple',
+      }),
+    onSuccess: (_, vars) => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.products(vars.businessId, true) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.products(vars.businessId, false) });
+    },
+  });
+}
+
+export function useSetProductCombo() {
+  const queryClient = useQueryClient();
+  return useMutation<{ product_id: string; combo_items: unknown }, Error, {
+    businessId: string;
+    productId: string;
+    items: Array<{ product_id: string; quantity: number }>;
+  }>({
+    mutationFn: (params) =>
+      rpc<{ product_id: string; combo_items: unknown }>('product_combo_set', {
+        p_business_id: params.businessId,
+        p_product_id: params.productId,
+        p_items: params.items,
       }),
     onSuccess: (_, vars) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.products(vars.businessId, true) });

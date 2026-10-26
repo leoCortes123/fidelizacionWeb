@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, ReceiptText } from 'lucide-react';
-import { useMyPurchases, useProgramSettings } from '@/features/points/hooks';
+import { ChevronLeft, ChevronRight, ReceiptText, Store } from 'lucide-react';
+import { useBusinessContext } from '@/features/loyalty/businessContext';
+import { useMyPurchasesPage } from '@/features/purchases/hooks';
+import { PurchaseDetailDialog } from '@/features/purchases/PurchaseDetailDialog';
+import { useProgramSettings } from '@/features/points/hooks';
 import { formatCOP, formatDateBogota } from '@/lib/format';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -18,9 +21,11 @@ import { EmptyState, ErrorState, ListSkeleton } from '@/components/shared/States
 
 export function PurchasesPage() {
   const [page, setPage] = useState(0);
+  const [detailId, setDetailId] = useState<string | null>(null);
+  const { selectedBusiness } = useBusinessContext();
   const settings = useProgramSettings();
   const pageSize = settings.data?.history_page_size ?? 10;
-  const purchases = useMyPurchases(pageSize, page * pageSize);
+  const purchases = useMyPurchasesPage(selectedBusiness?.id ?? '', page, pageSize);
   const total = purchases.data?.[0]?.total_count ?? 0;
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
 
@@ -28,7 +33,11 @@ export function PurchasesPage() {
     <div className="space-y-6 animate-fade-in">
       <PageHeader
         title="Mis compras"
-        description="Historial de compras acreditadas y los loopoints ganados en cada una."
+        description={
+          selectedBusiness
+            ? `Compras acreditadas en ${selectedBusiness.name}.`
+            : 'Historial de compras acreditadas y los loopoints ganados.'
+        }
       />
 
       {purchases.isLoading ? (
@@ -51,22 +60,42 @@ export function PurchasesPage() {
           <div className="space-y-3 sm:hidden">
             {purchases.data.map((purchase) => (
               <Card key={purchase.id}>
-                <CardContent className="flex items-center justify-between gap-3 p-4">
-                  <div>
-                    <p className="font-display text-xl font-extrabold">
-                      {formatCOP(purchase.amount_cop)}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatDateBogota(purchase.claimed_at)}
-                    </p>
+                <CardContent className="space-y-3 p-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="flex items-center gap-1.5 truncate font-semibold">
+                        <Store className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                        {purchase.business_name}
+                      </p>
+                      <p className="font-display text-xl font-extrabold">
+                        {formatCOP(purchase.amount_cop)}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatDateBogota(purchase.claimed_at ?? purchase.created_at)}
+                      </p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p className="font-display text-xl font-extrabold text-emerald-700">
+                        +{purchase.points_awarded}
+                      </p>
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                        loopoints
+                      </p>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="font-display text-xl font-extrabold text-emerald-700">
-                      +{purchase.points_awarded}
-                    </p>
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                      loopoints
-                    </p>
+                  <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+                    <span>
+                      {purchase.items_count > 0
+                        ? `${purchase.items_count} producto(s)`
+                        : 'Sin detalle de productos'}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setDetailId(purchase.id)}
+                    >
+                      Ver detalle
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -78,27 +107,43 @@ export function PurchasesPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead>Negocio</TableHead>
                     <TableHead>Fecha</TableHead>
                     <TableHead>Importe</TableHead>
-                    <TableHead className="text-right">Loopoints ganados</TableHead>
+                    <TableHead>Ítems</TableHead>
+                    <TableHead className="text-right">Loopoints</TableHead>
+                    <TableHead className="text-right" />
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {purchases.data.map((purchase) => (
                     <TableRow key={purchase.id}>
                       <TableCell>
-                        <p className="font-medium">
-                          {formatDateBogota(purchase.claimed_at)}
-                        </p>
+                        <p className="font-medium">{purchase.business_name}</p>
                         <p className="text-xs text-muted-foreground">
-                          Compra acreditada
+                          @{purchase.business_slug}
                         </p>
+                      </TableCell>
+                      <TableCell className="text-sm text-muted-foreground">
+                        {formatDateBogota(purchase.claimed_at ?? purchase.created_at)}
                       </TableCell>
                       <TableCell className="font-semibold">
                         {formatCOP(purchase.amount_cop)}
                       </TableCell>
+                      <TableCell className="text-sm">
+                        {purchase.items_count > 0 ? purchase.items_count : '—'}
+                      </TableCell>
                       <TableCell className="text-right font-semibold text-emerald-700">
                         +{purchase.points_awarded}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setDetailId(purchase.id)}
+                        >
+                          Ver detalle
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -138,6 +183,15 @@ export function PurchasesPage() {
           </div>
         </div>
       )}
+
+      <PurchaseDetailDialog
+        open={Boolean(detailId)}
+        onOpenChange={(open) => {
+          if (!open) setDetailId(null);
+        }}
+        purchaseId={detailId}
+        mode="customer"
+      />
     </div>
   );
 }

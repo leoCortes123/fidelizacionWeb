@@ -83,6 +83,8 @@ function seedBusiness(state: FakeState) {
     priceCop: 2500,
     costCop: 800,
     isActive: true,
+    kind: 'simple',
+    comboItems: [],
   });
   state.loyaltyRewards.push({
     id: 'rew-taco',
@@ -598,6 +600,7 @@ test('admin invita clientes con enlace y QR, y añade un encargado por correo', 
 
   // Tarjeta de invitación con enlace copiable y QR.
   await expect(page.getByText('Invitar clientes')).toBeVisible();
+  await page.getByText('Invitar clientes').click();
   await expect(page.getByLabel('Enlace de invitación')).toHaveValue(
     /\/join\/taqueria-el-fogon$/,
   );
@@ -1161,6 +1164,132 @@ test('configuración móvil: sin scroll horizontal y pestañas utilizables a 360
   });
   expect(overflow.document).toBeLessThanOrEqual(1);
   expect(overflow.main).toBeLessThanOrEqual(1);
+
+  await admin.context.close();
+});
+
+test('compra con carta y combos: total, líneas y detalle en ambos portales', async ({ browser }) => {
+  const state = createFakeState();
+  seedBusiness(state);
+  state.products.push({
+    id: 'prod-combo',
+    businessId: 'biz-test',
+    name: 'Combo enganche',
+    description: 'Dos tacos y agua',
+    priceCop: 5000,
+    costCop: 1800,
+    isActive: true,
+    kind: 'combo',
+    comboItems: [{ productId: 'prod-taco', quantity: 2 }],
+  });
+
+  const admin = await openAs(
+    browser,
+    state,
+    TOKENS.admin,
+    '/admin/purchases/new',
+  );
+
+  await admin.page
+    .getByRole('tab', { name: /Elegir de la carta/i })
+    .click();
+  await admin.page
+    .getByRole('button', { name: 'Añadir Combo enganche' })
+    .click();
+  await admin.page
+    .getByRole('button', { name: 'Añadir Combo enganche' })
+    .click();
+  await admin.page
+    .getByRole('button', { name: 'Añadir Taco de guisado' })
+    .click();
+  await expect(admin.page.getByTestId('catalog-total')).toContainText('12.500');
+
+  await admin.page
+    .getByRole('button', { name: /Generar QR de la venta/ })
+    .click();
+  await expect(admin.page.getByText(/Escanéalo para sumar loopoints/)).toBeVisible();
+
+  await expect.poll(() => state.purchases.length).toBe(1);
+  expect(state.purchases[0].amount_cop).toBe(12500);
+  expect(state.purchases[0].items).toHaveLength(2);
+  const comboLine = state.purchases[0].items?.find((item) => item.is_combo);
+  expect(comboLine?.name).toBe('Combo enganche');
+  expect(comboLine?.combo_detail[0]?.name).toBe('Taco de guisado');
+
+  const claimUrl = await admin.page.getByTestId('claim-url').textContent();
+  const token = claimUrl!.split('/claim/')[1];
+
+  const customer = await openAs(
+    browser,
+    state,
+    TOKENS.customer,
+    `/claim/${token}`,
+  );
+  await customer.page
+    .getByRole('button', { name: /Confirmar y sumar loopoints/ })
+    .click();
+  await expect(customer.page.getByText(/Loopoints acreditados/)).toBeVisible();
+  await customer.context.close();
+
+  // Detalle desde el panel del negocio.
+  await admin.page.goto('/admin/purchases');
+  await admin.page.getByRole('button', { name: 'Ver detalle' }).first().click();
+  await expect(admin.page.getByRole('dialog')).toContainText('Combo');
+  await expect(admin.page.getByRole('dialog')).toContainText(
+    '2 × Taco de guisado',
+  );
+  await expect(admin.page.getByRole('dialog')).toContainText('12.500');
+  await admin.context.close();
+
+  // Detalle desde el portal del cliente.
+  const customerView = await openAs(
+    browser,
+    state,
+    TOKENS.customer,
+    '/customer/purchases',
+  );
+  await expect(customerView.page.getByText('Taquería El Fogón').first()).toBeVisible();
+  await customerView.page
+    .getByRole('button', { name: 'Ver detalle' })
+    .last()
+    .click();
+  await expect(customerView.page.getByRole('dialog')).toContainText(
+    'Combo enganche',
+  );
+  await customerView.context.close();
+
+  // Inicio: métricas reales, sin placeholders.
+  const dashboard = await openAs(browser, state, TOKENS.admin, '/admin/dashboard');
+  await expect(dashboard.page.getByText('Loopoints en circulación')).toBeVisible();
+  await expect(dashboard.page.getByText('Ventas de hoy')).toBeVisible();
+  await expect(dashboard.page.getByText(/12\.500/).first()).toBeVisible();
+  await expect(
+    dashboard.page.getByText('—', { exact: true }),
+  ).toHaveCount(0);
+  await dashboard.context.close();
+});
+
+test('compra manual: el detalle indica que no hay productos', async ({ browser }) => {
+  const state = createFakeState();
+  seedBusiness(state);
+  const admin = await openAs(
+    browser,
+    state,
+    TOKENS.admin,
+    '/admin/purchases/new',
+  );
+
+  await admin.page.getByLabel('Importe de la compra (COP)').fill('3000');
+  await admin.page
+    .getByRole('button', { name: /Generar QR de la venta/ })
+    .click();
+  await expect(admin.page.getByText(/Escanéalo para sumar loopoints/)).toBeVisible();
+
+  await admin.page.goto('/admin/purchases');
+  await admin.page.getByRole('button', { name: 'Ver detalle' }).first().click();
+  await expect(
+    admin.page.getByRole('dialog').getByText('Sin detalle de productos.'),
+  ).toBeVisible();
 
   await admin.context.close();
 });

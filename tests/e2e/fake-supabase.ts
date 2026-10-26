@@ -50,6 +50,11 @@ export interface FakeMembership {
   createdAt: string;
 }
 
+export interface FakeComboItem {
+  productId: string;
+  quantity: number;
+}
+
 export interface FakeProduct {
   id: string;
   businessId: string;
@@ -58,6 +63,24 @@ export interface FakeProduct {
   priceCop: number;
   costCop: number | null;
   isActive: boolean;
+  kind: 'simple' | 'combo';
+  comboItems: FakeComboItem[];
+}
+
+export interface FakePurchaseLine {
+  id: string;
+  product_id: string;
+  name: string;
+  quantity: number;
+  unit_price_cop: number;
+  line_total_cop: number;
+  is_combo: boolean;
+  combo_detail: Array<{
+    product_id: string;
+    name: string;
+    quantity: number;
+    unit_price_cop: number;
+  }>;
 }
 
 export interface FakeLoyaltyReward {
@@ -130,6 +153,7 @@ export interface FakePurchase {
   registrarId: string;
   createdAt: string;
   expiresAt: string;
+  items?: FakePurchaseLine[];
   claimed_at: string | null;
 }
 
@@ -534,6 +558,95 @@ function purchasePoints(
   return Math.min(Math.max(points, 0), 1_000_000);
 }
 
+function comboItemsFor(state: FakeState, product: FakeProduct) {
+  return product.comboItems
+    .map((item) => {
+      const component = state.products.find((row) => row.id === item.productId);
+      if (!component) return null;
+      return {
+        product_id: component.id,
+        name: component.name,
+        quantity: item.quantity,
+        unit_price_cop: component.priceCop,
+      };
+    })
+    .filter((item): item is NonNullable<typeof item> => item !== null);
+}
+
+function fakePurchaseDetail(state: FakeState, purchase: FakePurchase) {
+  const business = state.businesses.find((item) => item.id === purchase.businessId);
+  const customer = state.users.find((item) => item.id === purchase.customerId);
+  const registrar = state.users.find((item) => item.id === purchase.registrarId);
+  return {
+    purchase: {
+      id: purchase.id,
+      business_id: purchase.businessId,
+      amount_cop: purchase.amount_cop,
+      status: purchase.status,
+      points_awarded: purchase.points_awarded,
+      created_at: purchase.createdAt,
+      expires_at: purchase.expiresAt,
+      claimed_at: purchase.claimed_at ?? null,
+      cancelled_at: null,
+      cancellation_reason: null,
+    },
+    business: {
+      id: business?.id ?? purchase.businessId,
+      name: business?.name ?? 'Negocio',
+      slug: business?.slug ?? '',
+      logo_url: business?.logoUrl ?? null,
+    },
+    customer: customer
+      ? {
+          id: customer.id,
+          full_name: customer.name,
+          nickname: customer.nickname ?? null,
+          email: customer.email,
+        }
+      : null,
+    registrar: registrar
+      ? { id: registrar.id, full_name: registrar.name, email: registrar.email }
+      : null,
+    items: purchase.items ?? [],
+    items_count: purchase.items?.length ?? 0,
+  };
+}
+
+function buildPurchaseLines(
+  state: FakeState,
+  businessId: string,
+  rawItems: unknown,
+) {
+  if (!Array.isArray(rawItems) || rawItems.length === 0) {
+    return { items: [] as FakePurchaseLine[], total: 0 };
+  }
+  const items: FakePurchaseLine[] = [];
+  let total = 0;
+  for (const raw of rawItems as Array<{ product_id?: string; quantity?: number }>) {
+    const product = state.products.find(
+      (row) => row.id === raw.product_id && row.businessId === businessId,
+    );
+    if (!product) throw new Error('product_not_found');
+    const quantity = Number(raw.quantity ?? 0);
+    if (!Number.isInteger(quantity) || quantity < 1 || quantity > 99) {
+      throw new Error('invalid_purchase_quantity');
+    }
+    const lineTotal = product.priceCop * quantity;
+    total += lineTotal;
+    items.push({
+      id: `line-${crypto.randomUUID().slice(0, 8)}`,
+      product_id: product.id,
+      name: product.name,
+      quantity,
+      unit_price_cop: product.priceCop,
+      line_total_cop: lineTotal,
+      is_combo: product.kind === 'combo',
+      combo_detail: product.kind === 'combo' ? comboItemsFor(state, product) : [],
+    });
+  }
+  return { items, total };
+}
+
 function purchasePreview(state: FakeState, purchase: FakePurchase) {
   const business = state.businesses.find((item) => item.id === purchase.businessId);
   const expired =
@@ -553,6 +666,9 @@ function purchasePreview(state: FakeState, purchase: FakePurchase) {
     status,
     claimed: status === 'claimed',
     expires_at: purchase.expiresAt,
+    business_logo_url: business?.logoUrl ?? null,
+    items: purchase.items ?? [],
+    items_count: purchase.items?.length ?? 0,
   };
 }
 
@@ -798,6 +914,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
               cancelled_at: redemption.cancelled_at,
             })),
         );
+      case 'purchase_qr_create_with_items':
       case 'purchase_qr_create': {
         if (!isStaff) return fail(route, 'forbidden');
         const businessId = String(body.p_business_id ?? '');
@@ -808,6 +925,19 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           return fail(route, 'amount_invalid');
         }
         if (amount > 50_000_000) return fail(route, 'amount_too_large');
+        let lines: FakePurchaseLine[] = [];
+        try {
+          const built = buildPurchaseLines(state, businessId, body.p_items);
+          lines = built.items;
+          if (lines.length > 0 && built.total !== amount) {
+            return fail(route, 'purchase_items_total_mismatch');
+          }
+        } catch (error) {
+          return fail(
+            route,
+            error instanceof Error ? error.message : 'invalid_purchase_items',
+          );
+        }
         const purchase: FakePurchase = {
           id: newId(),
           token: newToken(),
@@ -822,6 +952,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
             Date.now() + program.qr_expiry_hours * 3600 * 1000,
           ).toISOString(),
           claimed_at: null,
+          items: lines,
         };
         state.purchases.push(purchase);
         const business = state.businesses.find((item) => item.id === businessId);
@@ -847,6 +978,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           points_preview: purchasePoints(state, businessId, amount),
           expires_at: purchase.expiresAt,
           status: 'pending_claim',
+          items: lines,
         });
       }
       case 'purchase_qr_preview': {
@@ -973,6 +1105,105 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
             };
           }),
         );
+      }
+      case 'business_purchases_page': {
+        if (!isStaff) return fail(route, 'forbidden');
+        const businessId = String(body.p_business_id ?? '');
+        const status = body.p_status ? String(body.p_status) : '';
+        const limit = Number(body.p_limit ?? 20);
+        const offset = Number(body.p_offset ?? 0);
+        const rows = state.purchases
+          .filter((purchase) => purchase.businessId === businessId)
+          .filter((purchase) => !status || purchase.status === status)
+          .sort(
+            (a, b) =>
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+          );
+        return json(
+          route,
+          rows.slice(offset, offset + limit).map((purchase) => {
+            const customer = state.users.find(
+              (item) => item.id === purchase.customerId,
+            );
+            const registrar = state.users.find(
+              (item) => item.id === purchase.registrarId,
+            );
+            return {
+              id: purchase.id,
+              amount_cop: purchase.amount_cop,
+              status: purchase.status,
+              points_awarded: purchase.points_awarded,
+              created_at: purchase.createdAt,
+              expires_at: purchase.expiresAt,
+              claimed_at: purchase.claimed_at ?? null,
+              customer_name: customer?.name ?? null,
+              customer_nickname: customer?.nickname ?? null,
+              customer_email: customer?.email ?? null,
+              registrar_name: registrar?.name ?? null,
+              items_count: purchase.items?.length ?? 0,
+              total_count: rows.length,
+            };
+          }),
+        );
+      }
+      case 'business_purchase_detail': {
+        if (!isStaff) return fail(route, 'forbidden');
+        const purchase = state.purchases.find(
+          (item) =>
+            item.id === String(body.p_purchase_id ?? '') &&
+            item.businessId === String(body.p_business_id ?? ''),
+        );
+        if (!purchase) return fail(route, 'purchase_not_found');
+        return json(route, fakePurchaseDetail(state, purchase));
+      }
+      case 'my_purchases_page': {
+        if (!user) return fail(route, 'not_authenticated');
+        const businessId = body.p_business_id ? String(body.p_business_id) : '';
+        const limit = Number(body.p_limit ?? 20);
+        const offset = Number(body.p_offset ?? 0);
+        const rows = state.purchases
+          .filter(
+            (purchase) =>
+              purchase.customerId === user.id && purchase.status === 'claimed',
+          )
+          .filter((purchase) => !businessId || purchase.businessId === businessId)
+          .sort(
+            (a, b) =>
+              new Date(b.claimed_at ?? b.createdAt).getTime() -
+              new Date(a.claimed_at ?? a.createdAt).getTime(),
+          );
+        return json(
+          route,
+          rows.slice(offset, offset + limit).map((purchase) => {
+            const business = state.businesses.find(
+              (item) => item.id === purchase.businessId,
+            );
+            return {
+              id: purchase.id,
+              business_id: purchase.businessId,
+              business_name: business?.name ?? 'Negocio',
+              business_slug: business?.slug ?? '',
+              business_logo_url: business?.logoUrl ?? null,
+              amount_cop: purchase.amount_cop,
+              points_awarded: purchase.points_awarded,
+              claimed_at: purchase.claimed_at ?? null,
+              created_at: purchase.createdAt,
+              items_count: purchase.items?.length ?? 0,
+              total_count: rows.length,
+            };
+          }),
+        );
+      }
+      case 'my_purchase_detail': {
+        if (!user) return fail(route, 'not_authenticated');
+        const purchase = state.purchases.find(
+          (item) =>
+            item.id === String(body.p_purchase_id ?? '') &&
+            item.customerId === user.id &&
+            item.status === 'claimed',
+        );
+        if (!purchase) return fail(route, 'purchase_not_found');
+        return json(route, fakePurchaseDetail(state, purchase));
       }
       case 'purchase_qr_cancel': {
         if (!isStaff) return fail(route, 'forbidden');
@@ -1996,6 +2227,8 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
               price_cop: p.priceCop,
               cost_cop: p.costCop,
               is_active: p.isActive,
+              kind: p.kind,
+              combo_items: comboItemsFor(state, p),
               created_at: now(),
               updated_at: now(),
             })),
@@ -2014,6 +2247,8 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           priceCop: Number(body.p_price_cop ?? 0),
           costCop: body.p_cost_cop ?? null,
           isActive: Boolean(body.p_is_active ?? true),
+          kind: (String(body.p_kind ?? 'simple') as 'simple' | 'combo'),
+          comboItems: existing?.comboItems ?? [],
         };
         if (existing) Object.assign(existing, product);
         else state.products.push(product);
@@ -2025,8 +2260,41 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           price_cop: product.priceCop,
           cost_cop: product.costCop,
           is_active: product.isActive,
+          kind: product.kind,
+          combo_items: comboItemsFor(state, product),
           created_at: now(),
           updated_at: now(),
+        });
+      }
+      case 'product_combo_set': {
+        if (!user) return fail(route, 'not_authenticated');
+        const businessId = String(body.p_business_id ?? '');
+        const productId = String(body.p_product_id ?? '');
+        const product = state.products.find(
+          (item) => item.id === productId && item.businessId === businessId,
+        );
+        if (!product) return fail(route, 'product_not_found');
+        if (product.kind !== 'combo') return fail(route, 'product_not_combo');
+        const raw = Array.isArray(body.p_items) ? body.p_items : [];
+        const comboItems: FakeComboItem[] = [];
+        for (const item of raw as Array<{ product_id?: string; quantity?: number }>) {
+          const component = state.products.find(
+            (row) =>
+              row.id === item.product_id &&
+              row.businessId === businessId &&
+              row.kind === 'simple',
+          );
+          if (!component) return fail(route, 'product_not_found');
+          comboItems.push({
+            productId: component.id,
+            quantity: Number(item.quantity ?? 0),
+          });
+        }
+        product.comboItems = comboItems;
+        return json(route, {
+          product_id: product.id,
+          kind: 'combo',
+          combo_items: comboItemsFor(state, product),
         });
       }
 
@@ -2545,6 +2813,128 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           balance: loyaltyBalance(state, event.customerId),
           duplicate: false,
         });
+      }
+      case 'business_dashboard_summary': {
+        if (!user) return fail(route, 'not_authenticated');
+        const businessId = String(body.p_business_id ?? '');
+        const events = state.purchaseEvents.filter(
+          (event) => event.businessId === businessId,
+        );
+        const pending = state.redemptionRequests.filter(
+          (request) =>
+            request.businessId === businessId && request.status === 'pending',
+        );
+        const approved = state.redemptionRequests.filter(
+          (request) =>
+            request.businessId === businessId && request.status === 'approved',
+        );
+        const members = state.memberships.filter(
+          (membership) =>
+            membership.businessId === businessId && membership.role === 'cliente',
+        );
+        const frequencies = members.map((membership) =>
+          customerFrequency(state, membership.userId, businessId),
+        );
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+        const todayEvents = events.filter(
+          (event) => new Date(event.createdAt) >= today,
+        );
+        const monthEvents = events.filter(
+          (event) => new Date(event.createdAt) >= monthStart,
+        );
+        const dates = [
+          ...events.map((event) => event.createdAt),
+          ...state.redemptionRequests
+            .filter((request) => request.businessId === businessId)
+            .map((request) => request.createdAt),
+          ...state.purchases
+            .filter((purchase) => purchase.businessId === businessId)
+            .map((purchase) => purchase.createdAt),
+        ].sort();
+        return json(route, {
+          business_id: businessId,
+          points_outstanding:
+            state.purchaseCredits[members[0]?.userId ?? ''] ?? 0,
+          points_issued_total: events.reduce(
+            (sum, event) => sum + event.pointsEarned,
+            0,
+          ),
+          points_redeemed_total: state.redemptionRequests
+            .filter(
+              (request) =>
+                request.businessId === businessId &&
+                request.status !== 'cancelled',
+            )
+            .reduce((sum, request) => sum + request.pointsSpent, 0),
+          pending_redemptions: pending.length,
+          approved_pending_delivery: approved.length,
+          frequent_customers: frequencies.filter((item) => item.is_frequent).length,
+          active_customers: frequencies.filter((item) => item.is_frequent_active)
+            .length,
+          customers_total: members.length,
+          sales_today_cop: todayEvents.reduce(
+            (sum, event) => sum + event.amountCop,
+            0,
+          ),
+          sales_month_cop: monthEvents.reduce(
+            (sum, event) => sum + event.amountCop,
+            0,
+          ),
+          purchases_today: todayEvents.length,
+          purchases_month: monthEvents.length,
+          pending_qr_count: state.purchases.filter(
+            (purchase) =>
+              purchase.businessId === businessId &&
+              purchase.status === 'pending_claim',
+          ).length,
+          budget_committed_percent: 0,
+          last_activity_at: dates.at(-1) ?? null,
+          calculated_at: now(),
+        });
+      }
+      case 'business_recent_activity': {
+        if (!user) return fail(route, 'not_authenticated');
+        const businessId = String(body.p_business_id ?? '');
+        const limit = Number(body.p_limit ?? 10);
+        const rows = [
+          ...state.purchaseEvents
+            .filter((event) => event.businessId === businessId)
+            .map((event) => ({
+              id: event.id,
+              kind: 'purchase' as const,
+              title: 'Compra registrada',
+              detail:
+                state.users.find((item) => item.id === event.customerId)?.name ??
+                'Cliente',
+              points: event.pointsEarned,
+              amount_cop: event.amountCop,
+              status: null,
+              created_at: event.createdAt,
+            })),
+          ...state.redemptionRequests
+            .filter((request) => request.businessId === businessId)
+            .map((request) => ({
+              id: request.id,
+              kind: 'redemption' as const,
+              title: request.rewardName,
+              detail:
+                state.users.find((item) => item.id === request.accountId)?.name ??
+                'Cliente',
+              points: -request.pointsSpent,
+              amount_cop: null,
+              status: request.status,
+              created_at: request.createdAt,
+            })),
+        ]
+          .sort(
+            (a, b) =>
+              new Date(b.created_at).getTime() -
+              new Date(a.created_at).getTime(),
+          )
+          .slice(0, limit);
+        return json(route, rows);
       }
       case 'business_economic_profile_get': {
         if (!user) return fail(route, 'not_authenticated');

@@ -100,11 +100,14 @@ export interface PurchaseQrPreview {
   business_id: string;
   business_name: string;
   business_slug: string;
+  business_logo_url?: string | null;
   amount_cop: number;
   points_preview: number;
   status: PurchaseStatus;
   claimed: boolean;
   expires_at: string;
+  items: PurchaseLine[];
+  items_count: number;
 }
 
 /** Resultado de generar el QR de una venta en caja. */
@@ -117,6 +120,7 @@ export interface PurchaseQrCreateResult {
   points_preview: number;
   expires_at: string;
   status: 'pending_claim';
+  items?: PurchaseLine[];
 }
 
 /** Venta del negocio en el historial de compras. */
@@ -393,6 +397,15 @@ export interface LoyaltyRewardAvailable extends LoyaltyReward {
   can_redeem: boolean;
 }
 
+export type ProductKind = 'simple' | 'combo';
+
+export interface ComboItem {
+  product_id: string;
+  name: string;
+  quantity: number;
+  unit_price_cop: number;
+}
+
 export interface Product {
   id: string;
   business_id: string;
@@ -401,8 +414,106 @@ export interface Product {
   price_cop: number;
   cost_cop: number | null;
   is_active: boolean;
+  kind: ProductKind;
+  combo_items: ComboItem[];
   created_at: string;
   updated_at: string;
+}
+
+/** Línea snapshot de una compra. */
+export interface PurchaseLine {
+  id: string;
+  product_id: string | null;
+  name: string;
+  quantity: number;
+  unit_price_cop: number;
+  line_total_cop: number;
+  is_combo: boolean;
+  combo_detail: ComboItem[];
+}
+
+export interface PurchaseDetail {
+  purchase: {
+    id: string;
+    business_id: string;
+    amount_cop: number;
+    status: PurchaseStatus;
+    points_awarded: number;
+    created_at: string;
+    expires_at?: string;
+    claimed_at: string | null;
+    cancelled_at?: string | null;
+    cancellation_reason?: string | null;
+  };
+  business: {
+    id: string;
+    name: string;
+    slug: string;
+    logo_url: string | null;
+  };
+  customer?: {
+    id: string;
+    full_name: string;
+    nickname: string | null;
+    email: string;
+  } | null;
+  registrar?: {
+    id: string;
+    full_name: string;
+    email: string;
+  } | null;
+  items: PurchaseLine[];
+  items_count: number;
+}
+
+export interface BusinessPurchasePageRow extends BusinessPurchase {
+  customer_nickname: string | null;
+  items_count: number;
+}
+
+export interface MyPurchasePageRow {
+  id: string;
+  business_id: string;
+  business_name: string;
+  business_slug: string;
+  business_logo_url: string | null;
+  amount_cop: number;
+  points_awarded: number;
+  claimed_at: string | null;
+  created_at: string;
+  items_count: number;
+  total_count: number;
+}
+
+export interface DashboardSummary {
+  business_id: string;
+  points_outstanding: number;
+  points_issued_total: number;
+  points_redeemed_total: number;
+  pending_redemptions: number;
+  approved_pending_delivery: number;
+  frequent_customers: number;
+  active_customers: number;
+  customers_total: number;
+  sales_today_cop: number;
+  sales_month_cop: number;
+  purchases_today: number;
+  purchases_month: number;
+  pending_qr_count: number;
+  budget_committed_percent: number;
+  last_activity_at: string | null;
+  calculated_at: string;
+}
+
+export interface RecentActivity {
+  id: string;
+  kind: 'purchase' | 'redemption';
+  title: string;
+  detail: string;
+  points: number | null;
+  amount_cop: number | null;
+  status: string | null;
+  created_at: string;
 }
 
 // ---------------------------------------------------------------------

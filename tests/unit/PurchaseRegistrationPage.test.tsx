@@ -76,6 +76,26 @@ vi.mock('@/features/loyalty/hooks', () => ({
     isError: false,
     error: null,
   }),
+  useProducts: () => ({
+    data: [
+      {
+        id: 'prod-taco',
+        business_id: 'biz-1',
+        name: 'Taco de guisado',
+        description: null,
+        price_cop: 2500,
+        cost_cop: 800,
+        is_active: true,
+        kind: 'simple',
+        combo_items: [],
+        created_at: '2026-01-01T12:00:00.000Z',
+        updated_at: '2026-01-01T12:00:00.000Z',
+      },
+    ],
+    isLoading: false,
+    isError: false,
+    error: null,
+  }),
 }));
 
 vi.mock('@/features/loyalty/businessContext', () => ({
@@ -129,7 +149,10 @@ describe('PurchaseRegistrationPage (venta con QR)', () => {
     expect(await screen.findByText(/\+15 loopoints/i)).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: /generar qr de la venta/i }));
-    expect(createMutate).toHaveBeenCalledWith(15500, expect.any(Object));
+    expect(createMutate).toHaveBeenCalledWith(
+      { amountCop: 15500, items: [] },
+      expect.any(Object),
+    );
 
     expect(
       await screen.findByText(/escanéalo para sumar loopoints/i),
@@ -142,6 +165,28 @@ describe('PurchaseRegistrationPage (venta con QR)', () => {
       '/claim/tok_123456789012345678901234567890',
     );
     expect(screen.getByText(/15 loopoints estimados/i)).toBeInTheDocument();
+  });
+
+  it('suma productos de la carta y envía las líneas', async () => {
+    createMutate.mockImplementation((_input, options) => {
+      options?.onSuccess?.(result);
+    });
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.click(screen.getByRole('tab', { name: /elegir de la carta/i }));
+    await user.click(screen.getByRole('button', { name: /añadir taco de guisado/i }));
+    await user.click(screen.getByRole('button', { name: /añadir taco de guisado/i }));
+    expect(await screen.findByTestId('catalog-total')).toHaveTextContent('5.000');
+
+    await user.click(screen.getByRole('button', { name: /generar qr de la venta/i }));
+    expect(createMutate).toHaveBeenCalledWith(
+      {
+        amountCop: 5000,
+        items: [{ product_id: 'prod-taco', quantity: 2 }],
+      },
+      expect.any(Object),
+    );
   });
 
   it('no envía importes en cero', async () => {

@@ -9,6 +9,8 @@ import type {
   AuditEntry,
   ConfigHistoryEntry,
   CustomerDetail,
+  DashboardSummary,
+  RecentActivity,
   StaffCustomer,
 } from '@/types';
 
@@ -97,6 +99,30 @@ export function useExpirePoints() {
       void queryClient.invalidateQueries({ queryKey: queryKeys.auditLog });
       void queryClient.invalidateQueries({ queryKey: queryKeys.configHistory });
     },
+  });
+}
+
+/** Métricas reales del Inicio del negocio. */
+export function useBusinessDashboardSummary(businessId: string) {
+  return useQuery<DashboardSummary>({
+    queryKey: queryKeys.businessDashboardSummary(businessId),
+    queryFn: () =>
+      rpc<DashboardSummary>('business_dashboard_summary', {
+        p_business_id: businessId,
+      }),
+    enabled: Boolean(businessId),
+  });
+}
+
+export function useBusinessRecentActivity(businessId: string, limit = 8) {
+  return useQuery<RecentActivity[]>({
+    queryKey: queryKeys.businessRecentActivity(businessId),
+    queryFn: () =>
+      rpc<RecentActivity[]>('business_recent_activity', {
+        p_business_id: businessId,
+        p_limit: limit,
+      }),
+    enabled: Boolean(businessId),
   });
 }
 

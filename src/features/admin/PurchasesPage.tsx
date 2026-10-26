@@ -40,6 +40,7 @@ import { PurchaseStatusBadge } from '@/components/shared/StatusBadge';
 import { EmptyState, ErrorState, ListSkeleton } from '@/components/shared/States';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { BusinessGate } from './BusinessGate';
+import { PurchaseDetailDialog } from '@/features/purchases/PurchaseDetailDialog';
 
 const PAGE_SIZE = 15;
 
@@ -72,6 +73,7 @@ function PurchasesSection({ business }: { business: Business }) {
   const cancelPurchase = useCancelBusinessPurchase(business.id);
   const [target, setTarget] = useState<BusinessPurchase | null>(null);
   const [reason, setReason] = useState('');
+  const [detailId, setDetailId] = useState<string | null>(null);
 
   const total = purchases.data?.[0]?.total_count ?? 0;
   const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -175,22 +177,34 @@ function PurchasesSection({ business }: { business: Business }) {
                       </span>
                     )}
                   </p>
-                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
                     <span>
                       {purchase.points_awarded > 0
                         ? formatPoints(purchase.points_awarded)
                         : 'Sin loopoints aún'}
+                      {purchase.items_count
+                        ? ` · ${purchase.items_count} ítem(s)`
+                        : ' · sin detalle'}
                     </span>
-                    {canCancel(purchase) && (
+                    <div className="flex gap-2">
                       <Button
-                        variant="outline"
+                        variant="ghost"
                         size="sm"
-                        onClick={() => openCancel(purchase)}
+                        onClick={() => setDetailId(purchase.id)}
                       >
-                        <Ban aria-hidden="true" />
-                        Cancelar
+                        Ver detalle
                       </Button>
-                    )}
+                      {canCancel(purchase) && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openCancel(purchase)}
+                        >
+                          <Ban aria-hidden="true" />
+                          Cancelar
+                        </Button>
+                      )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -241,18 +255,34 @@ function PurchasesSection({ business }: { business: Business }) {
                       <TableCell>
                         <PurchaseStatusBadge status={purchase.status} />
                       </TableCell>
-                      <TableCell>{purchase.points_awarded}</TableCell>
+                      <TableCell>
+                        <p>{purchase.points_awarded}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {purchase.items_count
+                            ? `${purchase.items_count} ítem(s)`
+                            : 'Sin detalle'}
+                        </p>
+                      </TableCell>
                       <TableCell className="text-right">
-                        {canCancel(purchase) && (
+                        <div className="flex justify-end gap-2">
                           <Button
-                            variant="outline"
+                            variant="ghost"
                             size="sm"
-                            onClick={() => openCancel(purchase)}
+                            onClick={() => setDetailId(purchase.id)}
                           >
-                            <Ban aria-hidden="true" />
-                            Cancelar
+                            Ver detalle
                           </Button>
-                        )}
+                          {canCancel(purchase) && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => openCancel(purchase)}
+                            >
+                              <Ban aria-hidden="true" />
+                              Cancelar
+                            </Button>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -292,6 +322,15 @@ function PurchasesSection({ business }: { business: Business }) {
           </div>
         </div>
       )}
+
+      <PurchaseDetailDialog
+        open={Boolean(detailId)}
+        onOpenChange={(open) => {
+          if (!open) setDetailId(null);
+        }}
+        purchaseId={detailId}
+        businessId={business.id}
+      />
 
       <ConfirmDialog
         open={Boolean(target)}

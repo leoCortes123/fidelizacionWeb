@@ -57,6 +57,16 @@ export const queryKeys = {
   purchaseQrPreview: (token: string) => ['purchase-qr-preview', token] as const,
   businessPurchases: (businessId: string, page: number, status: string) =>
     ['business-purchases', businessId, page, status] as const,
+  businessPurchaseDetail: (businessId: string, purchaseId: string) =>
+    ['business-purchase-detail', businessId, purchaseId] as const,
+  myPurchasesPage: (businessId: string, page: number) =>
+    ['my-purchases-page', businessId, page] as const,
+  myPurchaseDetail: (purchaseId: string) =>
+    ['my-purchase-detail', purchaseId] as const,
+  businessDashboardSummary: (businessId: string) =>
+    ['business-dashboard-summary', businessId] as const,
+  businessRecentActivity: (businessId: string) =>
+    ['business-recent-activity', businessId] as const,
 
   // Económico y auditoría
   businessEconomicProfile: (businessId: string) =>
