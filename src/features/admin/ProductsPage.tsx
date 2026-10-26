@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Pencil, Package, Plus, Search, Trash2, BadgeCheck } from 'lucide-react';
 import { toast } from 'sonner';
@@ -11,6 +11,7 @@ import {
 import { useBusinessContext } from '@/features/loyalty/businessContext';
 import { errorMessage } from '@/lib/errors';
 import { formatCOP, parseCopInput } from '@/lib/format';
+import { useFormDraft } from '@/lib/useFormDraft';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -140,6 +141,13 @@ function ProductsSection({ business }: { business: Business }) {
   const [editing, setEditing] = useState<Product | null>(null);
   const [form, setForm] = useState<ProductFormState>(EMPTY_FORM);
   const [errors, setErrors] = useState<Partial<Record<keyof ProductFormState, string>>>({});
+  const newProductDraft = useFormDraft<ProductFormState>({
+    key: `admin:new-product:${business.id}`,
+  });
+
+  useEffect(() => {
+    if (dialogOpen && !editing) newProductDraft.save(form);
+  }, [dialogOpen, editing, form, newProductDraft.save]);
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -164,7 +172,7 @@ function ProductsSection({ business }: { business: Business }) {
 
   function openCreate() {
     setEditing(null);
-    setForm(EMPTY_FORM);
+    setForm(newProductDraft.read() ?? EMPTY_FORM);
     setErrors({});
     setDialogOpen(true);
   }
@@ -221,6 +229,7 @@ function ProductsSection({ business }: { business: Business }) {
         costCop: parsed.data.costCop,
         isActive: parsed.data.isActive,
       });
+      if (!editing) newProductDraft.clear();
       toast.success(editing ? 'Producto actualizado' : 'Producto creado');
       setDialogOpen(false);
       setEditing(null);
