@@ -78,7 +78,7 @@ export function RedemptionsPage() {
       ) : !redemptions.data || redemptions.data.length === 0 ? (
         <EmptyState
           title="Aún no has solicitado recompensas"
-          description="Cuando tengas puntos suficientes, solicita una recompensa y aquí verás su QR."
+          description="Cuando tengas loopoints suficientes, solicita una recompensa y aquí verás su QR."
           icon={Gift}
           action={
             <Button variant="outline" asChild>
@@ -131,8 +131,8 @@ export function RedemptionsPage() {
                         redemption.status === 'expired') && (
                         <p className="text-xs text-muted-foreground">
                           {redemption.cancelled_at
-                            ? `Cancelado el ${formatDateTimeBogota(redemption.cancelled_at)} · puntos devueltos`
-                            : 'Sin canje efectivo · puntos devueltos'}
+                            ? `Cancelado el ${formatDateTimeBogota(redemption.cancelled_at)} · loopoints devueltos`
+                            : 'Sin canje efectivo · loopoints devueltos'}
                         </p>
                       )}
                     </div>
@@ -169,7 +169,7 @@ export function RedemptionsPage() {
 
       <p className="text-xs text-muted-foreground">
         El QR contiene solo un token aleatorio, nunca datos personales. Al aprobar
-        la entrega queda inválido y los puntos se descuentan de tu saldo.
+        la entrega queda inválido y los loopoints se descuentan de tu saldo.
       </p>
 
       <RedemptionQrDialog

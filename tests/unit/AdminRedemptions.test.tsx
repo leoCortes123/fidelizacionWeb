@@ -137,14 +137,14 @@ describe('RedemptionsPage del administrador', () => {
     });
   });
 
-  it('rechaza una solicitud y devuelve los puntos', async () => {
+  it('rechaza una solicitud y devuelve los loopoints', async () => {
     const user = userEvent.setup();
     renderPage();
 
     await user.click(screen.getByRole('button', { name: 'Rechazar' }));
     const dialog = within(screen.getByRole('dialog'));
     await user.click(
-      dialog.getByRole('button', { name: 'Rechazar y devolver puntos' }),
+      dialog.getByRole('button', { name: 'Rechazar y devolver loopoints' }),
     );
 
     await waitFor(() => expect(approve).toHaveBeenCalledTimes(1));
@@ -175,7 +175,7 @@ describe('RedemptionsPage del administrador', () => {
     await user.click(screen.getByRole('button', { name: 'Cancelar' }));
     const dialog = within(screen.getByRole('dialog'));
     await user.click(
-      dialog.getByRole('button', { name: 'Cancelar y devolver puntos' }),
+      dialog.getByRole('button', { name: 'Cancelar y devolver loopoints' }),
     );
 
     expect(cancel).not.toHaveBeenCalled();
@@ -186,7 +186,7 @@ describe('RedemptionsPage del administrador', () => {
       'El cliente no se presentó',
     );
     await user.click(
-      dialog.getByRole('button', { name: 'Cancelar y devolver puntos' }),
+      dialog.getByRole('button', { name: 'Cancelar y devolver loopoints' }),
     );
 
     await waitFor(() => expect(cancel).toHaveBeenCalledTimes(1));

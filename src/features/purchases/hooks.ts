@@ -43,7 +43,7 @@ export function useCreatePurchaseQr(businessId: string) {
   });
 }
 
-/** El cliente confirma el QR y recibe los puntos en su cuenta. */
+/** El cliente confirma el QR y recibe los loopoints en su cuenta. */
 export function useClaimPurchase() {
   const queryClient = useQueryClient();
   return useMutation({

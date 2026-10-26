@@ -57,7 +57,7 @@ const movementLabels: Record<PointsMovementType, string> = {
   purchase_credit: 'Compra acreditada',
   redemption_debit: 'Canje',
   redemption_refund: 'Devolución de canje',
-  expiry_debit: 'Vencimiento de puntos',
+  expiry_debit: 'Vencimiento de loopoints',
   admin_adjustment: 'Ajuste administrativo',
 };
 
@@ -116,7 +116,7 @@ export function CustomerDetailPage() {
       return;
     }
     if (balance < selectedReward.points_cost) {
-      toast.error('El cliente no tiene puntos suficientes para esta recompensa.');
+      toast.error('El cliente no tiene loopoints suficientes para esta recompensa.');
       return;
     }
     setIdempotencyKey(newIdempotencyKey());
@@ -134,7 +134,7 @@ export function CustomerDetailPage() {
         reason: note,
       });
       toast.success(
-        `${result.reward_name}: −${result.points_spent} puntos. Saldo: ${result.balance}.`,
+        `${result.reward_name}: −${result.points_spent} loopoints. Saldo: ${result.balance}.`,
       );
       setRedeemOpen(false);
       setSelectedRewardId('');
@@ -161,7 +161,7 @@ export function CustomerDetailPage() {
         reason: cancelReason.trim(),
       });
       toast.success(
-        `Canje anulado. Se devolvieron ${result.points_refunded} puntos.`,
+        `Canje anulado. Se devolvieron ${result.points_refunded} loopoints.`,
       );
       setCancelTarget(null);
     } catch (error) {
@@ -249,7 +249,7 @@ export function CustomerDetailPage() {
                         disabled={reward.points_cost > balance}
                       >
                         {reward.name} · {reward.points_cost} pts
-                        {reward.points_cost > balance ? ' (faltan puntos)' : ''}
+                        {reward.points_cost > balance ? ' (faltan loopoints)' : ''}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -342,7 +342,7 @@ export function CustomerDetailPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <TrendingUp className="size-4 text-muted-foreground" aria-hidden="true" />
-              Movimientos de puntos
+              Movimientos de loopoints
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -416,7 +416,7 @@ export function CustomerDetailPage() {
                     </div>
                     <p className="mt-1 text-xs text-muted-foreground">
                       {formatDateTimeBogota(redemption.created_at)} · −
-                      {redemption.points_spent} puntos
+                      {redemption.points_spent} loopoints
                       {redemption.cancelled_at
                         ? ` · anulado ${formatDateTimeBogota(
                             redemption.cancelled_at,
@@ -447,7 +447,7 @@ export function CustomerDetailPage() {
           <DialogHeader>
             <DialogTitle>Canjear {selectedReward?.name}</DialogTitle>
             <DialogDescription>
-              Se descontarán {selectedReward?.points_cost ?? 0} puntos a{' '}
+              Se descontarán {selectedReward?.points_cost ?? 0} loopoints a{' '}
               {data.profile.full_name || data.profile.email}. La recompensa queda
               entregada de inmediato.
             </DialogDescription>
@@ -510,7 +510,7 @@ export function CustomerDetailPage() {
         title="Anular canje"
         description={
           cancelTarget
-            ? `Se devolverán ${cancelTarget.points_spent} puntos y el canje de ${cancelTarget.reward_name} quedará cancelado.`
+            ? `Se devolverán ${cancelTarget.points_spent} loopoints y el canje de ${cancelTarget.reward_name} quedará cancelado.`
             : undefined
         }
         confirmLabel="Anular y devolver"

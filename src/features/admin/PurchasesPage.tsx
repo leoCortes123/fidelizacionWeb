@@ -179,7 +179,7 @@ function PurchasesSection({ business }: { business: Business }) {
                     <span>
                       {purchase.points_awarded > 0
                         ? formatPoints(purchase.points_awarded)
-                        : 'Sin puntos aún'}
+                        : 'Sin loopoints aún'}
                     </span>
                     {canCancel(purchase) && (
                       <Button
@@ -206,7 +206,7 @@ function PurchasesSection({ business }: { business: Business }) {
                     <TableHead>Importe</TableHead>
                     <TableHead>Cliente</TableHead>
                     <TableHead>Estado</TableHead>
-                    <TableHead>Puntos</TableHead>
+                    <TableHead>Loopoints</TableHead>
                     <TableHead className="text-right">Acciones</TableHead>
                   </TableRow>
                 </TableHeader>

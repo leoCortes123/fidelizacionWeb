@@ -26,6 +26,74 @@
     --radius: 0.9rem;
   }
 
+  /* Paleta del cliente en modo oscuro (conserva los acentos cálidos). */
+  .dark {
+    --background: 20 20% 8%;
+    --foreground: 40 20% 95%;
+    --card: 20 18% 11%;
+    --card-foreground: 40 20% 95%;
+    --popover: 20 18% 11%;
+    --popover-foreground: 40 20% 95%;
+    --primary: 3 80% 55%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 20 25% 18%;
+    --secondary-foreground: 40 30% 90%;
+    --muted: 20 20% 15%;
+    --muted-foreground: 30 12% 65%;
+    --accent: 36 60% 24%;
+    --accent-foreground: 40 30% 92%;
+    --destructive: 0 65% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 20 18% 20%;
+    --input: 20 18% 20%;
+    --ring: 3 80% 55%;
+  }
+
+  /* Paleta del negocio: turquesa/cian profundo + azul noche + dorado. */
+  :root[data-portal='admin'] {
+    --background: 195 40% 97%;
+    --foreground: 200 35% 12%;
+    --card: 0 0% 100%;
+    --card-foreground: 200 35% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 200 35% 12%;
+    --primary: 187 85% 30%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 190 55% 90%;
+    --secondary-foreground: 195 60% 18%;
+    --muted: 195 25% 93%;
+    --muted-foreground: 200 12% 40%;
+    --accent: 43 95% 55%;
+    --accent-foreground: 200 40% 15%;
+    --destructive: 0 72% 45%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 195 25% 85%;
+    --input: 195 25% 85%;
+    --ring: 187 85% 30%;
+  }
+
+  :root.dark[data-portal='admin'] {
+    --background: 200 35% 9%;
+    --foreground: 190 20% 94%;
+    --card: 200 30% 12%;
+    --card-foreground: 190 20% 94%;
+    --popover: 200 30% 12%;
+    --popover-foreground: 190 20% 94%;
+    --primary: 187 75% 45%;
+    --primary-foreground: 200 40% 10%;
+    --secondary: 195 30% 18%;
+    --secondary-foreground: 190 20% 94%;
+    --muted: 200 25% 16%;
+    --muted-foreground: 195 12% 66%;
+    --accent: 43 90% 55%;
+    --accent-foreground: 200 40% 12%;
+    --destructive: 0 65% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 195 20% 22%;
+    --input: 195 20% 22%;
+    --ring: 187 75% 45%;
+  }
+
   * {
     @apply border-border;
   }
@@ -71,6 +139,33 @@
       linear-gradient(hsl(35 20% 88% / 0.5) 1px, transparent 1px),
       linear-gradient(90deg, hsl(35 20% 88% / 0.5) 1px, transparent 1px);
     background-size: 28px 28px;
+  }
+
+  .dark .hero-glow {
+    background:
+      radial-gradient(60% 80% at 15% 10%, hsl(3 45% 20% / 0.9), transparent 60%),
+      radial-gradient(50% 70% at 90% 20%, hsl(36 60% 18% / 0.8), transparent 65%),
+      linear-gradient(180deg, hsl(20 20% 9%), hsl(20 18% 8%));
+  }
+
+  .dark .paper-grid {
+    background-image:
+      linear-gradient(hsl(20 18% 22% / 0.6) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(20 18% 22% / 0.6) 1px, transparent 1px);
+  }
+
+  :root[data-portal='admin'] .hero-glow {
+    background:
+      radial-gradient(60% 80% at 15% 10%, hsl(187 70% 88% / 0.9), transparent 60%),
+      radial-gradient(50% 70% at 90% 20%, hsl(43 95% 75% / 0.55), transparent 65%),
+      linear-gradient(180deg, hsl(195 40% 98%), hsl(195 35% 95%));
+  }
+
+  :root.dark[data-portal='admin'] .hero-glow {
+    background:
+      radial-gradient(60% 80% at 15% 10%, hsl(187 60% 18% / 0.9), transparent 60%),
+      radial-gradient(50% 70% at 90% 20%, hsl(43 60% 20% / 0.6), transparent 65%),
+      linear-gradient(180deg, hsl(200 35% 10%), hsl(200 35% 8%));
   }
 
   .code-display {

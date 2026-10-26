@@ -65,6 +65,14 @@ export function DashboardPage() {
       <PageHeader
         title={`¡Hola, ${firstName}!`}
         description={user?.email ?? 'Tu cuenta de cliente'}
+        actions={
+          <Button variant="outline" size="sm" asChild>
+            <Link to="/customer/balance">
+              <Gift aria-hidden="true" />
+              Ver recompensas
+            </Link>
+          </Button>
+        }
       />
 
       <Card className="overflow-hidden border-0 bg-foreground text-background shadow-lg">
@@ -76,7 +84,7 @@ export function DashboardPage() {
           <div className="relative flex items-start justify-between gap-4">
             <div className="min-w-0">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-background/60">
-                Tus puntos
+                Tus loopoints
               </p>
               <p
                 data-testid="points-balance"
@@ -251,12 +259,12 @@ export function DashboardPage() {
             <TrendingUp className="size-4" aria-hidden="true" />
           </span>
           <div className="space-y-1 text-sm">
-            <p className="font-semibold">¿Cómo sumo más puntos?</p>
+            <p className="font-semibold">¿Cómo sumo más loopoints?</p>
             <p className="text-muted-foreground">
               Pide en caja que registren tu compra y escanea el QR con este
-              teléfono. {unit ? `Ganas 1 punto por cada ${formatCOP(unit)}.` : ''}{' '}
+              teléfono. {unit ? `Ganas 1 loopoint por cada ${formatCOP(unit)}.` : ''}{' '}
               Para canjear, el equipo aplica la recompensa desde el panel y tus
-              puntos se descuentan al instante.
+              loopoints se descuentan al instante.
             </p>
           </div>
         </CardContent>

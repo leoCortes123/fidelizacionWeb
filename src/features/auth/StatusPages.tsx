@@ -24,7 +24,7 @@ export function UnauthorizedPage() {
           </div>
           <div className="flex flex-col gap-2">
             <Button asChild>
-              <Link to="/customer">Ir a mis puntos</Link>
+              <Link to="/customer">Ir a mis loopoints</Link>
             </Button>
             <Button variant="ghost" asChild>
               <Link to="/">

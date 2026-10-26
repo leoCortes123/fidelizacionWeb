@@ -9,6 +9,7 @@ import {
 } from '@/components/layout/RequireAuth';
 import { FullPageLoader } from '@/components/shared/States';
 import { BusinessProvider } from '@/features/loyalty/businessContext';
+import { RootRedirect } from '@/features/auth/RootRedirect';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { useBusinesses } from '@/features/loyalty/hooks';
 
@@ -29,11 +30,6 @@ function BusinessLayout({ children }: { children: React.ReactNode }) {
 }
 
 // Las páginas se cargan bajo demanda para reducir el bundle inicial.
-const LandingPage = lazy(() =>
-  import('@/features/auth/LandingPage').then((module) => ({
-    default: module.LandingPage,
-  })),
-);
 const LoginPage = lazy(() =>
   import('@/features/auth/LoginPage').then((module) => ({
     default: module.LoginPage,
@@ -119,6 +115,11 @@ const BusinessDashboardPage = lazy(() =>
     default: module.BusinessDashboardPage,
   })),
 );
+const ConfigHomePage = lazy(() =>
+  import('@/features/admin/ConfigHomePage').then((module) => ({
+    default: module.ConfigHomePage,
+  })),
+);
 const RewardsPage = lazy(() =>
   import('@/features/admin/RewardsPage').then((module) => ({
     default: module.RewardsPage,
@@ -179,7 +180,7 @@ export function AppRoutes() {
   return (
     <Suspense fallback={<FullPageLoader label="Cargando la página…" />}>
       <Routes>
-        <Route path="/" element={<LandingPage />} />
+        <Route path="/" element={<RootRedirect />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/auth/callback" element={<AuthCallbackPage />} />
         <Route path="/claim/:token" element={<ClaimPage />} />
@@ -249,6 +250,7 @@ export function AppRoutes() {
         >
           <Route index element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="dashboard" element={<BusinessDashboardPage />} />
+          <Route path="config" element={<ConfigHomePage />} />
           <Route path="program" element={<ProgramPage />} />
           <Route path="products" element={<ProductsPage />} />
           <Route path="rewards" element={<RewardsPage />} />

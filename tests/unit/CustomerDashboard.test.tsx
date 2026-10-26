@@ -99,7 +99,7 @@ describe('DashboardPage del cliente', () => {
     expect(screen.queryByRole('button', { name: /^canjear$/i })).toBeNull();
   });
 
-  it('muestra los puntos ganados en compras recientes', () => {
+  it('muestra los loopoints ganados en compras recientes', () => {
     render(
       <MemoryRouter>
         <DashboardPage />

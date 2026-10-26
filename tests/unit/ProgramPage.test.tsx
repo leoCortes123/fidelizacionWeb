@@ -91,18 +91,18 @@ describe('ProgramPage', () => {
     expect(
       screen.getByText('El programa aún no está configurado'),
     ).toBeInTheDocument();
-    expect(screen.getByLabelText('COP por punto ganado')).toHaveValue('1000');
-    expect(screen.getByLabelText('Puntos que equivalen a $1.000')).toHaveValue('100');
-    expect(screen.getByLabelText('Vencimiento de puntos (días)')).toHaveValue('365');
+    expect(screen.getByLabelText('COP por loopoint ganado')).toHaveValue('1000');
+    expect(screen.getByLabelText('Loopoints que equivalen a $1.000')).toHaveValue('100');
+    expect(screen.getByLabelText('Vencimiento de loopoints (días)')).toHaveValue('365');
     expect(screen.getByLabelText('Vigencia del QR (horas)')).toHaveValue('24');
-    expect(screen.getAllByText(/1 punto = \$/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/1 loopoint = \$/).length).toBeGreaterThan(0);
   });
 
   it('guarda el programa con la tasa convertida y activo', async () => {
     const user = userEvent.setup();
     renderPage();
 
-    const copInput = screen.getByLabelText('COP por punto ganado');
+    const copInput = screen.getByLabelText('COP por loopoint ganado');
     await user.clear(copInput);
     await user.type(copInput, '2000');
 
@@ -131,7 +131,7 @@ describe('ProgramPage', () => {
     const user = userEvent.setup();
     renderPage();
 
-    const expiry = screen.getByLabelText('Vencimiento de puntos (días)');
+    const expiry = screen.getByLabelText('Vencimiento de loopoints (días)');
     await user.clear(expiry);
     await user.type(expiry, '0');
     await user.click(screen.getByRole('button', { name: 'Guardar programa' }));

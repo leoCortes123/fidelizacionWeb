@@ -426,14 +426,14 @@ function Wizard({
 
   function validateProgram(): string | null {
     if (!Number.isInteger(copPerPoint) || copPerPoint < 100 || copPerPoint > 1_000_000) {
-      return 'El valor por punto debe ser un entero entre 100 y 1.000.000 COP.';
+      return 'El valor por loopoint debe ser un entero entre 100 y 1.000.000 COP.';
     }
     if (!Number.isFinite(budgetRate) || budgetRate < 0 || budgetRate > 1) {
       return 'La tasa de presupuesto debe estar entre 0 % y 100 %.';
     }
     const expiry = Number(draft.pointsExpiryDays);
     if (!Number.isInteger(expiry) || expiry < 1 || expiry > 3650) {
-      return 'El vencimiento de puntos debe estar entre 1 y 3.650 días.';
+      return 'El vencimiento de loopoints debe estar entre 1 y 3.650 días.';
     }
     const qrHours = Number(draft.qrExpiryHours);
     if (!Number.isInteger(qrHours) || qrHours < 1 || qrHours > 168) {
@@ -446,7 +446,7 @@ function Wizard({
       if (suggested === null) continue;
       const value = Number(pointsInput(product.id, suggested));
       if (!Number.isInteger(value) || value <= 0 || value > 10_000_000) {
-        return `Los puntos de ${product.name} no son válidos.`;
+        return `Los loopoints de ${product.name} no son válidos.`;
       }
     }
 
@@ -525,7 +525,7 @@ function Wizard({
     <div className="space-y-6 animate-fade-in">
       <PageHeader
         title={`Configuración inicial — ${business.name}`}
-        description="Cuatro pasos para dejar el programa de puntos operativo."
+        description="Cuatro pasos para dejar el programa de loopoints operativo."
         actions={
           <Badge variant={program?.is_active ? 'success' : 'warning'}>
             {program?.is_active ? 'Programa activo' : 'Programa inactivo'}
@@ -862,7 +862,7 @@ function Wizard({
             <CardContent className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="onboarding-cop-per-point">COP por punto ganado</Label>
+                  <Label htmlFor="onboarding-cop-per-point">COP por loopoint ganado</Label>
                   <Input
                     id="onboarding-cop-per-point"
                     inputMode="numeric"
@@ -872,7 +872,7 @@ function Wizard({
                     }
                   />
                   <p className="text-xs text-muted-foreground">
-                    1 punto por cada {formatCOP(copPerPoint || 0)} de compra elegible.
+                    1 loopoint por cada {formatCOP(copPerPoint || 0)} de compra elegible.
                   </p>
                 </div>
                 <div className="space-y-2">
@@ -890,7 +890,7 @@ function Wizard({
                   </p>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="onboarding-expiry">Vencimiento de puntos (días)</Label>
+                  <Label htmlFor="onboarding-expiry">Vencimiento de loopoints (días)</Label>
                   <Input
                     id="onboarding-expiry"
                     inputMode="numeric"
@@ -960,12 +960,12 @@ function Wizard({
                           {formatCOP(product.price_cop)}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          Puntos sugeridos: {formatNumber(suggested)} (editable)
+                          Loopoints sugeridos: {formatNumber(suggested)} (editable)
                         </p>
                       </div>
                       <div className="space-y-1">
                         <Label htmlFor={`reward-points-${product.id}`}>
-                          Puntos para {product.name}
+                          Loopoints para {product.name}
                         </Label>
                         <Input
                           id={`reward-points-${product.id}`}
@@ -1006,7 +1006,7 @@ function Wizard({
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
               <p>
-                1 punto por cada <strong>{formatCOP(copPerPoint || 0)}</strong> de compra
+                1 loopoint por cada <strong>{formatCOP(copPerPoint || 0)}</strong> de compra
                 elegible.
               </p>
               <p>
@@ -1027,14 +1027,14 @@ function Wizard({
               )}
               {costPerPoint !== null ? (
                 <p>
-                  Costo estimado por punto:{' '}
-                  <strong>{formatCOP(costPerPoint)}</strong>. Los puntos sugeridos
+                  Costo estimado por loopoint:{' '}
+                  <strong>{formatCOP(costPerPoint)}</strong>. Los loopoints sugeridos
                   igualan el costo del producto con ese presupuesto.
                 </p>
               ) : (
                 <p className="text-amber-700">
-                  No se puede calcular el costo por punto (tasa de presupuesto en 0 % o
-                  valor por punto inválido), así que no hay propuesta de puntos.
+                  No se puede calcular el costo por loopoint (tasa de presupuesto en 0 % o
+                  valor por loopoint inválido), así que no hay propuesta de loopoints.
                 </p>
               )}
               {profile?.daily_gain == null && (

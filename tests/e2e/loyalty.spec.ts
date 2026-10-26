@@ -143,7 +143,7 @@ test('gestión de recompensas como administrador', async ({ browser }) => {
   await admin.page.getByRole('button', { name: /Nueva recompensa/ }).click();
   const dialog = admin.page.getByRole('dialog');
   await dialog.getByLabel('Nombre').fill('Quesadilla de prueba');
-  await dialog.getByLabel('Puntos requeridos').fill('15');
+  await dialog.getByLabel('Loopoints requeridos').fill('15');
   await dialog.getByRole('button', { name: 'Guardar' }).click();
 
   await expect(admin.page.getByText('Quesadilla de prueba')).toBeVisible();
@@ -174,13 +174,13 @@ test('configura programa, carta y recompensas y persiste tras recargar', async (
   );
 
   await expect(
-    page.getByRole('heading', { name: /Programa de puntos/ }),
+    page.getByRole('heading', { name: /Programa de loopoints/ }),
   ).toBeVisible();
   await expect(
     page.getByText('El programa aún no está configurado'),
   ).toBeVisible();
 
-  await page.getByLabel('COP por punto ganado').fill('2000');
+  await page.getByLabel('COP por loopoint ganado').fill('2000');
   await page.getByLabel('Tasa de presupuesto (%)').fill('2');
   await page.getByLabel('Programa activo').check();
   await page.getByRole('button', { name: 'Guardar y activar' }).click();
@@ -191,7 +191,8 @@ test('configura programa, carta y recompensas y persiste tras recargar', async (
   expect(state.loyaltyPrograms['biz-test'].is_active).toBe(true);
 
   // Carta: crear un producto.
-  await page.getByRole('link', { name: 'Carta' }).click();
+  await page.getByRole('link', { name: 'Configuración', exact: true }).click();
+  await page.getByRole('link', { name: /^Carta/ }).click();
   await expect(page.getByRole('heading', { name: /Carta —/ })).toBeVisible();
   await page.getByRole('button', { name: /Nuevo producto/ }).click();
   const productDialog = page.getByRole('dialog');
@@ -204,12 +205,13 @@ test('configura programa, carta y recompensas y persiste tras recargar', async (
   expect(createdProduct?.priceCop).toBe(3500);
 
   // Recompensas: producto gratis vinculado al producto creado.
-  await page.getByRole('link', { name: 'Recompensas' }).click();
+  await page.getByRole('link', { name: 'Configuración', exact: true }).click();
+  await page.getByRole('link', { name: /^Recompensas/ }).click();
   await expect(page.getByRole('heading', { name: /Recompensas/ })).toBeVisible();
   await page.getByRole('button', { name: /Nueva recompensa/ }).click();
   const rewardDialog = page.getByRole('dialog');
   await rewardDialog.getByLabel('Nombre').fill('Quesadilla gratis');
-  await rewardDialog.getByLabel('Puntos requeridos').fill('30');
+  await rewardDialog.getByLabel('Loopoints requeridos').fill('30');
   await rewardDialog
     .getByRole('combobox', { name: /Producto que se entrega/ })
     .click();
@@ -227,10 +229,12 @@ test('configura programa, carta y recompensas y persiste tras recargar', async (
   // Recargar: los datos vienen del backend y siguen ahí.
   await page.reload();
   await expect(page.getByText('Quesadilla gratis')).toBeVisible();
-  await page.getByRole('link', { name: 'Carta' }).click();
+  await page.getByRole('link', { name: 'Configuración', exact: true }).click();
+  await page.getByRole('link', { name: /^Carta/ }).click();
   await expect(page.getByText('Quesadilla', { exact: true })).toBeVisible();
-  await page.getByRole('link', { name: 'Programa' }).click();
-  await expect(page.getByLabel('COP por punto ganado')).toHaveValue('2000');
+  await page.getByRole('link', { name: 'Configuración', exact: true }).click();
+  await page.getByRole('link', { name: /^Programa/ }).click();
+  await expect(page.getByLabel('COP por loopoint ganado')).toHaveValue('2000');
   await expect(page.getByLabel('Tasa de presupuesto (%)')).toHaveValue('2');
 
   await context.close();
@@ -247,7 +251,7 @@ test('cliente ve saldo por negocio y solicita recompensa', async ({ browser }) =
   );
 
   await expect(
-    customer.page.getByRole('heading', { name: /Tus puntos/ }),
+    customer.page.getByRole('heading', { name: /Tus loopoints/ }),
   ).toBeVisible();
   await expect(customer.page.getByText('Taco individual')).toBeVisible();
   await expect(customer.page.getByText('Disponible', { exact: true })).toBeVisible();
@@ -416,7 +420,7 @@ test('flujo completo de QR: solicitud, recuperación, entrega y estado final', a
     .getByRole('button', { name: 'Confirmar entrega' })
     .click();
   await expect(
-    encargado.page.getByText('Entrega confirmada. Puntos consumidos.'),
+    encargado.page.getByText('Entrega confirmada. Loopoints consumidos.'),
   ).toBeVisible();
   expect(state.redemptionRequests[0].status).toBe('delivered');
 
@@ -498,15 +502,15 @@ test('admin aprueba, entrega y cancela solicitudes con motivo', async ({ browser
   await carlaRow.getByRole('button', { name: 'Confirmar entrega' }).click();
   const deliverDialog = page.getByRole('dialog');
   await deliverDialog.getByRole('button', { name: 'Confirmar entrega' }).click();
-  await expect(page.getByText('Entrega confirmada. Puntos consumidos.')).toBeVisible();
+  await expect(page.getByText('Entrega confirmada. Loopoints consumidos.')).toBeVisible();
 
   // Cancelar la solicitud de Diego con motivo obligatorio.
   const diegoRow = page.getByRole('row', { name: /diego@example.test/ });
   await diegoRow.getByRole('button', { name: 'Cancelar' }).click();
   const cancelDialog = page.getByRole('dialog');
   await cancelDialog.getByLabel('Motivo de la cancelación').fill('El cliente no se presentó');
-  await cancelDialog.getByRole('button', { name: 'Cancelar y devolver puntos' }).click();
-  await expect(page.getByText('Solicitud cancelada y puntos devueltos.')).toBeVisible();
+  await cancelDialog.getByRole('button', { name: 'Cancelar y devolver loopoints' }).click();
+  await expect(page.getByText('Solicitud cancelada y loopoints devueltos.')).toBeVisible();
 
   expect(
     state.redemptionRequests.find((r) => r.id === 'red-carla')?.status,
@@ -563,7 +567,7 @@ test('afiliación pública por enlace /join/:slug', async ({ browser }) => {
   );
   await page.getByRole('button', { name: /Unirme a Taquería El Fogón/i }).click();
   await expect(page).toHaveURL(/\/customer\/balance/);
-  await expect(page.getByRole('heading', { name: /Tus puntos/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Tus loopoints/ })).toBeVisible();
 
   expect(
     state.memberships.some(
@@ -599,7 +603,8 @@ test('admin invita clientes con enlace y QR, y añade un encargado por correo', 
   await expect(page.getByLabel('QR de invitación al negocio')).toBeVisible();
 
   // Añadir un encargado buscando por correo.
-  await page.getByRole('link', { name: 'Miembros', exact: true }).click();
+  await page.getByRole('link', { name: 'Configuración', exact: true }).click();
+  await page.getByRole('link', { name: /Equipo/ }).click();
   await expect(page.getByRole('heading', { name: /Miembros/ })).toBeVisible();
   await page.getByRole('button', { name: /Añadir miembro/i }).click();
   const dialog = page.getByRole('dialog');
@@ -658,12 +663,12 @@ test('genera una venta con QR, el cliente la reclama y queda auditada', async ({
   ).toBeVisible();
 
   await page.getByLabel('Importe de la compra (COP)').fill('15500');
-  await expect(page.getByText(/15 puntos/)).toBeVisible();
+  await expect(page.getByText(/15 loopoints/)).toBeVisible();
 
   await page
     .getByRole('button', { name: /Generar QR de la venta/ })
     .click();
-  await expect(page.getByText(/Escanéalo para sumar puntos/i)).toBeVisible();
+  await expect(page.getByText(/Escanéalo para sumar loopoints/i)).toBeVisible();
 
   const claimUrl = await page.getByTestId('claim-url').textContent();
   expect(claimUrl).toContain('https://fidelizacion01.vercel.app/claim/');
@@ -681,17 +686,20 @@ test('genera una venta con QR, el cliente la reclama y queda auditada', async ({
     TOKENS.customer,
     `/claim/${token}`,
   );
-  await expect(customer.page.getByText('Taquería El Fogón')).toBeVisible();
+  await expect(
+    customer.page.getByRole('heading', { name: 'Taquería El Fogón' }),
+  ).toBeVisible();
   await customer.page
-    .getByRole('button', { name: /Confirmar y sumar puntos/ })
+    .getByRole('button', { name: /Confirmar y sumar loopoints/ })
     .click();
-  await expect(customer.page.getByText(/¡Puntos acreditados!/)).toBeVisible();
+  await expect(customer.page.getByText(/¡Loopoints acreditados!/)).toBeVisible();
   await expect.poll(() => state.purchaseCredits['user-customer']).toBe(15);
   expect(state.purchases[0].status).toBe('claimed');
   await customer.context.close();
 
   // Panel económico: guardar los datos y ver el cálculo.
-  await page.getByRole('link', { name: 'Económico' }).click();
+  await page.getByRole('link', { name: 'Configuración', exact: true }).click();
+  await page.getByRole('link', { name: /^Económico/ }).click();
   await expect(
     page.getByRole('heading', { name: /Panel económico/ }),
   ).toBeVisible();
@@ -749,7 +757,7 @@ test('wizard de configuración inicial: cuatro pasos y activación', async ({ br
     page.getByRole('heading', { name: /Paso 4 · Programa y activación/ }),
   ).toBeVisible();
 
-  await expect(page.getByLabel('Puntos para Taco de guisado')).toHaveValue('80');
+  await expect(page.getByLabel('Loopoints para Taco de guisado')).toHaveValue('80');
   await page.getByRole('button', { name: /Activar programa/ }).click();
 
   await expect(page).toHaveURL(/\/admin\/dashboard/);
@@ -784,7 +792,7 @@ test('dashboard enlaza a completar la configuración si el programa está inacti
   await context.close();
 });
 
-test('crea una campaña y duplica los puntos de una compra', async ({ browser }) => {
+test('crea una campaña y duplica los loopoints de una compra', async ({ browser }) => {
   const state = createFakeState();
   seedBusiness(state);
 
@@ -798,23 +806,23 @@ test('crea una campaña y duplica los puntos de una compra', async ({ browser })
   await expect(page.getByRole('heading', { name: /Campañas/ })).toBeVisible();
   await page.getByRole('button', { name: /Nueva campaña/ }).click();
   const dialog = page.getByRole('dialog');
-  await dialog.getByLabel('Nombre').fill('Doble puntos');
+  await dialog.getByLabel('Nombre').fill('Doble loopoints');
   await dialog.getByLabel('Multiplicador').fill('2');
   await dialog.getByRole('button', { name: 'Guardar' }).click();
 
-  await expect(page.getByText('Doble puntos')).toBeVisible();
+  await expect(page.getByText('Doble loopoints')).toBeVisible();
   await expect(page.getByText('En vigencia')).toBeVisible();
   await expect.poll(() => state.campaigns.length).toBe(1);
 
-  // La campaña vigente duplica los puntos de la venta con QR.
+  // La campaña vigente duplica los loopoints de la venta con QR.
   await page.getByRole('link', { name: 'Registrar compra' }).click();
   await page.getByLabel('Importe de la compra (COP)').fill('10000');
-  await expect(page.getByText(/10 puntos/)).toBeVisible();
+  await expect(page.getByText(/10 loopoints/)).toBeVisible();
   await page
     .getByRole('button', { name: /Generar QR de la venta/ })
     .click();
-  await expect(page.getByText(/Escanéalo para sumar puntos/i)).toBeVisible();
-  await expect(page.getByText(/20 puntos estimados/i)).toBeVisible();
+  await expect(page.getByText(/Escanéalo para sumar loopoints/i)).toBeVisible();
+  await expect(page.getByText(/20 loopoints estimados/i)).toBeVisible();
 
   const claimUrl = await page.getByTestId('claim-url').textContent();
   const token = claimUrl!.split('/claim/')[1];
@@ -826,9 +834,9 @@ test('crea una campaña y duplica los puntos de una compra', async ({ browser })
     `/claim/${token}`,
   );
   await customer.page
-    .getByRole('button', { name: /Confirmar y sumar puntos/ })
+    .getByRole('button', { name: /Confirmar y sumar loopoints/ })
     .click();
-  await expect(customer.page.getByText(/¡Puntos acreditados!/)).toBeVisible();
+  await expect(customer.page.getByText(/¡Loopoints acreditados!/)).toBeVisible();
   await expect.poll(() => state.purchaseCredits['user-customer']).toBe(20);
   await customer.context.close();
 
@@ -850,8 +858,85 @@ test('guarda un snapshot mensual del panel económico', async ({ browser }) => {
 
   await expect.poll(() => state.budgetSnapshots.length).toBe(1);
   await expect(
-    page.getByText(/Puntos \(emitidos \/ canjeados\)/i),
+    page.getByText(/Loopoints \(emitidos \/ canjeados\)/i),
   ).toBeVisible();
+
+  await context.close();
+});
+
+test('conserva el borrador de configuración al recargar la página', async ({ browser }) => {
+  const state = createFakeState();
+  seedBusiness(state);
+
+  const { page, context } = await openAs(
+    browser,
+    state,
+    TOKENS.admin,
+    '/admin/program',
+  );
+
+  const copInput = page.getByLabel('COP por loopoint ganado');
+  await copInput.fill('1750');
+  await expect(page.getByText('Borrador guardado')).toBeVisible();
+
+  await page.reload();
+
+  await expect(page.getByLabel('COP por loopoint ganado')).toHaveValue('1750');
+  await expect(page.getByText('Borrador guardado')).toBeVisible();
+
+  await context.close();
+});
+
+test('shell móvil: menú fijo, cabecera auto-oculta, FAB y modo oscuro persistente', async ({
+  browser,
+}) => {
+  const state = createFakeState();
+  seedBusiness(state);
+
+  const { page, context } = await openAs(
+    browser,
+    state,
+    TOKENS.admin,
+    '/admin/dashboard',
+    { width: 390, height: 844 },
+  );
+
+  await expect(
+    page.getByRole('navigation', { name: 'Navegación del negocio' }),
+  ).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Configuración', exact: true })).toBeVisible();
+  await expect(page.getByLabel('Registrar compra')).toBeVisible();
+  await expect(page.getByText('Ver portal del cliente')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Cerrar sesión' })).toHaveCount(0);
+
+  // Modo oscuro desde el menú de usuario.
+  await page.getByRole('button', { name: 'Abrir menú de usuario' }).last().click();
+  await page.getByRole('menuitem', { name: /modo oscuro/i }).click();
+  await expect(page.locator('html')).toHaveClass(/dark/);
+  await page.reload();
+  await expect(page.locator('html')).toHaveClass(/dark/);
+
+  // La cabecera se oculta al bajar y reaparece al subir.
+  const header = page.getByTestId('app-header');
+  const main = page.locator('#contenido-principal');
+  await expect(header).not.toHaveClass(/-translate-y-full/);
+  await main.evaluate((element) => {
+    element.scrollTop = 700;
+    element.dispatchEvent(new Event('scroll'));
+  });
+  await expect(header).toHaveClass(/-translate-y-full/);
+  await main.evaluate((element) => {
+    element.scrollTop = 200;
+    element.dispatchEvent(new Event('scroll'));
+  });
+  await expect(header).not.toHaveClass(/-translate-y-full/);
+
+  // El FAB abre registrar compra y desaparece en esa pantalla.
+  await page.getByLabel('Registrar compra').click();
+  await expect(
+    page.getByRole('heading', { name: /Registrar compra/ }),
+  ).toBeVisible();
+  await expect(page.getByLabel('Registrar compra')).toHaveCount(0);
 
   await context.close();
 });

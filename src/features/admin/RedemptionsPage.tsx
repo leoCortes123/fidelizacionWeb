@@ -61,23 +61,23 @@ const actionCopy: Record<
   },
   reject: {
     title: 'Rechazar solicitud',
-    confirm: 'Rechazar y devolver puntos',
+    confirm: 'Rechazar y devolver loopoints',
     description:
-      'Se cancelará la solicitud y los puntos reservados volverán al saldo del cliente.',
+      'Se cancelará la solicitud y los loopoints reservados volverán al saldo del cliente.',
     destructive: true,
   },
   deliver: {
     title: 'Confirmar entrega',
     confirm: 'Confirmar entrega',
     description:
-      'Marca la recompensa como entregada. Los puntos quedan consumidos definitivamente.',
+      'Marca la recompensa como entregada. Los loopoints quedan consumidos definitivamente.',
     destructive: false,
   },
   cancel: {
     title: 'Cancelar solicitud',
-    confirm: 'Cancelar y devolver puntos',
+    confirm: 'Cancelar y devolver loopoints',
     description:
-      'Solo para solicitudes pendientes. Los puntos reservados volverán al cliente.',
+      'Solo para solicitudes pendientes. Los loopoints reservados volverán al cliente.',
     destructive: true,
   },
 };
@@ -196,14 +196,14 @@ function RedemptionsSection({ business }: { business: Business }) {
           businessId: business.id,
           redemptionId: redemption.id,
         });
-        toast.success('Entrega confirmada. Puntos consumidos.');
+        toast.success('Entrega confirmada. Loopoints consumidos.');
       } else if (kind === 'cancel') {
         await cancelRedemption.mutateAsync({
           businessId: business.id,
           redemptionId: redemption.id,
           reason: reason.trim(),
         });
-        toast.success('Solicitud cancelada y puntos devueltos.');
+        toast.success('Solicitud cancelada y loopoints devueltos.');
       } else {
         await approveRedemption.mutateAsync({
           businessId: business.id,
@@ -213,7 +213,7 @@ function RedemptionsSection({ business }: { business: Business }) {
         toast.success(
           kind === 'approve'
             ? 'Solicitud aprobada. Confirma la entrega al cliente.'
-            : 'Solicitud rechazada y puntos devueltos.',
+            : 'Solicitud rechazada y loopoints devueltos.',
         );
       }
       setAction(null);
@@ -284,7 +284,7 @@ function RedemptionsSection({ business }: { business: Business }) {
               <tr>
                 <th scope="col" className="px-4 py-3">Cliente</th>
                 <th scope="col" className="px-4 py-3">Recompensa</th>
-                <th scope="col" className="px-4 py-3 text-right">Puntos</th>
+                <th scope="col" className="px-4 py-3 text-right">Loopoints</th>
                 <th scope="col" className="px-4 py-3">Fecha</th>
                 <th scope="col" className="px-4 py-3">Estado</th>
                 <th scope="col" className="px-4 py-3 text-right">Acciones</th>
@@ -357,7 +357,7 @@ function RedemptionsSection({ business }: { business: Business }) {
                       )}
                       {redemption.status === 'cancelled' && (
                         <span className="text-xs text-muted-foreground">
-                          Puntos devueltos
+                          Loopoints devueltos
                         </span>
                       )}
                     </div>
@@ -371,7 +371,7 @@ function RedemptionsSection({ business }: { business: Business }) {
 
       <p className="text-xs text-muted-foreground">
         Aprobar consume el token QR: el cliente ya no podrá reutilizarlo. Cancelar o
-        rechazar devuelve los puntos reservados. Cada paso queda en la auditoría.
+        rechazar devuelve los loopoints reservados. Cada paso queda en la auditoría.
       </p>
 
       <Dialog
@@ -410,7 +410,7 @@ function RedemptionsSection({ business }: { business: Business }) {
                 placeholder="Ej.: el cliente no se presentó"
               />
               <p className="text-xs text-muted-foreground">
-                Se guarda en la auditoría junto con los puntos devueltos.
+                Se guarda en la auditoría junto con los loopoints devueltos.
               </p>
             </div>
           )}

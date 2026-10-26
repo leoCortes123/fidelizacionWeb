@@ -60,7 +60,7 @@ export function BusinessBalancePage() {
       <div className="space-y-6 animate-fade-in">
         <PageHeader
           title="Selecciona un negocio"
-          description="Elige el negocio para ver tus puntos y recompensas."
+          description="Elige el negocio para ver tus loopoints y recompensas."
         />
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {list.map((business) => (
@@ -118,7 +118,7 @@ export function BusinessBalancePage() {
 
   function requestReward(reward: LoyaltyRewardAvailable) {
     if (!reward.can_redeem) {
-      toast.error('No tienes puntos suficientes para esta recompensa.');
+      toast.error('No tienes loopoints suficientes para esta recompensa.');
       return;
     }
     setRedeemDialog(reward);
@@ -159,7 +159,7 @@ export function BusinessBalancePage() {
   return (
     <div className="space-y-6 animate-fade-in">
       <PageHeader
-        title={`Tus puntos — ${current.name}`}
+        title={`Tus loopoints — ${current.name}`}
         description={`Saldo y recompensas disponibles en ${current.name}.`}
         actions={
           <Button variant="outline" size="sm" asChild>
@@ -222,7 +222,7 @@ export function BusinessBalancePage() {
             {available.length === 0 ? (
               <EmptyState
                 title="Sin recompensas disponibles"
-                description="No hay recompensas activas o no tienes puntos suficientes."
+                description="No hay recompensas activas o no tienes loopoints suficientes."
                 icon={Gift}
                 className="border-0 bg-transparent py-8"
               />
@@ -250,7 +250,7 @@ export function BusinessBalancePage() {
                             {formatPoints(reward.points_required)}
                           </span>
                           <span className="text-muted-foreground">
-                            {reward.can_redeem ? 'Puedes solicitarla' : 'Puntos insuficientes'}
+                            {reward.can_redeem ? 'Puedes solicitarla' : 'Loopoints insuficientes'}
                           </span>
                         </div>
                       </div>
@@ -316,7 +316,7 @@ export function BusinessBalancePage() {
           </DialogHeader>
           <form onSubmit={confirmRedemption} className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Se reservarán los puntos y se generará un código QR para que el
+              Se reservarán los loopoints y se generará un código QR para que el
               encargado valide la entrega.
             </p>
             <DialogFooter>

@@ -55,7 +55,7 @@ export function CustomersPage() {
     <div className="space-y-6 animate-fade-in">
       <PageHeader
         title="Clientes"
-        description="Consulta saldo, compras y valor acumulado. Ordenados por puntos de mayor a menor."
+        description="Consulta saldo, compras y valor acumulado. Ordenados por loopoints de mayor a menor."
       />
 
       <Card>
@@ -104,7 +104,7 @@ export function CustomersPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="points">Saldo de puntos</SelectItem>
+                  <SelectItem value="points">Saldo de loopoints</SelectItem>
                   <SelectItem value="created_at">Fecha de registro</SelectItem>
                   <SelectItem value="name">Nombre</SelectItem>
                   <SelectItem value="email">Correo</SelectItem>
@@ -164,7 +164,7 @@ export function CustomersPage() {
                         {customer.points_balance}
                       </p>
                       <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                        puntos
+                        loopoints
                       </p>
                     </div>
                   </div>

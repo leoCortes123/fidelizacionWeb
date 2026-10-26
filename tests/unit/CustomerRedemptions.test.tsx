@@ -70,7 +70,7 @@ describe('RedemptionsPage del cliente', () => {
     expect(screen.getByText('Taco gratis')).toBeInTheDocument();
     expect(screen.getByText('Pendiente de validar')).toBeInTheDocument();
     expect(screen.getByText('Taquería El Fogón')).toBeInTheDocument();
-    expect(screen.getByText(/40 puntos/)).toBeInTheDocument();
+    expect(screen.getByText(/40 loopoints/)).toBeInTheDocument();
   });
 
   it('abre el QR guardado en la pestaña y muestra la cuenta atrás', async () => {

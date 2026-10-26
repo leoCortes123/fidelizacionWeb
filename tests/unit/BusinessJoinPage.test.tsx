@@ -73,7 +73,7 @@ describe('BusinessJoinPage', () => {
     renderPage();
 
     expect(screen.getByRole('heading', { name: 'Taquería El Fogón' })).toBeInTheDocument();
-    expect(screen.getByText('Programa de puntos activo')).toBeInTheDocument();
+    expect(screen.getByText('Programa de loopoints activo')).toBeInTheDocument();
     const link = screen.getByRole('link', { name: /Entrar y unirme/i });
     expect(link).toHaveAttribute(
       'href',

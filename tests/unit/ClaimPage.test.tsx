@@ -98,11 +98,11 @@ describe('ClaimPage', () => {
     expect(claim.mutate).not.toHaveBeenCalled();
 
     await user.click(
-      screen.getByRole('button', { name: /confirmar y sumar puntos/i }),
+      screen.getByRole('button', { name: /confirmar y sumar loopoints/i }),
     );
 
     expect(claim.mutate).toHaveBeenCalledWith(TOKEN, expect.any(Object));
-    expect(await screen.findByText(/¡Puntos acreditados!/i)).toBeInTheDocument();
+    expect(await screen.findByText(/¡Loopoints acreditados!/i)).toBeInTheDocument();
     expect(screen.getByText(/\+15/)).toBeInTheDocument();
     expect(screen.getByText(/Taquería El Fogón/)).toBeInTheDocument();
   });
@@ -137,7 +137,7 @@ describe('ClaimPage', () => {
 
     expect(screen.getByText(/QR ya reclamado/i)).toBeInTheDocument();
     expect(
-      screen.queryByRole('button', { name: /confirmar y sumar puntos/i }),
+      screen.queryByRole('button', { name: /confirmar y sumar loopoints/i }),
     ).not.toBeInTheDocument();
   });
 

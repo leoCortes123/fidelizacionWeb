@@ -99,10 +99,10 @@ const rewardSchema = z
     type: z.enum(['free_product', 'fixed_discount', 'percentage_discount', 'configurable_benefit']),
     productId: z.string().nullable(),
     pointsRequired: z
-      .number({ invalid_type_error: 'Introduce los puntos requeridos.' })
-      .int('Los puntos requeridos deben ser un entero.')
-      .min(1, 'Los puntos requeridos deben ser mayores que cero.')
-      .max(10_000_000, 'Los puntos requeridos son demasiado altos.'),
+      .number({ invalid_type_error: 'Introduce los loopoints requeridos.' })
+      .int('Los loopoints requeridos deben ser un entero.')
+      .min(1, 'Los loopoints requeridos deben ser mayores que cero.')
+      .max(10_000_000, 'Los loopoints requeridos son demasiado altos.'),
     minPurchaseAmount: z
       .number({ invalid_type_error: 'Introduce un importe válido.' })
       .int('El importe mínimo debe ser un entero de pesos.')
@@ -538,7 +538,7 @@ function RewardsSection({ business }: { business: Business }) {
           <DialogHeader>
             <DialogTitle>{editing ? 'Editar recompensa' : 'Nueva recompensa'}</DialogTitle>
             <DialogDescription>
-              Configura el beneficio, los puntos requeridos y sus límites de uso.
+              Configura el beneficio, los loopoints requeridos y sus límites de uso.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={saveReward} className="space-y-4" noValidate>
@@ -589,7 +589,7 @@ function RewardsSection({ business }: { business: Business }) {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="reward-points">Puntos requeridos</Label>
+                <Label htmlFor="reward-points">Loopoints requeridos</Label>
                 <Input
                   id="reward-points"
                   inputMode="numeric"

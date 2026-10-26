@@ -142,7 +142,7 @@ export function BusinessJoinPage() {
             <div className="mt-4 flex flex-wrap gap-2">
               <Badge variant={data.loyalty_active ? 'success' : 'warning'}>
                 {data.loyalty_active
-                  ? 'Programa de puntos activo'
+                  ? 'Programa de loopoints activo'
                   : 'Programa en preparación'}
               </Badge>
             </div>
@@ -156,7 +156,7 @@ export function BusinessJoinPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Afíliate con tu cuenta para acumular puntos en tus compras y canjear
+              Afíliate con tu cuenta para acumular loopoints en tus compras y canjear
               recompensas. No necesitas tarjeta física.
             </p>
 
@@ -176,7 +176,7 @@ export function BusinessJoinPage() {
                 <AlertTitle>El programa aún no está activo</AlertTitle>
                 <AlertDescription>
                   Puedes afiliarte desde ya. Cuando el negocio active su programa,
-                  tus compras empezarán a sumar puntos automáticamente.
+                  tus compras empezarán a sumar loopoints automáticamente.
                 </AlertDescription>
               </Alert>
             )}
@@ -202,13 +202,13 @@ export function BusinessJoinPage() {
 
             <p className="text-center text-xs text-muted-foreground">
               Al unirte aceptas que el negocio asocie tu nombre y correo a tu cuenta
-              de puntos. No compartimos datos con otros negocios.
+              de loopoints. No compartimos datos con otros negocios.
             </p>
           </CardContent>
         </Card>
 
         <p className="text-center text-xs text-muted-foreground">
-          ¿Ya tienes puntos?{' '}
+          ¿Ya tienes loopoints?{' '}
           <Link to="/login" className="font-semibold text-primary underline-offset-4 hover:underline">
             Inicia sesión
           </Link>

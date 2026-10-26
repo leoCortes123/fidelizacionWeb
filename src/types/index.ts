@@ -308,7 +308,7 @@ export interface BusinessRegisterResult {
 }
 
 // ---------------------------------------------------------------------
-// Programa de puntos y productos (por negocio)
+// Programa de loopoints y productos (por negocio)
 // ---------------------------------------------------------------------
 export interface LoyaltyProgram {
   id: string;
@@ -379,7 +379,7 @@ export interface Product {
 }
 
 // ---------------------------------------------------------------------
-// Cuenta y movimientos de puntos
+// Cuenta y movimientos de loopoints
 // ---------------------------------------------------------------------
 export interface LoyaltyPointAccount {
   id: string;

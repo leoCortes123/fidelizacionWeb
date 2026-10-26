@@ -247,9 +247,9 @@ describe('OnboardingWizardPage', () => {
     setDraft({ step: 3 });
     renderPage();
 
-    expect(screen.getByLabelText('COP por punto ganado')).toHaveValue('1000');
+    expect(screen.getByLabelText('COP por loopoint ganado')).toHaveValue('1000');
     expect(screen.getByLabelText('Tasa de presupuesto (%)')).toHaveValue('1');
-    expect(screen.getByLabelText('Puntos para Taco de guisado')).toHaveValue('80');
+    expect(screen.getByLabelText('Loopoints para Taco de guisado')).toHaveValue('80');
     expect(screen.getAllByText(/52\.000/).length).toBeGreaterThan(0);
 
     await user.click(screen.getByRole('button', { name: /Activar programa/i }));

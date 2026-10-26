@@ -30,7 +30,7 @@ function RolesErrorScreen({
           onRetry={onRetry}
         />
         <Button variant="ghost" className="w-full" asChild>
-          <Link to="/customer">Ir a mis puntos</Link>
+          <Link to="/customer">Ir a mis loopoints</Link>
         </Button>
       </div>
     </div>

@@ -362,8 +362,8 @@ function userFor(state: FakeState, token: string) {
 }
 
 /**
- * Saldo simulado del programa: parte de 100 puntos y descuenta las solicitudes
- * que reservaron puntos (pendientes, aprobadas o entregadas).
+ * Saldo simulado del programa: parte de 100 loopoints y descuenta las solicitudes
+ * que reservaron loopoints (pendientes, aprobadas o entregadas).
  */
 function loyaltyBalance(state: FakeState, userId: string) {
   const reserved = state.redemptionRequests
@@ -450,7 +450,7 @@ function fail(route: Route, message: string) {
 }
 
 
-/** Puntos de una compra aplicando la campaña vigente (misma regla del backend). */
+/** Loopoints de una compra aplicando la campaña vigente (misma regla del backend). */
 function purchasePoints(
   state: FakeState,
   businessId: string,
@@ -1629,7 +1629,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
       }
 
       // ------------------------------------------------------------------
-      // Programa de puntos
+      // Programa de loopoints
       // ------------------------------------------------------------------
       case 'loyalty_program_get': {
         if (!user) return fail(route, 'not_authenticated');
@@ -1843,7 +1843,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
       }
 
       // ------------------------------------------------------------------
-      // Puntos
+      // Loopoints
       // ------------------------------------------------------------------
       case 'loyalty_account_balance': {
         if (!user) return fail(route, 'not_authenticated');

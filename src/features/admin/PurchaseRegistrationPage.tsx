@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { QRCodeCanvas } from 'qrcode.react';
 import {
@@ -20,6 +20,7 @@ import {
 } from '@/features/purchases/hooks';
 import { claimUrl } from '@/lib/config';
 import { errorMessage } from '@/lib/errors';
+import { useFormDraft } from '@/lib/useFormDraft';
 import {
   formatCOP,
   formatCopInput,
@@ -32,8 +33,8 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { PageHeader } from '@/components/shared/PageHeader';
+import { Field } from '@/components/shared/Field';
 import { PurchaseStatusBadge } from '@/components/shared/StatusBadge';
 import { EmptyState, ListSkeleton } from '@/components/shared/States';
 import { BusinessGate } from './BusinessGate';
@@ -44,7 +45,7 @@ export function PurchaseRegistrationPage() {
   return (
     <BusinessGate
       title="Registrar compra"
-      description="Genera un QR con el valor de la venta para que el cliente sume sus puntos."
+      description="Genera un QR con el valor de la venta para que el cliente sume sus loopoints."
       icon={QrCode}
       emptyDescription="Registra un negocio para generar ventas con QR."
     >
@@ -58,10 +59,19 @@ function PurchaseQrSection({ business }: { business: Business }) {
   const createPurchase = useCreatePurchaseQr(business.id);
   const recent = useBusinessPurchases(business.id, 0, RECENT_PAGE_SIZE, '');
 
-  const [amountText, setAmountText] = useState('');
+  const draft = useFormDraft<string>({
+    key: `admin:purchase:${business.id}`,
+    storage: 'session',
+  });
+  const [amountText, setAmountText] = useState(() => draft.read() ?? '');
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<PurchaseQrCreateResult | null>(null);
   const qrRef = useRef<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    if (amountText.trim()) draft.save(amountText);
+    else draft.clear();
+  }, [amountText, draft.clear, draft.save]);
 
   const amount = parseCopInput(amountText);
   const copPerPoint = program.data?.cop_per_point_unit ?? 0;
@@ -76,7 +86,7 @@ function PurchaseQrSection({ business }: { business: Business }) {
     event.preventDefault();
     setError(null);
     if (!programActive) {
-      setError('Activa el programa de puntos antes de generar ventas.');
+      setError('Activa el programa de loopoints antes de generar ventas.');
       return;
     }
     if (!amount || amount <= 0) {
@@ -87,7 +97,8 @@ function PurchaseQrSection({ business }: { business: Business }) {
       onSuccess: (data) => {
         setResult(data);
         setAmountText('');
-        toast.success('QR generado. Muéstralo al cliente para que sume sus puntos.');
+        draft.clear();
+        toast.success('QR generado. Muéstralo al cliente para que sume sus loopoints.');
       },
       onError: (mutationError) => setError(errorMessage(mutationError)),
     });
@@ -124,12 +135,12 @@ function PurchaseQrSection({ business }: { business: Business }) {
     <div className="space-y-6 animate-fade-in">
       <PageHeader
         title={`Registrar compra — ${business.name}`}
-        description="Introduce el valor de la venta y muestra el QR al cliente. Los puntos se acreditan cuando el cliente confirma desde su teléfono."
+        description="Introduce el valor de la venta y muestra el QR al cliente. Los loopoints se acreditan cuando el cliente confirma desde su teléfono."
       />
 
       {!programActive && (
         <Alert variant="warning">
-          <AlertTitle>El programa de puntos está inactivo</AlertTitle>
+          <AlertTitle>El programa de loopoints está inactivo</AlertTitle>
           <AlertDescription>
             Actívalo en Configuración → Programa antes de generar ventas con QR.
           </AlertDescription>
@@ -146,8 +157,16 @@ function PurchaseQrSection({ business }: { business: Business }) {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-              <div className="space-y-2">
-                <Label htmlFor="purchase-amount">Importe de la compra (COP)</Label>
+              <Field
+                id="purchase-amount"
+                label="Importe de la compra (COP)"
+                hint={
+                  amount !== null && amount > 0
+                    ? formatCOP(amount)
+                    : 'Total pagado por el cliente.'
+                }
+                help="Escribe el valor total de la venta. El cliente verá los loopoints estimados antes de confirmar."
+              >
                 <div className="relative">
                   <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm font-semibold text-muted-foreground">
                     $
@@ -166,18 +185,13 @@ function PurchaseQrSection({ business }: { business: Business }) {
                     }}
                   />
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  {amount !== null && amount > 0
-                    ? formatCOP(amount)
-                    : 'Total pagado por el cliente.'}
-                </p>
-              </div>
+              </Field>
 
               {preview !== null && (
                 <div className="flex items-center justify-between rounded-lg bg-secondary/60 p-4">
                   <span className="flex items-center gap-2 text-sm font-medium">
                     <Sparkles className="size-4 text-primary" aria-hidden="true" />
-                    Puntos para el cliente
+                    Loopoints para el cliente
                   </span>
                   <span className="font-display text-2xl font-extrabold text-primary">
                     +{formatPoints(preview)}
@@ -245,7 +259,7 @@ function PurchaseQrSection({ business }: { business: Business }) {
                 </div>
 
                 <div className="text-center">
-                  <p className="text-sm font-semibold">Escanéalo para sumar puntos</p>
+                  <p className="text-sm font-semibold">Escanéalo para sumar loopoints</p>
                   <p className="text-xs text-muted-foreground">
                     {formatPoints(result.points_preview)} estimados
                   </p>
@@ -286,7 +300,7 @@ function PurchaseQrSection({ business }: { business: Business }) {
                     <p className="font-semibold">El QR aparecerá aquí</p>
                     <p className="mt-1 max-w-xs text-sm text-muted-foreground">
                       Introduce el valor de la venta y genera el QR. El cliente lo
-                      escanea, confirma la compra y recibe los puntos en su cuenta.
+                      escanea, confirma la compra y recibe los loopoints en su cuenta.
                     </p>
                   </div>
                 </div>

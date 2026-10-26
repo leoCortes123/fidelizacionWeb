@@ -28,7 +28,7 @@ export function PurchasesPage() {
     <div className="space-y-6 animate-fade-in">
       <PageHeader
         title="Mis compras"
-        description="Historial de compras acreditadas y los puntos ganados en cada una."
+        description="Historial de compras acreditadas y los loopoints ganados en cada una."
       />
 
       {purchases.isLoading ? (
@@ -65,7 +65,7 @@ export function PurchasesPage() {
                       +{purchase.points_awarded}
                     </p>
                     <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                      puntos
+                      loopoints
                     </p>
                   </div>
                 </CardContent>
@@ -80,7 +80,7 @@ export function PurchasesPage() {
                   <TableRow>
                     <TableHead>Fecha</TableHead>
                     <TableHead>Importe</TableHead>
-                    <TableHead className="text-right">Puntos ganados</TableHead>
+                    <TableHead className="text-right">Loopoints ganados</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>

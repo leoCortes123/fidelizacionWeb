@@ -24,7 +24,7 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: `VITE_SUPABASE_URL=http://127.0.0.1:54321 VITE_SUPABASE_ANON_KEY=test-anon-key VITE_BRAND_NAME="Taquería El Fogón" npm run dev -- --host 127.0.0.1 --port ${port}`,
+    command: `VITE_SUPABASE_URL=http://127.0.0.1:54321 VITE_SUPABASE_ANON_KEY=test-anon-key VITE_BRAND_NAME="Loopoint" VITE_BRAND_TAGLINE="Loopoints por tus compras" npm run dev -- --host 127.0.0.1 --port ${port}`,
     url: `http://127.0.0.1:${port}`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

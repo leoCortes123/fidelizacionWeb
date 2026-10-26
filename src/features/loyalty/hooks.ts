@@ -175,7 +175,7 @@ export function useSearchProfiles(businessId: string, query: string) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Programa de puntos                                                 */
+/* Programa de loopoints                                                 */
 /* ------------------------------------------------------------------ */
 
 export function useLoyaltyProgram(businessId: string) {
@@ -333,7 +333,7 @@ export function useUpsertLoyaltyReward() {
 }
 
 /* ------------------------------------------------------------------ */
-/* Puntos y cuenta                                                    */
+/* Loopoints y cuenta                                                    */
 /* ------------------------------------------------------------------ */
 
 export function useLoyaltyPointAccount(businessId: string, customerId: string) {
@@ -701,7 +701,7 @@ export function useDeleteLoyaltyCampaign() {
 }
 
 /* ------------------------------------------------------------------ */
-/* Vencimiento de puntos                                              */
+/* Vencimiento de loopoints                                              */
 /* ------------------------------------------------------------------ */
 
 export interface PointsExpiryResult {

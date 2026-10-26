@@ -132,7 +132,7 @@ export function BusinessDashboardPage() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total de puntos emitidos</CardTitle>
+            <CardTitle className="text-sm font-medium">Total de loopoints emitidos</CardTitle>
             <CreditCard className="text-muted-foreground" aria-hidden="true" />
           </CardHeader>
           <CardContent className="pt-0">
@@ -256,8 +256,8 @@ export function BusinessDashboardPage() {
               <Link to="/admin/program">
                 <Settings2 className="mr-2 size-4" aria-hidden="true" />
                 {programUnconfigured
-                  ? 'Configurar programa de puntos'
-                  : 'Editar programa de puntos'}
+                  ? 'Configurar programa de loopoints'
+                  : 'Editar programa de loopoints'}
               </Link>
             </Button>
             <Button variant="outline" className="w-full justify-start" asChild>

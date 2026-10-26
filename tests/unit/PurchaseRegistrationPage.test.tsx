@@ -111,7 +111,7 @@ describe('PurchaseRegistrationPage (venta con QR)', () => {
     programState.active = true;
   });
 
-  it('valida el importe, previsualiza puntos y genera el QR de la venta', async () => {
+  it('valida el importe, previsualiza loopoints y genera el QR de la venta', async () => {
     createMutate.mockImplementation((_amount, options) => {
       options?.onSuccess?.(result);
     });
@@ -119,15 +119,15 @@ describe('PurchaseRegistrationPage (venta con QR)', () => {
     renderPage();
 
     expect(screen.getByRole('heading', { name: /Registrar compra/ })).toBeInTheDocument();
-    const input = screen.getByLabelText(/importe de la compra/i);
+    const input = screen.getByRole('textbox', { name: /importe de la compra/i });
     await user.type(input, '15500');
-    expect(await screen.findByText(/\+15 puntos/i)).toBeInTheDocument();
+    expect(await screen.findByText(/\+15 loopoints/i)).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: /generar qr de la venta/i }));
     expect(createMutate).toHaveBeenCalledWith(15500, expect.any(Object));
 
     expect(
-      await screen.findByText(/escanéalo para sumar puntos/i),
+      await screen.findByText(/escanéalo para sumar loopoints/i),
     ).toBeInTheDocument();
     expect(screen.getByTestId('qr')).toHaveAttribute(
       'data-value',
@@ -136,7 +136,7 @@ describe('PurchaseRegistrationPage (venta con QR)', () => {
     expect(screen.getByTestId('claim-url').textContent).toContain(
       '/claim/tok_123456789012345678901234567890',
     );
-    expect(screen.getByText(/15 puntos estimados/i)).toBeInTheDocument();
+    expect(screen.getByText(/15 loopoints estimados/i)).toBeInTheDocument();
   });
 
   it('no envía importes en cero', async () => {
@@ -157,6 +157,6 @@ describe('PurchaseRegistrationPage (venta con QR)', () => {
     expect(
       screen.getByRole('button', { name: /generar qr de la venta/i }),
     ).toBeDisabled();
-    expect(screen.getByText(/programa de puntos está inactivo/i)).toBeInTheDocument();
+    expect(screen.getByText(/programa de loopoints está inactivo/i)).toBeInTheDocument();
   });
 });

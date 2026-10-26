@@ -207,7 +207,7 @@ function EncargadoSection({ business }: { business: Business }) {
       } else {
         setValidated(null);
         setToken('');
-        toast.success('Redención rechazada. Los puntos fueron devueltos.');
+        toast.success('Redención rechazada. Los loopoints fueron devueltos.');
       }
       void pending.refetch();
       void approved.refetch();
@@ -223,7 +223,7 @@ function EncargadoSection({ business }: { business: Business }) {
         businessId: business.id,
         redemptionId,
       });
-      toast.success('Entrega confirmada. Puntos consumidos.');
+      toast.success('Entrega confirmada. Loopoints consumidos.');
       if (validated?.redemption_id === redemptionId) {
         setValidated(null);
         setToken('');

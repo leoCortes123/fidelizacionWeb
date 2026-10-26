@@ -39,7 +39,7 @@ export const queryKeys = {
   loyaltyRewardsAvailable: (businessId: string, customerId: string) =>
     ['loyalty-rewards-available', businessId, customerId] as const,
 
-  // Puntos y redenciones
+  // Loopoints y redenciones
   loyaltyPointAccount: (businessId: string, customerId: string) =>
     ['loyalty-point-account', businessId, customerId] as const,
   loyaltyPointTransactions: (businessId: string, customerId: string) =>
