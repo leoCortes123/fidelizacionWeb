@@ -76,10 +76,27 @@ export const queryKeys = {
     ['business-economic-dashboard', businessId] as const,
   businessAuditLog: (
     businessId: string,
-    operation = '',
+    filters: {
+      operation?: string;
+      actor?: string;
+      from?: string;
+      to?: string;
+      search?: string;
+    } = {},
     limit = 50,
     offset = 0,
-  ) => ['business-audit-log', businessId, operation, limit, offset] as const,
+  ) =>
+    [
+      'business-audit-log',
+      businessId,
+      filters.operation ?? '',
+      filters.actor ?? '',
+      filters.from ?? '',
+      filters.to ?? '',
+      filters.search ?? '',
+      limit,
+      offset,
+    ] as const,
   businessAuditLogPrefix: (businessId: string) =>
     ['business-audit-log', businessId] as const,
   loyaltyCampaigns: (businessId: string, onlyActive: boolean) =>

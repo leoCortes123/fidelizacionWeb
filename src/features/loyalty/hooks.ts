@@ -28,6 +28,7 @@ import type {
   RedemptionTokenValidateResult,
   BusinessEconomicDashboard,
   BusinessEconomicProfile,
+  BusinessAuditFilters,
   BusinessAuditLog,
   BudgetSnapshot,
   EconomicDataStatus,
@@ -820,18 +821,22 @@ export function useUpsertEconomicProfile() {
 
 export function useBusinessAuditLog(
   businessId: string,
-  operation = '',
+  filters: BusinessAuditFilters = {},
   limit = 50,
   offset = 0,
 ) {
   return useQuery<BusinessAuditLog[]>({
-    queryKey: queryKeys.businessAuditLog(businessId, operation, limit, offset),
+    queryKey: queryKeys.businessAuditLog(businessId, filters, limit, offset),
     queryFn: () =>
       rpc<BusinessAuditLog[]>('business_audit_log_page', {
         p_business_id: businessId,
-        p_operation: operation || null,
+        p_operation: filters.operation || null,
         p_limit: limit,
         p_offset: offset,
+        p_actor: filters.actor || null,
+        p_from: filters.from || null,
+        p_to: filters.to || null,
+        p_search: filters.search || null,
       }),
     enabled: Boolean(businessId),
   });

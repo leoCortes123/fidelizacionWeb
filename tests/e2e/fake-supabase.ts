@@ -173,6 +173,7 @@ export interface FakeAuditLog {
   id: string;
   businessId: string;
   actorEmail: string | null;
+  actorName?: string | null;
   operation: string;
   entityType: string;
   entityId: string | null;
@@ -3304,21 +3305,69 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
       case 'business_audit_log_page': {
         if (!user) return fail(route, 'not_authenticated');
         const businessId = String(body.p_business_id ?? '');
-        const operation = String(body.p_operation ?? '').toLowerCase();
+        const operations = String(body.p_operation ?? '')
+          .toLowerCase()
+          .split(',')
+          .map((item) => item.trim())
+          .filter(Boolean);
+        const actor = String(body.p_actor ?? '').toLowerCase().trim();
+        const search = String(body.p_search ?? '').toLowerCase().trim();
+        const parseDate = (value: unknown) =>
+          typeof value === 'string' && value ? new Date(value).getTime() : null;
+        const from = parseDate(body.p_from);
+        const to = parseDate(body.p_to);
         const limit = Math.max(Number(body.p_limit ?? 50), 1);
         const offset = Math.max(Number(body.p_offset ?? 0), 0);
         const filtered = state.auditLogs
           .filter((entry) => entry.businessId === businessId)
-          .filter(
-            (entry) =>
-              !operation || entry.operation.toLowerCase().includes(operation),
-          )
-          .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+          .map((entry) => ({
+            entry,
+            actorUser: state.users.find(
+              (candidate) => candidate.email === entry.actorEmail,
+            ),
+          }))
+          .filter(({ entry, actorUser }) => {
+            const operation = entry.operation.toLowerCase();
+            if (
+              operations.length > 0 &&
+              !operations.some((pattern) => operation.includes(pattern))
+            ) {
+              return false;
+            }
+            if (actor) {
+              const haystack = `${actorUser?.name ?? ''} ${entry.actorEmail ?? ''}`
+                .toLowerCase();
+              if (!haystack.includes(actor)) return false;
+            }
+            const createdAt = new Date(entry.createdAt).getTime();
+            if (from !== null && createdAt < from) return false;
+            if (to !== null && createdAt >= to) return false;
+            if (search) {
+              const haystack = [
+                operation,
+                entry.entityType,
+                entry.entityId ?? '',
+                entry.actorEmail ?? '',
+                actorUser?.name ?? '',
+                JSON.stringify(entry.metadata ?? {}),
+              ]
+                .join(' ')
+                .toLowerCase();
+              if (!haystack.includes(search)) return false;
+            }
+            return true;
+          })
+          .sort(
+            (a, b) =>
+              b.entry.createdAt.localeCompare(a.entry.createdAt) ||
+              b.entry.id.localeCompare(a.entry.id),
+          );
         return json(
           route,
-          filtered.slice(offset, offset + limit).map((entry) => ({
+          filtered.slice(offset, offset + limit).map(({ entry, actorUser }) => ({
             id: entry.id,
             actor_email: entry.actorEmail,
+            actor_name: entry.actorName ?? actorUser?.name ?? null,
             operation: entry.operation,
             entity_type: entry.entityType,
             entity_id: entry.entityId,

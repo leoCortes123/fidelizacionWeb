@@ -709,10 +709,25 @@ export interface LoyaltyPurchaseEvent {
   created_at: string;
 }
 
+export interface BusinessAuditFilters {
+  /** Una operación exacta o varios prefijos separados por coma. */
+  operation?: string;
+  /** Nombre o correo del actor. */
+  actor?: string;
+  /** Inicio del rango, en ISO 8601 (incluido). */
+  from?: string;
+  /** Fin del rango, en ISO 8601 (excluido). */
+  to?: string;
+  /** Texto libre en operación, entidad, actor y metadata. */
+  search?: string;
+}
+
 export interface BusinessAuditLog {
   id: string;
   business_id: string;
   actor_email: string | null;
+  /** Presente en `business_audit_log_page` (Fase 8). */
+  actor_name: string | null;
   operation: string;
   entity_type: string;
   entity_id: string | null;

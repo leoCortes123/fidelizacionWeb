@@ -22,7 +22,14 @@ import {
 } from './hooks';
 import { errorMessage } from '@/lib/errors';
 import { formatDateTimeBogota } from '@/lib/format';
+import { cn } from '@/lib/utils';
 import { useFormDraft } from '@/lib/useFormDraft';
+import {
+  AUDIT_SEVERITY_STYLES,
+  auditSubject,
+  getAuditEntityLabel,
+  getAuditLabel,
+} from './auditLabels';
 import type { AdminReward } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -464,20 +471,40 @@ export function SettingsPage() {
               <p className="text-sm text-muted-foreground">Sin eventos registrados.</p>
             ) : (
               <ul className="space-y-3">
-                {audit.data.slice(0, 15).map((entry) => (
-                  <li key={entry.id} className="border-b pb-3 last:border-0 last:pb-0">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <p className="text-sm font-semibold">{entry.operation}</p>
-                      <span className="text-xs text-muted-foreground">
-                        {formatDateTimeBogota(entry.created_at)}
-                      </span>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {entry.actor_email ?? 'Sistema'} · {entry.entity_type}
-                      {entry.entity_id ? ` · ${entry.entity_id.slice(0, 8)}…` : ''}
-                    </p>
-                  </li>
-                ))}
+                {audit.data.slice(0, 15).map((entry) => {
+                  const label = getAuditLabel(entry.operation);
+                  const Icon = label.icon;
+                  return (
+                    <li key={entry.id} className="border-b pb-3 last:border-0 last:pb-0">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="flex items-center gap-2 text-sm font-semibold">
+                          <span
+                            className={cn(
+                              'grid size-6 shrink-0 place-items-center rounded-full',
+                              AUDIT_SEVERITY_STYLES[label.severity].icon,
+                            )}
+                          >
+                            <Icon className="size-3.5" aria-hidden="true" />
+                          </span>
+                          {label.label}
+                        </p>
+                        <span className="text-xs text-muted-foreground">
+                          {formatDateTimeBogota(entry.created_at)}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {auditSubject({
+                          operation: entry.operation,
+                          metadata: entry.metadata,
+                        })}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {entry.actor_email ?? 'Sistema'} ·{' '}
+                        {getAuditEntityLabel(entry.entity_type)}
+                      </p>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </CardContent>

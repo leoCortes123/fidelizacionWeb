@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { AuditPage } from '@/features/admin/AuditPage';
-import type { Business, BusinessAuditLog } from '@/types';
+import type { Business, BusinessAuditFilters, BusinessAuditLog } from '@/types';
 
 const calls = vi.hoisted(() => [] as unknown[][]);
 
@@ -25,7 +25,8 @@ const fixture = vi.hoisted(() => ({
     {
       id: 'log-1',
       business_id: 'biz-1',
-      actor_email: 'admin@example.test',
+      actor_email: 'ana@example.test',
+      actor_name: 'Ana Admin',
       operation: 'purchase.registered',
       entity_type: 'loyalty_purchase_event',
       entity_id: 'event-1234567890',
@@ -36,11 +37,12 @@ const fixture = vi.hoisted(() => ({
     {
       id: 'log-2',
       business_id: 'biz-1',
-      actor_email: 'admin@example.test',
+      actor_email: 'carlos@example.test',
+      actor_name: 'Carlos Encargado',
       operation: 'redemption.delivered',
       entity_type: 'loyalty_redemption',
       entity_id: 'redemption-9876543210',
-      metadata: { points_spent: 10 },
+      metadata: { reward_name: 'Taco individual', points_spent: 40 },
       created_at: '2026-10-24T12:00:00.000Z',
       total_count: 30,
     },
@@ -91,39 +93,90 @@ describe('AuditPage', () => {
     calls.length = 0;
   });
 
-  it('lista las operaciones auditadas', () => {
+  it('lista las operaciones con etiquetas legibles y el actor', () => {
     renderPage();
 
-    expect(screen.getByText('purchase.registered')).toBeInTheDocument();
-    expect(screen.getByText('redemption.delivered')).toBeInTheDocument();
-    expect(screen.getAllByText('admin@example.test')).toHaveLength(2);
+    expect(screen.getAllByText('Compra registrada').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Recompensa entregada').length).toBeGreaterThan(0);
+    expect(screen.queryByText('purchase.registered')).not.toBeInTheDocument();
+    expect(screen.getAllByText('Ana Admin').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Carlos Encargado').length).toBeGreaterThan(0);
     expect(screen.getByText(/30 operaciones · página 1 de 2/i)).toBeInTheDocument();
   });
 
-  it('abre el detalle con la metadata de la operación', async () => {
+  it('abre el detalle con los campos formateados y el JSON bajo demanda', async () => {
     const user = userEvent.setup();
     renderPage();
 
     await user.click(
-      screen.getByRole('button', { name: 'Ver detalle de purchase.registered' }),
+      within(screen.getByRole('table')).getByRole('button', {
+        name: 'Ver detalle de Compra registrada',
+      }),
     );
 
     const dialog = within(screen.getByRole('dialog'));
-    expect(dialog.getByText(/amount_cop/i)).toBeInTheDocument();
-    expect(dialog.getByText(/15500/)).toBeInTheDocument();
+    expect(dialog.getByText('Valor de la compra')).toBeInTheDocument();
+    expect(dialog.getAllByText(/15\.500/).length).toBeGreaterThan(0);
+    expect(dialog.getByText('Loopoints sumados')).toBeInTheDocument();
+    expect(dialog.getAllByText(/15 loopoints/).length).toBeGreaterThan(0);
+    expect(dialog.queryByText('amount_cop')).not.toBeInTheDocument();
+
+    await user.click(dialog.getByRole('button', { name: 'Ver JSON' }));
+    expect(dialog.getByText(/"amount_cop"/)).toBeInTheDocument();
   });
 
-  it('filtra por operación y reinicia la página', async () => {
+  it('filtra por texto, actor y rango de fechas', async () => {
     const user = userEvent.setup();
     renderPage();
 
-    await user.type(screen.getByLabelText('Filtrar por operación'), 'purchase');
-    await user.click(screen.getByRole('button', { name: 'Filtrar' }));
+    await user.type(screen.getByLabelText('Buscar'), 'café');
+    await user.type(screen.getByLabelText('Actor'), 'ana');
+    fireEvent.change(screen.getByLabelText('Desde'), {
+      target: { value: '2026-10-01' },
+    });
+    fireEvent.change(screen.getByLabelText('Hasta'), {
+      target: { value: '2026-10-31' },
+    });
+    await user.click(screen.getByRole('button', { name: 'Aplicar filtros' }));
 
     await waitFor(() => {
-      const last = calls[calls.length - 1];
-      expect(last).toEqual(['biz-1', 'purchase', 25, 0]);
+      const last = calls[calls.length - 1] as [
+        string,
+        BusinessAuditFilters,
+        number,
+        number,
+      ];
+      expect(last[0]).toBe('biz-1');
+      expect(last[1].search).toBe('café');
+      expect(last[1].actor).toBe('ana');
+      expect(last[1].from).toBe('2026-10-01T05:00:00.000Z');
+      expect(last[1].to).toBe('2026-11-01T05:00:00.000Z');
+      expect(last[2]).toBe(25);
+      expect(last[3]).toBe(0);
     });
+
+    expect(screen.getByText('Texto: “café”')).toBeInTheDocument();
+    expect(screen.getByText('Actor: ana')).toBeInTheDocument();
+  });
+
+  it('quita un filtro activo y vuelve a consultar sin él', async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.type(screen.getByLabelText('Buscar'), 'café');
+    await user.click(screen.getByRole('button', { name: 'Aplicar filtros' }));
+    await user.click(screen.getByRole('button', { name: /Quitar filtro Texto/ }));
+
+    await waitFor(() => {
+      const last = calls[calls.length - 1] as [
+        string,
+        BusinessAuditFilters,
+        number,
+        number,
+      ];
+      expect(last[1].search).toBeUndefined();
+    });
+    expect(screen.queryByText('Texto: “café”')).not.toBeInTheDocument();
   });
 
   it('pagina los resultados en el servidor', async () => {
@@ -133,8 +186,16 @@ describe('AuditPage', () => {
     await user.click(screen.getByRole('button', { name: /Siguiente/i }));
 
     await waitFor(() => {
-      const last = calls[calls.length - 1];
-      expect(last).toEqual(['biz-1', '', 25, 25]);
+      const last = calls[calls.length - 1] as [
+        string,
+        BusinessAuditFilters,
+        number,
+        number,
+      ];
+      expect(last[0]).toBe('biz-1');
+      expect(last[1]).toEqual({});
+      expect(last[2]).toBe(25);
+      expect(last[3]).toBe(25);
     });
   });
 });

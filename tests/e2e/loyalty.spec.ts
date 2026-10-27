@@ -1066,9 +1066,201 @@ test('genera una venta con QR, el cliente la reclama y queda auditada', async ({
   // Auditoría: la compra y el cambio económico quedaron registrados.
   await page.getByRole('link', { name: 'Auditoría' }).click();
   await expect(page.getByRole('heading', { name: /Auditoría/ })).toBeVisible();
-  await expect(page.getByText('purchase.qr_created')).toBeVisible();
-  await expect(page.getByText('purchase.qr_claimed')).toBeVisible();
-  await expect(page.getByText('economic_profile.updated')).toBeVisible();
+  const auditTable = page.getByRole('table');
+  await expect(
+    auditTable.getByText('QR de compra generado', { exact: true }),
+  ).toBeVisible();
+  await expect(
+    auditTable.getByText('Compra reclamada con QR', { exact: true }),
+  ).toBeVisible();
+  await expect(
+    auditTable.getByText('Datos económicos actualizados', { exact: true }),
+  ).toBeVisible();
+
+  await context.close();
+});
+
+test('auditoría legible: etiquetas, detalle formateado y filtros', async ({ browser }) => {
+  const state = createFakeState();
+  seedBusiness(state);
+  state.auditLogs.push(
+    {
+      id: 'audit-lectura-1',
+      businessId: 'biz-test',
+      actorEmail: 'admin@example.test',
+      operation: 'purchase.registered',
+      entityType: 'loyalty_purchase_event',
+      entityId: 'evento-auditoria-1',
+      metadata: {
+        amount_cop: 15500,
+        eligible_amount_cop: 15500,
+        points_earned: 15,
+        customer_id: 'user-customer',
+      },
+      createdAt: '2026-10-20T15:00:00.000Z',
+    },
+    {
+      id: 'audit-lectura-2',
+      businessId: 'biz-test',
+      actorEmail: 'admin@example.test',
+      operation: 'redemption.delivered',
+      entityType: 'loyalty_redemption',
+      entityId: 'canje-auditoria-1',
+      metadata: { reward_name: 'Taco individual', points_spent: 40 },
+      createdAt: '2026-10-21T15:00:00.000Z',
+    },
+    {
+      id: 'audit-lectura-3',
+      businessId: 'biz-test',
+      actorEmail: 'registradora@example.test',
+      operation: 'campaign.created',
+      entityType: 'loyalty_campaign',
+      entityId: 'campana-auditoria-1',
+      metadata: { name: 'Cumpleaños', multiplier: 2, is_active: true },
+      createdAt: '2026-10-22T15:00:00.000Z',
+    },
+    {
+      id: 'audit-lectura-4',
+      businessId: 'biz-test',
+      actorEmail: 'admin@example.test',
+      operation: 'business.profile_updated',
+      entityType: 'business',
+      entityId: 'biz-test',
+      metadata: {
+        before: { name: 'Taquería El Fogón', city: null },
+        after: { name: 'Taquería El Fogón Centro', city: 'Bogotá' },
+      },
+      createdAt: '2026-10-23T15:00:00.000Z',
+    },
+  );
+
+  const { page, context } = await openAs(
+    browser,
+    state,
+    TOKENS.admin,
+    '/admin/audit',
+  );
+
+  await expect(page.getByRole('heading', { name: /Auditoría/ })).toBeVisible();
+  const table = page.getByRole('table');
+  await expect(table.getByText('Compra registrada', { exact: true })).toBeVisible();
+  await expect(
+    table.getByText('Recompensa entregada', { exact: true }),
+  ).toBeVisible();
+  await expect(table.getByText('Campaña creada', { exact: true })).toBeVisible();
+  await expect(
+    table.getByText('Ficha pública actualizada', { exact: true }),
+  ).toBeVisible();
+  await expect(page.getByText('purchase.registered', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('4 operaciones', { exact: false })).toBeVisible();
+  await expect(table.getByText('Ana Admin').first()).toBeVisible();
+  await expect(table.getByText('Regina Caja', { exact: true })).toBeVisible();
+
+  // Detalle legible: importes y loopoints formateados; el JSON es opcional.
+  await table
+    .getByRole('button', { name: 'Ver detalle de Compra registrada' })
+    .click();
+  const dialog = page.getByRole('dialog');
+  await expect(dialog.getByText('Valor de la compra', { exact: true })).toBeVisible();
+  await expect(dialog.getByText(/15\.500/).first()).toBeVisible();
+  await expect(dialog.getByText('Loopoints sumados', { exact: true })).toBeVisible();
+  await expect(dialog.getByText(/15 loopoints/).first()).toBeVisible();
+  await expect(dialog.getByText('amount_cop')).toHaveCount(0);
+  await dialog.getByRole('button', { name: 'Ver JSON' }).click();
+  await expect(dialog.getByText(/"amount_cop"/)).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+
+  // Filtro por categoría: solo canjes.
+  await page.getByLabel('Tipo de operación').click();
+  await page.getByRole('option', { name: 'Todas: canjes' }).click();
+  await page.getByRole('button', { name: 'Aplicar filtros' }).click();
+  await expect(page.getByText('Tipo: Canjes', { exact: true })).toBeVisible();
+  await expect(
+    table.getByText('Recompensa entregada', { exact: true }),
+  ).toBeVisible();
+  await expect(table.getByText('Compra registrada', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('1 operación', { exact: false })).toBeVisible();
+
+  // Filtro por texto libre en la metadata.
+  await page.getByRole('button', { name: 'Limpiar', exact: true }).click();
+  await page.getByLabel('Buscar').fill('Cumpleaños');
+  await page.getByRole('button', { name: 'Aplicar filtros' }).click();
+  await expect(table.getByText('Campaña creada', { exact: true })).toBeVisible();
+  await expect(table.getByText('Compra registrada', { exact: true })).toHaveCount(0);
+
+  // Filtro por fecha: solo el 21 de octubre.
+  await page.getByRole('button', { name: 'Limpiar', exact: true }).click();
+  await page.getByLabel('Desde').fill('2026-10-21');
+  await page.getByLabel('Hasta').fill('2026-10-21');
+  await page.getByRole('button', { name: 'Aplicar filtros' }).click();
+  await expect(
+    table.getByText('Recompensa entregada', { exact: true }),
+  ).toBeVisible();
+  await expect(table.getByText('Compra registrada', { exact: true })).toHaveCount(0);
+  await expect(table.getByText('Campaña creada', { exact: true })).toHaveCount(0);
+
+  // Estado vacío claro cuando la categoría no tiene operaciones.
+  await page.getByRole('button', { name: 'Limpiar', exact: true }).click();
+  await page.getByLabel('Tipo de operación').click();
+  await page.getByRole('option', { name: 'Todas: presupuesto' }).click();
+  await page.getByRole('button', { name: 'Aplicar filtros' }).click();
+  await expect(page.getByText('Sin resultados', { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole('button', { name: 'Limpiar filtros' }),
+  ).toBeVisible();
+
+  await context.close();
+});
+
+test('auditoría legible en móvil: tarjetas y detalle', async ({ browser }) => {
+  const state = createFakeState();
+  seedBusiness(state);
+  state.auditLogs.push(
+    {
+      id: 'audit-movil-1',
+      businessId: 'biz-test',
+      actorEmail: 'admin@example.test',
+      operation: 'purchase.registered',
+      entityType: 'loyalty_purchase_event',
+      entityId: 'evento-movil-1',
+      metadata: { amount_cop: 15500, points_earned: 15 },
+      createdAt: '2026-10-20T15:00:00.000Z',
+    },
+    {
+      id: 'audit-movil-2',
+      businessId: 'biz-test',
+      actorEmail: 'registradora@example.test',
+      operation: 'campaign.created',
+      entityType: 'loyalty_campaign',
+      entityId: 'campana-movil-1',
+      metadata: { name: 'Cumpleaños', multiplier: 2 },
+      createdAt: '2026-10-21T15:00:00.000Z',
+    },
+  );
+
+  const { page, context } = await openAs(
+    browser,
+    state,
+    TOKENS.admin,
+    '/admin/audit',
+    { width: 390, height: 844 },
+  );
+
+  const cards = page.getByTestId('audit-cards');
+  await expect(cards.getByText('Compra registrada', { exact: true })).toBeVisible();
+  await expect(cards.getByText('Campaña creada', { exact: true })).toBeVisible();
+  await expect(
+    cards.getByRole('button', { name: /Ver detalle de/ }),
+  ).toHaveCount(2);
+  await cards
+    .getByRole('button', { name: 'Ver detalle de Compra registrada' })
+    .click();
+
+  const dialog = page.getByRole('dialog');
+  await expect(dialog.getByText('Resumen', { exact: true })).toBeVisible();
+  await expect(dialog.getByText(/15\.500/).first()).toBeVisible();
+  await expect(dialog.getByText('15 loopoints', { exact: true }).first()).toBeVisible();
 
   await context.close();
 });
