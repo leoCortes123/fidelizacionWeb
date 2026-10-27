@@ -205,7 +205,7 @@ function EconomicDashboardCards({ data }: { data: BusinessEconomicDashboard }) {
 
       <p className="text-xs text-muted-foreground">
         Cálculo actualizado el {formatDateTimeBogota(data.calculated_at)}. Es una
-        estimación comercial basada en precios y puntos, no un costo contable.
+        estimación comercial basada en precios y loopoints, no un costo contable.
       </p>
     </div>
   );
@@ -269,7 +269,7 @@ function BudgetSnapshotsCard({ businessId }: { businessId: string }) {
                   <th scope="col" className="py-2 pr-4 text-right">Presupuesto</th>
                   <th scope="col" className="py-2 pr-4 text-right">Redimido</th>
                   <th scope="col" className="py-2 pr-4 text-right">Pendiente</th>
-                  <th scope="col" className="py-2 text-right">Puntos (emitidos / canjeados)</th>
+                  <th scope="col" className="py-2 text-right">Loopoints (emitidos / canjeados)</th>
                 </tr>
               </thead>
               <tbody className="divide-y">

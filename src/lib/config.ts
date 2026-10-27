@@ -8,10 +8,10 @@ const trimSlash = (value: string) => value.replace(/\/+$/, '');
 export const defaultPublicAppUrl = 'https://fidelizacion01.vercel.app';
 
 export const brandName =
-  import.meta.env.VITE_BRAND_NAME?.trim() || 'Mi Negocio';
+  import.meta.env.VITE_BRAND_NAME?.trim() || 'Loopoint';
 
 export const brandTagline =
-  import.meta.env.VITE_BRAND_TAGLINE?.trim() || 'Puntos por tus compras';
+  import.meta.env.VITE_BRAND_TAGLINE?.trim() || 'Loopoints por tus compras';
 
 export const supabaseUrl =
   import.meta.env.VITE_SUPABASE_URL?.trim() || 'http://127.0.0.1:54321';
@@ -32,6 +32,14 @@ export function publicAppUrl(): string {
 
 export function claimUrl(token: string): string {
   return `${publicAppUrl()}/claim/${encodeURIComponent(token)}`;
+}
+
+/**
+ * URL que se codifica dentro del QR de canje. Al escanearla, el encargado
+ * autenticado confirma la entrega desde `/scan/:token`.
+ */
+export function redemptionScanUrl(token: string): string {
+  return `${publicAppUrl()}/scan/${encodeURIComponent(token)}`;
 }
 
 export function oauthRedirectUrl(nextPath?: string): string {
@@ -59,10 +67,14 @@ export function defaultPathForRoles(roles: string[]): string {
 }
 
 /** Portal de inicio según el rol del usuario dentro de un negocio concreto. */
-export function businessHomePath(role: string | null | undefined): string {
+export function businessHomePath(
+  role: string | null | undefined,
+  businessId?: string | null,
+): string {
   if (role === 'admin') return '/admin/dashboard';
   if (role === 'encargado') return '/encargado';
-  return '/customer/balance';
+  if (businessId) return `/customer/business/${businessId}`;
+  return '/customer';
 }
 
 export function initials(name: string): string {

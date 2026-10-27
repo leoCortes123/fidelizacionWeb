@@ -30,6 +30,8 @@ const fixture = vi.hoisted(() => ({
       price_cop: 2500,
       cost_cop: 800,
       is_active: true,
+      kind: 'simple',
+      combo_items: [],
       created_at: '2026-01-01T12:00:00.000Z',
       updated_at: '2026-01-01T12:00:00.000Z',
     },
@@ -57,6 +59,7 @@ vi.mock('@/features/loyalty/hooks', () => ({
     refetch: vi.fn(),
   }),
   useUpsertProduct: () => ({ mutateAsync: upsert, isPending: false }),
+  useSetProductCombo: () => ({ mutateAsync: vi.fn(), isPending: false }),
 }));
 
 vi.mock('@/features/loyalty/businessContext', () => ({

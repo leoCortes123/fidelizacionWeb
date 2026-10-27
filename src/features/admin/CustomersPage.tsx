@@ -6,11 +6,19 @@ import {
   ChevronRight,
   Search,
   Sparkles,
+  Star,
   Users,
 } from 'lucide-react';
 import { useAdminCustomers } from './hooks';
-import { formatCOP, formatDateBogota, formatPoints } from '@/lib/format';
+import { useBusinessContext } from '@/features/loyalty/businessContext';
+import {
+  formatCOP,
+  formatDateBogota,
+  formatDateTimeBogota,
+  formatPoints,
+} from '@/lib/format';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,18 +37,30 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { FrequencyBadge } from '@/components/shared/StatusBadge';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { EmptyState, ErrorState, ListSkeleton } from '@/components/shared/States';
 
 const PAGE_SIZE = 15;
 
 export function CustomersPage() {
+  const { selectedBusiness } = useBusinessContext();
+  const businessId = selectedBusiness?.id ?? '';
   const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(0);
   const [sort, setSort] = useState('points');
   const [direction, setDirection] = useState('desc');
-  const customers = useAdminCustomers(search, page, PAGE_SIZE, sort, direction);
+  const [onlyFrequent, setOnlyFrequent] = useState(false);
+  const customers = useAdminCustomers(
+    businessId,
+    search,
+    page,
+    PAGE_SIZE,
+    sort,
+    direction,
+    onlyFrequent,
+  );
 
   const total = customers.data?.[0]?.total_count ?? 0;
   const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
@@ -55,7 +75,11 @@ export function CustomersPage() {
     <div className="space-y-6 animate-fade-in">
       <PageHeader
         title="Clientes"
-        description="Consulta saldo, compras y valor acumulado. Ordenados por puntos de mayor a menor."
+        description={
+          selectedBusiness
+            ? `Clientes de ${selectedBusiness.name}: saldo, compras, frecuencia y valor acumulado.`
+            : 'Consulta saldo, compras y valor acumulado por negocio.'
+        }
       />
 
       <Card>
@@ -104,7 +128,7 @@ export function CustomersPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="points">Saldo de puntos</SelectItem>
+                  <SelectItem value="points">Saldo de loopoints</SelectItem>
                   <SelectItem value="created_at">Fecha de registro</SelectItem>
                   <SelectItem value="name">Nombre</SelectItem>
                   <SelectItem value="email">Correo</SelectItem>
@@ -113,6 +137,19 @@ export function CustomersPage() {
                 </SelectContent>
               </Select>
             </div>
+            <Button
+              type="button"
+              variant={onlyFrequent ? 'default' : 'outline'}
+              className="w-full sm:w-auto"
+              onClick={() => {
+                setOnlyFrequent((current) => !current);
+                setPage(0);
+              }}
+              aria-pressed={onlyFrequent}
+            >
+              <Star aria-hidden="true" />
+              {onlyFrequent ? 'Solo frecuentes' : 'Todos los clientes'}
+            </Button>
             <Button
               type="button"
               variant="outline"
@@ -138,8 +175,10 @@ export function CustomersPage() {
           title="Sin clientes para mostrar"
           description={
             search
-              ? 'No encontramos coincidencias. Prueba con otro nombre o correo.'
-              : 'Los clientes aparecen cuando inician sesión por primera vez.'
+              ? onlyFrequent
+                ? 'No hay clientes frecuentes con esa búsqueda. Prueba sin el filtro.'
+                : 'No encontramos coincidencias. Prueba con otro nombre o correo.'
+              : 'Los clientes aparecen cuando se afilian al negocio.'
           }
           icon={Users}
         />
@@ -151,20 +190,35 @@ export function CustomersPage() {
               <Card key={customer.id}>
                 <CardContent className="space-y-3 p-4">
                   <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
+                    <div className="min-w-0 space-y-1">
                       <p className="truncate font-semibold">
                         {customer.full_name || 'Sin nombre'}
                       </p>
+                      {customer.nickname && (
+                        <Badge variant="outline" className="max-w-full truncate font-normal">
+                          @{customer.nickname}
+                        </Badge>
+                      )}
                       <p className="truncate text-xs text-muted-foreground">
                         {customer.email}
                       </p>
+                      <FrequencyBadge
+                        isFrequent={customer.is_frequent}
+                        isActive={customer.is_frequent_active}
+                      />
+                      {customer.last_purchase_at && (
+                        <p className="text-[11px] text-muted-foreground">
+                          Última compra:{' '}
+                          {formatDateTimeBogota(customer.last_purchase_at)}
+                        </p>
+                      )}
                     </div>
                     <div className="shrink-0 text-right">
                       <p className="font-display text-2xl font-extrabold text-primary">
                         {customer.points_balance}
                       </p>
                       <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                        puntos
+                        loopoints
                       </p>
                     </div>
                   </div>
@@ -207,7 +261,16 @@ export function CustomersPage() {
                         <p className="font-semibold">
                           {customer.full_name || 'Sin nombre'}
                         </p>
+                        {customer.nickname && (
+                          <p className="text-xs text-muted-foreground">@{customer.nickname}</p>
+                        )}
                         <p className="text-xs text-muted-foreground">{customer.email}</p>
+                        <div className="mt-1">
+                          <FrequencyBadge
+                            isFrequent={customer.is_frequent}
+                            isActive={customer.is_frequent_active}
+                          />
+                        </div>
                       </TableCell>
                       <TableCell className="font-semibold">
                         {formatPoints(customer.points_balance)}

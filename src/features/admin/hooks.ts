@@ -9,6 +9,8 @@ import type {
   AuditEntry,
   ConfigHistoryEntry,
   CustomerDetail,
+  DashboardSummary,
+  RecentActivity,
   StaffCustomer,
 } from '@/types';
 
@@ -100,18 +102,47 @@ export function useExpirePoints() {
   });
 }
 
+/** Métricas reales del Inicio del negocio. */
+export function useBusinessDashboardSummary(businessId: string) {
+  return useQuery<DashboardSummary>({
+    queryKey: queryKeys.businessDashboardSummary(businessId),
+    queryFn: () =>
+      rpc<DashboardSummary>('business_dashboard_summary', {
+        p_business_id: businessId,
+      }),
+    enabled: Boolean(businessId),
+  });
+}
+
+export function useBusinessRecentActivity(businessId: string, limit = 8) {
+  return useQuery<RecentActivity[]>({
+    queryKey: queryKeys.businessRecentActivity(businessId),
+    queryFn: () =>
+      rpc<RecentActivity[]>('business_recent_activity', {
+        p_business_id: businessId,
+        p_limit: limit,
+      }),
+    enabled: Boolean(businessId),
+  });
+}
+
 // ---------------------------------------------------------------------
 // Operación diaria del administrador
 // ---------------------------------------------------------------------
 export function useAdminCustomers(
+  businessId: string,
   search: string,
   page: number,
   pageSize: number,
   sort: string,
   direction: string,
+  onlyFrequent = false,
 ) {
   return useQuery({
-    queryKey: queryKeys.staffCustomers(search, page, sort, direction),
+    queryKey: [
+      ...queryKeys.staffCustomers(businessId, search, page, sort, direction),
+      onlyFrequent,
+    ],
     queryFn: () =>
       rpc<StaffCustomer[]>('staff_list_customers', {
         p_search: search,
@@ -119,18 +150,25 @@ export function useAdminCustomers(
         p_offset: page * pageSize,
         p_sort: sort,
         p_direction: direction,
+        p_business_id: businessId,
+        p_only_frequent: onlyFrequent,
       }),
+    enabled: Boolean(businessId),
   });
 }
 
-export function useAdminCustomer(customerId: string | undefined) {
+export function useAdminCustomer(
+  businessId: string,
+  customerId: string | undefined,
+) {
   return useQuery({
-    queryKey: queryKeys.staffCustomer(customerId ?? ''),
+    queryKey: queryKeys.staffCustomer(businessId, customerId ?? ''),
     queryFn: () =>
       rpc<CustomerDetail>('staff_get_customer', {
         p_customer_id: customerId,
+        p_business_id: businessId,
       }),
-    enabled: Boolean(customerId),
+    enabled: Boolean(customerId) && Boolean(businessId),
   });
 }
 

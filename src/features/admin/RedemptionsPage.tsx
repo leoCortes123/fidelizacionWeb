@@ -1,6 +1,14 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Check, PackageCheck, RefreshCw, TicketCheck, X } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import {
+  Check,
+  PackageCheck,
+  RefreshCw,
+  ReceiptText,
+  ScanLine,
+  TicketCheck,
+  X,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import {
   useApproveRedemption,
@@ -61,23 +69,23 @@ const actionCopy: Record<
   },
   reject: {
     title: 'Rechazar solicitud',
-    confirm: 'Rechazar y devolver puntos',
+    confirm: 'Rechazar y devolver loopoints',
     description:
-      'Se cancelará la solicitud y los puntos reservados volverán al saldo del cliente.',
+      'Se cancelará la solicitud y los loopoints reservados volverán al saldo del cliente.',
     destructive: true,
   },
   deliver: {
     title: 'Confirmar entrega',
     confirm: 'Confirmar entrega',
     description:
-      'Marca la recompensa como entregada. Los puntos quedan consumidos definitivamente.',
+      'Marca la recompensa como entregada. Los loopoints quedan consumidos definitivamente.',
     destructive: false,
   },
   cancel: {
     title: 'Cancelar solicitud',
-    confirm: 'Cancelar y devolver puntos',
+    confirm: 'Cancelar y devolver loopoints',
     description:
-      'Solo para solicitudes pendientes. Los puntos reservados volverán al cliente.',
+      'Solo para solicitudes pendientes. Los loopoints reservados volverán al cliente.',
     destructive: true,
   },
 };
@@ -151,9 +159,11 @@ function RedemptionsSection({ business }: { business: Business }) {
   const canCancel = selectedRole === 'admin';
 
   const [statusFilter, setStatusFilter] = useState('all');
+  const [originFilter, setOriginFilter] = useState('all');
   const redemptions = useLoyaltyRedemptions(
     business.id,
     statusFilter === 'all' ? '' : statusFilter,
+    originFilter === 'all' ? '' : originFilter,
   );
   const approveRedemption = useApproveRedemption();
   const deliverRedemption = useDeliverRedemption();
@@ -196,14 +206,14 @@ function RedemptionsSection({ business }: { business: Business }) {
           businessId: business.id,
           redemptionId: redemption.id,
         });
-        toast.success('Entrega confirmada. Puntos consumidos.');
+        toast.success('Entrega confirmada. Loopoints consumidos.');
       } else if (kind === 'cancel') {
         await cancelRedemption.mutateAsync({
           businessId: business.id,
           redemptionId: redemption.id,
           reason: reason.trim(),
         });
-        toast.success('Solicitud cancelada y puntos devueltos.');
+        toast.success('Solicitud cancelada y loopoints devueltos.');
       } else {
         await approveRedemption.mutateAsync({
           businessId: business.id,
@@ -213,7 +223,7 @@ function RedemptionsSection({ business }: { business: Business }) {
         toast.success(
           kind === 'approve'
             ? 'Solicitud aprobada. Confirma la entrega al cliente.'
-            : 'Solicitud rechazada y puntos devueltos.',
+            : 'Solicitud rechazada y loopoints devueltos.',
         );
       }
       setAction(null);
@@ -246,6 +256,16 @@ function RedemptionsSection({ business }: { business: Business }) {
                 ))}
               </SelectContent>
             </Select>
+            <Select value={originFilter} onValueChange={setOriginFilter}>
+              <SelectTrigger className="w-44" aria-label="Filtrar por origen">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos los orígenes</SelectItem>
+                <SelectItem value="manual">Solicitud manual</SelectItem>
+                <SelectItem value="qr_scan">QR escaneado</SelectItem>
+              </SelectContent>
+            </Select>
             <Button
               variant="outline"
               size="icon"
@@ -271,9 +291,9 @@ function RedemptionsSection({ business }: { business: Business }) {
         <EmptyState
           title="Sin solicitudes"
           description={
-            statusFilter === 'all'
+            statusFilter === 'all' && originFilter === 'all'
               ? 'Todavía no hay canjes solicitados en este negocio.'
-              : 'No hay solicitudes con ese estado.'
+              : 'No hay solicitudes con esos filtros.'
           }
           icon={TicketCheck}
         />
@@ -284,7 +304,8 @@ function RedemptionsSection({ business }: { business: Business }) {
               <tr>
                 <th scope="col" className="px-4 py-3">Cliente</th>
                 <th scope="col" className="px-4 py-3">Recompensa</th>
-                <th scope="col" className="px-4 py-3 text-right">Puntos</th>
+                <th scope="col" className="px-4 py-3 text-right">Loopoints</th>
+                <th scope="col" className="px-4 py-3">Origen</th>
                 <th scope="col" className="px-4 py-3">Fecha</th>
                 <th scope="col" className="px-4 py-3">Estado</th>
                 <th scope="col" className="px-4 py-3 text-right">Acciones</th>
@@ -294,7 +315,14 @@ function RedemptionsSection({ business }: { business: Business }) {
               {rows.map((redemption) => (
                 <tr key={redemption.id}>
                   <td className="px-4 py-3">
-                    <p className="font-medium">{redemption.customer_email}</p>
+                    <p className="font-medium">
+                      {redemption.customer_nickname
+                        ? `@${redemption.customer_nickname}`
+                        : redemption.customer_email}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {redemption.customer_email}
+                    </p>
                     <p className="font-mono text-xs text-muted-foreground">
                       {redemption.code}
                     </p>
@@ -307,6 +335,9 @@ function RedemptionsSection({ business }: { business: Business }) {
                   </td>
                   <td className="px-4 py-3 text-right tabular-nums">
                     {formatPoints(redemption.points_spent)}
+                  </td>
+                  <td className="px-4 py-3">
+                    <OriginBadge origin={redemption.origin} />
                   </td>
                   <td className="px-4 py-3 text-xs text-muted-foreground">
                     {formatDateTimeBogota(redemption.created_at)}
@@ -355,9 +386,18 @@ function RedemptionsSection({ business }: { business: Business }) {
                           Confirmar entrega
                         </Button>
                       )}
+                      {(redemption.status === 'approved' ||
+                        redemption.status === 'delivered') && (
+                        <Button size="sm" variant="outline" asChild>
+                          <Link to="/admin/purchases/new">
+                            <ReceiptText aria-hidden="true" />
+                            Registrar compra
+                          </Link>
+                        </Button>
+                      )}
                       {redemption.status === 'cancelled' && (
                         <span className="text-xs text-muted-foreground">
-                          Puntos devueltos
+                          Loopoints devueltos
                         </span>
                       )}
                     </div>
@@ -370,8 +410,10 @@ function RedemptionsSection({ business }: { business: Business }) {
       )}
 
       <p className="text-xs text-muted-foreground">
-        Aprobar consume el token QR: el cliente ya no podrá reutilizarlo. Cancelar o
-        rechazar devuelve los puntos reservados. Cada paso queda en la auditoría.
+        Aprobar consume el token QR: el cliente ya no podrá reutilizarlo. Si el QR se
+        escanea desde <span className="font-mono">/scan</span>, la entrega se confirma
+        en un solo paso y la solicitud aparece como “QR escaneado”. Cancelar o rechazar
+        devuelve los loopoints reservados. Cada paso queda en la auditoría.
       </p>
 
       <Dialog
@@ -410,7 +452,7 @@ function RedemptionsSection({ business }: { business: Business }) {
                 placeholder="Ej.: el cliente no se presentó"
               />
               <p className="text-xs text-muted-foreground">
-                Se guarda en la auditoría junto con los puntos devueltos.
+                Se guarda en la auditoría junto con los loopoints devueltos.
               </p>
             </div>
           )}
@@ -439,5 +481,26 @@ function RedemptionsSection({ business }: { business: Business }) {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+/**
+ * El origen lo fija el servidor: `qr_scan` cuando el negocio escaneó el QR y
+ * entregó en el mismo acto; `manual` cuando se aprobó desde este listado.
+ */
+function OriginBadge({ origin }: { origin: string }) {
+  if (origin === 'qr_scan') {
+    return (
+      <Badge variant="secondary" className="gap-1 whitespace-nowrap">
+        <ScanLine className="size-3" aria-hidden="true" />
+        QR escaneado
+      </Badge>
+    );
+  }
+  return (
+    <Badge variant="outline" className="gap-1 whitespace-nowrap">
+      <TicketCheck className="size-3" aria-hidden="true" />
+      Solicitud
+    </Badge>
   );
 }

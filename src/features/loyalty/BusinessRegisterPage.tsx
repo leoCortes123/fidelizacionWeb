@@ -104,7 +104,7 @@ export function BusinessRegisterPage() {
           <p className="text-xs text-muted-foreground mt-4">
             Al crear el negocio, tu cuenta quedará como su{' '}
             <strong>administrador</strong> y podrás configurar el programa de
-            puntos, crear encargados y gestionar recompensas.
+            loopoints, crear encargados y gestionar recompensas.
           </p>
         </CardContent>
       </Card>

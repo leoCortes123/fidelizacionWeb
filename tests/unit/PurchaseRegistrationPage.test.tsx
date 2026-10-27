@@ -33,6 +33,11 @@ const program: LoyaltyProgram = {
   recurrence_bonus_points: 0,
   referral_bonus_points: 0,
   qr_expiry_hours: 24,
+  frequent_min_purchases: 3,
+  frequent_period_days: 90,
+  frequent_min_spend_cop: 0,
+  frequent_active_days: 30,
+  recovery_inactive_days: 60,
   is_active: true,
   configured_by: 'user-admin',
   configured_at: '2026-01-01T12:00:00.000Z',
@@ -67,6 +72,26 @@ vi.mock('@/features/loyalty/hooks', () => ({
   }),
   useLoyaltyProgram: () => ({
     data: { ...program, is_active: programState.active },
+    isLoading: false,
+    isError: false,
+    error: null,
+  }),
+  useProducts: () => ({
+    data: [
+      {
+        id: 'prod-taco',
+        business_id: 'biz-1',
+        name: 'Taco de guisado',
+        description: null,
+        price_cop: 2500,
+        cost_cop: 800,
+        is_active: true,
+        kind: 'simple',
+        combo_items: [],
+        created_at: '2026-01-01T12:00:00.000Z',
+        updated_at: '2026-01-01T12:00:00.000Z',
+      },
+    ],
     isLoading: false,
     isError: false,
     error: null,
@@ -111,7 +136,7 @@ describe('PurchaseRegistrationPage (venta con QR)', () => {
     programState.active = true;
   });
 
-  it('valida el importe, previsualiza puntos y genera el QR de la venta', async () => {
+  it('valida el importe, previsualiza loopoints y genera el QR de la venta', async () => {
     createMutate.mockImplementation((_amount, options) => {
       options?.onSuccess?.(result);
     });
@@ -119,15 +144,18 @@ describe('PurchaseRegistrationPage (venta con QR)', () => {
     renderPage();
 
     expect(screen.getByRole('heading', { name: /Registrar compra/ })).toBeInTheDocument();
-    const input = screen.getByLabelText(/importe de la compra/i);
+    const input = screen.getByRole('textbox', { name: /importe de la compra/i });
     await user.type(input, '15500');
-    expect(await screen.findByText(/\+15 puntos/i)).toBeInTheDocument();
+    expect(await screen.findByText(/\+15 loopoints/i)).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: /generar qr de la venta/i }));
-    expect(createMutate).toHaveBeenCalledWith(15500, expect.any(Object));
+    expect(createMutate).toHaveBeenCalledWith(
+      { amountCop: 15500, items: [] },
+      expect.any(Object),
+    );
 
     expect(
-      await screen.findByText(/escanéalo para sumar puntos/i),
+      await screen.findByText(/escanéalo para sumar loopoints/i),
     ).toBeInTheDocument();
     expect(screen.getByTestId('qr')).toHaveAttribute(
       'data-value',
@@ -136,7 +164,29 @@ describe('PurchaseRegistrationPage (venta con QR)', () => {
     expect(screen.getByTestId('claim-url').textContent).toContain(
       '/claim/tok_123456789012345678901234567890',
     );
-    expect(screen.getByText(/15 puntos estimados/i)).toBeInTheDocument();
+    expect(screen.getByText(/15 loopoints estimados/i)).toBeInTheDocument();
+  });
+
+  it('suma productos de la carta y envía las líneas', async () => {
+    createMutate.mockImplementation((_input, options) => {
+      options?.onSuccess?.(result);
+    });
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.click(screen.getByRole('tab', { name: /elegir de la carta/i }));
+    await user.click(screen.getByRole('button', { name: /añadir taco de guisado/i }));
+    await user.click(screen.getByRole('button', { name: /añadir taco de guisado/i }));
+    expect(await screen.findByTestId('catalog-total')).toHaveTextContent('5.000');
+
+    await user.click(screen.getByRole('button', { name: /generar qr de la venta/i }));
+    expect(createMutate).toHaveBeenCalledWith(
+      {
+        amountCop: 5000,
+        items: [{ product_id: 'prod-taco', quantity: 2 }],
+      },
+      expect.any(Object),
+    );
   });
 
   it('no envía importes en cero', async () => {
@@ -157,6 +207,6 @@ describe('PurchaseRegistrationPage (venta con QR)', () => {
     expect(
       screen.getByRole('button', { name: /generar qr de la venta/i }),
     ).toBeDisabled();
-    expect(screen.getByText(/programa de puntos está inactivo/i)).toBeInTheDocument();
+    expect(screen.getByText(/programa de loopoints está inactivo/i)).toBeInTheDocument();
   });
 });

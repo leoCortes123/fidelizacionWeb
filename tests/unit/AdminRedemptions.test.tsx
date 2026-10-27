@@ -9,6 +9,7 @@ const approve = vi.hoisted(() => vi.fn());
 const deliver = vi.hoisted(() => vi.fn());
 const cancel = vi.hoisted(() => vi.fn());
 const rows = vi.hoisted(() => ({ current: [] as LoyaltyRedemptionWithCustomer[] }));
+const listArgs = vi.hoisted(() => ({ origin: '' }));
 const ctx = vi.hoisted(() => ({ role: 'admin' as 'admin' | 'encargado' | 'cliente', canApprove: false }));
 
 const fixture = vi.hoisted(() => ({
@@ -29,13 +30,16 @@ const fixture = vi.hoisted(() => ({
 
 vi.mock('@/features/loyalty/hooks', () => ({
   useBusinesses: () => ({ data: [fixture.business], isLoading: false, isError: false }),
-  useLoyaltyRedemptions: () => ({
-    data: rows.current,
-    isLoading: false,
-    isError: false,
-    error: null,
-    refetch: vi.fn(),
-  }),
+  useLoyaltyRedemptions: (_businessId: string, _status: string, origin = '') => {
+    listArgs.origin = origin;
+    return {
+      data: rows.current,
+      isLoading: false,
+      isError: false,
+      error: null,
+      refetch: vi.fn(),
+    };
+  },
   useApproveRedemption: () => ({ mutateAsync: approve, isPending: false }),
   useDeliverRedemption: () => ({ mutateAsync: deliver, isPending: false }),
   useCancelRedemption: () => ({ mutateAsync: cancel, isPending: false }),
@@ -72,8 +76,10 @@ function redemption(
     delivered_at: null,
     cancelled_at: null,
     cancellation_reason: null,
+    origin: 'manual',
     customer_id: 'user-customer',
     customer_email: 'carla@example.test',
+    customer_nickname: 'carla',
     ...overrides,
   };
 }
@@ -101,6 +107,7 @@ describe('RedemptionsPage del administrador', () => {
         customer_id: 'user-customer2',
         customer_email: 'diego@example.test',
         points_spent: 30,
+        origin: 'qr_scan',
       }),
     ];
     approve.mockResolvedValue({ status: 'approved' });
@@ -120,6 +127,21 @@ describe('RedemptionsPage del administrador', () => {
     expect(screen.getByRole('button', { name: 'Confirmar entrega' })).toBeInTheDocument();
   });
 
+  it('muestra el origen y filtra por QR escaneado', async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    expect(screen.getByText('QR escaneado', { exact: true })).toBeInTheDocument();
+    expect(screen.getAllByText('Solicitud', { exact: true }).length).toBeGreaterThan(0);
+
+    await user.click(
+      screen.getByRole('combobox', { name: 'Filtrar por origen' }),
+    );
+    await user.click(await screen.findByRole('option', { name: 'QR escaneado' }));
+
+    await waitFor(() => expect(listArgs.origin).toBe('qr_scan'));
+  });
+
   it('aprueba una solicitud pendiente', async () => {
     const user = userEvent.setup();
     renderPage();
@@ -137,14 +159,14 @@ describe('RedemptionsPage del administrador', () => {
     });
   });
 
-  it('rechaza una solicitud y devuelve los puntos', async () => {
+  it('rechaza una solicitud y devuelve los loopoints', async () => {
     const user = userEvent.setup();
     renderPage();
 
     await user.click(screen.getByRole('button', { name: 'Rechazar' }));
     const dialog = within(screen.getByRole('dialog'));
     await user.click(
-      dialog.getByRole('button', { name: 'Rechazar y devolver puntos' }),
+      dialog.getByRole('button', { name: 'Rechazar y devolver loopoints' }),
     );
 
     await waitFor(() => expect(approve).toHaveBeenCalledTimes(1));
@@ -175,7 +197,7 @@ describe('RedemptionsPage del administrador', () => {
     await user.click(screen.getByRole('button', { name: 'Cancelar' }));
     const dialog = within(screen.getByRole('dialog'));
     await user.click(
-      dialog.getByRole('button', { name: 'Cancelar y devolver puntos' }),
+      dialog.getByRole('button', { name: 'Cancelar y devolver loopoints' }),
     );
 
     expect(cancel).not.toHaveBeenCalled();
@@ -186,7 +208,7 @@ describe('RedemptionsPage del administrador', () => {
       'El cliente no se presentó',
     );
     await user.click(
-      dialog.getByRole('button', { name: 'Cancelar y devolver puntos' }),
+      dialog.getByRole('button', { name: 'Cancelar y devolver loopoints' }),
     );
 
     await waitFor(() => expect(cancel).toHaveBeenCalledTimes(1));

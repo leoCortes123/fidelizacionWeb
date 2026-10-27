@@ -51,6 +51,8 @@ const pendingPreview: PurchaseQrPreview = {
   status: 'pending_claim',
   claimed: false,
   expires_at: '2026-10-26T02:00:00.000Z',
+  items: [],
+  items_count: 0,
 };
 
 const result: ClaimResult = {
@@ -71,7 +73,7 @@ function renderClaim(path = `/claim/${TOKEN}`) {
       <Routes>
         <Route path="/claim/:token" element={<ClaimPage />} />
         <Route path="/customer" element={<div>Panel cliente</div>} />
-        <Route path="/customer/balance" element={<div>Saldo cliente</div>} />
+        <Route path="/customer/business/:businessId" element={<div>Saldo cliente</div>} />
       </Routes>
     </MemoryRouter>,
   );
@@ -98,11 +100,11 @@ describe('ClaimPage', () => {
     expect(claim.mutate).not.toHaveBeenCalled();
 
     await user.click(
-      screen.getByRole('button', { name: /confirmar y sumar puntos/i }),
+      screen.getByRole('button', { name: /confirmar y sumar loopoints/i }),
     );
 
     expect(claim.mutate).toHaveBeenCalledWith(TOKEN, expect.any(Object));
-    expect(await screen.findByText(/¡Puntos acreditados!/i)).toBeInTheDocument();
+    expect(await screen.findByText(/¡Loopoints acreditados!/i)).toBeInTheDocument();
     expect(screen.getByText(/\+15/)).toBeInTheDocument();
     expect(screen.getByText(/Taquería El Fogón/)).toBeInTheDocument();
   });
@@ -137,7 +139,7 @@ describe('ClaimPage', () => {
 
     expect(screen.getByText(/QR ya reclamado/i)).toBeInTheDocument();
     expect(
-      screen.queryByRole('button', { name: /confirmar y sumar puntos/i }),
+      screen.queryByRole('button', { name: /confirmar y sumar loopoints/i }),
     ).not.toBeInTheDocument();
   });
 

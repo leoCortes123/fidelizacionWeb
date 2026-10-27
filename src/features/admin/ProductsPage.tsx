@@ -1,22 +1,39 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Pencil, Package, Plus, Search, Trash2, BadgeCheck } from 'lucide-react';
+import {
+  BadgeCheck,
+  ChefHat,
+  Package,
+  Pencil,
+  Plus,
+  Search,
+  Trash2,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { z } from 'zod';
 import {
   useBusinesses,
   useProducts,
+  useSetProductCombo,
   useUpsertProduct,
 } from '@/features/loyalty/hooks';
 import { useBusinessContext } from '@/features/loyalty/businessContext';
 import { errorMessage } from '@/lib/errors';
 import { formatCOP, parseCopInput } from '@/lib/format';
+import { useFormDraft } from '@/lib/useFormDraft';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Dialog,
   DialogContent,
@@ -27,7 +44,7 @@ import {
 } from '@/components/ui/dialog';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { EmptyState, ErrorState, ListSkeleton, LoadingScreen } from '@/components/shared/States';
-import type { Business, Product } from '@/types';
+import type { Business, Product, ProductKind } from '@/types';
 
 const MAX_PRICE_COP = 100_000_000;
 
@@ -50,6 +67,7 @@ const productSchema = z.object({
     .max(MAX_PRICE_COP, 'El costo es demasiado alto.')
     .nullable(),
   isActive: z.boolean(),
+  kind: z.enum(['simple', 'combo']),
 });
 
 interface ProductFormState {
@@ -58,6 +76,8 @@ interface ProductFormState {
   priceCop: string;
   costCop: string;
   isActive: boolean;
+  kind: ProductKind;
+  comboItems: Record<string, string>;
 }
 
 const EMPTY_FORM: ProductFormState = {
@@ -66,6 +86,8 @@ const EMPTY_FORM: ProductFormState = {
   priceCop: '',
   costCop: '',
   isActive: true,
+  kind: 'simple',
+  comboItems: {},
 };
 
 export function ProductsPage() {
@@ -134,12 +156,20 @@ function ProductsSection({ business }: { business: Business }) {
   // El panel administrativo necesita ver también los productos inactivos.
   const products = useProducts(business.id, false);
   const upsertProduct = useUpsertProduct();
+  const setCombo = useSetProductCombo();
 
   const [search, setSearch] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
   const [form, setForm] = useState<ProductFormState>(EMPTY_FORM);
   const [errors, setErrors] = useState<Partial<Record<keyof ProductFormState, string>>>({});
+  const newProductDraft = useFormDraft<ProductFormState>({
+    key: `admin:new-product:${business.id}`,
+  });
+
+  useEffect(() => {
+    if (dialogOpen && !editing) newProductDraft.save(form);
+  }, [dialogOpen, editing, form, newProductDraft.save]);
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -164,7 +194,7 @@ function ProductsSection({ business }: { business: Business }) {
 
   function openCreate() {
     setEditing(null);
-    setForm(EMPTY_FORM);
+    setForm(newProductDraft.read() ?? EMPTY_FORM);
     setErrors({});
     setDialogOpen(true);
   }
@@ -177,6 +207,10 @@ function ProductsSection({ business }: { business: Business }) {
       priceCop: String(product.price_cop),
       costCop: product.cost_cop === null ? '' : String(product.cost_cop),
       isActive: product.is_active,
+      kind: product.kind,
+      comboItems: Object.fromEntries(
+        product.combo_items.map((item) => [item.product_id, String(item.quantity)]),
+      ),
     });
     setErrors({});
     setDialogOpen(true);
@@ -198,6 +232,7 @@ function ProductsSection({ business }: { business: Business }) {
       priceCop: priceCop ?? Number.NaN,
       costCop: costCop,
       isActive: form.isActive,
+      kind: form.kind,
     });
 
     if (!parsed.success) {
@@ -212,7 +247,19 @@ function ProductsSection({ business }: { business: Business }) {
     }
 
     try {
-      await upsertProduct.mutateAsync({
+      const comboItems = Object.entries(form.comboItems)
+        .map(([productId, quantity]) => ({
+          product_id: productId,
+          quantity: Number(quantity),
+        }))
+        .filter((item) => Number.isFinite(item.quantity) && item.quantity > 0);
+
+      if (parsed.data.kind === 'combo' && comboItems.length === 0) {
+        toast.error('Un combo necesita al menos un producto componente.');
+        return;
+      }
+
+      const saved = await upsertProduct.mutateAsync({
         businessId: business.id,
         id: editing?.id ?? null,
         name: parsed.data.name,
@@ -220,7 +267,18 @@ function ProductsSection({ business }: { business: Business }) {
         priceCop: parsed.data.priceCop,
         costCop: parsed.data.costCop,
         isActive: parsed.data.isActive,
+        kind: parsed.data.kind,
       });
+
+      if (parsed.data.kind === 'combo') {
+        await setCombo.mutateAsync({
+          businessId: business.id,
+          productId: saved.id,
+          items: comboItems,
+        });
+      }
+
+      if (!editing) newProductDraft.clear();
       toast.success(editing ? 'Producto actualizado' : 'Producto creado');
       setDialogOpen(false);
       setEditing(null);
@@ -239,6 +297,7 @@ function ProductsSection({ business }: { business: Business }) {
         priceCop: product.price_cop,
         costCop: product.cost_cop,
         isActive: !product.is_active,
+        kind: product.kind,
       })
       .then(() =>
         toast.success(
@@ -308,9 +367,21 @@ function ProductsSection({ business }: { business: Business }) {
               {filtered.map((product) => (
                 <tr key={product.id}>
                   <td className="px-4 py-3">
-                    <p className="font-semibold">{product.name}</p>
+                    <p className="flex items-center gap-2 font-semibold">
+                      {product.name}
+                      {product.kind === 'combo' && (
+                        <Badge variant="secondary">Combo</Badge>
+                      )}
+                    </p>
                     {product.description && (
                       <p className="text-xs text-muted-foreground">{product.description}</p>
+                    )}
+                    {product.kind === 'combo' && product.combo_items.length > 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        {product.combo_items
+                          .map((item) => `${item.quantity} × ${item.name}`)
+                          .join(' · ')}
+                      </p>
                     )}
                   </td>
                   <td className="px-4 py-3 text-right tabular-nums">
@@ -403,6 +474,100 @@ function ProductsSection({ business }: { business: Business }) {
                 <p className="text-xs font-medium text-destructive" role="alert">{errors.description}</p>
               )}
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="product-kind">Tipo de producto</Label>
+              <Select
+                value={form.kind}
+                onValueChange={(value) => update('kind', value as ProductKind)}
+              >
+                <SelectTrigger id="product-kind">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="simple">Producto simple</SelectItem>
+                  <SelectItem value="combo">Combo (varios productos)</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                El precio del combo es el que se cobra; el detalle muestra sus
+                componentes.
+              </p>
+            </div>
+
+            {form.kind === 'combo' && (
+              <div className="space-y-2 rounded-xl border p-3">
+                <Label className="flex items-center gap-2">
+                  <ChefHat className="size-4 text-muted-foreground" aria-hidden="true" />
+                  Componentes del combo
+                </Label>
+                {rows.filter(
+                  (product) =>
+                    product.kind === 'simple' &&
+                    product.id !== editing?.id &&
+                    product.is_active,
+                ).length === 0 ? (
+                  <p className="text-xs text-muted-foreground">
+                    Necesitas al menos un producto simple activo en la carta.
+                  </p>
+                ) : (
+                  <ul className="max-h-56 space-y-2 overflow-y-auto">
+                    {rows
+                      .filter(
+                        (product) =>
+                          product.kind === 'simple' &&
+                          product.id !== editing?.id &&
+                          product.is_active,
+                      )
+                      .map((product) => {
+                        const checked = Boolean(form.comboItems[product.id]);
+                        return (
+                          <li
+                            key={product.id}
+                            className="flex items-center justify-between gap-2"
+                          >
+                            <label className="flex min-w-0 items-center gap-2 text-sm">
+                              <input
+                                type="checkbox"
+                                className="size-4 rounded border-input"
+                                checked={checked}
+                                onChange={(event) => {
+                                  setForm((current) => {
+                                    const next = { ...current.comboItems };
+                                    if (event.target.checked) next[product.id] = '1';
+                                    else delete next[product.id];
+                                    return { ...current, comboItems: next };
+                                  });
+                                }}
+                              />
+                              <span className="truncate">{product.name}</span>
+                            </label>
+                            {checked && (
+                              <Input
+                                type="number"
+                                min={1}
+                                max={99}
+                                className="h-8 w-20"
+                                aria-label={`Cantidad de ${product.name}`}
+                                value={form.comboItems[product.id]}
+                                onChange={(event) =>
+                                  setForm((current) => ({
+                                    ...current,
+                                    comboItems: {
+                                      ...current.comboItems,
+                                      [product.id]: event.target.value,
+                                    },
+                                  }))
+                                }
+                              />
+                            )}
+                          </li>
+                        );
+                      })}
+                  </ul>
+                )}
+              </div>
+            )}
+
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="product-price">Precio (COP)</Label>

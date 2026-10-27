@@ -30,7 +30,7 @@ function RolesErrorScreen({
           onRetry={onRetry}
         />
         <Button variant="ghost" className="w-full" asChild>
-          <Link to="/customer">Ir a mis puntos</Link>
+          <Link to="/customer">Ir a mis loopoints</Link>
         </Button>
       </div>
     </div>
@@ -106,7 +106,7 @@ export function RequireBusinessRole({
   // Sin negocio elegido se deja que la página muestre su selector.
   if (!selectedBusiness) return <>{children}</>;
   if (!selectedRole || !roles.includes(selectedRole)) {
-    return <Navigate to={businessHomePath(selectedRole)} replace />;
+    return <Navigate to={businessHomePath(selectedRole, selectedBusiness?.id)} replace />;
   }
   return <>{children}</>;
 }

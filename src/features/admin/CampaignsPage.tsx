@@ -102,9 +102,9 @@ export function CampaignsPage() {
   return (
     <BusinessGate
       title="Campañas"
-      description="Elige el negocio cuyas campañas de puntos deseas administrar."
+      description="Elige el negocio cuyas campañas de loopoints deseas administrar."
       icon={Megaphone}
-      emptyDescription="Registra un negocio para crear campañas de puntos."
+      emptyDescription="Registra un negocio para crear campañas de loopoints."
     >
       {(business) => <CampaignsSection key={business.id} business={business} />}
     </BusinessGate>
@@ -263,7 +263,7 @@ function CampaignsSection({ business }: { business: Business }) {
     <div className="space-y-6 animate-fade-in">
       <PageHeader
         title={`Campañas — ${business.name}`}
-        description="Multiplica los puntos de compra o añade un bono durante una vigencia."
+        description="Multiplica los loopoints de compra o añade un bono durante una vigencia."
         actions={
           <Button onClick={openCreate}>
             <Plus aria-hidden="true" />
@@ -277,7 +277,7 @@ function CampaignsSection({ business }: { business: Business }) {
           <Sparkles className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
           <p>
             En cada compra se aplica la campaña vigente con mayor beneficio. Los
-            puntos resultantes quedan registrados con la regla
+            loopoints resultantes quedan registrados con la regla
             {' '}
             <code className="rounded bg-muted px-1 py-0.5 text-xs">v1+campaign:…</code>
             {' '}en el movimiento y en la auditoría.
@@ -288,7 +288,7 @@ function CampaignsSection({ business }: { business: Business }) {
       {rows.length === 0 ? (
         <EmptyState
           title="Sin campañas"
-          description="Crea una campaña para duplicar puntos o sumar un bono en fechas concretas."
+          description="Crea una campaña para duplicar loopoints o sumar un bono en fechas concretas."
           icon={Megaphone}
           action={
             <Button variant="outline" onClick={openCreate}>
@@ -324,7 +324,7 @@ function CampaignsSection({ business }: { business: Business }) {
                     <p className="font-medium">x{campaign.multiplier}</p>
                     {campaign.bonus_points > 0 && (
                       <p className="text-xs text-muted-foreground">
-                        +{formatNumber(campaign.bonus_points)} puntos
+                        +{formatNumber(campaign.bonus_points)} loopoints
                       </p>
                     )}
                   </td>
@@ -391,7 +391,7 @@ function CampaignsSection({ business }: { business: Business }) {
           <DialogHeader>
             <DialogTitle>{editing ? 'Editar campaña' : 'Nueva campaña'}</DialogTitle>
             <DialogDescription>
-              El multiplicador se aplica a los puntos base de la compra y el bono se
+              El multiplicador se aplica a los loopoints base de la compra y el bono se
               suma al final. Solo aplica dentro de la vigencia.
             </DialogDescription>
           </DialogHeader>
@@ -436,12 +436,12 @@ function CampaignsSection({ business }: { business: Business }) {
                   </p>
                 ) : (
                   <p className="text-xs text-muted-foreground">
-                    x2 duplica los puntos. Entre 1 y 10.
+                    x2 duplica los loopoints. Entre 1 y 10.
                   </p>
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="campaign-bonus">Bono de puntos</Label>
+                <Label htmlFor="campaign-bonus">Bono de loopoints</Label>
                 <Input
                   id="campaign-bonus"
                   inputMode="numeric"
@@ -540,7 +540,7 @@ function CampaignsSection({ business }: { business: Business }) {
         title="Eliminar campaña"
         description={
           deleteTarget
-            ? `Se eliminará “${deleteTarget.name}”. El historial de puntos ya acreditado no cambia.`
+            ? `Se eliminará “${deleteTarget.name}”. El historial de loopoints ya acreditado no cambia.`
             : undefined
         }
         confirmLabel="Eliminar"

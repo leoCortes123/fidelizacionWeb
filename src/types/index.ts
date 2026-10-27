@@ -6,7 +6,8 @@ export type PointsMovementType =
   | 'redemption_debit'
   | 'redemption_refund'
   | 'expiry_debit'
-  | 'admin_adjustment';
+  | 'admin_adjustment'
+  | 'bonus_credit';
 
 export interface ProgramSettings {
   cop_per_point_unit: number;
@@ -22,6 +23,17 @@ export interface AdminSettings extends ProgramSettings {
   updated_at?: string;
   updated_by?: string | null;
   updated_by_email?: string | null;
+}
+
+export interface MyProfile {
+  id: string;
+  full_name: string;
+  email: string;
+  nickname: string | null;
+  nickname_changes: number;
+  nickname_changes_left: number;
+  business_count: number;
+  created_at: string;
 }
 
 export interface Dashboard {
@@ -88,11 +100,14 @@ export interface PurchaseQrPreview {
   business_id: string;
   business_name: string;
   business_slug: string;
+  business_logo_url?: string | null;
   amount_cop: number;
   points_preview: number;
   status: PurchaseStatus;
   claimed: boolean;
   expires_at: string;
+  items: PurchaseLine[];
+  items_count: number;
 }
 
 /** Resultado de generar el QR de una venta en caja. */
@@ -105,6 +120,7 @@ export interface PurchaseQrCreateResult {
   points_preview: number;
   expires_at: string;
   status: 'pending_claim';
+  items?: PurchaseLine[];
 }
 
 /** Venta del negocio en el historial de compras. */
@@ -126,9 +142,13 @@ export interface StaffCustomer {
   id: string;
   full_name: string;
   email: string;
+  nickname: string | null;
   points_balance: number;
   purchase_count: number;
   total_spent: number;
+  is_frequent: boolean;
+  is_frequent_active: boolean;
+  last_purchase_at: string | null;
   created_at: string;
   total_count: number;
 }
@@ -139,6 +159,8 @@ export interface CustomerPurchase {
   points_awarded: number;
   claimed_at: string;
   status: PurchaseStatus;
+  items_count?: number;
+  source?: 'qr' | 'manual';
 }
 
 export interface CustomerMovement {
@@ -165,8 +187,14 @@ export interface CustomerDetail {
     id: string;
     full_name: string;
     email: string;
+    nickname?: string | null;
     created_at: string;
   };
+  business_id?: string | null;
+  is_frequent?: boolean;
+  is_frequent_active?: boolean;
+  is_recovering?: boolean;
+  last_purchase_at?: string | null;
   points_balance: number;
   purchase_count: number;
   total_spent: number;
@@ -308,7 +336,7 @@ export interface BusinessRegisterResult {
 }
 
 // ---------------------------------------------------------------------
-// Programa de puntos y productos (por negocio)
+// Programa de loopoints y productos (por negocio)
 // ---------------------------------------------------------------------
 export interface LoyaltyProgram {
   id: string;
@@ -321,6 +349,11 @@ export interface LoyaltyProgram {
   recurrence_bonus_points: number;
   referral_bonus_points: number;
   qr_expiry_hours: number;
+  frequent_min_purchases: number;
+  frequent_period_days: number;
+  frequent_min_spend_cop: number;
+  frequent_active_days: number;
+  recovery_inactive_days: number;
   is_active: boolean;
   configured_by: string | null;
   configured_at: string | null;
@@ -366,6 +399,15 @@ export interface LoyaltyRewardAvailable extends LoyaltyReward {
   can_redeem: boolean;
 }
 
+export type ProductKind = 'simple' | 'combo';
+
+export interface ComboItem {
+  product_id: string;
+  name: string;
+  quantity: number;
+  unit_price_cop: number;
+}
+
 export interface Product {
   id: string;
   business_id: string;
@@ -374,12 +416,110 @@ export interface Product {
   price_cop: number;
   cost_cop: number | null;
   is_active: boolean;
+  kind: ProductKind;
+  combo_items: ComboItem[];
   created_at: string;
   updated_at: string;
 }
 
+/** Línea snapshot de una compra. */
+export interface PurchaseLine {
+  id: string;
+  product_id: string | null;
+  name: string;
+  quantity: number;
+  unit_price_cop: number;
+  line_total_cop: number;
+  is_combo: boolean;
+  combo_detail: ComboItem[];
+}
+
+export interface PurchaseDetail {
+  purchase: {
+    id: string;
+    business_id: string;
+    amount_cop: number;
+    status: PurchaseStatus;
+    points_awarded: number;
+    created_at: string;
+    expires_at?: string;
+    claimed_at: string | null;
+    cancelled_at?: string | null;
+    cancellation_reason?: string | null;
+  };
+  business: {
+    id: string;
+    name: string;
+    slug: string;
+    logo_url: string | null;
+  };
+  customer?: {
+    id: string;
+    full_name: string;
+    nickname: string | null;
+    email: string;
+  } | null;
+  registrar?: {
+    id: string;
+    full_name: string;
+    email: string;
+  } | null;
+  items: PurchaseLine[];
+  items_count: number;
+}
+
+export interface BusinessPurchasePageRow extends BusinessPurchase {
+  customer_nickname: string | null;
+  items_count: number;
+}
+
+export interface MyPurchasePageRow {
+  id: string;
+  business_id: string;
+  business_name: string;
+  business_slug: string;
+  business_logo_url: string | null;
+  amount_cop: number;
+  points_awarded: number;
+  claimed_at: string | null;
+  created_at: string;
+  items_count: number;
+  total_count: number;
+}
+
+export interface DashboardSummary {
+  business_id: string;
+  points_outstanding: number;
+  points_issued_total: number;
+  points_redeemed_total: number;
+  pending_redemptions: number;
+  approved_pending_delivery: number;
+  frequent_customers: number;
+  active_customers: number;
+  customers_total: number;
+  sales_today_cop: number;
+  sales_month_cop: number;
+  purchases_today: number;
+  purchases_month: number;
+  pending_qr_count: number;
+  budget_committed_percent: number;
+  last_activity_at: string | null;
+  calculated_at: string;
+}
+
+export interface RecentActivity {
+  id: string;
+  kind: 'purchase' | 'redemption';
+  title: string;
+  detail: string;
+  points: number | null;
+  amount_cop: number | null;
+  status: string | null;
+  created_at: string;
+}
+
 // ---------------------------------------------------------------------
-// Cuenta y movimientos de puntos
+// Cuenta y movimientos de loopoints
 // ---------------------------------------------------------------------
 export interface LoyaltyPointAccount {
   id: string;
@@ -440,11 +580,53 @@ export interface LoyaltyRedemption {
   delivered_at: string | null;
   cancelled_at: string | null;
   cancellation_reason: string | null;
+  origin: RedemptionOrigin;
 }
 
 export interface LoyaltyRedemptionWithCustomer extends LoyaltyRedemption {
   customer_id: string;
   customer_email: string;
+  customer_nickname: string | null;
+}
+
+export type RedemptionOrigin = 'manual' | 'qr_scan';
+
+/** Contexto de `/scan/:token`: el negocio lo resuelve el servidor. */
+export interface RedemptionScanContext {
+  business_id: string;
+  business_name: string;
+  business_slug: string;
+  business_logo_url: string | null;
+  redemption_id: string;
+  code: string;
+  reward_name: string;
+  reward_type: LoyaltyRewardType;
+  points_spent: number;
+  customer_id: string;
+  customer_nickname: string | null;
+  status: RedemptionRequestStatus;
+  origin: RedemptionOrigin;
+  created_at: string;
+  expires_at: string;
+  consumed_at: string | null;
+  approved_at: string | null;
+  delivered_at: string | null;
+  can_redeem: boolean;
+  reason: string | null;
+  role: BusinessRole;
+}
+
+export interface RedemptionRedeemResult {
+  business_id: string;
+  redemption_id: string;
+  code: string;
+  reward_name: string;
+  points_spent: number;
+  customer_nickname: string | null;
+  status: 'delivered';
+  origin: RedemptionOrigin;
+  delivered_at: string;
+  role: BusinessRole;
 }
 
 export interface RedemptionTokenValidateResult {
@@ -527,10 +709,25 @@ export interface LoyaltyPurchaseEvent {
   created_at: string;
 }
 
+export interface BusinessAuditFilters {
+  /** Una operación exacta o varios prefijos separados por coma. */
+  operation?: string;
+  /** Nombre o correo del actor. */
+  actor?: string;
+  /** Inicio del rango, en ISO 8601 (incluido). */
+  from?: string;
+  /** Fin del rango, en ISO 8601 (excluido). */
+  to?: string;
+  /** Texto libre en operación, entidad, actor y metadata. */
+  search?: string;
+}
+
 export interface BusinessAuditLog {
   id: string;
   business_id: string;
   actor_email: string | null;
+  /** Presente en `business_audit_log_page` (Fase 8). */
+  actor_name: string | null;
   operation: string;
   entity_type: string;
   entity_id: string | null;
@@ -586,6 +783,42 @@ export interface BusinessPublic {
   operating_days: number[];
   is_active: boolean;
   loyalty_active: boolean;
+  description: string | null;
+  logo_url: string | null;
+  address: string | null;
+  neighborhood: string | null;
+  city: string | null;
+  phone_whatsapp: string | null;
+  instagram: string | null;
+  website: string | null;
+}
+
+export interface BusinessProfile {
+  id: string;
+  name: string;
+  slug: string;
+  timezone: string;
+  operating_days: number[];
+  is_active: boolean;
+  description: string | null;
+  address: string | null;
+  neighborhood: string | null;
+  city: string | null;
+  phone_whatsapp: string | null;
+  phone: string | null;
+  instagram: string | null;
+  website: string | null;
+  logo_url: string | null;
+  updated_at: string;
+}
+
+export interface BusinessCustomerFrequency {
+  purchase_count: number;
+  total_spent_cop: number;
+  last_purchase_at: string | null;
+  is_frequent: boolean;
+  is_frequent_active: boolean;
+  is_recovering: boolean;
 }
 
 export interface BusinessJoinResult {
@@ -604,10 +837,28 @@ export interface ProfileLookup {
   already_member: boolean;
 }
 
+/** Fila del resumen multi-negocio del cliente (RPC customer_businesses_summary). */
+export interface CustomerBusinessSummary {
+  business_id: string;
+  name: string;
+  slug: string;
+  logo_url: string | null;
+  role: BusinessRole;
+  loyalty_active: boolean;
+  balance: number;
+  ready_rewards: number;
+  pending_redemptions: number;
+  last_purchase_at: string | null;
+  is_frequent: boolean;
+  is_frequent_active: boolean;
+}
+
 export interface MyLoyaltyRedemption {
   id: string;
   business_id: string;
   business_name: string;
+  business_slug?: string;
+  business_logo_url?: string | null;
   reward_name: string;
   reward_type: LoyaltyRewardType;
   points_spent: number;

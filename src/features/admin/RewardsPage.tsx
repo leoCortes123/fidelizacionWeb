@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Gift, Plus, Pencil, Trash2, BadgeCheck } from 'lucide-react';
 import { toast } from 'sonner';
@@ -12,6 +12,7 @@ import {
 import { useBusinessContext } from '@/features/loyalty/businessContext';
 import { errorMessage } from '@/lib/errors';
 import { formatCOP, formatPoints, formatDateBogota, parseCopInput } from '@/lib/format';
+import { useFormDraft } from '@/lib/useFormDraft';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -99,10 +100,10 @@ const rewardSchema = z
     type: z.enum(['free_product', 'fixed_discount', 'percentage_discount', 'configurable_benefit']),
     productId: z.string().nullable(),
     pointsRequired: z
-      .number({ invalid_type_error: 'Introduce los puntos requeridos.' })
-      .int('Los puntos requeridos deben ser un entero.')
-      .min(1, 'Los puntos requeridos deben ser mayores que cero.')
-      .max(10_000_000, 'Los puntos requeridos son demasiado altos.'),
+      .number({ invalid_type_error: 'Introduce los loopoints requeridos.' })
+      .int('Los loopoints requeridos deben ser un entero.')
+      .min(1, 'Los loopoints requeridos deben ser mayores que cero.')
+      .max(10_000_000, 'Los loopoints requeridos son demasiado altos.'),
     minPurchaseAmount: z
       .number({ invalid_type_error: 'Introduce un importe válido.' })
       .int('El importe mínimo debe ser un entero de pesos.')
@@ -292,6 +293,13 @@ function RewardsSection({ business }: { business: Business }) {
   const [editing, setEditing] = useState<LoyaltyReward | null>(null);
   const [form, setForm] = useState<RewardFormState>(EMPTY_FORM);
   const [errors, setErrors] = useState<Partial<Record<keyof RewardFormState, string>>>({});
+  const newRewardDraft = useFormDraft<RewardFormState>({
+    key: `admin:new-reward:${business.id}`,
+  });
+
+  useEffect(() => {
+    if (dialogOpen && !editing) newRewardDraft.save(form);
+  }, [dialogOpen, editing, form, newRewardDraft.save]);
 
   const productById = useMemo(() => {
     const map = new Map<string, Product>();
@@ -308,7 +316,12 @@ function RewardsSection({ business }: { business: Business }) {
 
   function openCreate() {
     setEditing(null);
-    setForm({ ...EMPTY_FORM, productId: products.data?.[0]?.id ?? '' });
+    setForm(
+      newRewardDraft.read() ?? {
+        ...EMPTY_FORM,
+        productId: products.data?.[0]?.id ?? '',
+      },
+    );
     setErrors({});
     setDialogOpen(true);
   }
@@ -383,6 +396,7 @@ function RewardsSection({ business }: { business: Business }) {
         totalRedemptionLimit: values.totalRedemptionLimit,
         isActive: values.isActive,
       });
+      if (!editing) newRewardDraft.clear();
       toast.success(editing ? 'Recompensa actualizada' : 'Recompensa creada');
       setDialogOpen(false);
       setEditing(null);
@@ -538,7 +552,7 @@ function RewardsSection({ business }: { business: Business }) {
           <DialogHeader>
             <DialogTitle>{editing ? 'Editar recompensa' : 'Nueva recompensa'}</DialogTitle>
             <DialogDescription>
-              Configura el beneficio, los puntos requeridos y sus límites de uso.
+              Configura el beneficio, los loopoints requeridos y sus límites de uso.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={saveReward} className="space-y-4" noValidate>
@@ -589,7 +603,7 @@ function RewardsSection({ business }: { business: Business }) {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="reward-points">Puntos requeridos</Label>
+                <Label htmlFor="reward-points">Loopoints requeridos</Label>
                 <Input
                   id="reward-points"
                   inputMode="numeric"

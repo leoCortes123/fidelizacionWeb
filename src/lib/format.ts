@@ -1,3 +1,5 @@
+import { loopointWord } from './copy';
+
 const copFormatter = new Intl.NumberFormat('es-CO', {
   style: 'currency',
   currency: 'COP',
@@ -18,9 +20,12 @@ export function formatNumber(value: number): string {
   return numberFormatter.format(value);
 }
 
-export function formatPoints(value: number): string {
-  return `${formatNumber(value)} ${value === 1 ? 'punto' : 'puntos'}`;
+export function formatLoopoints(value: number): string {
+  return `${formatNumber(value)} ${loopointWord(value)}`;
 }
+
+/** @deprecated Usa `formatLoopoints`; se conserva para imports antiguos. */
+export const formatPoints = formatLoopoints;
 
 export function digitsOnly(value: string): string {
   return value.replace(/\D/g, '');

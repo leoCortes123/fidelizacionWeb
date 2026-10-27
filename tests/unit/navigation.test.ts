@@ -52,8 +52,9 @@ describe('navegación segura y OAuth', () => {
   it('elige el portal según el rol dentro del negocio', () => {
     expect(businessHomePath('admin')).toBe('/admin/dashboard');
     expect(businessHomePath('encargado')).toBe('/encargado');
-    expect(businessHomePath('cliente')).toBe('/customer/balance');
-    expect(businessHomePath(null)).toBe('/customer/balance');
+    expect(businessHomePath('cliente')).toBe('/customer');
+    expect(businessHomePath(null)).toBe('/customer');
+    expect(businessHomePath('cliente', 'biz-1')).toBe('/customer/business/biz-1');
   });
 
   it('genera iniciales para el avatar', () => {

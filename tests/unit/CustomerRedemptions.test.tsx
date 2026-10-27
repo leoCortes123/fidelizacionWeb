@@ -7,6 +7,7 @@ import {
   readRedemptionToken,
   saveRedemptionToken,
 } from '@/features/loyalty/redemptionTokens';
+import { redemptionScanUrl } from '@/lib/config';
 import type { MyLoyaltyRedemption } from '@/types';
 
 const reissue = vi.hoisted(() => vi.fn());
@@ -31,6 +32,12 @@ vi.mock('@/features/loyalty/hooks', () => ({
     refetch: vi.fn(),
   }),
   useReissueRedemptionToken: () => ({ mutateAsync: reissue, isPending: false }),
+}));
+
+const businesses = vi.hoisted(() => ({ current: [] as Array<{ id: string; name: string }> }));
+
+vi.mock('@/features/loyalty/businessContext', () => ({
+  useBusinessContext: () => ({ businesses: businesses.current }),
 }));
 
 const pending: MyLoyaltyRedemption = {
@@ -62,6 +69,7 @@ describe('RedemptionsPage del cliente', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     rows.current = [pending];
+    businesses.current = [{ id: 'biz-1', name: 'Taquería El Fogón' }];
   });
 
   it('muestra el estado de cada solicitud y el negocio', () => {
@@ -70,7 +78,7 @@ describe('RedemptionsPage del cliente', () => {
     expect(screen.getByText('Taco gratis')).toBeInTheDocument();
     expect(screen.getByText('Pendiente de validar')).toBeInTheDocument();
     expect(screen.getByText('Taquería El Fogón')).toBeInTheDocument();
-    expect(screen.getByText(/40 puntos/)).toBeInTheDocument();
+    expect(screen.getByText(/40 loopoints/)).toBeInTheDocument();
   });
 
   it('abre el QR guardado en la pestaña y muestra la cuenta atrás', async () => {
@@ -87,7 +95,7 @@ describe('RedemptionsPage del cliente', () => {
     const dialog = within(screen.getByRole('dialog'));
     expect(dialog.getByTestId('qr')).toHaveAttribute(
       'data-value',
-      'tok_guardado_1234567890',
+      redemptionScanUrl('tok_guardado_1234567890'),
     );
     expect(dialog.getByRole('timer')).toHaveTextContent(/Vence en/);
   });
@@ -107,7 +115,7 @@ describe('RedemptionsPage del cliente', () => {
     const dialog = within(await screen.findByRole('dialog'));
     expect(dialog.getByTestId('qr')).toHaveAttribute(
       'data-value',
-      'tok_reemitido_abcdefghij',
+      redemptionScanUrl('tok_reemitido_abcdefghij'),
     );
     expect(readRedemptionToken(pending.id)?.token).toBe('tok_reemitido_abcdefghij');
   });
@@ -128,11 +136,47 @@ describe('RedemptionsPage del cliente', () => {
     expect(screen.queryByRole('button', { name: 'Recuperar QR' })).not.toBeInTheDocument();
   });
 
-  it('muestra el estado vacío con acceso a recompensas', () => {
+  it('muestra el estado vacío con acceso a los negocios', () => {
     rows.current = [];
     renderPage();
 
     expect(screen.getByText('Aún no has solicitado recompensas')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Ver recompensas' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Ver mis negocios' })).toBeInTheDocument();
+  });
+
+  it('filtra los canjes por negocio y muestra el detalle', async () => {
+    const user = userEvent.setup();
+    businesses.current = [
+      { id: 'biz-1', name: 'Taquería El Fogón' },
+      { id: 'biz-2', name: 'Café Central' },
+    ];
+    rows.current = [
+      pending,
+      {
+        ...pending,
+        id: 'red-2',
+        business_id: 'biz-2',
+        business_name: 'Café Central',
+        reward_name: 'Café gratis',
+        business_slug: 'cafe-central',
+        status: 'delivered',
+        delivered_at: '2026-10-22T15:00:00.000Z',
+      },
+    ];
+    renderPage();
+
+    await user.click(
+      screen.getByRole('combobox', { name: 'Filtrar canjes por negocio' }),
+    );
+    await user.click(await screen.findByRole('option', { name: 'Café Central' }));
+
+    expect(screen.queryByText('Taco gratis')).not.toBeInTheDocument();
+    expect(screen.getByText('Café gratis')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Ver detalle' }));
+    const dialog = within(screen.getByRole('dialog'));
+    expect(dialog.getByText(/Café Central/)).toBeInTheDocument();
+    expect(dialog.getByText(/@cafe-central/)).toBeInTheDocument();
+    expect(dialog.getAllByText('Entregado').length).toBeGreaterThan(0);
   });
 });

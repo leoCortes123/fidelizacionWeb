@@ -7,7 +7,9 @@ import type {
   BusinessMembership,
   BusinessMembershipWithProfile,
   BusinessPublic,
+  BusinessProfile,
   BusinessRegisterResult,
+  CustomerBusinessSummary,
   LoyaltyProgram,
   LoyaltyReward,
   LoyaltyRewardAvailable,
@@ -17,12 +19,16 @@ import type {
   LoyaltyPointTransaction,
   MyLoyaltyRedemption,
   Product,
+  ProductKind,
   ProfileLookup,
   RedemptionRequestResult,
+  RedemptionRedeemResult,
+  RedemptionScanContext,
   RedemptionTokenReissueResult,
   RedemptionTokenValidateResult,
   BusinessEconomicDashboard,
   BusinessEconomicProfile,
+  BusinessAuditFilters,
   BusinessAuditLog,
   BudgetSnapshot,
   EconomicDataStatus,
@@ -41,6 +47,18 @@ export function useBusinesses() {
   });
 }
 
+/**
+ * Resumen del cliente por negocio: saldo, recompensas listas, solicitudes
+ * pendientes, última compra y frecuencia. El servidor solo devuelve las
+ * membresías del usuario autenticado.
+ */
+export function useCustomerBusinessesSummary() {
+  return useQuery<CustomerBusinessSummary[]>({
+    queryKey: queryKeys.customerBusinessesSummary,
+    queryFn: () => rpc<CustomerBusinessSummary[]>('customer_businesses_summary'),
+  });
+}
+
 export function useRegisterBusiness() {
   const queryClient = useQueryClient();
   return useMutation<BusinessRegisterResult, Error, { name: string; slug: string; timezone?: string }>({
@@ -53,6 +71,9 @@ export function useRegisterBusiness() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.businesses });
       void queryClient.invalidateQueries({ queryKey: queryKeys.roles });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.customerBusinessesSummary,
+      });
     },
   });
 }
@@ -87,6 +108,83 @@ export function useUpdateBusiness() {
   });
 }
 
+export function useBusinessProfile(businessId: string) {
+  return useQuery<BusinessProfile>({
+    queryKey: queryKeys.businessProfile(businessId),
+    queryFn: () =>
+      rpc<BusinessProfile>('business_profile_get', {
+        p_business_id: businessId,
+      }),
+    enabled: Boolean(businessId),
+  });
+}
+
+export interface BusinessProfilePayload {
+  businessId: string;
+  name: string;
+  description: string;
+  address: string;
+  neighborhood: string;
+  city: string;
+  phoneWhatsapp: string;
+  phone: string;
+  instagram: string;
+  website: string;
+}
+
+export function useUpdateBusinessProfile() {
+  const queryClient = useQueryClient();
+  return useMutation<BusinessProfile, Error, BusinessProfilePayload>({
+    mutationFn: (params) =>
+      rpc<BusinessProfile>('business_profile_update', {
+        p_business_id: params.businessId,
+        p_name: params.name,
+        p_description: params.description,
+        p_address: params.address,
+        p_neighborhood: params.neighborhood,
+        p_city: params.city,
+        p_phone_whatsapp: params.phoneWhatsapp,
+        p_phone: params.phone,
+        p_instagram: params.instagram,
+        p_website: params.website,
+      }),
+    onSuccess: (_, vars) => {
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.businessProfile(vars.businessId),
+      });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.businesses });
+      void queryClient.invalidateQueries({ queryKey: ['business-public'] });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.businessAuditLogPrefix(vars.businessId),
+      });
+    },
+  });
+}
+
+export function useSetBusinessLogo() {
+  const queryClient = useQueryClient();
+  return useMutation<{ business_id: string; logo_url: string | null }, Error, {
+    businessId: string;
+    logoUrl: string | null;
+  }>({
+    mutationFn: (params) =>
+      rpc<{ business_id: string; logo_url: string | null }>('business_logo_set', {
+        p_business_id: params.businessId,
+        p_logo_url: params.logoUrl,
+      }),
+    onSuccess: (_, vars) => {
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.businessProfile(vars.businessId),
+      });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.businesses });
+      void queryClient.invalidateQueries({ queryKey: ['business-public'] });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.businessAuditLogPrefix(vars.businessId),
+      });
+    },
+  });
+}
+
 export function useBusinessPublic(slug: string) {  return useQuery<BusinessPublic | null>({
     queryKey: queryKeys.businessPublic(slug),
     queryFn: () =>
@@ -105,6 +203,9 @@ export function useJoinBusiness() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.businesses });
       void queryClient.invalidateQueries({ queryKey: queryKeys.roles });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.customerBusinessesSummary,
+      });
     },
   });
 }
@@ -175,7 +276,7 @@ export function useSearchProfiles(businessId: string, query: string) {
 }
 
 /* ------------------------------------------------------------------ */
-/* Programa de puntos                                                 */
+/* Programa de loopoints                                                 */
 /* ------------------------------------------------------------------ */
 
 export function useLoyaltyProgram(businessId: string) {
@@ -219,6 +320,49 @@ export function useConfigureLoyaltyProgram() {
   });
 }
 
+export interface FrequentCriteriaPayload {
+  businessId: string;
+  minPurchases: number;
+  periodDays: number;
+  minSpendCop: number;
+  activeDays: number;
+  recoveryDays: number;
+}
+
+export interface FrequentCriteriaResult {
+  business_id: string;
+  frequent_min_purchases: number;
+  frequent_period_days: number;
+  frequent_min_spend_cop: number;
+  frequent_active_days: number;
+  recovery_inactive_days: number;
+}
+
+export function useUpdateFrequentCriteria() {
+  const queryClient = useQueryClient();
+  return useMutation<FrequentCriteriaResult, Error, FrequentCriteriaPayload>({
+    mutationFn: (params) =>
+      rpc<FrequentCriteriaResult>('loyalty_program_frequent_update', {
+        p_business_id: params.businessId,
+        p_min_purchases: params.minPurchases,
+        p_period_days: params.periodDays,
+        p_min_spend_cop: params.minSpendCop,
+        p_active_days: params.activeDays,
+        p_recovery_days: params.recoveryDays,
+      }),
+    onSuccess: (_, vars) => {
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.loyaltyProgram(vars.businessId),
+      });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.businessAuditLogPrefix(vars.businessId),
+      });
+      void queryClient.invalidateQueries({ queryKey: ['staff-customers'] });
+      void queryClient.invalidateQueries({ queryKey: ['staff-customer'] });
+    },
+  });
+}
+
 /* ------------------------------------------------------------------ */
 /* Productos                                                          */
 /* ------------------------------------------------------------------ */
@@ -241,6 +385,7 @@ export function useUpsertProduct() {
     priceCop: number;
     costCop?: number | null;
     isActive: boolean;
+    kind?: ProductKind;
   }>({
     mutationFn: (params) =>
       rpc<Product>('product_upsert', {
@@ -251,6 +396,27 @@ export function useUpsertProduct() {
         p_price_cop: params.priceCop,
         p_cost_cop: params.costCop ?? null,
         p_is_active: params.isActive,
+        p_kind: params.kind ?? 'simple',
+      }),
+    onSuccess: (_, vars) => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.products(vars.businessId, true) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.products(vars.businessId, false) });
+    },
+  });
+}
+
+export function useSetProductCombo() {
+  const queryClient = useQueryClient();
+  return useMutation<{ product_id: string; combo_items: unknown }, Error, {
+    businessId: string;
+    productId: string;
+    items: Array<{ product_id: string; quantity: number }>;
+  }>({
+    mutationFn: (params) =>
+      rpc<{ product_id: string; combo_items: unknown }>('product_combo_set', {
+        p_business_id: params.businessId,
+        p_product_id: params.productId,
+        p_items: params.items,
       }),
     onSuccess: (_, vars) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.products(vars.businessId, true) });
@@ -333,7 +499,7 @@ export function useUpsertLoyaltyReward() {
 }
 
 /* ------------------------------------------------------------------ */
-/* Puntos y cuenta                                                    */
+/* Loopoints y cuenta                                                    */
 /* ------------------------------------------------------------------ */
 
 export function useLoyaltyPointAccount(businessId: string, customerId: string) {
@@ -399,17 +565,25 @@ export function useRequestRedemption() {
         queryKey: ['loyalty-point-transactions', vars.businessId],
       });
       void queryClient.invalidateQueries({ queryKey: queryKeys.myLoyaltyRedemptions });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.customerBusinessesSummary,
+      });
     },
   });
 }
 
-export function useLoyaltyRedemptions(businessId: string, status: string) {
+export function useLoyaltyRedemptions(
+  businessId: string,
+  status: string,
+  origin: string = '',
+) {
   return useQuery<LoyaltyRedemptionWithCustomer[]>({
-    queryKey: queryKeys.loyaltyRedemptions(businessId, status),
+    queryKey: queryKeys.loyaltyRedemptions(businessId, status, origin),
     queryFn: () =>
       rpc<LoyaltyRedemptionWithCustomer[]>('loyalty_redemptions_list', {
         p_business_id: businessId,
         p_status: status || null,
+        p_origin: origin || null,
       }),
     enabled: Boolean(businessId),
   });
@@ -450,6 +624,51 @@ export function useValidateRedemptionToken() {
         p_business_id: params.businessId,
         p_token: params.token,
       }),
+  });
+}
+
+/**
+ * Resuelve el negocio y la recompensa de un token QR. El navegador no envía
+ * `business_id`: el servidor lo deriva del token y valida la membresía.
+ */
+export function useRedemptionScanContext(token: string) {
+  return useQuery<RedemptionScanContext>({
+    queryKey: ['redemption-scan', token],
+    queryFn: () =>
+      rpc<RedemptionScanContext>('redemption_token_context', { p_token: token }),
+    enabled: Boolean(token),
+    retry: false,
+    staleTime: 0,
+    refetchOnWindowFocus: false,
+  });
+}
+
+export function useRedeemRedemptionByToken() {
+  const queryClient = useQueryClient();
+  return useMutation<RedemptionRedeemResult, Error, { token: string }>({
+    mutationFn: (params) =>
+      rpc<RedemptionRedeemResult>('redemption_redeem_by_token', {
+        p_token: params.token,
+      }),
+    onSuccess: (result) => {
+      void queryClient.invalidateQueries({ queryKey: ['redemption-scan'] });
+      void queryClient.invalidateQueries({
+        queryKey: ['loyalty-redemptions', result.business_id],
+      });
+      void queryClient.invalidateQueries({
+        queryKey: ['loyalty-point-account', result.business_id],
+      });
+      void queryClient.invalidateQueries({
+        queryKey: ['loyalty-point-transactions', result.business_id],
+      });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.myLoyaltyRedemptions });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.customerBusinessesSummary,
+      });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.businessAuditLogPrefix(result.business_id),
+      });
+    },
   });
 }
 
@@ -497,6 +716,9 @@ export function useDeliverRedemption() {
         queryKey: ['loyalty-point-transactions', vars.businessId],
       });
       void queryClient.invalidateQueries({ queryKey: queryKeys.myLoyaltyRedemptions });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.customerBusinessesSummary,
+      });
     },
   });
 }
@@ -525,6 +747,9 @@ export function useCancelRedemption() {
         queryKey: ['loyalty-point-transactions', vars.businessId],
       });
       void queryClient.invalidateQueries({ queryKey: queryKeys.myLoyaltyRedemptions });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.customerBusinessesSummary,
+      });
       void queryClient.invalidateQueries({
         queryKey: queryKeys.businessAuditLogPrefix(vars.businessId),
       });
@@ -596,18 +821,22 @@ export function useUpsertEconomicProfile() {
 
 export function useBusinessAuditLog(
   businessId: string,
-  operation = '',
+  filters: BusinessAuditFilters = {},
   limit = 50,
   offset = 0,
 ) {
   return useQuery<BusinessAuditLog[]>({
-    queryKey: queryKeys.businessAuditLog(businessId, operation, limit, offset),
+    queryKey: queryKeys.businessAuditLog(businessId, filters, limit, offset),
     queryFn: () =>
       rpc<BusinessAuditLog[]>('business_audit_log_page', {
         p_business_id: businessId,
-        p_operation: operation || null,
+        p_operation: filters.operation || null,
         p_limit: limit,
         p_offset: offset,
+        p_actor: filters.actor || null,
+        p_from: filters.from || null,
+        p_to: filters.to || null,
+        p_search: filters.search || null,
       }),
     enabled: Boolean(businessId),
   });
@@ -701,7 +930,7 @@ export function useDeleteLoyaltyCampaign() {
 }
 
 /* ------------------------------------------------------------------ */
-/* Vencimiento de puntos                                              */
+/* Vencimiento de loopoints                                              */
 /* ------------------------------------------------------------------ */
 
 export interface PointsExpiryResult {

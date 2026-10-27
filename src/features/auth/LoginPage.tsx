@@ -151,7 +151,7 @@ export function LoginPage() {
         <Card className="shadow-lg">
           <CardHeader className="space-y-2 text-center">
             <CardTitle className="text-2xl">
-              {mode === 'login' ? 'Entra a tus puntos' : 'Crea tu cuenta'}
+              {mode === 'login' ? 'Entra a tus loopoints' : 'Crea tu cuenta'}
             </CardTitle>
             <CardDescription>
               {mode === 'login'

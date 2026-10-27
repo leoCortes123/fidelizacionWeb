@@ -11,18 +11,28 @@ interface BrandProps {
 export function Brand({ className, compact = false, linkTo = '/' }: BrandProps) {
   const content = (
     <span className={cn('flex items-center gap-2.5', className)}>
-      <span
+      <img
+        src="/loopoint-coin.png"
+        alt=""
+        width={40}
+        height={40}
+        className={cn(
+          'shrink-0 rounded-xl object-contain drop-shadow-sm',
+          compact ? 'size-8' : 'size-10',
+        )}
         aria-hidden="true"
-        className="grid size-10 place-items-center rounded-xl bg-primary text-xl text-primary-foreground shadow-sm"
-      >
-        ⭐
-      </span>
-      <span className="flex flex-col leading-tight">
-        <span className="font-display text-base font-extrabold tracking-tight sm:text-lg">
+      />
+      <span className="flex min-w-0 flex-col leading-tight">
+        <span
+          className={cn(
+            'font-display font-extrabold tracking-tight',
+            compact ? 'text-base' : 'text-base sm:text-lg',
+          )}
+        >
           {brandName}
         </span>
         {!compact && (
-          <span className="text-[11px] font-medium text-muted-foreground">
+          <span className="truncate text-[11px] font-medium text-muted-foreground">
             {brandTagline}
           </span>
         )}

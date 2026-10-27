@@ -9,6 +9,7 @@ import {
 } from '@/components/layout/RequireAuth';
 import { FullPageLoader } from '@/components/shared/States';
 import { BusinessProvider } from '@/features/loyalty/businessContext';
+import { RootRedirect } from '@/features/auth/RootRedirect';
 import { useAuth } from '@/features/auth/AuthProvider';
 import { useBusinesses } from '@/features/loyalty/hooks';
 
@@ -29,11 +30,6 @@ function BusinessLayout({ children }: { children: React.ReactNode }) {
 }
 
 // Las páginas se cargan bajo demanda para reducir el bundle inicial.
-const LandingPage = lazy(() =>
-  import('@/features/auth/LandingPage').then((module) => ({
-    default: module.LandingPage,
-  })),
-);
 const LoginPage = lazy(() =>
   import('@/features/auth/LoginPage').then((module) => ({
     default: module.LoginPage,
@@ -54,9 +50,14 @@ const NotFoundPage = lazy(() =>
     default: module.NotFoundPage,
   })),
 );
-const DashboardPage = lazy(() =>
-  import('@/features/customer/DashboardPage').then((module) => ({
-    default: module.DashboardPage,
+const CustomerBusinessesPage = lazy(() =>
+  import('@/features/customer/CustomerBusinessesPage').then((module) => ({
+    default: module.CustomerBusinessesPage,
+  })),
+);
+const CustomerBusinessHomePage = lazy(() =>
+  import('@/features/customer/CustomerBusinessHomePage').then((module) => ({
+    default: module.CustomerBusinessHomePage,
   })),
 );
 const CustomerPurchasesPage = lazy(() =>
@@ -67,11 +68,6 @@ const CustomerPurchasesPage = lazy(() =>
 const CustomerRedemptionsPage = lazy(() =>
   import('@/features/customer/RedemptionsPage').then((module) => ({
     default: module.RedemptionsPage,
-  })),
-);
-const CustomerBusinessBalancePage = lazy(() =>
-  import('@/features/customer/BusinessBalancePage').then((module) => ({
-    default: module.BusinessBalancePage,
   })),
 );
 const ClaimPage = lazy(() =>
@@ -94,11 +90,6 @@ const AdminCustomerDetailPage = lazy(() =>
     default: module.CustomerDetailPage,
   })),
 );
-const SettingsPage = lazy(() =>
-  import('@/features/admin/SettingsPage').then((module) => ({
-    default: module.SettingsPage,
-  })),
-);
 const BusinessSelectPage = lazy(() =>
   import('@/features/loyalty/BusinessSelectPage').then((module) => ({
     default: module.BusinessSelectPage,
@@ -119,24 +110,14 @@ const BusinessDashboardPage = lazy(() =>
     default: module.BusinessDashboardPage,
   })),
 );
-const RewardsPage = lazy(() =>
-  import('@/features/admin/RewardsPage').then((module) => ({
-    default: module.RewardsPage,
+const ConfigPage = lazy(() =>
+  import('@/features/admin/ConfigPage').then((module) => ({
+    default: module.ConfigPage,
   })),
 );
-const MembersPage = lazy(() =>
-  import('@/features/admin/MembersPage').then((module) => ({
-    default: module.MembersPage,
-  })),
-);
-const ProgramPage = lazy(() =>
-  import('@/features/admin/ProgramPage').then((module) => ({
-    default: module.ProgramPage,
-  })),
-);
-const ProductsPage = lazy(() =>
-  import('@/features/admin/ProductsPage').then((module) => ({
-    default: module.ProductsPage,
+const ProfilePage = lazy(() =>
+  import('@/features/profile/ProfilePage').then((module) => ({
+    default: module.ProfilePage,
   })),
 );
 const PurchaseRegistrationPage = lazy(() =>
@@ -144,19 +125,9 @@ const PurchaseRegistrationPage = lazy(() =>
     default: module.PurchaseRegistrationPage,
   })),
 );
-const EconomicPage = lazy(() =>
-  import('@/features/admin/EconomicPage').then((module) => ({
-    default: module.EconomicPage,
-  })),
-);
 const AuditPage = lazy(() =>
   import('@/features/admin/AuditPage').then((module) => ({
     default: module.AuditPage,
-  })),
-);
-const OnboardingWizardPage = lazy(() =>
-  import('@/features/loyalty/OnboardingWizardPage').then((module) => ({
-    default: module.OnboardingWizardPage,
   })),
 );
 const CampaignsPage = lazy(() =>
@@ -174,17 +145,38 @@ const EncargadoPage = lazy(() =>
     default: module.EncargadoPage,
   })),
 );
+const ScanRedemptionPage = lazy(() =>
+  import('@/features/loyalty/ScanRedemptionPage').then((module) => ({
+    default: module.ScanRedemptionPage,
+  })),
+);
 
 export function AppRoutes() {
   return (
     <Suspense fallback={<FullPageLoader label="Cargando la página…" />}>
       <Routes>
-        <Route path="/" element={<LandingPage />} />
+        <Route path="/" element={<RootRedirect />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/auth/callback" element={<AuthCallbackPage />} />
         <Route path="/claim/:token" element={<ClaimPage />} />
         <Route path="/join/:slug" element={<BusinessJoinPage />} />
+        <Route
+          path="/scan/:token"
+          element={
+            <RequireAuth>
+              <ScanRedemptionPage />
+            </RequireAuth>
+          }
+        />
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
+        <Route
+          path="/perfil"
+          element={
+            <RequireAuth>
+              <ProfilePage />
+            </RequireAuth>
+          }
+        />
 
         {/* Selección y registro de negocio (multiempresa) */}
         <Route
@@ -218,6 +210,18 @@ export function AppRoutes() {
             </RequireAuth>
           }
         />
+        <Route
+          path="/encargado/venta"
+          element={
+            <RequireAuth>
+              <BusinessLayout>
+                <RequireBusinessRole roles={['admin', 'encargado']}>
+                  <PurchaseRegistrationPage />
+                </RequireBusinessRole>
+              </BusinessLayout>
+            </RequireAuth>
+          }
+        />
 
         <Route
           path="/customer"
@@ -229,10 +233,14 @@ export function AppRoutes() {
             </RequireAuth>
           }
         >
-          <Route index element={<DashboardPage />} />
-          <Route path="balance" element={<CustomerBusinessBalancePage />} />
+          <Route index element={<CustomerBusinessesPage />} />
+          <Route path="business/:businessId" element={<CustomerBusinessHomePage />} />
+          <Route path="balance" element={<Navigate to="/customer" replace />} />
           <Route path="purchases" element={<CustomerPurchasesPage />} />
+          <Route path="compras" element={<Navigate to="/customer/purchases" replace />} />
           <Route path="redemptions" element={<CustomerRedemptionsPage />} />
+          <Route path="canjes" element={<Navigate to="/customer/redemptions" replace />} />
+          <Route path="perfil" element={<ProfilePage />} />
         </Route>
 
         <Route
@@ -249,20 +257,46 @@ export function AppRoutes() {
         >
           <Route index element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="dashboard" element={<BusinessDashboardPage />} />
-          <Route path="program" element={<ProgramPage />} />
-          <Route path="products" element={<ProductsPage />} />
-          <Route path="rewards" element={<RewardsPage />} />
+          <Route path="config" element={<ConfigPage />} />
+          <Route
+            path="business"
+            element={<Navigate to="/admin/config?tab=negocio" replace />}
+          />
+          <Route
+            path="program"
+            element={<Navigate to="/admin/config?tab=programa" replace />}
+          />
+          <Route
+            path="products"
+            element={<Navigate to="/admin/config?tab=carta" replace />}
+          />
+          <Route
+            path="rewards"
+            element={<Navigate to="/admin/config?tab=recompensas" replace />}
+          />
           <Route path="redemptions" element={<AdminRedemptionsPage />} />
-          <Route path="members" element={<MembersPage />} />
+          <Route
+            path="members"
+            element={<Navigate to="/admin/config?tab=equipo" replace />}
+          />
           <Route path="customers" element={<AdminCustomersPage />} />
           <Route path="customers/:id" element={<AdminCustomerDetailPage />} />
           <Route path="purchases" element={<AdminPurchasesPage />} />
           <Route path="purchases/new" element={<PurchaseRegistrationPage />} />
-          <Route path="economic" element={<EconomicPage />} />
+          <Route
+            path="economic"
+            element={<Navigate to="/admin/config?tab=economico" replace />}
+          />
           <Route path="audit" element={<AuditPage />} />
-          <Route path="onboarding" element={<OnboardingWizardPage />} />
+          <Route
+            path="onboarding"
+            element={<Navigate to="/admin/config?tab=negocio&onboarding=1" replace />}
+          />
           <Route path="campaigns" element={<CampaignsPage />} />
-          <Route path="settings" element={<SettingsPage />} />
+          <Route
+            path="settings"
+            element={<Navigate to="/admin/config?tab=avanzado" replace />}
+          />
         </Route>
 
         {/* Rutas heredadas */}

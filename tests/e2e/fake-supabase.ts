@@ -14,6 +14,8 @@ export interface FakeUser {
   id: string;
   name: string;
   email: string;
+  nickname?: string;
+  nicknameChanges?: number;
   token: string;
   roles: FakeRole[];
   balance: number;
@@ -26,6 +28,15 @@ export interface FakeBusiness {
   slug: string;
   timezone: string;
   operatingDays?: number[];
+  description?: string | null;
+  address?: string | null;
+  neighborhood?: string | null;
+  city?: string | null;
+  phoneWhatsapp?: string | null;
+  phone?: string | null;
+  instagram?: string | null;
+  website?: string | null;
+  logoUrl?: string | null;
   createdBy: string;
   createdAt: string;
 }
@@ -39,6 +50,11 @@ export interface FakeMembership {
   createdAt: string;
 }
 
+export interface FakeComboItem {
+  productId: string;
+  quantity: number;
+}
+
 export interface FakeProduct {
   id: string;
   businessId: string;
@@ -47,6 +63,24 @@ export interface FakeProduct {
   priceCop: number;
   costCop: number | null;
   isActive: boolean;
+  kind: 'simple' | 'combo';
+  comboItems: FakeComboItem[];
+}
+
+export interface FakePurchaseLine {
+  id: string;
+  product_id: string;
+  name: string;
+  quantity: number;
+  unit_price_cop: number;
+  line_total_cop: number;
+  is_combo: boolean;
+  combo_detail: Array<{
+    product_id: string;
+    name: string;
+    quantity: number;
+    unit_price_cop: number;
+  }>;
 }
 
 export interface FakeLoyaltyReward {
@@ -87,6 +121,7 @@ export interface FakeRedemptionRequest {
   approvedAt: string | null;
   deliveredAt?: string | null;
   cancelledAt?: string | null;
+  origin: 'manual' | 'qr_scan';
 }
 
 export interface FakeToken {
@@ -119,6 +154,7 @@ export interface FakePurchase {
   registrarId: string;
   createdAt: string;
   expiresAt: string;
+  items?: FakePurchaseLine[];
   claimed_at: string | null;
 }
 
@@ -137,6 +173,7 @@ export interface FakeAuditLog {
   id: string;
   businessId: string;
   actorEmail: string | null;
+  actorName?: string | null;
   operation: string;
   entityType: string;
   entityId: string | null;
@@ -216,6 +253,8 @@ export interface FakeState {
   auditLogs: FakeAuditLog[];
   purchaseEvents: FakePurchaseEvent[];
   purchaseCredits: Record<string, number>;
+  /** Saldo explícito por negocio (`businessId:userId`) para pruebas multi-negocio. */
+  businessBalances: Record<string, number>;
   campaigns: FakeCampaign[];
   budgetSnapshots: FakeBudgetSnapshot[];
   loyaltyPrograms: Record<string, {
@@ -227,6 +266,11 @@ export interface FakeState {
     recurrence_bonus_points: number;
     referral_bonus_points: number;
     qr_expiry_hours: number;
+    frequent_min_purchases: number;
+    frequent_period_days: number;
+    frequent_min_spend_cop: number;
+    frequent_active_days: number;
+    recovery_inactive_days: number;
     is_active: boolean;
   }>;
   settings: {
@@ -256,6 +300,8 @@ export function createFakeState(): FakeState {
         id: 'user-registrar',
         name: 'Regina Caja',
         email: 'registradora@example.test',
+        nickname: 'reginacaja',
+        nicknameChanges: 0,
         token: TOKENS.registrar,
         roles: ['customer'],
         balance: 0,
@@ -265,6 +311,8 @@ export function createFakeState(): FakeState {
         id: 'user-customer',
         name: 'Carla Cliente',
         email: 'carla@example.test',
+        nickname: 'carlacliente',
+        nicknameChanges: 0,
         token: TOKENS.customer,
         roles: ['customer'],
         balance: 0,
@@ -274,6 +322,8 @@ export function createFakeState(): FakeState {
         id: 'user-customer2',
         name: 'Diego Cliente',
         email: 'diego@example.test',
+        nickname: 'diegocliente',
+        nicknameChanges: 0,
         token: TOKENS.customer2,
         roles: ['customer'],
         balance: 0,
@@ -283,6 +333,8 @@ export function createFakeState(): FakeState {
         id: 'user-admin',
         name: 'Ana Admin',
         email: 'admin@example.test',
+        nickname: 'anaadmin',
+        nicknameChanges: 0,
         token: TOKENS.admin,
         roles: ['admin'],
         balance: 0,
@@ -327,6 +379,7 @@ export function createFakeState(): FakeState {
     auditLogs: [],
     purchaseEvents: [],
     purchaseCredits: {},
+    businessBalances: {},
     campaigns: [],
     budgetSnapshots: [],
     loyaltyPrograms: {},
@@ -362,22 +415,62 @@ function userFor(state: FakeState, token: string) {
 }
 
 /**
- * Saldo simulado del programa: parte de 100 puntos y descuenta las solicitudes
- * que reservaron puntos (pendientes, aprobadas o entregadas).
+ * Saldo simulado del programa: parte de 100 loopoints y descuenta las solicitudes
+ * que reservaron loopoints (pendientes, aprobadas o entregadas).
  */
-function loyaltyBalance(state: FakeState, userId: string) {
+function loyaltyBalance(
+  state: FakeState,
+  userId: string,
+  businessId?: string,
+) {
   const reserved = state.redemptionRequests
     .filter(
       (request) =>
         request.accountId === userId &&
+        (!businessId || request.businessId === businessId) &&
         request.status !== 'cancelled' &&
         request.status !== 'expired',
     )
     .reduce((sum, request) => sum + request.pointsSpent, 0);
-  return Math.max(
-    100 + (state.purchaseCredits[userId] ?? 0) - reserved,
-    0,
+  const explicit = businessId
+    ? state.businessBalances[`${businessId}:${userId}`]
+    : undefined;
+  const base = explicit ?? 100 + (state.purchaseCredits[userId] ?? 0);
+  return Math.max(base - reserved, 0);
+}
+
+function customerFrequency(
+  state: FakeState,
+  userId: string,
+  businessId?: string | null,
+) {
+  const purchases = state.purchases.filter(
+    (purchase) =>
+      purchase.customerId === userId &&
+      purchase.status === 'claimed' &&
+      (!businessId || purchase.businessId === businessId),
   );
+  const last = purchases
+    .map((purchase) => purchase.claimed_at ?? purchase.createdAt)
+    .sort()
+    .at(-1) ?? null;
+  const ageDays = last
+    ? (Date.now() - new Date(last).getTime()) / (24 * 3600 * 1000)
+    : null;
+  const isFrequent = purchases.length >= 3;
+  const isActive = isFrequent && ageDays !== null && ageDays <= 30;
+  const isRecovering = last !== null && !isActive && (ageDays ?? 0) > 60;
+  return {
+    purchase_count: purchases.length,
+    total_spent_cop: purchases.reduce(
+      (sum, purchase) => sum + purchase.amount_cop,
+      0,
+    ),
+    last_purchase_at: last,
+    is_frequent: isFrequent,
+    is_frequent_active: isActive,
+    is_recovering: isRecovering,
+  };
 }
 
 export function sessionFor(user: FakeUser) {
@@ -450,7 +543,7 @@ function fail(route: Route, message: string) {
 }
 
 
-/** Puntos de una compra aplicando la campaña vigente (misma regla del backend). */
+/** Loopoints de una compra aplicando la campaña vigente (misma regla del backend). */
 function purchasePoints(
   state: FakeState,
   businessId: string,
@@ -476,6 +569,95 @@ function purchasePoints(
   return Math.min(Math.max(points, 0), 1_000_000);
 }
 
+function comboItemsFor(state: FakeState, product: FakeProduct) {
+  return product.comboItems
+    .map((item) => {
+      const component = state.products.find((row) => row.id === item.productId);
+      if (!component) return null;
+      return {
+        product_id: component.id,
+        name: component.name,
+        quantity: item.quantity,
+        unit_price_cop: component.priceCop,
+      };
+    })
+    .filter((item): item is NonNullable<typeof item> => item !== null);
+}
+
+function fakePurchaseDetail(state: FakeState, purchase: FakePurchase) {
+  const business = state.businesses.find((item) => item.id === purchase.businessId);
+  const customer = state.users.find((item) => item.id === purchase.customerId);
+  const registrar = state.users.find((item) => item.id === purchase.registrarId);
+  return {
+    purchase: {
+      id: purchase.id,
+      business_id: purchase.businessId,
+      amount_cop: purchase.amount_cop,
+      status: purchase.status,
+      points_awarded: purchase.points_awarded,
+      created_at: purchase.createdAt,
+      expires_at: purchase.expiresAt,
+      claimed_at: purchase.claimed_at ?? null,
+      cancelled_at: null,
+      cancellation_reason: null,
+    },
+    business: {
+      id: business?.id ?? purchase.businessId,
+      name: business?.name ?? 'Negocio',
+      slug: business?.slug ?? '',
+      logo_url: business?.logoUrl ?? null,
+    },
+    customer: customer
+      ? {
+          id: customer.id,
+          full_name: customer.name,
+          nickname: customer.nickname ?? null,
+          email: customer.email,
+        }
+      : null,
+    registrar: registrar
+      ? { id: registrar.id, full_name: registrar.name, email: registrar.email }
+      : null,
+    items: purchase.items ?? [],
+    items_count: purchase.items?.length ?? 0,
+  };
+}
+
+function buildPurchaseLines(
+  state: FakeState,
+  businessId: string,
+  rawItems: unknown,
+) {
+  if (!Array.isArray(rawItems) || rawItems.length === 0) {
+    return { items: [] as FakePurchaseLine[], total: 0 };
+  }
+  const items: FakePurchaseLine[] = [];
+  let total = 0;
+  for (const raw of rawItems as Array<{ product_id?: string; quantity?: number }>) {
+    const product = state.products.find(
+      (row) => row.id === raw.product_id && row.businessId === businessId,
+    );
+    if (!product) throw new Error('product_not_found');
+    const quantity = Number(raw.quantity ?? 0);
+    if (!Number.isInteger(quantity) || quantity < 1 || quantity > 99) {
+      throw new Error('invalid_purchase_quantity');
+    }
+    const lineTotal = product.priceCop * quantity;
+    total += lineTotal;
+    items.push({
+      id: `line-${crypto.randomUUID().slice(0, 8)}`,
+      product_id: product.id,
+      name: product.name,
+      quantity,
+      unit_price_cop: product.priceCop,
+      line_total_cop: lineTotal,
+      is_combo: product.kind === 'combo',
+      combo_detail: product.kind === 'combo' ? comboItemsFor(state, product) : [],
+    });
+  }
+  return { items, total };
+}
+
 function purchasePreview(state: FakeState, purchase: FakePurchase) {
   const business = state.businesses.find((item) => item.id === purchase.businessId);
   const expired =
@@ -495,6 +677,9 @@ function purchasePreview(state: FakeState, purchase: FakePurchase) {
     status,
     claimed: status === 'claimed',
     expires_at: purchase.expiresAt,
+    business_logo_url: business?.logoUrl ?? null,
+    items: purchase.items ?? [],
+    items_count: purchase.items?.length ?? 0,
   };
 }
 
@@ -613,8 +798,70 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           id: user?.id,
           full_name: user?.name,
           email: user?.email,
+          nickname: user?.nickname ?? null,
+          nickname_changes: user?.nicknameChanges ?? 0,
+          nickname_changes_left: 2 - (user?.nicknameChanges ?? 0),
+          business_count: state.memberships.filter((m) => m.userId === user?.id)
+            .length,
           created_at: user?.createdAt,
         });
+      case 'profile_nickname_ensure':
+        return json(route, user?.nickname ?? 'cliente');
+      case 'profile_nickname_available': {
+        const candidate = String(body.p_nickname ?? '').trim().toLowerCase();
+        if (!/^[a-z0-9._-]{3,24}$/.test(candidate)) return json(route, false);
+        if (['admin', 'loopoint', 'soporte', 'sistema'].includes(candidate)) {
+          return json(route, false);
+        }
+        return json(
+          route,
+          !state.users.some(
+            (item) => item.id !== user?.id && item.nickname === candidate,
+          ),
+        );
+      }
+      case 'profile_update': {
+        if (!user) return fail(route, 'not_authenticated');
+        const nextName = String(body.p_full_name ?? user.name).trim();
+        const nextNickname = String(body.p_nickname ?? user.nickname ?? '')
+          .trim()
+          .toLowerCase();
+        if (nextName.length < 2 || nextName.length > 120) {
+          return fail(route, 'invalid_full_name');
+        }
+        if (!/^[a-z0-9._-]{3,24}$/.test(nextNickname)) {
+          return fail(route, 'invalid_nickname');
+        }
+        if (['admin', 'loopoint', 'soporte', 'sistema'].includes(nextNickname)) {
+          return fail(route, 'nickname_reserved');
+        }
+        if (
+          state.users.some(
+            (item) => item.id !== user.id && item.nickname === nextNickname,
+          )
+        ) {
+          return fail(route, 'nickname_taken');
+        }
+        const previous = user.nickname;
+        if (previous && previous !== nextNickname) {
+          if ((user.nicknameChanges ?? 0) >= 2) {
+            return fail(route, 'nickname_change_limit');
+          }
+          user.nicknameChanges = (user.nicknameChanges ?? 0) + 1;
+        }
+        user.name = nextName;
+        user.nickname = nextNickname;
+        return json(route, {
+          id: user.id,
+          full_name: user.name,
+          email: user.email,
+          nickname: user.nickname,
+          nickname_changes: user.nicknameChanges ?? 0,
+          nickname_changes_left: 2 - (user.nicknameChanges ?? 0),
+          business_count: state.memberships.filter((m) => m.userId === user.id)
+            .length,
+        });
+      }
       case 'get_program_settings':
         return json(route, state.settings);
       case 'get_my_dashboard':
@@ -678,6 +925,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
               cancelled_at: redemption.cancelled_at,
             })),
         );
+      case 'purchase_qr_create_with_items':
       case 'purchase_qr_create': {
         if (!isStaff) return fail(route, 'forbidden');
         const businessId = String(body.p_business_id ?? '');
@@ -688,6 +936,19 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           return fail(route, 'amount_invalid');
         }
         if (amount > 50_000_000) return fail(route, 'amount_too_large');
+        let lines: FakePurchaseLine[] = [];
+        try {
+          const built = buildPurchaseLines(state, businessId, body.p_items);
+          lines = built.items;
+          if (lines.length > 0 && built.total !== amount) {
+            return fail(route, 'purchase_items_total_mismatch');
+          }
+        } catch (error) {
+          return fail(
+            route,
+            error instanceof Error ? error.message : 'invalid_purchase_items',
+          );
+        }
         const purchase: FakePurchase = {
           id: newId(),
           token: newToken(),
@@ -702,6 +963,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
             Date.now() + program.qr_expiry_hours * 3600 * 1000,
           ).toISOString(),
           claimed_at: null,
+          items: lines,
         };
         state.purchases.push(purchase);
         const business = state.businesses.find((item) => item.id === businessId);
@@ -727,6 +989,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           points_preview: purchasePoints(state, businessId, amount),
           expires_at: purchase.expiresAt,
           status: 'pending_claim',
+          items: lines,
         });
       }
       case 'purchase_qr_preview': {
@@ -797,7 +1060,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           metadata: {
             amount_cop: purchase.amount_cop,
             points_awarded: points,
-            balance: loyaltyBalance(state, user.id),
+            balance: loyaltyBalance(state, user.id, businessId),
           },
           createdAt: purchase.claimed_at,
         });
@@ -808,7 +1071,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           business_slug: business?.slug ?? '',
           amount_cop: purchase.amount_cop,
           points_awarded: points,
-          balance: loyaltyBalance(state, user.id),
+          balance: loyaltyBalance(state, user.id, businessId),
           claimed_at: purchase.claimed_at,
           duplicate: false,
         });
@@ -853,6 +1116,105 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
             };
           }),
         );
+      }
+      case 'business_purchases_page': {
+        if (!isStaff) return fail(route, 'forbidden');
+        const businessId = String(body.p_business_id ?? '');
+        const status = body.p_status ? String(body.p_status) : '';
+        const limit = Number(body.p_limit ?? 20);
+        const offset = Number(body.p_offset ?? 0);
+        const rows = state.purchases
+          .filter((purchase) => purchase.businessId === businessId)
+          .filter((purchase) => !status || purchase.status === status)
+          .sort(
+            (a, b) =>
+              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+          );
+        return json(
+          route,
+          rows.slice(offset, offset + limit).map((purchase) => {
+            const customer = state.users.find(
+              (item) => item.id === purchase.customerId,
+            );
+            const registrar = state.users.find(
+              (item) => item.id === purchase.registrarId,
+            );
+            return {
+              id: purchase.id,
+              amount_cop: purchase.amount_cop,
+              status: purchase.status,
+              points_awarded: purchase.points_awarded,
+              created_at: purchase.createdAt,
+              expires_at: purchase.expiresAt,
+              claimed_at: purchase.claimed_at ?? null,
+              customer_name: customer?.name ?? null,
+              customer_nickname: customer?.nickname ?? null,
+              customer_email: customer?.email ?? null,
+              registrar_name: registrar?.name ?? null,
+              items_count: purchase.items?.length ?? 0,
+              total_count: rows.length,
+            };
+          }),
+        );
+      }
+      case 'business_purchase_detail': {
+        if (!isStaff) return fail(route, 'forbidden');
+        const purchase = state.purchases.find(
+          (item) =>
+            item.id === String(body.p_purchase_id ?? '') &&
+            item.businessId === String(body.p_business_id ?? ''),
+        );
+        if (!purchase) return fail(route, 'purchase_not_found');
+        return json(route, fakePurchaseDetail(state, purchase));
+      }
+      case 'my_purchases_page': {
+        if (!user) return fail(route, 'not_authenticated');
+        const businessId = body.p_business_id ? String(body.p_business_id) : '';
+        const limit = Number(body.p_limit ?? 20);
+        const offset = Number(body.p_offset ?? 0);
+        const rows = state.purchases
+          .filter(
+            (purchase) =>
+              purchase.customerId === user.id && purchase.status === 'claimed',
+          )
+          .filter((purchase) => !businessId || purchase.businessId === businessId)
+          .sort(
+            (a, b) =>
+              new Date(b.claimed_at ?? b.createdAt).getTime() -
+              new Date(a.claimed_at ?? a.createdAt).getTime(),
+          );
+        return json(
+          route,
+          rows.slice(offset, offset + limit).map((purchase) => {
+            const business = state.businesses.find(
+              (item) => item.id === purchase.businessId,
+            );
+            return {
+              id: purchase.id,
+              business_id: purchase.businessId,
+              business_name: business?.name ?? 'Negocio',
+              business_slug: business?.slug ?? '',
+              business_logo_url: business?.logoUrl ?? null,
+              amount_cop: purchase.amount_cop,
+              points_awarded: purchase.points_awarded,
+              claimed_at: purchase.claimed_at ?? null,
+              created_at: purchase.createdAt,
+              items_count: purchase.items?.length ?? 0,
+              total_count: rows.length,
+            };
+          }),
+        );
+      }
+      case 'my_purchase_detail': {
+        if (!user) return fail(route, 'not_authenticated');
+        const purchase = state.purchases.find(
+          (item) =>
+            item.id === String(body.p_purchase_id ?? '') &&
+            item.customerId === user.id &&
+            item.status === 'claimed',
+        );
+        if (!purchase) return fail(route, 'purchase_not_found');
+        return json(route, fakePurchaseDetail(state, purchase));
       }
       case 'purchase_qr_cancel': {
         if (!isStaff) return fail(route, 'forbidden');
@@ -1009,30 +1371,57 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
         const offset = Number(body.p_offset ?? 0);
         const sort = String(body.p_sort ?? 'created_at');
         const direction = String(body.p_direction ?? 'desc') === 'asc' ? 1 : -1;
+        const businessId = body.p_business_id
+          ? String(body.p_business_id)
+          : null;
+        const onlyFrequent = Boolean(body.p_only_frequent);
         const rows = state.users
           .filter((item) => item.roles.includes('customer'))
           .filter((item) => !item.roles.includes('admin'))
           .filter(
             (item) =>
+              !businessId ||
+              state.memberships.some(
+                (membership) =>
+                  membership.businessId === businessId &&
+                  membership.userId === item.id &&
+                  membership.role === 'cliente',
+              ),
+          )
+          .filter(
+            (item) =>
               !search ||
               item.name.toLowerCase().includes(search) ||
-              item.email.toLowerCase().includes(search),
+              item.email.toLowerCase().includes(search) ||
+              (item.nickname ?? '').toLowerCase().includes(search),
+          )
+          .filter(
+            (item) =>
+              !onlyFrequent ||
+              customerFrequency(state, item.id, businessId).is_frequent,
           )
           .map((item) => {
             const claimed = state.purchases.filter(
               (purchase) =>
                 purchase.customerId === item.id && purchase.status === 'claimed',
             );
+            const frequency = customerFrequency(state, item.id, businessId);
             return {
               id: item.id,
               full_name: item.name,
               email: item.email,
+              nickname: item.nickname ?? null,
               points_balance: item.balance,
-              purchase_count: claimed.length,
-              total_spent: claimed.reduce(
-                (sum, purchase) => sum + purchase.amount_cop,
-                0,
-              ),
+              purchase_count: businessId ? frequency.purchase_count : claimed.length,
+              total_spent: businessId
+                ? frequency.total_spent_cop
+                : claimed.reduce(
+                    (sum, purchase) => sum + purchase.amount_cop,
+                    0,
+                  ),
+              is_frequent: frequency.is_frequent,
+              is_frequent_active: frequency.is_frequent_active,
+              last_purchase_at: frequency.last_purchase_at,
               created_at: item.createdAt,
             };
           });
@@ -1096,39 +1485,97 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
               created_at: redemption.createdAt,
             })),
         ];
+        const businessId = body.p_business_id
+          ? String(body.p_business_id)
+          : null;
+        const frequency = customerFrequency(state, customer.id, businessId);
         return json(route, {
           profile: {
             id: customer.id,
             full_name: customer.name,
             email: customer.email,
+            nickname: customer.nickname ?? null,
             created_at: customer.createdAt,
           },
+          business_id: businessId,
+          nickname: customer.nickname ?? null,
+          is_frequent: frequency.is_frequent,
+          is_frequent_active: frequency.is_frequent_active,
+          is_recovering: frequency.is_recovering,
+          last_purchase_at: frequency.last_purchase_at,
           points_balance: customer.balance,
-          purchase_count: claimed.length,
-          total_spent: claimed.reduce(
-            (sum, purchase) => sum + purchase.amount_cop,
-            0,
-          ),
-          purchases: claimed.map((purchase) => ({
-            id: purchase.id,
-            amount_cop: purchase.amount_cop,
-            points_awarded: purchase.points_awarded,
-            claimed_at: purchase.claimed_at,
-            status: purchase.status,
-          })),
-          movements,
-          redemptions: state.redemptions
-            .filter((redemption) => redemption.customerId === customer.id)
-            .map((redemption) => ({
-              id: redemption.id,
-              reward_name: redemption.reward_name,
-              points_spent: redemption.points_spent,
-              code: redemption.code,
-              status: redemption.status,
-              created_at: redemption.createdAt,
-              delivered_at: redemption.delivered_at,
-              cancelled_at: redemption.cancelled_at,
+          purchase_count: businessId ? frequency.purchase_count : claimed.length,
+          total_spent: businessId
+            ? frequency.total_spent_cop
+            : claimed.reduce((sum, purchase) => sum + purchase.amount_cop, 0),
+          purchases: [
+            ...claimed.map((purchase) => ({
+              id: purchase.id,
+              amount_cop: purchase.amount_cop,
+              points_awarded: purchase.points_awarded,
+              claimed_at: purchase.claimed_at,
+              status: purchase.status,
+              items_count: purchase.items?.length ?? 0,
+              source: 'qr',
             })),
+            ...state.purchaseEvents
+              .filter(
+                (event) =>
+                  event.customerId === customer.id &&
+                  (!businessId || event.businessId === businessId) &&
+                  !event.idempotencyKey.startsWith('purchase_qr:') &&
+                  !event.reversed,
+              )
+              .map((event) => ({
+                id: event.id,
+                amount_cop: event.amountCop,
+                points_awarded: event.pointsEarned,
+                claimed_at: event.createdAt,
+                status: 'claimed',
+                items_count: 0,
+                source: 'manual',
+              })),
+          ].sort(
+            (a, b) =>
+              new Date(b.claimed_at ?? 0).getTime() -
+              new Date(a.claimed_at ?? 0).getTime(),
+          ),
+          movements,
+          redemptions: [
+            ...state.redemptions
+              .filter((redemption) => redemption.customerId === customer.id)
+              .map((redemption) => ({
+                id: redemption.id,
+                reward_name: redemption.reward_name,
+                points_spent: redemption.points_spent,
+                code: redemption.code,
+                status: redemption.status,
+                created_at: redemption.createdAt,
+                delivered_at: redemption.delivered_at,
+                cancelled_at: redemption.cancelled_at,
+              })),
+            ...state.redemptionRequests
+              .filter(
+                (request) =>
+                  request.accountId === customer.id &&
+                  (!businessId || request.businessId === businessId),
+              )
+              .map((request) => ({
+                id: request.id,
+                reward_name: request.rewardName,
+                points_spent: request.pointsSpent,
+                code: request.code,
+                status:
+                  request.status === 'delivered'
+                    ? 'redeemed'
+                    : request.status === 'cancelled' || request.status === 'expired'
+                      ? 'cancelled'
+                      : 'pending_delivery',
+                created_at: request.createdAt,
+                delivered_at: request.deliveredAt ?? null,
+                cancelled_at: request.cancelledAt ?? null,
+              })),
+          ],
         });
       }
       case 'staff_list_purchases': {
@@ -1402,6 +1849,88 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
       // ------------------------------------------------------------------
       // Negocio y membresías
       // ------------------------------------------------------------------
+      case 'business_profile_get': {
+        if (!user) return fail(route, 'not_authenticated');
+        const business = state.businesses.find(
+          (item) => item.id === String(body.p_business_id ?? ''),
+        );
+        if (!business) return fail(route, 'business_not_found');
+        return json(route, {
+          id: business.id,
+          name: business.name,
+          slug: business.slug,
+          timezone: business.timezone,
+          operating_days: business.operatingDays ?? [1, 2, 3, 4, 5, 6],
+          is_active: true,
+          description: business.description ?? null,
+          address: business.address ?? null,
+          neighborhood: business.neighborhood ?? null,
+          city: business.city ?? null,
+          phone_whatsapp: business.phoneWhatsapp ?? null,
+          phone: business.phone ?? null,
+          instagram: business.instagram ?? null,
+          website: business.website ?? null,
+          logo_url: business.logoUrl ?? null,
+          updated_at: now(),
+        });
+      }
+      case 'business_profile_update': {
+        if (!isAdmin) return fail(route, 'forbidden');
+        const business = state.businesses.find(
+          (item) => item.id === String(body.p_business_id ?? ''),
+        );
+        if (!business) return fail(route, 'business_not_found');
+        const name = String(body.p_name ?? business.name).trim();
+        if (name.length < 2 || name.length > 120) {
+          return fail(route, 'invalid_business_name');
+        }
+        business.name = name;
+        const nullable = (value: unknown) => {
+          const text = String(value ?? '').trim();
+          return text === '' ? null : text;
+        };
+        business.description = nullable(body.p_description);
+        business.address = nullable(body.p_address);
+        business.neighborhood = nullable(body.p_neighborhood);
+        business.city = nullable(body.p_city);
+        const whatsapp = nullable(body.p_phone_whatsapp)?.replace(/[\s().-]/g, '');
+        if (whatsapp && !/^\+?[0-9]{7,15}$/.test(whatsapp)) {
+          return fail(route, 'invalid_whatsapp');
+        }
+        business.phoneWhatsapp = whatsapp ?? null;
+        business.phone = nullable(body.p_phone)?.replace(/[\s().-]/g, '') ?? null;
+        business.instagram = nullable(body.p_instagram)?.replace(/^@/, '') ?? null;
+        business.website = nullable(body.p_website);
+        return json(route, {
+          business_id: business.id,
+          name: business.name,
+          slug: business.slug,
+          description: business.description,
+          address: business.address,
+          neighborhood: business.neighborhood,
+          city: business.city,
+          phone_whatsapp: business.phoneWhatsapp,
+          phone: business.phone,
+          instagram: business.instagram,
+          website: business.website,
+        });
+      }
+      case 'business_logo_set': {
+        if (!isAdmin) return fail(route, 'forbidden');
+        const business = state.businesses.find(
+          (item) => item.id === String(body.p_business_id ?? ''),
+        );
+        if (!business) return fail(route, 'business_not_found');
+        const logoUrl = body.p_logo_url ? String(body.p_logo_url) : null;
+        if (
+          logoUrl &&
+          !logoUrl.includes(`/business-assets/business/${business.id}/`)
+        ) {
+          return fail(route, 'logo_outside_business');
+        }
+        business.logoUrl = logoUrl;
+        return json(route, { business_id: business.id, logo_url: logoUrl });
+      }
       case 'businesses_list': {
         if (!user) return fail(route, 'not_authenticated');
         const userMemberships = state.memberships.filter(
@@ -1430,6 +1959,57 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
             };
           }),
         );
+      }
+      case 'customer_businesses_summary': {
+        if (!user) return fail(route, 'not_authenticated');
+        const rows = state.memberships
+          .filter((membership) => membership.userId === user.id)
+          .map((membership) => {
+            const business = state.businesses.find(
+              (item) => item.id === membership.businessId,
+            );
+            if (!business) return null;
+            const frequency = customerFrequency(
+              state,
+              user.id,
+              business.id,
+            );
+            const balance = loyaltyBalance(state, user.id, business.id);
+            const program = state.loyaltyPrograms[business.id];
+            return {
+              business_id: business.id,
+              name: business.name,
+              slug: business.slug,
+              logo_url: business.logoUrl ?? null,
+              role: membership.role,
+              loyalty_active: program?.is_active ?? true,
+              balance,
+              ready_rewards: state.loyaltyRewards.filter(
+                (reward) =>
+                  reward.businessId === business.id &&
+                  reward.isActive &&
+                  reward.pointsRequired <= balance,
+              ).length,
+              pending_redemptions: state.redemptionRequests.filter(
+                (request) =>
+                  request.accountId === user.id &&
+                  request.businessId === business.id &&
+                  (request.status === 'pending' ||
+                    request.status === 'approved'),
+              ).length,
+              last_purchase_at: frequency.last_purchase_at,
+              is_frequent: frequency.is_frequent,
+              is_frequent_active: frequency.is_frequent_active,
+            };
+          })
+          .filter((row): row is NonNullable<typeof row> => row !== null)
+          .sort((a, b) => {
+            const left = a.last_purchase_at ?? '';
+            const right = b.last_purchase_at ?? '';
+            if (left !== right) return right.localeCompare(left);
+            return a.name.localeCompare(b.name);
+          });
+        return json(route, rows);
       }
       case 'business_update': {
         if (!isAdmin) return fail(route, 'forbidden');
@@ -1467,6 +2047,14 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
             operating_days: [1, 2, 3, 4, 5, 6],
             is_active: true,
             loyalty_active: Boolean(program?.is_active),
+            description: business.description ?? null,
+            logo_url: business.logoUrl ?? null,
+            address: business.address ?? null,
+            neighborhood: business.neighborhood ?? null,
+            city: business.city ?? null,
+            phone_whatsapp: business.phoneWhatsapp ?? null,
+            instagram: business.instagram ?? null,
+            website: business.website ?? null,
           },
         ]);
       }
@@ -1629,7 +2217,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
       }
 
       // ------------------------------------------------------------------
-      // Programa de puntos
+      // Programa de loopoints
       // ------------------------------------------------------------------
       case 'loyalty_program_get': {
         if (!user) return fail(route, 'not_authenticated');
@@ -1644,6 +2232,11 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           recurrence_bonus_points: 0,
           referral_bonus_points: 0,
           qr_expiry_hours: 24,
+          frequent_min_purchases: 3,
+          frequent_period_days: 90,
+          frequent_min_spend_cop: 0,
+          frequent_active_days: 30,
+          recovery_inactive_days: 60,
           is_active: false,
         };
         return json(route, {
@@ -1674,6 +2267,16 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           recurrence_bonus_points: Number(body.p_recurrence_bonus_points ?? 0),
           referral_bonus_points: Number(body.p_referral_bonus_points ?? 0),
           qr_expiry_hours: Number(body.p_qr_expiry_hours ?? 24),
+          frequent_min_purchases:
+            state.loyaltyPrograms[businessId]?.frequent_min_purchases ?? 3,
+          frequent_period_days:
+            state.loyaltyPrograms[businessId]?.frequent_period_days ?? 90,
+          frequent_min_spend_cop:
+            state.loyaltyPrograms[businessId]?.frequent_min_spend_cop ?? 0,
+          frequent_active_days:
+            state.loyaltyPrograms[businessId]?.frequent_active_days ?? 30,
+          recovery_inactive_days:
+            state.loyaltyPrograms[businessId]?.recovery_inactive_days ?? 60,
           is_active: isActive,
         };
         return json(route, {
@@ -1683,6 +2286,42 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           is_active: isActive,
           configured_at: now(),
         });
+      }
+      case 'loyalty_program_frequent_update': {
+        if (!isAdmin) return fail(route, 'forbidden');
+        const businessId = String(body.p_business_id ?? '');
+        const current = state.loyaltyPrograms[businessId] ?? {
+          cop_per_point_unit: 1000,
+          points_per_cop_unit: 100,
+          points_expiry_days: 365,
+          budget_rate: 0.01,
+          first_purchase_bonus_points: 0,
+          recurrence_bonus_points: 0,
+          referral_bonus_points: 0,
+          qr_expiry_hours: 24,
+          frequent_min_purchases: 3,
+          frequent_period_days: 90,
+          frequent_min_spend_cop: 0,
+          frequent_active_days: 30,
+          recovery_inactive_days: 60,
+          is_active: false,
+        };
+        const next = {
+          ...current,
+          frequent_min_purchases: Number(body.p_min_purchases ?? 3),
+          frequent_period_days: Number(body.p_period_days ?? 90),
+          frequent_min_spend_cop: Number(body.p_min_spend_cop ?? 0),
+          frequent_active_days: Number(body.p_active_days ?? 30),
+          recovery_inactive_days: Number(body.p_recovery_days ?? 60),
+        };
+        if (next.frequent_min_purchases < 1 || next.frequent_min_purchases > 100) {
+          return fail(route, 'invalid_frequent_min_purchases');
+        }
+        if (next.recovery_inactive_days <= next.frequent_active_days) {
+          return fail(route, 'invalid_recovery_inactive_days');
+        }
+        state.loyaltyPrograms[businessId] = next;
+        return json(route, { business_id: businessId, ...next });
       }
 
       // ------------------------------------------------------------------
@@ -1704,6 +2343,8 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
               price_cop: p.priceCop,
               cost_cop: p.costCop,
               is_active: p.isActive,
+              kind: p.kind,
+              combo_items: comboItemsFor(state, p),
               created_at: now(),
               updated_at: now(),
             })),
@@ -1722,6 +2363,8 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           priceCop: Number(body.p_price_cop ?? 0),
           costCop: body.p_cost_cop ?? null,
           isActive: Boolean(body.p_is_active ?? true),
+          kind: (String(body.p_kind ?? 'simple') as 'simple' | 'combo'),
+          comboItems: existing?.comboItems ?? [],
         };
         if (existing) Object.assign(existing, product);
         else state.products.push(product);
@@ -1733,8 +2376,41 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           price_cop: product.priceCop,
           cost_cop: product.costCop,
           is_active: product.isActive,
+          kind: product.kind,
+          combo_items: comboItemsFor(state, product),
           created_at: now(),
           updated_at: now(),
+        });
+      }
+      case 'product_combo_set': {
+        if (!user) return fail(route, 'not_authenticated');
+        const businessId = String(body.p_business_id ?? '');
+        const productId = String(body.p_product_id ?? '');
+        const product = state.products.find(
+          (item) => item.id === productId && item.businessId === businessId,
+        );
+        if (!product) return fail(route, 'product_not_found');
+        if (product.kind !== 'combo') return fail(route, 'product_not_combo');
+        const raw = Array.isArray(body.p_items) ? body.p_items : [];
+        const comboItems: FakeComboItem[] = [];
+        for (const item of raw as Array<{ product_id?: string; quantity?: number }>) {
+          const component = state.products.find(
+            (row) =>
+              row.id === item.product_id &&
+              row.businessId === businessId &&
+              row.kind === 'simple',
+          );
+          if (!component) return fail(route, 'product_not_found');
+          comboItems.push({
+            productId: component.id,
+            quantity: Number(item.quantity ?? 0),
+          });
+        }
+        product.comboItems = comboItems;
+        return json(route, {
+          product_id: product.id,
+          kind: 'combo',
+          combo_items: comboItemsFor(state, product),
         });
       }
 
@@ -1782,7 +2458,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
         if (!user) return fail(route, 'not_authenticated');
         const businessId = String(body.p_business_id ?? '');
         // Saldo simulado para los flujos de UI; el saldo real lo valida la RPC.
-        const balance = loyaltyBalance(state, user.id);
+        const balance = loyaltyBalance(state, user.id, businessId);
         return json(
           route,
           state.loyaltyRewards
@@ -1843,7 +2519,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
       }
 
       // ------------------------------------------------------------------
-      // Puntos
+      // Loopoints
       // ------------------------------------------------------------------
       case 'loyalty_account_balance': {
         if (!user) return fail(route, 'not_authenticated');
@@ -1852,7 +2528,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
         return json(route, {
           business_id: businessId,
           customer_id: customerId,
-          balance: loyaltyBalance(state, customerId),
+          balance: loyaltyBalance(state, customerId, businessId),
         });
       }
       case 'loyalty_account_transactions': {
@@ -1884,7 +2560,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
         }
         const reward = state.loyaltyRewards.find((r) => r.id === rewardId);
         if (!reward || !reward.isActive) return fail(route, 'reward_unavailable');
-        if (loyaltyBalance(state, user.id) < reward.pointsRequired) {
+        if (loyaltyBalance(state, user.id, businessId) < reward.pointsRequired) {
           return fail(route, 'insufficient_points');
         }
         const token = `tok_${crypto.randomUUID().replace(/-/g, '')}`;
@@ -1905,6 +2581,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           approvedAt: null,
           deliveredAt: null,
           cancelledAt: null,
+          origin: 'manual',
         };
         state.redemptionRequests.push(redemption);
         state.tokens.push({
@@ -1945,6 +2622,8 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
                 id: request.id,
                 business_id: request.businessId,
                 business_name: business?.name ?? 'Negocio',
+                business_slug: business?.slug ?? '',
+                business_logo_url: business?.logoUrl ?? null,
                 reward_name: request.rewardName,
                 reward_type: request.rewardType,
                 points_spent: request.pointsSpent,
@@ -2011,6 +2690,148 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           customer_id: redemption.accountId,
           expires_at: foundToken.expiresAt,
           can_approve: true,
+        });
+      }
+      case 'redemption_token_context': {
+        if (!user) return fail(route, 'not_authenticated');
+        const tokenValue = String(body.p_token ?? '');
+        const foundToken = state.tokens.find((tok) => tok.token === tokenValue);
+        if (!foundToken) return fail(route, 'invalid_token');
+        const redemption = state.redemptionRequests.find(
+          (r) => r.id === foundToken.redemptionId,
+        );
+        if (!redemption) return fail(route, 'redemption_not_found');
+        const membership = state.memberships.find(
+          (m) =>
+            m.businessId === foundToken.businessId && m.userId === user.id,
+        );
+        if (!membership) return fail(route, 'business_not_found_or_no_access');
+        if (
+          membership.role !== 'admin' &&
+          !(membership.role === 'encargado' && membership.canApproveRedemptions)
+        ) {
+          return fail(route, 'forbidden');
+        }
+        const business = state.businesses.find(
+          (b) => b.id === foundToken.businessId,
+        );
+        const customer = state.users.find((u) => u.id === redemption.accountId);
+        const expired = new Date(foundToken.expiresAt).getTime() <= Date.now();
+        let reason: string | null = null;
+        if (redemption.status === 'delivered') {
+          reason = 'redemption_already_delivered';
+        } else if (redemption.status === 'cancelled') {
+          reason = 'redemption_cancelled';
+        } else if (redemption.status === 'expired') {
+          reason = 'redemption_expired';
+        } else if (redemption.status !== 'pending') {
+          reason = 'redemption_not_pending';
+        } else if (foundToken.consumedAt) {
+          reason = 'token_already_consumed';
+        } else if (expired) {
+          reason = 'token_expired';
+        }
+        return json(route, {
+          business_id: foundToken.businessId,
+          business_name: business?.name ?? 'Negocio',
+          business_slug: business?.slug ?? '',
+          business_logo_url: business?.logoUrl ?? null,
+          redemption_id: redemption.id,
+          code: redemption.code,
+          reward_name: redemption.rewardName,
+          reward_type: redemption.rewardType,
+          points_spent: redemption.pointsSpent,
+          customer_id: customer?.id ?? redemption.accountId,
+          customer_nickname: customer?.nickname ?? null,
+          status: redemption.status,
+          origin: redemption.origin,
+          created_at: redemption.createdAt,
+          expires_at: foundToken.expiresAt,
+          consumed_at: foundToken.consumedAt,
+          approved_at: redemption.approvedAt,
+          delivered_at: redemption.deliveredAt ?? null,
+          can_redeem: reason === null,
+          reason,
+          role: membership.role,
+        });
+      }
+      case 'redemption_redeem_by_token': {
+        if (!user) return fail(route, 'not_authenticated');
+        const tokenValue = String(body.p_token ?? '');
+        const foundToken = state.tokens.find((tok) => tok.token === tokenValue);
+        if (!foundToken) return fail(route, 'invalid_token');
+        const redemption = state.redemptionRequests.find(
+          (r) => r.id === foundToken.redemptionId,
+        );
+        if (!redemption) return fail(route, 'redemption_not_found');
+        const membership = state.memberships.find(
+          (m) =>
+            m.businessId === foundToken.businessId && m.userId === user.id,
+        );
+        if (!membership) return fail(route, 'business_not_found_or_no_access');
+        if (
+          membership.role !== 'admin' &&
+          !(membership.role === 'encargado' && membership.canApproveRedemptions)
+        ) {
+          return fail(route, 'forbidden');
+        }
+        if (redemption.status === 'delivered') {
+          return fail(route, 'redemption_already_delivered');
+        }
+        if (redemption.status !== 'pending') {
+          return fail(route, 'redemption_not_pending');
+        }
+        if (foundToken.consumedAt) return fail(route, 'token_already_consumed');
+        if (new Date(foundToken.expiresAt).getTime() <= Date.now()) {
+          return fail(route, 'token_expired');
+        }
+        redemption.status = 'delivered';
+        redemption.origin = 'qr_scan';
+        redemption.approvedBy = user.id;
+        redemption.approvedAt = now();
+        redemption.deliveredAt = now();
+        foundToken.consumedAt = now();
+        const customer = state.users.find((u) => u.id === redemption.accountId);
+        state.auditLogs.unshift({
+          id: newId(),
+          businessId: foundToken.businessId,
+          actorEmail: user.email,
+          operation: 'redemption.scanned',
+          entityType: 'loyalty_redemption',
+          entityId: redemption.id,
+          metadata: {
+            code: redemption.code,
+            reward_name: redemption.rewardName,
+            points_spent: redemption.pointsSpent,
+            channel: 'qr_scan',
+          },
+          createdAt: now(),
+        });
+        state.auditLogs.unshift({
+          id: newId(),
+          businessId: foundToken.businessId,
+          actorEmail: user.email,
+          operation: 'redemption.delivered',
+          entityType: 'loyalty_redemption',
+          entityId: redemption.id,
+          metadata: {
+            reward_name: redemption.rewardName,
+            points_spent: redemption.pointsSpent,
+            via: 'qr_scan',
+          },
+          createdAt: now(),
+        });
+        return json(route, {
+          business_id: foundToken.businessId,
+          redemption_id: redemption.id,
+          code: redemption.code,
+          reward_name: redemption.rewardName,
+          points_spent: redemption.pointsSpent,
+          customer_nickname: customer?.nickname ?? null,
+          status: 'delivered',
+          origin: 'qr_scan',
+          delivered_at: redemption.deliveredAt,
+          role: membership.role,
         });
       }
       case 'redemption_approve': {
@@ -2090,11 +2911,13 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
         if (!user) return fail(route, 'not_authenticated');
         const businessId = String(body.p_business_id ?? '');
         const status = body.p_status ? String(body.p_status) : '';
+        const origin = body.p_origin ? String(body.p_origin) : '';
         return json(
           route,
           state.redemptionRequests
             .filter((r) => r.businessId === businessId)
             .filter((r) => !status || r.status === status)
+            .filter((r) => !origin || r.origin === origin)
             .map((r) => {
               const u = state.users.find((x) => x.id === r.accountId);
               return {
@@ -2110,6 +2933,8 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
                 cancelled_at: r.cancelledAt ?? null,
                 customer_id: r.accountId,
                 customer_email: u?.email ?? '',
+                customer_nickname: u?.nickname ?? null,
+                origin: r.origin,
               };
             }),
         );
@@ -2138,7 +2963,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
         if (existing) {
           return json(route, {
             points_earned: 0,
-            balance: loyaltyBalance(state, customerId),
+            balance: loyaltyBalance(state, customerId, businessId),
             duplicate: true,
             account_id: `acc-${customerId}`,
             purchase_event_id: existing.id,
@@ -2200,7 +3025,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
 
         return json(route, {
           points_earned: campaignPoints,
-          balance: loyaltyBalance(state, customerId),
+          balance: loyaltyBalance(state, customerId, businessId),
           duplicate: false,
           account_id: `acc-${customerId}`,
           purchase_event_id: event.id,
@@ -2224,7 +3049,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
         if (event.reversed) {
           return json(route, {
             points_reversed: 0,
-            balance: loyaltyBalance(state, event.customerId),
+            balance: loyaltyBalance(state, event.customerId, event.businessId),
             duplicate: true,
             message: 'La compra ya fue revertida.',
           });
@@ -2250,9 +3075,131 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
 
         return json(route, {
           points_reversed: event.pointsEarned,
-          balance: loyaltyBalance(state, event.customerId),
+          balance: loyaltyBalance(state, event.customerId, event.businessId),
           duplicate: false,
         });
+      }
+      case 'business_dashboard_summary': {
+        if (!user) return fail(route, 'not_authenticated');
+        const businessId = String(body.p_business_id ?? '');
+        const events = state.purchaseEvents.filter(
+          (event) => event.businessId === businessId,
+        );
+        const pending = state.redemptionRequests.filter(
+          (request) =>
+            request.businessId === businessId && request.status === 'pending',
+        );
+        const approved = state.redemptionRequests.filter(
+          (request) =>
+            request.businessId === businessId && request.status === 'approved',
+        );
+        const members = state.memberships.filter(
+          (membership) =>
+            membership.businessId === businessId && membership.role === 'cliente',
+        );
+        const frequencies = members.map((membership) =>
+          customerFrequency(state, membership.userId, businessId),
+        );
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+        const todayEvents = events.filter(
+          (event) => new Date(event.createdAt) >= today,
+        );
+        const monthEvents = events.filter(
+          (event) => new Date(event.createdAt) >= monthStart,
+        );
+        const dates = [
+          ...events.map((event) => event.createdAt),
+          ...state.redemptionRequests
+            .filter((request) => request.businessId === businessId)
+            .map((request) => request.createdAt),
+          ...state.purchases
+            .filter((purchase) => purchase.businessId === businessId)
+            .map((purchase) => purchase.createdAt),
+        ].sort();
+        return json(route, {
+          business_id: businessId,
+          points_outstanding:
+            state.purchaseCredits[members[0]?.userId ?? ''] ?? 0,
+          points_issued_total: events.reduce(
+            (sum, event) => sum + event.pointsEarned,
+            0,
+          ),
+          points_redeemed_total: state.redemptionRequests
+            .filter(
+              (request) =>
+                request.businessId === businessId &&
+                request.status !== 'cancelled',
+            )
+            .reduce((sum, request) => sum + request.pointsSpent, 0),
+          pending_redemptions: pending.length,
+          approved_pending_delivery: approved.length,
+          frequent_customers: frequencies.filter((item) => item.is_frequent).length,
+          active_customers: frequencies.filter((item) => item.is_frequent_active)
+            .length,
+          customers_total: members.length,
+          sales_today_cop: todayEvents.reduce(
+            (sum, event) => sum + event.amountCop,
+            0,
+          ),
+          sales_month_cop: monthEvents.reduce(
+            (sum, event) => sum + event.amountCop,
+            0,
+          ),
+          purchases_today: todayEvents.length,
+          purchases_month: monthEvents.length,
+          pending_qr_count: state.purchases.filter(
+            (purchase) =>
+              purchase.businessId === businessId &&
+              purchase.status === 'pending_claim',
+          ).length,
+          budget_committed_percent: 0,
+          last_activity_at: dates.at(-1) ?? null,
+          calculated_at: now(),
+        });
+      }
+      case 'business_recent_activity': {
+        if (!user) return fail(route, 'not_authenticated');
+        const businessId = String(body.p_business_id ?? '');
+        const limit = Number(body.p_limit ?? 10);
+        const rows = [
+          ...state.purchaseEvents
+            .filter((event) => event.businessId === businessId)
+            .map((event) => ({
+              id: event.id,
+              kind: 'purchase' as const,
+              title: 'Compra registrada',
+              detail:
+                state.users.find((item) => item.id === event.customerId)?.name ??
+                'Cliente',
+              points: event.pointsEarned,
+              amount_cop: event.amountCop,
+              status: null,
+              created_at: event.createdAt,
+            })),
+          ...state.redemptionRequests
+            .filter((request) => request.businessId === businessId)
+            .map((request) => ({
+              id: request.id,
+              kind: 'redemption' as const,
+              title: request.rewardName,
+              detail:
+                state.users.find((item) => item.id === request.accountId)?.name ??
+                'Cliente',
+              points: -request.pointsSpent,
+              amount_cop: null,
+              status: request.status,
+              created_at: request.createdAt,
+            })),
+        ]
+          .sort(
+            (a, b) =>
+              new Date(b.created_at).getTime() -
+              new Date(a.created_at).getTime(),
+          )
+          .slice(0, limit);
+        return json(route, rows);
       }
       case 'business_economic_profile_get': {
         if (!user) return fail(route, 'not_authenticated');
@@ -2358,21 +3305,69 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
       case 'business_audit_log_page': {
         if (!user) return fail(route, 'not_authenticated');
         const businessId = String(body.p_business_id ?? '');
-        const operation = String(body.p_operation ?? '').toLowerCase();
+        const operations = String(body.p_operation ?? '')
+          .toLowerCase()
+          .split(',')
+          .map((item) => item.trim())
+          .filter(Boolean);
+        const actor = String(body.p_actor ?? '').toLowerCase().trim();
+        const search = String(body.p_search ?? '').toLowerCase().trim();
+        const parseDate = (value: unknown) =>
+          typeof value === 'string' && value ? new Date(value).getTime() : null;
+        const from = parseDate(body.p_from);
+        const to = parseDate(body.p_to);
         const limit = Math.max(Number(body.p_limit ?? 50), 1);
         const offset = Math.max(Number(body.p_offset ?? 0), 0);
         const filtered = state.auditLogs
           .filter((entry) => entry.businessId === businessId)
-          .filter(
-            (entry) =>
-              !operation || entry.operation.toLowerCase().includes(operation),
-          )
-          .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+          .map((entry) => ({
+            entry,
+            actorUser: state.users.find(
+              (candidate) => candidate.email === entry.actorEmail,
+            ),
+          }))
+          .filter(({ entry, actorUser }) => {
+            const operation = entry.operation.toLowerCase();
+            if (
+              operations.length > 0 &&
+              !operations.some((pattern) => operation.includes(pattern))
+            ) {
+              return false;
+            }
+            if (actor) {
+              const haystack = `${actorUser?.name ?? ''} ${entry.actorEmail ?? ''}`
+                .toLowerCase();
+              if (!haystack.includes(actor)) return false;
+            }
+            const createdAt = new Date(entry.createdAt).getTime();
+            if (from !== null && createdAt < from) return false;
+            if (to !== null && createdAt >= to) return false;
+            if (search) {
+              const haystack = [
+                operation,
+                entry.entityType,
+                entry.entityId ?? '',
+                entry.actorEmail ?? '',
+                actorUser?.name ?? '',
+                JSON.stringify(entry.metadata ?? {}),
+              ]
+                .join(' ')
+                .toLowerCase();
+              if (!haystack.includes(search)) return false;
+            }
+            return true;
+          })
+          .sort(
+            (a, b) =>
+              b.entry.createdAt.localeCompare(a.entry.createdAt) ||
+              b.entry.id.localeCompare(a.entry.id),
+          );
         return json(
           route,
-          filtered.slice(offset, offset + limit).map((entry) => ({
+          filtered.slice(offset, offset + limit).map(({ entry, actorUser }) => ({
             id: entry.id,
             actor_email: entry.actorEmail,
+            actor_name: entry.actorName ?? actorUser?.name ?? null,
             operation: entry.operation,
             entity_type: entry.entityType,
             entity_id: entry.entityId,

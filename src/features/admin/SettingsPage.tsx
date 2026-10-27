@@ -22,6 +22,14 @@ import {
 } from './hooks';
 import { errorMessage } from '@/lib/errors';
 import { formatDateTimeBogota } from '@/lib/format';
+import { cn } from '@/lib/utils';
+import { useFormDraft } from '@/lib/useFormDraft';
+import {
+  AUDIT_SEVERITY_STYLES,
+  auditSubject,
+  getAuditEntityLabel,
+  getAuditLabel,
+} from './auditLabels';
 import type { AdminReward } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -74,7 +82,9 @@ export function SettingsPage() {
   const audit = useAuditLog();
   const configHistory = useConfigHistory();
   const expirePoints = useExpirePoints();
+  const draft = useFormDraft<SettingsFormState>({ key: 'admin:settings' });
   const [form, setForm] = useState<SettingsFormState | null>(null);
+  const [formDirty, setFormDirty] = useState(false);
   const [rewardDialogOpen, setRewardDialogOpen] = useState(false);
   const [editingReward, setEditingReward] = useState<AdminReward | null>(null);
   const [rewardForm, setRewardForm] = useState<RewardFormState>(emptyReward);
@@ -83,20 +93,27 @@ export function SettingsPage() {
 
   useEffect(() => {
     if (!settings.data) return;
-    setForm({
-      cop_per_point_unit: String(settings.data.cop_per_point_unit),
-      min_purchase_amount: String(settings.data.min_purchase_amount),
-      max_points_per_purchase: String(settings.data.max_points_per_purchase),
-      qr_expiry_hours: String(settings.data.qr_expiry_hours),
-      points_expiry_days:
-        settings.data.points_expiry_days === null
-          ? ''
-          : String(settings.data.points_expiry_days),
-      history_page_size: String(settings.data.history_page_size),
-    });
-  }, [settings.data]);
+    setForm(
+      draft.read() ?? {
+        cop_per_point_unit: String(settings.data.cop_per_point_unit),
+        min_purchase_amount: String(settings.data.min_purchase_amount),
+        max_points_per_purchase: String(settings.data.max_points_per_purchase),
+        qr_expiry_hours: String(settings.data.qr_expiry_hours),
+        points_expiry_days:
+          settings.data.points_expiry_days === null
+            ? ''
+            : String(settings.data.points_expiry_days),
+        history_page_size: String(settings.data.history_page_size),
+      },
+    );
+  }, [draft.read, settings.data]);
+
+  useEffect(() => {
+    if (formDirty && form) draft.save(form);
+  }, [draft.save, form, formDirty]);
 
   function updateField(field: keyof SettingsFormState, value: string) {
+    setFormDirty(true);
     setForm((current) => (current ? { ...current, [field]: value } : current));
   }
 
@@ -116,6 +133,8 @@ export function SettingsPage() {
     };
     try {
       await updateSettings.mutateAsync(payload);
+      setFormDirty(false);
+      draft.clear();
       toast.success('Configuración actualizada');
     } catch (error) {
       toast.error(errorMessage(error));
@@ -151,7 +170,7 @@ export function SettingsPage() {
       return;
     }
     if (!Number.isFinite(pointsCost) || pointsCost <= 0) {
-      setRewardError('El costo en puntos debe ser mayor que cero.');
+      setRewardError('El costo en loopoints debe ser mayor que cero.');
       return;
     }
     try {
@@ -192,7 +211,7 @@ export function SettingsPage() {
     try {
       const result = await expirePoints.mutateAsync();
       toast.success(
-        `Vencimiento aplicado: ${result.points_expired} puntos en ${result.credits_expired} créditos.`,
+        `Vencimiento aplicado: ${result.points_expired} loopoints en ${result.credits_expired} créditos.`,
       );
       setExpireOpen(false);
     } catch (error) {
@@ -230,7 +249,7 @@ export function SettingsPage() {
               <form onSubmit={saveSettings} className="space-y-4">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="cop_per_point_unit">COP por punto</Label>
+                    <Label htmlFor="cop_per_point_unit">COP por loopoint</Label>
                     <Input
                       id="cop_per_point_unit"
                       type="number"
@@ -242,7 +261,7 @@ export function SettingsPage() {
                       }
                     />
                     <p className="text-xs text-muted-foreground">
-                      1000 = 1 punto por cada $1.000 completos.
+                      1000 = 1 loopoint por cada $1.000 completos.
                     </p>
                   </div>
                   <div className="space-y-2">
@@ -260,7 +279,7 @@ export function SettingsPage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="max_points_per_purchase">
-                      Máximo de puntos por compra
+                      Máximo de loopoints por compra
                     </Label>
                     <Input
                       id="max_points_per_purchase"
@@ -288,7 +307,7 @@ export function SettingsPage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="points_expiry_days">
-                      Vencimiento de puntos (días)
+                      Vencimiento de loopoints (días)
                     </Label>
                     <Input
                       id="points_expiry_days"
@@ -302,7 +321,7 @@ export function SettingsPage() {
                       }
                     />
                     <p className="text-xs text-muted-foreground">
-                      Vacío = los puntos no vencen automáticamente.
+                      Vacío = los loopoints no vencen automáticamente.
                     </p>
                   </div>
                   <div className="space-y-2">
@@ -398,7 +417,7 @@ export function SettingsPage() {
                         </Badge>
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        {reward.points_cost} puntos · {reward.times_redeemed} canjes
+                        {reward.points_cost} loopoints · {reward.times_redeemed} canjes
                       </p>
                     </div>
                     <div className="flex gap-1">
@@ -452,20 +471,40 @@ export function SettingsPage() {
               <p className="text-sm text-muted-foreground">Sin eventos registrados.</p>
             ) : (
               <ul className="space-y-3">
-                {audit.data.slice(0, 15).map((entry) => (
-                  <li key={entry.id} className="border-b pb-3 last:border-0 last:pb-0">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <p className="text-sm font-semibold">{entry.operation}</p>
-                      <span className="text-xs text-muted-foreground">
-                        {formatDateTimeBogota(entry.created_at)}
-                      </span>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      {entry.actor_email ?? 'Sistema'} · {entry.entity_type}
-                      {entry.entity_id ? ` · ${entry.entity_id.slice(0, 8)}…` : ''}
-                    </p>
-                  </li>
-                ))}
+                {audit.data.slice(0, 15).map((entry) => {
+                  const label = getAuditLabel(entry.operation);
+                  const Icon = label.icon;
+                  return (
+                    <li key={entry.id} className="border-b pb-3 last:border-0 last:pb-0">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="flex items-center gap-2 text-sm font-semibold">
+                          <span
+                            className={cn(
+                              'grid size-6 shrink-0 place-items-center rounded-full',
+                              AUDIT_SEVERITY_STYLES[label.severity].icon,
+                            )}
+                          >
+                            <Icon className="size-3.5" aria-hidden="true" />
+                          </span>
+                          {label.label}
+                        </p>
+                        <span className="text-xs text-muted-foreground">
+                          {formatDateTimeBogota(entry.created_at)}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {auditSubject({
+                          operation: entry.operation,
+                          metadata: entry.metadata,
+                        })}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {entry.actor_email ?? 'Sistema'} ·{' '}
+                        {getAuditEntityLabel(entry.entity_type)}
+                      </p>
+                    </li>
+                  );
+                })}
               </ul>
             )}
           </CardContent>
@@ -553,7 +592,7 @@ export function SettingsPage() {
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="reward-cost">Costo en puntos</Label>
+                <Label htmlFor="reward-cost">Costo en loopoints</Label>
                 <Input
                   id="reward-cost"
                   type="number"
@@ -625,7 +664,7 @@ export function SettingsPage() {
       <ConfirmDialog
         open={expireOpen}
         onOpenChange={setExpireOpen}
-        title="Ejecutar vencimiento de puntos"
+        title="Ejecutar vencimiento de loopoints"
         description="Se descontarán los créditos más antiguos que superen los días configurados, hasta donde el saldo actual lo permita. La operación es idempotente."
         confirmLabel="Aplicar vencimiento"
         loading={expirePoints.isPending}

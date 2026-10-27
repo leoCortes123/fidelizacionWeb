@@ -3,19 +3,19 @@ const MESSAGES: Record<string, string> = {
   forbidden: 'No tienes permiso para realizar esta operación.',
   invalid_token: 'Este código QR no es válido.',
   purchase_expired: 'Este QR ya expiró. Pide al cajero que genere una compra nueva.',
-  purchase_cancelled: 'Esta compra fue cancelada. No se pueden acreditar sus puntos.',
+  purchase_cancelled: 'Esta compra fue cancelada. No se pueden acreditar sus loopoints.',
   purchase_already_claimed: 'Esta compra ya fue reclamada por una cuenta.',
   purchase_not_found: 'No encontramos la compra.',
   amount_invalid: 'Introduce un importe mayor que cero.',
   amount_below_minimum: 'El importe no alcanza la compra mínima configurada.',
   amount_too_large: 'El importe supera el máximo permitido.',
   rate_limited: 'Demasiados intentos seguidos. Espera un momento y vuelve a probar.',
-  insufficient_points: 'El cliente no tiene puntos suficientes para esta recompensa.',
+  insufficient_points: 'El cliente no tiene loopoints suficientes para esta recompensa.',
   reward_unavailable: 'Esta recompensa no está disponible por ahora.',
   reward_not_found: 'La recompensa no existe.',
   reward_name_duplicate: 'Ya existe una recompensa con ese nombre.',
   invalid_reward_name: 'El nombre de la recompensa no es válido.',
-  invalid_reward_cost: 'El costo en puntos no es válido.',
+  invalid_reward_cost: 'El costo en loopoints no es válido.',
   invalid_reward_description: 'La descripción no puede superar 500 caracteres.',
   invalid_image_url: 'La URL de imagen debe iniciar con http:// o https://.',
   invalid_idempotency_key: 'No se pudo procesar el canje. Intenta de nuevo.',
@@ -23,6 +23,8 @@ const MESSAGES: Record<string, string> = {
   redemption_already_redeemed: 'Este código ya fue entregado.',
   redemption_cancelled: 'Este canje fue cancelado.',
   redemption_not_pending: 'Este canje ya no está pendiente de validación.',
+  redemption_already_delivered: 'Este canje ya fue entregado.',
+  redemption_expired: 'Este canje expiró. El cliente debe solicitarlo de nuevo.',
   redemption_not_approved:
     'Primero debes aprobar la solicitud antes de confirmar la entrega.',
   redemption_not_reissuable:
@@ -33,8 +35,8 @@ const MESSAGES: Record<string, string> = {
   token_reissue_limit:
     'Se reemitió el QR demasiadas veces en la última hora. Espera un momento.',
   program_not_active:
-    'El programa de puntos está inactivo. Actívalo antes de canjear.',
-  account_not_found: 'No tienes una cuenta de puntos en este negocio.',
+    'El programa de loopoints está inactivo. Actívalo antes de canjear.',
+  account_not_found: 'No tienes una cuenta de loopoints en este negocio.',
   reward_not_yet_valid: 'Esta recompensa aún no está vigente.',
   reward_expired: 'Esta recompensa expiró.',
   reward_customer_limit_reached:
@@ -57,14 +59,40 @@ const MESSAGES: Record<string, string> = {
   invalid_approval_permission:
     'Solo los encargados pueden tener permiso de aprobación.',
   invalid_cop_per_point_unit:
-    'El valor por punto debe estar entre $100 y $1.000.000.',
+    'El valor por loopoint debe estar entre $100 y $1.000.000.',
   invalid_points_per_cop_unit:
-    'Los puntos por $1.000 deben estar entre 1 y 1.000.000.',
+    'Los loopoints por $1.000 deben estar entre 1 y 1.000.000.',
   invalid_points_expiry_days:
-    'El vencimiento de puntos debe estar entre 1 y 3.650 días.',
+    'El vencimiento de loopoints debe estar entre 1 y 3.650 días.',
   invalid_budget_rate: 'La tasa de presupuesto debe estar entre 0 % y 100 %.',
   invalid_qr_expiry_hours: 'La vigencia del QR debe estar entre 1 y 168 horas.',
   invalid_business_name: 'El nombre del negocio no es válido.',
+  invalid_full_name: 'Escribe tu nombre completo (2 a 120 caracteres).',
+  invalid_nickname:
+    'El alias debe tener entre 3 y 24 caracteres: minúsculas, números, punto, guion o guion bajo.',
+  nickname_reserved: 'Ese alias está reservado. Elige otro.',
+  nickname_taken: 'Ese alias ya está en uso. Prueba con otro.',
+  nickname_change_limit:
+    'Ya usaste tus 2 cambios de alias. El alias actual se mantiene.',
+  invalid_business_description: 'La descripción no puede superar 500 caracteres.',
+  invalid_business_address:
+    'La dirección, el barrio o la ciudad superan 160 caracteres.',
+  invalid_whatsapp: 'El WhatsApp no es válido (7 a 15 dígitos).',
+  invalid_phone: 'El teléfono no es válido (7 a 15 dígitos).',
+  invalid_instagram: 'El usuario de Instagram no es válido.',
+  invalid_website: 'La dirección web no es válida.',
+  invalid_logo_url: 'El logo debe ser una URL pública del almacenamiento de Loopoint.',
+  logo_outside_business: 'El logo debe pertenecer a este negocio.',
+  invalid_frequent_min_purchases:
+    'El número de compras para ser frecuente debe estar entre 1 y 100.',
+  invalid_frequent_period_days:
+    'La ventana de frecuencia debe estar entre 7 y 3.650 días.',
+  invalid_frequent_min_spend:
+    'El gasto mínimo debe estar entre $0 y $50.000.000.',
+  invalid_frequent_active_days:
+    'Los días para seguir activo deben estar entre 1 y 365.',
+  invalid_recovery_inactive_days:
+    'Los días para recuperación deben ser mayores que los días de actividad (7 a 3.650).',
   invalid_business_slug: 'El identificador del negocio no es válido.',
   invalid_timezone: 'La zona horaria no es válida.',
   invalid_operating_days: 'Selecciona al menos un día de operación válido.',
@@ -89,14 +117,14 @@ const MESSAGES: Record<string, string> = {
   invalid_budget: 'El presupuesto mensual no puede ser negativo.',
   invalid_campaign_name: 'El nombre de la campaña no es válido (2 a 120 caracteres).',
   invalid_campaign_multiplier: 'El multiplicador debe estar entre 1 y 10.',
-  invalid_campaign_bonus: 'El bono de puntos no es válido.',
+  invalid_campaign_bonus: 'El bono de loopoints no es válido.',
   invalid_campaign_min_purchase: 'La compra mínima de la campaña no es válida.',
   invalid_campaign_validity: 'La fecha de fin debe ser posterior al inicio.',
   invalid_campaign_description: 'La descripción no puede superar 500 caracteres.',
   campaign_not_found: 'No encontramos esa campaña.',
   free_product_requires_product:
     'Elige el producto que se entrega con esta recompensa.',
-  invalid_reward_points: 'Los puntos requeridos no son válidos.',
+  invalid_reward_points: 'Los loopoints requeridos no son válidos.',
   invalid_min_purchase: 'La compra mínima no es válida.',
   invalid_discount_percentage: 'El porcentaje de descuento debe estar entre 1 y 100.',
   invalid_max_discount: 'El descuento máximo no es válido.',
@@ -106,15 +134,16 @@ const MESSAGES: Record<string, string> = {
   invalid_redemption_period:
     'Indica los días del periodo cuando configures un límite por periodo.',
   invalid_redemption_limit: 'Los límites de canje deben ser mayores que cero.',
-  expiry_disabled: 'El vencimiento de puntos está desactivado en la configuración.',
+  expiry_disabled: 'El vencimiento de loopoints está desactivado en la configuración.',
   negative_points_balance: 'La operación dejaría un saldo negativo.',
-  points_ledger_is_immutable: 'El historial de puntos es inmutable.',
+  points_ledger_is_immutable: 'El historial de loopoints es inmutable.',
   invalid_credentials: 'Correo o contraseña incorrectos.',
   email_not_confirmed: 'Debes confirmar tu correo antes de entrar.',
   'Invalid login credentials': 'Correo o contraseña incorrectos.',
   'User already registered': 'Ya existe una cuenta con ese correo. Inicia sesión.',
   'Password should be at least 6 characters':
     'La contraseña debe tener al menos 6 caracteres.',
+  invalid_origin: 'El origen del canje no es válido.',
   redemption_requires_admin:
     'Un administrador debe aplicar el canje desde el panel.',
   'Auth session missing': 'Tu sesión expiró. Vuelve a iniciar sesión.',

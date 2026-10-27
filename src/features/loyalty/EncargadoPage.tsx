@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   AlertTriangle,
   Check,
   CreditCard,
   PackageCheck,
+  ReceiptText,
   RefreshCw,
   Scan,
   ShieldAlert,
@@ -111,6 +112,7 @@ export function EncargadoPage() {
 
 function EncargadoSection({ business }: { business: Business }) {
   const { selectedRole, canApproveRedemptions } = useBusinessContext();
+  const navigate = useNavigate();
   const canAct =
     selectedRole === 'admin' || (selectedRole === 'encargado' && canApproveRedemptions);
 
@@ -207,7 +209,7 @@ function EncargadoSection({ business }: { business: Business }) {
       } else {
         setValidated(null);
         setToken('');
-        toast.success('Redención rechazada. Los puntos fueron devueltos.');
+        toast.success('Redención rechazada. Los loopoints fueron devueltos.');
       }
       void pending.refetch();
       void approved.refetch();
@@ -223,7 +225,12 @@ function EncargadoSection({ business }: { business: Business }) {
         businessId: business.id,
         redemptionId,
       });
-      toast.success('Entrega confirmada. Puntos consumidos.');
+      toast.success('Entrega confirmada. Loopoints consumidos.', {
+        action: {
+          label: 'Registrar compra',
+          onClick: () => navigate('/encargado/venta'),
+        },
+      });
       if (validated?.redemption_id === redemptionId) {
         setValidated(null);
         setToken('');
@@ -243,6 +250,14 @@ function EncargadoSection({ business }: { business: Business }) {
       <PageHeader
         title={`Atención de redenciones — ${business.name}`}
         description="Escanea el QR del cliente, apruébalo y confirma la entrega."
+        actions={
+          <Button asChild>
+            <Link to="/encargado/venta">
+              <ReceiptText aria-hidden="true" />
+              Registrar compra
+            </Link>
+          </Button>
+        }
       />
 
       <div className="grid gap-6 lg:grid-cols-3">
@@ -256,13 +271,13 @@ function EncargadoSection({ business }: { business: Business }) {
           <CardContent>
             <form onSubmit={handleValidate} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="qr-token">Código QR / token</Label>
+                <Label htmlFor="qr-token">Código manual del QR</Label>
                 <Input
                   id="qr-token"
                   name="token"
                   value={token}
                   onChange={(event) => setToken(event.target.value)}
-                  placeholder="Pega el código o escanea el QR"
+                  placeholder="Pega el código si la cámara no abre la pantalla"
                   required
                 />
               </div>
@@ -275,8 +290,9 @@ function EncargadoSection({ business }: { business: Business }) {
               </Button>
             </form>
             <p className="mt-3 text-xs text-muted-foreground">
-              El código QR contiene solo un token aleatorio. Nunca incluye datos
-              personales ni saldos. Al aprobarlo se invalida y no puede reutilizarse.
+              Al escanear con la cámara se abre la pantalla de confirmación del canje.
+              Si no es posible, pega aquí el código aleatorio. Nunca incluye datos
+              personales ni saldos, y deja de ser válido al confirmar la entrega.
             </p>
           </CardContent>
         </Card>

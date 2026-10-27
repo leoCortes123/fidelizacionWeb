@@ -25,6 +25,14 @@ const business: BusinessPublic = {
   operating_days: [1, 2, 3, 4, 5, 6],
   is_active: true,
   loyalty_active: true,
+  description: null,
+  logo_url: null,
+  address: null,
+  neighborhood: null,
+  city: null,
+  phone_whatsapp: null,
+  instagram: null,
+  website: null,
 };
 
 vi.mock('@/features/auth/AuthProvider', () => ({
@@ -52,7 +60,7 @@ function renderPage() {
     <MemoryRouter initialEntries={['/join/taqueria-el-fogon']}>
       <Routes>
         <Route path="/join/:slug" element={<BusinessJoinPage />} />
-        <Route path="/customer/balance" element={<p>Saldo del cliente</p>} />
+        <Route path="/customer/business/:businessId" element={<p>Saldo del cliente</p>} />
         <Route path="/admin/dashboard" element={<p>Panel de administración</p>} />
       </Routes>
     </MemoryRouter>,
@@ -73,7 +81,7 @@ describe('BusinessJoinPage', () => {
     renderPage();
 
     expect(screen.getByRole('heading', { name: 'Taquería El Fogón' })).toBeInTheDocument();
-    expect(screen.getByText('Programa de puntos activo')).toBeInTheDocument();
+    expect(screen.getByText('Programa de loopoints activo')).toBeInTheDocument();
     const link = screen.getByRole('link', { name: /Entrar y unirme/i });
     expect(link).toHaveAttribute(
       'href',

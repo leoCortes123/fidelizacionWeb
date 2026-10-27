@@ -10,7 +10,7 @@ import {
   pointsPreview,
 } from '@/lib/format';
 
-describe('formato de dinero y puntos', () => {
+describe('formato de dinero y loopoints', () => {
   it('formatea COP sin decimales', () => {
     expect(formatCOP(15500)).toContain('15.500');
     expect(formatCOP(0)).toContain('0');
@@ -29,19 +29,19 @@ describe('formato de dinero y puntos', () => {
     expect(formatCopInput('')).toBe('');
   });
 
-  it('calcula puntos por miles completos', () => {
+  it('calcula loopoints por miles completos', () => {
     expect(pointsPreview(15500, 1000, 500)).toBe(15);
     expect(pointsPreview(999, 1000, 500)).toBe(0);
     expect(pointsPreview(15499, 1000, 500)).toBe(15);
   });
 
-  it('aplica el máximo de puntos por compra', () => {
+  it('aplica el máximo de loopoints por compra', () => {
     expect(pointsPreview(100000, 1000, 20)).toBe(20);
   });
 
-  it('pluraliza puntos', () => {
-    expect(formatPoints(1)).toContain('1 punto');
-    expect(formatPoints(15)).toContain('15 puntos');
+  it('pluraliza loopoints', () => {
+    expect(formatPoints(1)).toContain('1 loopoint');
+    expect(formatPoints(15)).toContain('15 loopoints');
   });
 
   it('formatea fechas en America/Bogota', () => {

@@ -26,7 +26,7 @@ const fixture = vi.hoisted(() => ({
     {
       id: 'camp-1',
       business_id: 'biz-1',
-      name: 'Doble puntos',
+      name: 'Doble loopoints',
       description: 'De lunes a jueves',
       multiplier: 2,
       bonus_points: 0,
@@ -103,11 +103,11 @@ describe('CampaignsPage', () => {
   it('lista las campañas con beneficio y estado', () => {
     renderPage();
 
-    expect(screen.getByText('Doble puntos')).toBeInTheDocument();
+    expect(screen.getByText('Doble loopoints')).toBeInTheDocument();
     expect(screen.getByText('x2')).toBeInTheDocument();
     expect(screen.getByText('En vigencia')).toBeInTheDocument();
     expect(screen.getByText('Bono de bienvenida')).toBeInTheDocument();
-    expect(screen.getByText('+10 puntos')).toBeInTheDocument();
+    expect(screen.getByText('+10 loopoints')).toBeInTheDocument();
     expect(screen.getByText('Inactiva')).toBeInTheDocument();
   });
 
@@ -157,14 +157,14 @@ describe('CampaignsPage', () => {
     renderPage();
 
     await user.click(
-      screen.getByRole('button', { name: 'Desactivar Doble puntos' }),
+      screen.getByRole('button', { name: 'Desactivar Doble loopoints' }),
     );
 
     await waitFor(() => expect(upsert).toHaveBeenCalledTimes(1));
     expect(upsert).toHaveBeenCalledWith(
       expect.objectContaining({
         id: 'camp-1',
-        name: 'Doble puntos',
+        name: 'Doble loopoints',
         multiplier: 2,
         isActive: false,
       }),
@@ -176,7 +176,7 @@ describe('CampaignsPage', () => {
     renderPage();
 
     await user.click(
-      screen.getByRole('button', { name: 'Eliminar Doble puntos' }),
+      screen.getByRole('button', { name: 'Eliminar Doble loopoints' }),
     );
     const dialog = within(screen.getByRole('dialog'));
     await user.click(dialog.getByRole('button', { name: 'Eliminar' }));

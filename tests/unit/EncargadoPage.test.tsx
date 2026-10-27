@@ -47,8 +47,10 @@ const pendingRow: LoyaltyRedemptionWithCustomer = {
   delivered_at: null,
   cancelled_at: null,
   cancellation_reason: null,
+  origin: 'manual',
   customer_id: 'user-customer',
   customer_email: 'carla@example.test',
+  customer_nickname: 'carla',
 };
 
 vi.mock('@/features/loyalty/hooks', () => ({
@@ -106,7 +108,7 @@ describe('EncargadoPage', () => {
     const user = userEvent.setup();
     renderPage();
 
-    await user.type(screen.getByLabelText('Código QR / token'), 'tok_valido_1234567890');
+    await user.type(screen.getByLabelText('Código manual del QR'), 'tok_valido_1234567890');
     await user.click(screen.getByRole('button', { name: 'Validar token' }));
 
     const dialog = within(await screen.findByRole('dialog'));
@@ -150,7 +152,7 @@ describe('EncargadoPage', () => {
     });
     renderPage();
 
-    await user.type(screen.getByLabelText('Código QR / token'), 'tok_vencido_1234567890');
+    await user.type(screen.getByLabelText('Código manual del QR'), 'tok_vencido_1234567890');
     await user.click(screen.getByRole('button', { name: 'Validar token' }));
 
     const dialog = within(await screen.findByRole('dialog'));
@@ -164,6 +166,6 @@ describe('EncargadoPage', () => {
     renderPage();
 
     expect(screen.getByText('Sin permiso de aprobación')).toBeInTheDocument();
-    expect(screen.queryByLabelText('Código QR / token')).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Código manual del QR')).not.toBeInTheDocument();
   });
 });

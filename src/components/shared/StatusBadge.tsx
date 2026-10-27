@@ -62,3 +62,25 @@ export function RedemptionRequestStatusBadge({
   };
   return <Badge variant={config.variant}>{config.label}</Badge>;
 }
+
+/** Distintivo de cliente frecuente calculado por negocio en el servidor. */
+export function FrequencyBadge({
+  isFrequent,
+  isActive,
+  isRecovering = false,
+}: {
+  isFrequent: boolean;
+  isActive: boolean;
+  isRecovering?: boolean;
+}) {
+  if (isActive) {
+    return <Badge variant="success">Frecuente activo</Badge>;
+  }
+  if (isFrequent) {
+    return <Badge variant="secondary">Frecuente</Badge>;
+  }
+  if (isRecovering) {
+    return <Badge variant="warning">En recuperación</Badge>;
+  }
+  return null;
+}

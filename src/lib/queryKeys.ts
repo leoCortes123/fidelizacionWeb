@@ -8,12 +8,16 @@ export const queryKeys = {
   rewards: ['rewards'] as const,
   myRedemptions: ['my-redemptions'] as const,
   staffCustomers: (
+    businessId: string,
     search: string,
     page: number,
     sort: string,
     direction: string,
-  ) => ['staff-customers', search, page, sort, direction] as const,
-  staffCustomer: (id: string) => ['staff-customer', id] as const,
+  ) => ['staff-customers', businessId, search, page, sort, direction] as const,
+  staffCustomer: (businessId: string, id: string) =>
+    ['staff-customer', businessId, id] as const,
+  nicknameAvailable: (nickname: string) =>
+    ['nickname-available', nickname] as const,
   staffRedemptions: (status: string) => ['staff-redemptions', status] as const,
   adminSettings: ['admin-settings'] as const,
   adminRewards: ['admin-rewards'] as const,
@@ -24,7 +28,9 @@ export const queryKeys = {
 
   // Negocio y membresías
   businesses: ['businesses'] as const,
+  customerBusinessesSummary: ['customer-businesses-summary'] as const,
   business: (id: string) => ['business', id] as const,
+  businessProfile: (id: string) => ['business-profile', id] as const,
   businessPublic: (slug: string) => ['business-public', slug] as const,
   businessMemberships: (businessId: string) =>
     ['business-memberships', businessId] as const,
@@ -39,19 +45,29 @@ export const queryKeys = {
   loyaltyRewardsAvailable: (businessId: string, customerId: string) =>
     ['loyalty-rewards-available', businessId, customerId] as const,
 
-  // Puntos y redenciones
+  // Loopoints y redenciones
   loyaltyPointAccount: (businessId: string, customerId: string) =>
     ['loyalty-point-account', businessId, customerId] as const,
   loyaltyPointTransactions: (businessId: string, customerId: string) =>
     ['loyalty-point-transactions', businessId, customerId] as const,
-  loyaltyRedemptions: (businessId: string, status: string) =>
-    ['loyalty-redemptions', businessId, status] as const,
+  loyaltyRedemptions: (businessId: string, status: string, origin: string = '') =>
+    ['loyalty-redemptions', businessId, status, origin] as const,
   myLoyaltyRedemptions: ['my-loyalty-redemptions'] as const,
 
   // Ventas con QR por negocio
   purchaseQrPreview: (token: string) => ['purchase-qr-preview', token] as const,
   businessPurchases: (businessId: string, page: number, status: string) =>
     ['business-purchases', businessId, page, status] as const,
+  businessPurchaseDetail: (businessId: string, purchaseId: string) =>
+    ['business-purchase-detail', businessId, purchaseId] as const,
+  myPurchasesPage: (businessId: string, page: number) =>
+    ['my-purchases-page', businessId, page] as const,
+  myPurchaseDetail: (purchaseId: string) =>
+    ['my-purchase-detail', purchaseId] as const,
+  businessDashboardSummary: (businessId: string) =>
+    ['business-dashboard-summary', businessId] as const,
+  businessRecentActivity: (businessId: string) =>
+    ['business-recent-activity', businessId] as const,
 
   // Económico y auditoría
   businessEconomicProfile: (businessId: string) =>
@@ -60,10 +76,27 @@ export const queryKeys = {
     ['business-economic-dashboard', businessId] as const,
   businessAuditLog: (
     businessId: string,
-    operation = '',
+    filters: {
+      operation?: string;
+      actor?: string;
+      from?: string;
+      to?: string;
+      search?: string;
+    } = {},
     limit = 50,
     offset = 0,
-  ) => ['business-audit-log', businessId, operation, limit, offset] as const,
+  ) =>
+    [
+      'business-audit-log',
+      businessId,
+      filters.operation ?? '',
+      filters.actor ?? '',
+      filters.from ?? '',
+      filters.to ?? '',
+      filters.search ?? '',
+      limit,
+      offset,
+    ] as const,
   businessAuditLogPrefix: (businessId: string) =>
     ['business-audit-log', businessId] as const,
   loyaltyCampaigns: (businessId: string, onlyActive: boolean) =>

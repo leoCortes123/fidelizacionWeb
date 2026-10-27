@@ -7,7 +7,7 @@ describe('mensajes de error', () => {
       'ya fue reclamada',
     );
     expect(errorMessage({ message: 'insufficient_points' })).toContain(
-      'puntos suficientes',
+      'loopoints suficientes',
     );
     expect(errorMessage(new Error('purchase_expired'))).toContain('expiró');
   });

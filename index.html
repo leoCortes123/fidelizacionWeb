@@ -3,19 +3,33 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#b91c1c" />
+    <meta name="theme-color" content="#f7fbfc" />
     <meta
       name="description"
-      content="Programa de fidelización: acumula puntos con cada compra y canjéalos por tus antojos favoritos."
+      content="Loopoint: acumula loopoints con cada compra y canjéalos por recompensas en tus negocios favoritos."
     />
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/loopoint-coin.png" type="image/png" />
+    <link rel="apple-touch-icon" href="/loopoint-coin.png" />
+    <script>
+      // Aplica el tema antes del primer pintado para evitar el destello claro.
+      try {
+        var stored = localStorage.getItem('loopoint:theme');
+        var dark =
+          stored === 'dark' ||
+          (!stored && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        if (dark) document.documentElement.classList.add('dark');
+        document.documentElement.style.colorScheme = dark ? 'dark' : 'light';
+      } catch (error) {
+        /* Sin almacenamiento: se usa el tema del sistema. */
+      }
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <title>Taquería El Fogón · Puntos</title>
+    <title>Loopoint · Loopoints por tus compras</title>
   </head>
   <body>
     <div id="root"></div>
