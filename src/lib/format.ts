@@ -1,22 +1,22 @@
-import { loopointWord } from './copy';
+import { loopointWord } from "./copy";
 
-const copFormatter = new Intl.NumberFormat('es-CO', {
-  style: 'currency',
-  currency: 'COP',
+const copFormatter = new Intl.NumberFormat("es-CO", {
+  style: "currency",
+  currency: "COP",
   maximumFractionDigits: 0,
 });
 
-const numberFormatter = new Intl.NumberFormat('es-CO', {
+const numberFormatter = new Intl.NumberFormat("es-CO", {
   maximumFractionDigits: 0,
 });
 
 export function formatCOP(value: number): string {
-  if (!Number.isFinite(value)) return '$ 0';
+  if (!Number.isFinite(value)) return "$ 0";
   return copFormatter.format(Math.round(value));
 }
 
 export function formatNumber(value: number): string {
-  if (!Number.isFinite(value)) return '0';
+  if (!Number.isFinite(value)) return "0";
   return numberFormatter.format(value);
 }
 
@@ -28,7 +28,7 @@ export function formatLoopoints(value: number): string {
 export const formatPoints = formatLoopoints;
 
 export function digitsOnly(value: string): string {
-  return value.replace(/\D/g, '');
+  return value.replace(/\D/g, "");
 }
 
 export function parseCopInput(value: string): number | null {
@@ -39,49 +39,47 @@ export function parseCopInput(value: string): number | null {
 }
 
 export function formatCopInput(value: string): string {
-  const digits = digitsOnly(value).replace(/^0+(?=\d)/, '');
-  if (!digits) return '';
+  const digits = digitsOnly(value).replace(/^0+(?=\d)/, "");
+  if (!digits) return "";
   return numberFormatter.format(Number(digits));
 }
 
 export function formatDateBogota(value: string | null | undefined): string {
-  if (!value) return '—';
+  if (!value) return "—";
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '—';
-  return new Intl.DateTimeFormat('es-CO', {
-    timeZone: 'America/Bogota',
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
+  if (Number.isNaN(date.getTime())) return "—";
+  return new Intl.DateTimeFormat("es-CO", {
+    timeZone: "America/Bogota",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
   }).format(date);
 }
 
 export function formatDateTimeBogota(value: string | null | undefined): string {
-  if (!value) return '—';
+  if (!value) return "—";
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '—';
-  return new Intl.DateTimeFormat('es-CO', {
-    timeZone: 'America/Bogota',
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
+  if (Number.isNaN(date.getTime())) return "—";
+  return new Intl.DateTimeFormat("es-CO", {
+    timeZone: "America/Bogota",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   }).format(date);
 }
 
-export function formatShortDateTimeBogota(
-  value: string | null | undefined,
-): string {
-  if (!value) return '—';
+export function formatShortDateTimeBogota(value: string | null | undefined): string {
+  if (!value) return "—";
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '—';
-  return new Intl.DateTimeFormat('es-CO', {
-    timeZone: 'America/Bogota',
-    day: '2-digit',
-    month: 'short',
-    hour: '2-digit',
-    minute: '2-digit',
+  if (Number.isNaN(date.getTime())) return "—";
+  return new Intl.DateTimeFormat("es-CO", {
+    timeZone: "America/Bogota",
+    day: "2-digit",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
   }).format(date);
 }
 
@@ -96,7 +94,7 @@ export function pointsPreview(
 }
 
 export function formatRedemptionCode(code: string): string {
-  const clean = code.replace(/[^A-Z0-9]/gi, '').toUpperCase();
+  const clean = code.replace(/[^A-Z0-9]/gi, "").toUpperCase();
   if (clean.length <= 4) return clean;
-  return clean.match(/.{1,4}/g)?.join(' ') ?? clean;
+  return clean.match(/.{1,4}/g)?.join(" ") ?? clean;
 }

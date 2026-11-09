@@ -1,46 +1,37 @@
-import { Package, ReceiptText, ShieldCheck, UserRound } from 'lucide-react';
-import {
-  useBusinessPurchaseDetail,
-  useMyPurchaseDetail,
-} from './hooks';
-import {
-  formatCOP,
-  formatDateTimeBogota,
-  formatPoints,
-} from '@/lib/format';
-import type { PurchaseDetail } from '@/types';
-import { Badge } from '@/components/ui/badge';
+import { Package, ReceiptText, ShieldCheck, UserRound } from "lucide-react";
+import { useBusinessPurchaseDetail, useMyPurchaseDetail } from "./hooks";
+import { formatCOP, formatDateTimeBogota, formatPoints } from "@/lib/format";
+import type { PurchaseDetail } from "@/types";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { ErrorState, LoadingScreen } from '@/components/shared/States';
-import { PurchaseStatusBadge } from '@/components/shared/StatusBadge';
+} from "@/components/ui/dialog";
+import { ErrorState, LoadingScreen } from "@/components/shared/States";
+import { PurchaseStatusBadge } from "@/components/shared/StatusBadge";
 
 export function PurchaseDetailDialog({
   open,
   onOpenChange,
   purchaseId,
   businessId,
-  mode = 'business',
+  mode = "business",
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   purchaseId: string | null;
   businessId?: string;
-  mode?: 'business' | 'customer';
+  mode?: "business" | "customer";
 }) {
   const businessDetail = useBusinessPurchaseDetail(
-    mode === 'business' ? businessId ?? '' : '',
-    mode === 'business' ? purchaseId : null,
+    mode === "business" ? (businessId ?? "") : "",
+    mode === "business" ? purchaseId : null,
   );
-  const customerDetail = useMyPurchaseDetail(
-    mode === 'customer' ? purchaseId : null,
-  );
-  const query = mode === 'business' ? businessDetail : customerDetail;
+  const customerDetail = useMyPurchaseDetail(mode === "customer" ? purchaseId : null);
+  const query = mode === "business" ? businessDetail : customerDetail;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -50,16 +41,14 @@ export function PurchaseDetailDialog({
             <ReceiptText className="size-5 text-muted-foreground" aria-hidden="true" />
             Detalle de la compra
           </DialogTitle>
-          <DialogDescription>
-            Líneas, loopoints y datos de la venta.
-          </DialogDescription>
+          <DialogDescription>Líneas, loopoints y datos de la venta.</DialogDescription>
         </DialogHeader>
 
         {query.isLoading ? (
           <LoadingScreen label="Cargando detalle…" />
         ) : query.isError || !query.data ? (
           <ErrorState
-            error={query.error ?? new Error('No encontramos la compra.')}
+            error={query.error ?? new Error("No encontramos la compra.")}
             onRetry={() => void query.refetch()}
           />
         ) : (
@@ -79,9 +68,7 @@ export function PurchaseDetailBody({ detail }: { detail: PurchaseDetail }) {
           <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
             {business.name}
           </p>
-          <p className="font-display text-3xl font-extrabold">
-            {formatCOP(purchase.amount_cop)}
-          </p>
+          <p className="font-display text-3xl font-extrabold">{formatCOP(purchase.amount_cop)}</p>
           <p className="text-xs text-muted-foreground">
             {formatDateTimeBogota(purchase.created_at)}
           </p>
@@ -95,9 +82,7 @@ export function PurchaseDetailBody({ detail }: { detail: PurchaseDetail }) {
             <Package className="size-3.5" aria-hidden="true" />
             Loopoints
           </p>
-          <p className="mt-1 font-semibold">
-            {formatPoints(purchase.points_awarded)}
-          </p>
+          <p className="mt-1 font-semibold">{formatPoints(purchase.points_awarded)}</p>
         </div>
         <div className="rounded-lg border p-3">
           <p className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
@@ -105,9 +90,7 @@ export function PurchaseDetailBody({ detail }: { detail: PurchaseDetail }) {
             Cliente
           </p>
           <p className="mt-1 truncate font-semibold">
-            {customer
-              ? customer.full_name || customer.nickname || customer.email
-              : 'Sin reclamar'}
+            {customer ? customer.full_name || customer.nickname || customer.email : "Sin reclamar"}
           </p>
           {customer?.nickname && (
             <Badge variant="outline" className="mt-1">
@@ -175,4 +158,3 @@ export function PurchaseDetailBody({ detail }: { detail: PurchaseDetail }) {
     </div>
   );
 }
-

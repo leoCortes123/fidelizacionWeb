@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { QRCodeCanvas } from 'qrcode.react';
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
+import { QRCodeCanvas } from "qrcode.react";
 import {
   CalendarClock,
   Copy,
@@ -15,40 +15,40 @@ import {
   ScanLine,
   Search,
   Sparkles,
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { useLoyaltyProgram, useProducts } from '@/features/loyalty/hooks';
+} from "lucide-react";
+import { toast } from "sonner";
+import { useLoyaltyProgram, useProducts } from "@/features/loyalty/hooks";
 import {
   useBusinessPurchases,
   useCreatePurchaseQr,
   type PurchaseItemInput,
-} from '@/features/purchases/hooks';
-import { claimUrl } from '@/lib/config';
-import { errorMessage } from '@/lib/errors';
-import { useFormDraft } from '@/lib/useFormDraft';
+} from "@/features/purchases/hooks";
+import { claimUrl } from "@/lib/config";
+import { errorMessage } from "@/lib/errors";
+import { useFormDraft } from "@/lib/useFormDraft";
 import {
   formatCOP,
   formatCopInput,
   formatDateTimeBogota,
   formatPoints,
   parseCopInput,
-} from '@/lib/format';
-import type { Business, Product, PurchaseQrCreateResult } from '@/types';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { PageHeader } from '@/components/shared/PageHeader';
-import { Field } from '@/components/shared/Field';
-import { PurchaseStatusBadge } from '@/components/shared/StatusBadge';
-import { EmptyState, ListSkeleton } from '@/components/shared/States';
-import { BusinessGate } from './BusinessGate';
+} from "@/lib/format";
+import type { Business, Product, PurchaseQrCreateResult } from "@/types";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { Field } from "@/components/shared/Field";
+import { PurchaseStatusBadge } from "@/components/shared/StatusBadge";
+import { EmptyState, ListSkeleton } from "@/components/shared/States";
+import { BusinessGate } from "./BusinessGate";
 
 const RECENT_PAGE_SIZE = 5;
 
-type ComposerMode = 'manual' | 'catalog';
+type ComposerMode = "manual" | "catalog";
 
 interface PurchaseDraft {
   mode: ComposerMode;
@@ -57,8 +57,8 @@ interface PurchaseDraft {
 }
 
 const EMPTY_DRAFT: PurchaseDraft = {
-  mode: 'manual',
-  amountText: '',
+  mode: "manual",
+  amountText: "",
   quantities: {},
 };
 
@@ -79,30 +79,24 @@ function PurchaseQrSection({ business }: { business: Business }) {
   const program = useLoyaltyProgram(business.id);
   const products = useProducts(business.id, true);
   const createPurchase = useCreatePurchaseQr(business.id);
-  const recent = useBusinessPurchases(business.id, 0, RECENT_PAGE_SIZE, '');
+  const recent = useBusinessPurchases(business.id, 0, RECENT_PAGE_SIZE, "");
 
   const draft = useFormDraft<PurchaseDraft>({
     key: `admin:purchase:${business.id}`,
-    storage: 'session',
+    storage: "session",
     version: 2,
   });
   const initial = draft.read() ?? EMPTY_DRAFT;
   const [mode, setMode] = useState<ComposerMode>(initial.mode);
   const [amountText, setAmountText] = useState(initial.amountText);
-  const [quantities, setQuantities] = useState<Record<string, number>>(
-    initial.quantities,
-  );
-  const [search, setSearch] = useState('');
+  const [quantities, setQuantities] = useState<Record<string, number>>(initial.quantities);
+  const [search, setSearch] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<PurchaseQrCreateResult | null>(null);
   const qrRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
-    if (
-      amountText.trim() ||
-      Object.keys(quantities).length > 0 ||
-      mode !== 'manual'
-    ) {
+    if (amountText.trim() || Object.keys(quantities).length > 0 || mode !== "manual") {
       draft.save({ mode, amountText, quantities });
     } else {
       draft.clear();
@@ -117,9 +111,7 @@ function PurchaseQrSection({ business }: { business: Business }) {
     const rows = products.data ?? [];
     if (!term) return rows;
     return rows.filter((product) =>
-      `${product.name} ${product.description ?? ''}`
-        .toLowerCase()
-        .includes(term),
+      `${product.name} ${product.description ?? ""}`.toLowerCase().includes(term),
     );
   }, [products.data, search]);
 
@@ -135,12 +127,9 @@ function PurchaseQrSection({ business }: { business: Business }) {
     [products.data, quantities],
   );
 
-  const catalogTotal = selectedProducts.reduce(
-    (sum, item) => sum + item.lineTotal,
-    0,
-  );
+  const catalogTotal = selectedProducts.reduce((sum, item) => sum + item.lineTotal, 0);
 
-  const effectiveAmount = mode === 'catalog' ? catalogTotal : amount;
+  const effectiveAmount = mode === "catalog" ? catalogTotal : amount;
   const preview = useMemo(() => {
     if (!effectiveAmount || effectiveAmount <= 0 || copPerPoint <= 0) return null;
     return Math.min(Math.floor(effectiveAmount / copPerPoint), 1_000_000);
@@ -150,10 +139,10 @@ function PurchaseQrSection({ business }: { business: Business }) {
 
   function changeMode(next: string) {
     const nextMode = next as ComposerMode;
-    if (nextMode === 'manual' && selectedProducts.length > 0) {
+    if (nextMode === "manual" && selectedProducts.length > 0) {
       setAmountText(formatCopInput(String(catalogTotal)));
       setQuantities({});
-      toast.info('Pasaste a valor manual: se descartaron los productos elegidos.');
+      toast.info("Pasaste a valor manual: se descartaron los productos elegidos.");
     }
     setMode(nextMode);
     setError(null);
@@ -173,25 +162,25 @@ function PurchaseQrSection({ business }: { business: Business }) {
     event.preventDefault();
     setError(null);
     if (!programActive) {
-      setError('Activa el programa de loopoints antes de generar ventas.');
+      setError("Activa el programa de loopoints antes de generar ventas.");
       return;
     }
-    if (mode === 'catalog') {
+    if (mode === "catalog") {
       if (selectedProducts.length === 0) {
-        setError('Elige al menos un producto de la carta.');
+        setError("Elige al menos un producto de la carta.");
         return;
       }
       if (catalogTotal <= 0) {
-        setError('El total de la venta debe ser mayor que cero.');
+        setError("El total de la venta debe ser mayor que cero.");
         return;
       }
     } else if (!amount || amount <= 0) {
-      setError('Introduce un importe mayor que cero.');
+      setError("Introduce un importe mayor que cero.");
       return;
     }
 
     const items: PurchaseItemInput[] =
-      mode === 'catalog'
+      mode === "catalog"
         ? selectedProducts.map((item) => ({
             product_id: item.product.id,
             quantity: item.quantity,
@@ -203,12 +192,10 @@ function PurchaseQrSection({ business }: { business: Business }) {
       {
         onSuccess: (data) => {
           setResult(data);
-          setAmountText('');
+          setAmountText("");
           setQuantities({});
           draft.clear();
-          toast.success(
-            'QR generado. Muéstralo al cliente para que sume sus loopoints.',
-          );
+          toast.success("QR generado. Muéstralo al cliente para que sume sus loopoints.");
         },
         onError: (mutationError) => setError(errorMessage(mutationError)),
       },
@@ -224,17 +211,17 @@ function PurchaseQrSection({ business }: { business: Business }) {
     if (!result) return;
     try {
       await navigator.clipboard.writeText(claimUrl(result.token));
-      toast.success('Enlace copiado');
+      toast.success("Enlace copiado");
     } catch {
-      toast.error('No se pudo copiar el enlace.');
+      toast.error("No se pudo copiar el enlace.");
     }
   }
 
   function downloadQr() {
     if (!qrRef.current || !result) return;
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.download = `qr-compra-${result.purchase_id.slice(0, 8)}.png`;
-    link.href = qrRef.current.toDataURL('image/png');
+    link.href = qrRef.current.toDataURL("image/png");
     link.click();
   }
 
@@ -284,7 +271,7 @@ function PurchaseQrSection({ business }: { business: Business }) {
                     hint={
                       amount !== null && amount > 0
                         ? formatCOP(amount)
-                        : 'Total pagado por el cliente.'
+                        : "Total pagado por el cliente."
                     }
                     help="Escribe el valor total de la venta. El cliente verá los loopoints estimados antes de confirmar."
                   >
@@ -368,9 +355,7 @@ function PurchaseQrSection({ business }: { business: Business }) {
                           ))}
                           <div className="flex items-baseline justify-between gap-2 border-t pt-2 text-sm font-bold">
                             <span>Total</span>
-                            <span data-testid="catalog-total">
-                              {formatCOP(catalogTotal)}
-                            </span>
+                            <span data-testid="catalog-total">{formatCOP(catalogTotal)}</span>
                           </div>
                         </div>
                       )}
@@ -410,9 +395,8 @@ function PurchaseQrSection({ business }: { business: Business }) {
 
                 <p className="flex items-start gap-2 text-xs text-muted-foreground">
                   <ScanLine className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-                  El cliente escanea el QR con la cámara de su teléfono. El código
-                  vence en {program.data?.qr_expiry_hours ?? 24} horas y solo puede
-                  reclamarse una vez.
+                  El cliente escanea el QR con la cámara de su teléfono. El código vence en{" "}
+                  {program.data?.qr_expiry_hours ?? 24} horas y solo puede reclamarse una vez.
                 </p>
               </form>
             </Tabs>
@@ -432,7 +416,7 @@ function PurchaseQrSection({ business }: { business: Business }) {
                       {formatCOP(result.amount_cop)}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {formatDateTimeBogota(result.expires_at)} · vence en{' '}
+                      {formatDateTimeBogota(result.expires_at)} · vence en{" "}
                       {program.data?.qr_expiry_hours ?? 24} h
                     </p>
                   </div>
@@ -451,8 +435,8 @@ function PurchaseQrSection({ business }: { business: Business }) {
                           {item.is_combo && item.combo_detail.length > 0
                             ? ` (${item.combo_detail
                                 .map((component) => `${component.quantity} ${component.name}`)
-                                .join(', ')})`
-                            : ''}
+                                .join(", ")})`
+                            : ""}
                         </span>
                         <span className="shrink-0 tabular-nums">
                           {formatCOP(item.line_total_cop)}
@@ -514,9 +498,8 @@ function PurchaseQrSection({ business }: { business: Business }) {
                   <div>
                     <p className="font-semibold">El QR aparecerá aquí</p>
                     <p className="mt-1 max-w-xs text-sm text-muted-foreground">
-                      Introduce el valor de la venta o elige productos de la carta
-                      y genera el QR. El cliente lo escanea, confirma la compra y
-                      recibe los loopoints.
+                      Introduce el valor de la venta o elige productos de la carta y genera el QR.
+                      El cliente lo escanea, confirma la compra y recibe los loopoints.
                     </p>
                   </div>
                 </div>
@@ -553,18 +536,14 @@ function PurchaseQrSection({ business }: { business: Business }) {
                   <div className="min-w-0">
                     <p className="font-semibold">{formatCOP(purchase.amount_cop)}</p>
                     <p className="truncate text-xs text-muted-foreground">
-                      {formatDateTimeBogota(purchase.created_at)} ·{' '}
-                      {purchase.customer_name ?? 'Sin reclamar'}
-                      {purchase.items_count
-                        ? ` · ${purchase.items_count} ítem(s)`
-                        : ''}
+                      {formatDateTimeBogota(purchase.created_at)} ·{" "}
+                      {purchase.customer_name ?? "Sin reclamar"}
+                      {purchase.items_count ? ` · ${purchase.items_count} ítem(s)` : ""}
                     </p>
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-xs text-muted-foreground">
-                      {purchase.points_awarded > 0
-                        ? formatPoints(purchase.points_awarded)
-                        : ''}
+                      {purchase.points_awarded > 0 ? formatPoints(purchase.points_awarded) : ""}
                     </span>
                     <PurchaseStatusBadge status={purchase.status} />
                   </div>
@@ -593,23 +572,17 @@ function ProductPickerRow({
         <div className="min-w-0">
           <p className="flex items-center gap-2 font-semibold">
             <span className="truncate">{product.name}</span>
-            {product.kind === 'combo' && <Badge variant="secondary">Combo</Badge>}
+            {product.kind === "combo" && <Badge variant="secondary">Combo</Badge>}
           </p>
-          {product.kind === 'combo' && product.combo_items.length > 0 && (
+          {product.kind === "combo" && product.combo_items.length > 0 && (
             <p className="text-xs text-muted-foreground">
-              {product.combo_items
-                .map((item) => `${item.quantity} × ${item.name}`)
-                .join(' · ')}
+              {product.combo_items.map((item) => `${item.quantity} × ${item.name}`).join(" · ")}
             </p>
           )}
           {product.description && (
-            <p className="truncate text-xs text-muted-foreground">
-              {product.description}
-            </p>
+            <p className="truncate text-xs text-muted-foreground">{product.description}</p>
           )}
-          <p className="mt-1 text-sm font-semibold tabular-nums">
-            {formatCOP(product.price_cop)}
-          </p>
+          <p className="mt-1 text-sm font-semibold tabular-nums">{formatCOP(product.price_cop)}</p>
         </div>
         <div className="flex shrink-0 items-center gap-1">
           <Button

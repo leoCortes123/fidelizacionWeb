@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'fidelizacion:pending-claim';
+const STORAGE_KEY = "fidelizacion:pending-claim";
 const TOKEN_PATTERN = /^[A-Za-z0-9_-]{20,100}$/;
 const MAX_AGE_MS = 2 * 60 * 60 * 1000;
 
@@ -37,9 +37,9 @@ export function pendingClaimPath(): string | null {
     if (!raw) return null;
     const value = JSON.parse(raw) as Partial<PendingClaim>;
     if (
-      typeof value.token !== 'string' ||
+      typeof value.token !== "string" ||
       !TOKEN_PATTERN.test(value.token) ||
-      typeof value.savedAt !== 'number' ||
+      typeof value.savedAt !== "number" ||
       Date.now() - value.savedAt > MAX_AGE_MS
     ) {
       clearPendingClaim();

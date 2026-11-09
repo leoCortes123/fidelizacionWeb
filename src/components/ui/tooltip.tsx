@@ -1,6 +1,6 @@
-import * as React from 'react';
-import * as TooltipPrimitive from '@radix-ui/react-tooltip';
-import { cn } from '@/lib/utils';
+import * as React from "react";
+import * as TooltipPrimitive from "@radix-ui/react-tooltip";
+import { cn } from "@/lib/utils";
 
 const TooltipProvider = TooltipPrimitive.Provider;
 const Tooltip = TooltipPrimitive.Root;
@@ -15,8 +15,8 @@ const TooltipContent = React.forwardRef<
       ref={ref}
       sideOffset={sideOffset}
       className={cn(
-        'z-50 max-w-[16rem] rounded-lg bg-foreground px-2.5 py-1.5 text-xs font-medium leading-snug text-background shadow-md',
-        'data-[state=delayed-open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=delayed-open]:fade-in-0',
+        "z-50 max-w-[16rem] rounded-lg bg-foreground px-2.5 py-1.5 text-xs font-medium leading-snug text-background shadow-md",
+        "data-[state=delayed-open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=delayed-open]:fade-in-0",
         className,
       )}
       {...props}

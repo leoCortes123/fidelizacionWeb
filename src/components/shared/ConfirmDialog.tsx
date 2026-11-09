@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from "react";
 import {
   Dialog,
   DialogContent,
@@ -6,8 +6,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 
 interface ConfirmDialogProps {
   open: boolean;
@@ -27,8 +27,8 @@ export function ConfirmDialog({
   onOpenChange,
   title,
   description,
-  confirmLabel = 'Confirmar',
-  cancelLabel = 'Volver',
+  confirmLabel = "Confirmar",
+  cancelLabel = "Volver",
   destructive = false,
   loading = false,
   onConfirm,
@@ -64,7 +64,7 @@ export function ConfirmDialog({
           </Button>
           <Button
             type="button"
-            variant={destructive ? 'destructive' : 'default'}
+            variant={destructive ? "destructive" : "default"}
             onClick={handleConfirm}
             loading={busy || loading}
           >

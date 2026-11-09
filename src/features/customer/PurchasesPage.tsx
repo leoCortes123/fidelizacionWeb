@@ -1,20 +1,20 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, ReceiptText, Store } from 'lucide-react';
-import { useBusinessContext } from '@/features/loyalty/businessContext';
-import { useMyPurchasesPage } from '@/features/purchases/hooks';
-import { PurchaseDetailDialog } from '@/features/purchases/PurchaseDetailDialog';
-import { useProgramSettings } from '@/features/points/hooks';
-import { formatCOP, formatDateBogota } from '@/lib/format';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { ChevronLeft, ChevronRight, ReceiptText, Store } from "lucide-react";
+import { useBusinessContext } from "@/features/loyalty/businessContext";
+import { useMyPurchasesPage } from "@/features/purchases/hooks";
+import { PurchaseDetailDialog } from "@/features/purchases/PurchaseDetailDialog";
+import { useProgramSettings } from "@/features/points/hooks";
+import { formatCOP, formatDateBogota } from "@/lib/format";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -22,22 +22,21 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { PageHeader } from '@/components/shared/PageHeader';
-import { EmptyState, ErrorState, ListSkeleton } from '@/components/shared/States';
+} from "@/components/ui/table";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { EmptyState, ErrorState, ListSkeleton } from "@/components/shared/States";
 
 export function PurchasesPage() {
   const [page, setPage] = useState(0);
   const [detailId, setDetailId] = useState<string | null>(null);
-  const [businessFilter, setBusinessFilter] = useState('');
+  const [businessFilter, setBusinessFilter] = useState("");
   const { businesses } = useBusinessContext();
   const settings = useProgramSettings();
   const pageSize = settings.data?.history_page_size ?? 10;
   const purchases = useMyPurchasesPage(businessFilter, page, pageSize);
   const total = purchases.data?.[0]?.total_count ?? 0;
   const pageCount = Math.max(1, Math.ceil(total / pageSize));
-  const businessLabel =
-    businesses.find((business) => business.id === businessFilter)?.name ?? null;
+  const businessLabel = businesses.find((business) => business.id === businessFilter)?.name ?? null;
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -46,7 +45,7 @@ export function PurchasesPage() {
         description={
           businessLabel
             ? `Compras acreditadas en ${businessLabel}.`
-            : 'Historial global de compras acreditadas y los loopoints ganados.'
+            : "Historial global de compras acreditadas y los loopoints ganados."
         }
       />
 
@@ -56,16 +55,13 @@ export function PurchasesPage() {
             Filtrar por negocio
           </span>
           <Select
-            value={businessFilter || 'all'}
+            value={businessFilter || "all"}
             onValueChange={(value) => {
-              setBusinessFilter(value === 'all' ? '' : value);
+              setBusinessFilter(value === "all" ? "" : value);
               setPage(0);
             }}
           >
-            <SelectTrigger
-              className="w-full sm:w-64"
-              aria-label="Filtrar compras por negocio"
-            >
+            <SelectTrigger className="w-full sm:w-64" aria-label="Filtrar compras por negocio">
               <SelectValue placeholder="Todos los negocios" />
             </SelectTrigger>
             <SelectContent>
@@ -79,7 +75,6 @@ export function PurchasesPage() {
           </Select>
         </div>
       )}
-
 
       {purchases.isLoading ? (
         <ListSkeleton rows={4} />
@@ -105,7 +100,10 @@ export function PurchasesPage() {
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="flex items-center gap-1.5 truncate font-semibold">
-                        <Store className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                        <Store
+                          className="size-4 shrink-0 text-muted-foreground"
+                          aria-hidden="true"
+                        />
                         {purchase.business_name}
                       </p>
                       <p className="font-display text-xl font-extrabold">
@@ -128,13 +126,9 @@ export function PurchasesPage() {
                     <span>
                       {purchase.items_count > 0
                         ? `${purchase.items_count} producto(s)`
-                        : 'Sin detalle de productos'}
+                        : "Sin detalle de productos"}
                     </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setDetailId(purchase.id)}
-                    >
+                    <Button variant="outline" size="sm" onClick={() => setDetailId(purchase.id)}>
                       Ver detalle
                     </Button>
                   </div>
@@ -161,9 +155,7 @@ export function PurchasesPage() {
                     <TableRow key={purchase.id}>
                       <TableCell>
                         <p className="font-medium">{purchase.business_name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          @{purchase.business_slug}
-                        </p>
+                        <p className="text-xs text-muted-foreground">@{purchase.business_slug}</p>
                       </TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         {formatDateBogota(purchase.claimed_at ?? purchase.created_at)}
@@ -172,17 +164,13 @@ export function PurchasesPage() {
                         {formatCOP(purchase.amount_cop)}
                       </TableCell>
                       <TableCell className="text-sm">
-                        {purchase.items_count > 0 ? purchase.items_count : '—'}
+                        {purchase.items_count > 0 ? purchase.items_count : "—"}
                       </TableCell>
                       <TableCell className="text-right font-semibold text-emerald-700">
                         +{purchase.points_awarded}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setDetailId(purchase.id)}
-                        >
+                        <Button variant="ghost" size="sm" onClick={() => setDetailId(purchase.id)}>
                           Ver detalle
                         </Button>
                       </TableCell>

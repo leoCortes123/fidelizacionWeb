@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useState } from "react";
+import { Link } from "react-router-dom";
 import {
   ArrowDownUp,
   ChevronLeft,
@@ -8,27 +8,22 @@ import {
   Sparkles,
   Star,
   Users,
-} from 'lucide-react';
-import { useAdminCustomers } from './hooks';
-import { useBusinessContext } from '@/features/loyalty/businessContext';
-import {
-  formatCOP,
-  formatDateBogota,
-  formatDateTimeBogota,
-  formatPoints,
-} from '@/lib/format';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+} from "lucide-react";
+import { useAdminCustomers } from "./hooks";
+import { useBusinessContext } from "@/features/loyalty/businessContext";
+import { formatCOP, formatDateBogota, formatDateTimeBogota, formatPoints } from "@/lib/format";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -36,21 +31,21 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { FrequencyBadge } from '@/components/shared/StatusBadge';
-import { PageHeader } from '@/components/shared/PageHeader';
-import { EmptyState, ErrorState, ListSkeleton } from '@/components/shared/States';
+} from "@/components/ui/table";
+import { FrequencyBadge } from "@/components/shared/StatusBadge";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { EmptyState, ErrorState, ListSkeleton } from "@/components/shared/States";
 
 const PAGE_SIZE = 15;
 
 export function CustomersPage() {
   const { selectedBusiness } = useBusinessContext();
-  const businessId = selectedBusiness?.id ?? '';
-  const [searchInput, setSearchInput] = useState('');
-  const [search, setSearch] = useState('');
+  const businessId = selectedBusiness?.id ?? "";
+  const [searchInput, setSearchInput] = useState("");
+  const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
-  const [sort, setSort] = useState('points');
-  const [direction, setDirection] = useState('desc');
+  const [sort, setSort] = useState("points");
+  const [direction, setDirection] = useState("desc");
   const [onlyFrequent, setOnlyFrequent] = useState(false);
   const customers = useAdminCustomers(
     businessId,
@@ -78,7 +73,7 @@ export function CustomersPage() {
         description={
           selectedBusiness
             ? `Clientes de ${selectedBusiness.name}: saldo, compras, frecuencia y valor acumulado.`
-            : 'Consulta saldo, compras y valor acumulado por negocio.'
+            : "Consulta saldo, compras y valor acumulado por negocio."
         }
       />
 
@@ -104,8 +99,8 @@ export function CustomersPage() {
                 type="button"
                 variant="ghost"
                 onClick={() => {
-                  setSearch('');
-                  setSearchInput('');
+                  setSearch("");
+                  setSearchInput("");
                   setPage(0);
                 }}
               >
@@ -139,7 +134,7 @@ export function CustomersPage() {
             </div>
             <Button
               type="button"
-              variant={onlyFrequent ? 'default' : 'outline'}
+              variant={onlyFrequent ? "default" : "outline"}
               className="w-full sm:w-auto"
               onClick={() => {
                 setOnlyFrequent((current) => !current);
@@ -148,19 +143,19 @@ export function CustomersPage() {
               aria-pressed={onlyFrequent}
             >
               <Star aria-hidden="true" />
-              {onlyFrequent ? 'Solo frecuentes' : 'Todos los clientes'}
+              {onlyFrequent ? "Solo frecuentes" : "Todos los clientes"}
             </Button>
             <Button
               type="button"
               variant="outline"
               className="w-full sm:w-auto"
               onClick={() => {
-                setDirection((current) => (current === 'asc' ? 'desc' : 'asc'));
+                setDirection((current) => (current === "asc" ? "desc" : "asc"));
                 setPage(0);
               }}
             >
               <ArrowDownUp aria-hidden="true" />
-              {direction === 'asc' ? 'Ascendente' : 'Descendente'}
+              {direction === "asc" ? "Ascendente" : "Descendente"}
             </Button>
           </div>
         </CardContent>
@@ -176,9 +171,9 @@ export function CustomersPage() {
           description={
             search
               ? onlyFrequent
-                ? 'No hay clientes frecuentes con esa búsqueda. Prueba sin el filtro.'
-                : 'No encontramos coincidencias. Prueba con otro nombre o correo.'
-              : 'Los clientes aparecen cuando se afilian al negocio.'
+                ? "No hay clientes frecuentes con esa búsqueda. Prueba sin el filtro."
+                : "No encontramos coincidencias. Prueba con otro nombre o correo."
+              : "Los clientes aparecen cuando se afilian al negocio."
           }
           icon={Users}
         />
@@ -191,25 +186,20 @@ export function CustomersPage() {
                 <CardContent className="space-y-3 p-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 space-y-1">
-                      <p className="truncate font-semibold">
-                        {customer.full_name || 'Sin nombre'}
-                      </p>
+                      <p className="truncate font-semibold">{customer.full_name || "Sin nombre"}</p>
                       {customer.nickname && (
                         <Badge variant="outline" className="max-w-full truncate font-normal">
                           @{customer.nickname}
                         </Badge>
                       )}
-                      <p className="truncate text-xs text-muted-foreground">
-                        {customer.email}
-                      </p>
+                      <p className="truncate text-xs text-muted-foreground">{customer.email}</p>
                       <FrequencyBadge
                         isFrequent={customer.is_frequent}
                         isActive={customer.is_frequent_active}
                       />
                       {customer.last_purchase_at && (
                         <p className="text-[11px] text-muted-foreground">
-                          Última compra:{' '}
-                          {formatDateTimeBogota(customer.last_purchase_at)}
+                          Última compra: {formatDateTimeBogota(customer.last_purchase_at)}
                         </p>
                       )}
                     </div>
@@ -224,8 +214,7 @@ export function CustomersPage() {
                   </div>
                   <div className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
                     <span>
-                      {customer.purchase_count} compras ·{' '}
-                      {formatCOP(customer.total_spent)}
+                      {customer.purchase_count} compras · {formatCOP(customer.total_spent)}
                     </span>
                     <span>{formatDateBogota(customer.created_at)}</span>
                   </div>
@@ -258,9 +247,7 @@ export function CustomersPage() {
                   {customers.data.map((customer) => (
                     <TableRow key={customer.id}>
                       <TableCell>
-                        <p className="font-semibold">
-                          {customer.full_name || 'Sin nombre'}
-                        </p>
+                        <p className="font-semibold">{customer.full_name || "Sin nombre"}</p>
                         {customer.nickname && (
                           <p className="text-xs text-muted-foreground">@{customer.nickname}</p>
                         )}

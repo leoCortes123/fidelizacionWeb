@@ -3,7 +3,7 @@
  * datos solo guarda su hash, así que el navegador lo conserva por pestaña en
  * `sessionStorage` y puede reemitirse mientras la solicitud siga pendiente.
  */
-const KEY_PREFIX = 'loyalty:token:';
+const KEY_PREFIX = "loyalty:token:";
 
 export interface StoredRedemptionToken {
   token: string;
@@ -23,10 +23,7 @@ function getStorage(): Storage | null {
   }
 }
 
-export function saveRedemptionToken(
-  redemptionId: string,
-  value: StoredRedemptionToken,
-): void {
+export function saveRedemptionToken(redemptionId: string, value: StoredRedemptionToken): void {
   const storage = getStorage();
   if (!storage) return;
   try {
@@ -36,20 +33,18 @@ export function saveRedemptionToken(
   }
 }
 
-export function readRedemptionToken(
-  redemptionId: string,
-): StoredRedemptionToken | null {
+export function readRedemptionToken(redemptionId: string): StoredRedemptionToken | null {
   const storage = getStorage();
   if (!storage) return null;
   try {
     const raw = storage.getItem(storageKey(redemptionId));
     if (!raw) return null;
     const parsed = JSON.parse(raw) as Partial<StoredRedemptionToken> | null;
-    if (!parsed || typeof parsed.token !== 'string' || !parsed.token) return null;
+    if (!parsed || typeof parsed.token !== "string" || !parsed.token) return null;
     return {
       token: parsed.token,
-      expires_at: typeof parsed.expires_at === 'string' ? parsed.expires_at : '',
-      code: typeof parsed.code === 'string' ? parsed.code : undefined,
+      expires_at: typeof parsed.expires_at === "string" ? parsed.expires_at : "",
+      code: typeof parsed.code === "string" ? parsed.code : undefined,
     };
   } catch {
     return null;

@@ -1,13 +1,7 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  type ReactNode,
-} from 'react';
-import type { Business, BusinessRole } from '@/types';
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import type { Business, BusinessRole } from "@/types";
 
-const STORAGE_PREFIX = 'fidelizacion:selected-business';
+const STORAGE_PREFIX = "fidelizacion:selected-business";
 
 export function businessStorageKey(userId?: string | null): string {
   return userId ? `${STORAGE_PREFIX}:${userId}` : STORAGE_PREFIX;
@@ -61,15 +55,13 @@ export function BusinessProvider({
   userId?: string | null;
 }) {
   const storageKey = businessStorageKey(userId);
-  const [chosenId, setChosenId] = useState<string | null>(() =>
-    readStoredBusinessId(storageKey),
-  );
+  const [chosenId, setChosenId] = useState<string | null>(() => readStoredBusinessId(storageKey));
   // `showSelector` permite volver a la pantalla de selección desde el panel.
   const [showSelector, setShowSelector] = useState(false);
 
   const selectedBusiness = showSelector
     ? null
-    : businesses.find((business) => business.id === chosenId) ?? businesses[0] ?? null;
+    : (businesses.find((business) => business.id === chosenId) ?? businesses[0] ?? null);
 
   // Conserva la elección (incluida la selección por defecto) para la próxima visita.
   useEffect(() => {
@@ -120,7 +112,7 @@ export function BusinessProvider({
 export function useBusinessContext() {
   const context = useContext(BusinessContext);
   if (!context) {
-    throw new Error('useBusinessContext debe usarse dentro de BusinessProvider');
+    throw new Error("useBusinessContext debe usarse dentro de BusinessProvider");
   }
   return context;
 }

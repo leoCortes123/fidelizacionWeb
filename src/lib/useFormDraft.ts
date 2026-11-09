@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from "react";
 
-type DraftStorage = 'local' | 'session';
+type DraftStorage = "local" | "session";
 
 interface UseFormDraftOptions {
   /** Identificador estable del formulario (usuario, negocio, pantalla). */
@@ -19,11 +19,11 @@ interface DraftEnvelope<T> {
   value: T;
 }
 
-const PREFIX = 'loopoint:draft:';
+const PREFIX = "loopoint:draft:";
 
 function getStorage(kind: DraftStorage): Storage | null {
   try {
-    return kind === 'session' ? window.sessionStorage : window.localStorage;
+    return kind === "session" ? window.sessionStorage : window.localStorage;
   } catch {
     return null;
   }
@@ -35,7 +35,7 @@ function getStorage(kind: DraftStorage): Storage | null {
  */
 export function useFormDraft<T>({
   key,
-  storage = 'local',
+  storage = "local",
   version = 1,
   ttlDays = 7,
   enabled = true,

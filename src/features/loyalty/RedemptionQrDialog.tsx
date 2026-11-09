@@ -1,10 +1,10 @@
-import { QRCodeCanvas } from 'qrcode.react';
-import { AlertTriangle, Clock, Copy, Link2, RefreshCw, ShieldCheck } from 'lucide-react';
-import { toast } from 'sonner';
-import { formatDateTimeBogota, formatRedemptionCode } from '@/lib/format';
-import { redemptionScanUrl } from '@/lib/config';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
+import { QRCodeCanvas } from "qrcode.react";
+import { AlertTriangle, Clock, Copy, Link2, RefreshCw, ShieldCheck } from "lucide-react";
+import { toast } from "sonner";
+import { formatDateTimeBogota, formatRedemptionCode } from "@/lib/format";
+import { redemptionScanUrl } from "@/lib/config";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -12,8 +12,8 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { useCountdown } from './useCountdown';
+} from "@/components/ui/dialog";
+import { useCountdown } from "./useCountdown";
 
 interface RedemptionQrDialogProps {
   open: boolean;
@@ -41,15 +41,15 @@ export function RedemptionQrDialog({
   const countdown = useCountdown(expiresAt);
   const expired = Boolean(expiresAt) && countdown.expired;
   const usable = Boolean(token) && !expired;
-  const scanUrl = token ? redemptionScanUrl(token) : '';
+  const scanUrl = token ? redemptionScanUrl(token) : "";
 
   async function copyToken() {
     if (!token) return;
     try {
       await navigator.clipboard.writeText(token);
-      toast.success('Código copiado.');
+      toast.success("Código copiado.");
     } catch {
-      toast.error('No se pudo copiar el código. Selecciónalo manualmente.');
+      toast.error("No se pudo copiar el código. Selecciónalo manualmente.");
     }
   }
 
@@ -57,9 +57,9 @@ export function RedemptionQrDialog({
     if (!scanUrl) return;
     try {
       await navigator.clipboard.writeText(scanUrl);
-      toast.success('Enlace copiado.');
+      toast.success("Enlace copiado.");
     } catch {
-      toast.error('No se pudo copiar el enlace.');
+      toast.error("No se pudo copiar el enlace.");
     }
   }
 
@@ -69,9 +69,9 @@ export function RedemptionQrDialog({
         <DialogHeader>
           <DialogTitle>Tu código QR</DialogTitle>
           <DialogDescription>
-            Muestra este código al encargado de {businessName ?? 'el negocio'} para
-            recibir <strong>{rewardName}</strong>. El encargado lo escanea y confirma
-            la entrega desde Loopoint. No contiene datos personales.
+            Muestra este código al encargado de {businessName ?? "el negocio"} para recibir{" "}
+            <strong>{rewardName}</strong>. El encargado lo escanea y confirma la entrega desde
+            Loopoint. No contiene datos personales.
           </DialogDescription>
         </DialogHeader>
 
@@ -98,16 +98,16 @@ export function RedemptionQrDialog({
               </div>
               <div
                 className={cn(
-                  'flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold',
+                  "flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold",
                   countdown.remainingMs < 60 * 60 * 1000
-                    ? 'bg-amber-100 text-amber-900'
-                    : 'bg-emerald-100 text-emerald-800',
+                    ? "bg-amber-100 text-amber-900"
+                    : "bg-emerald-100 text-emerald-800",
                 )}
                 role="timer"
                 aria-live="polite"
               >
                 <Clock className="size-3.5" aria-hidden="true" />
-                {expired ? 'QR vencido' : `Vence en ${countdown.label}`}
+                {expired ? "QR vencido" : `Vence en ${countdown.label}`}
               </div>
               <p className="text-center text-xs text-muted-foreground">
                 Válido hasta {formatDateTimeBogota(expiresAt)}.
@@ -120,9 +120,7 @@ export function RedemptionQrDialog({
                 <p className="break-all rounded-lg bg-background px-2 py-1.5 font-mono text-[11px] leading-relaxed">
                   {token}
                 </p>
-                <p className="break-all text-[11px] text-muted-foreground">
-                  {scanUrl}
-                </p>
+                <p className="break-all text-[11px] text-muted-foreground">{scanUrl}</p>
                 <div className="flex flex-wrap gap-2">
                   <Button
                     type="button"
@@ -151,19 +149,14 @@ export function RedemptionQrDialog({
                 <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
                 <p>
                   {expired
-                    ? 'Este QR ya venció. Reemite uno nuevo para poder entregar la recompensa.'
-                    : 'El QR no está disponible en este dispositivo o pestaña. Puedes reemitirlo si la solicitud sigue pendiente.'}
+                    ? "Este QR ya venció. Reemite uno nuevo para poder entregar la recompensa."
+                    : "El QR no está disponible en este dispositivo o pestaña. Puedes reemitirlo si la solicitud sigue pendiente."}
                 </p>
               </div>
               {onReissue && (
-                <Button
-                  type="button"
-                  onClick={onReissue}
-                  loading={reissuing}
-                  className="w-full"
-                >
+                <Button type="button" onClick={onReissue} loading={reissuing} className="w-full">
                   <RefreshCw aria-hidden="true" />
-                  {expired ? 'Reemitir QR' : 'Recuperar QR'}
+                  {expired ? "Reemitir QR" : "Recuperar QR"}
                 </Button>
               )}
             </div>
@@ -171,8 +164,8 @@ export function RedemptionQrDialog({
 
           <p className="flex items-start gap-2 text-xs text-muted-foreground">
             <ShieldCheck className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-            El QR solo lleva un token aleatorio; no incluye correo, nombre ni saldo.
-            Al confirmar la entrega, el token deja de ser válido.
+            El QR solo lleva un token aleatorio; no incluye correo, nombre ni saldo. Al confirmar la
+            entrega, el token deja de ser válido.
           </p>
         </div>
 

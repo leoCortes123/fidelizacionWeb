@@ -1,12 +1,12 @@
-import { AlertTriangle, Inbox, Loader2 } from 'lucide-react';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { Skeleton } from '@/components/ui/skeleton';
-import { cn } from '@/lib/utils';
-import { errorMessage } from '@/lib/errors';
-import { Brand } from './Brand';
+import { AlertTriangle, Inbox, Loader2 } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
+import { errorMessage } from "@/lib/errors";
+import { Brand } from "./Brand";
 
-export function LoadingScreen({ label = 'Cargando…' }: { label?: string }) {
+export function LoadingScreen({ label = "Cargando…" }: { label?: string }) {
   return (
     <div className="grid min-h-[60vh] place-items-center p-6">
       <div className="flex flex-col items-center gap-4 text-center">
@@ -19,7 +19,7 @@ export function LoadingScreen({ label = 'Cargando…' }: { label?: string }) {
   );
 }
 
-export function FullPageLoader({ label = 'Preparando tu cuenta…' }: { label?: string }) {
+export function FullPageLoader({ label = "Preparando tu cuenta…" }: { label?: string }) {
   return (
     <div className="hero-glow grid min-h-screen place-items-center p-6">
       <div className="flex flex-col items-center gap-5 text-center">
@@ -36,7 +36,7 @@ export function FullPageLoader({ label = 'Preparando tu cuenta…' }: { label?: 
 export function ErrorState({
   error,
   onRetry,
-  title = 'No pudimos cargar la información',
+  title = "No pudimos cargar la información",
   className,
 }: {
   error: unknown;
@@ -45,20 +45,14 @@ export function ErrorState({
   className?: string;
 }) {
   return (
-    <Alert variant="destructive" className={cn('flex flex-col gap-3', className)}>
+    <Alert variant="destructive" className={cn("flex flex-col gap-3", className)}>
       <AlertTriangle aria-hidden="true" />
       <div>
         <AlertTitle>{title}</AlertTitle>
         <AlertDescription>{errorMessage(error)}</AlertDescription>
       </div>
       {onRetry && (
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="w-fit"
-          onClick={onRetry}
-        >
+        <Button type="button" variant="outline" size="sm" className="w-fit" onClick={onRetry}>
           Reintentar
         </Button>
       )}
@@ -76,13 +70,13 @@ export function EmptyState({
   title: string;
   description?: string;
   action?: React.ReactNode;
-  icon?: React.ComponentType<{ className?: string; 'aria-hidden'?: boolean }>;
+  icon?: React.ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
   className?: string;
 }) {
   return (
     <div
       className={cn(
-        'flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed bg-muted/30 px-6 py-12 text-center',
+        "flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed bg-muted/30 px-6 py-12 text-center",
         className,
       )}
     >
@@ -91,9 +85,7 @@ export function EmptyState({
       </span>
       <div className="space-y-1">
         <h3 className="font-semibold">{title}</h3>
-        {description && (
-          <p className="max-w-sm text-sm text-muted-foreground">{description}</p>
-        )}
+        {description && <p className="max-w-sm text-sm text-muted-foreground">{description}</p>}
       </div>
       {action}
     </div>
@@ -102,7 +94,7 @@ export function EmptyState({
 
 export function CardSkeleton({ className }: { className?: string }) {
   return (
-    <div className={cn('space-y-3 rounded-xl border p-5', className)}>
+    <div className={cn("space-y-3 rounded-xl border p-5", className)}>
       <Skeleton className="h-4 w-1/3" />
       <Skeleton className="h-8 w-1/2" />
       <Skeleton className="h-3 w-full" />

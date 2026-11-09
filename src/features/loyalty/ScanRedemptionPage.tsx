@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -12,22 +12,19 @@ import {
   RefreshCw,
   TicketCheck,
   User,
-} from 'lucide-react';
-import { toast } from 'sonner';
-import {
-  useRedeemRedemptionByToken,
-  useRedemptionScanContext,
-} from '@/features/loyalty/hooks';
-import { useCountdown } from '@/features/loyalty/useCountdown';
-import { usePortalTheme } from '@/components/theme/ThemeProvider';
-import { Brand } from '@/components/shared/Brand';
-import { PageHeader } from '@/components/shared/PageHeader';
-import { LoadingScreen } from '@/components/shared/States';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+} from "lucide-react";
+import { toast } from "sonner";
+import { useRedeemRedemptionByToken, useRedemptionScanContext } from "@/features/loyalty/hooks";
+import { useCountdown } from "@/features/loyalty/useCountdown";
+import { usePortalTheme } from "@/components/theme/ThemeProvider";
+import { Brand } from "@/components/shared/Brand";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { LoadingScreen } from "@/components/shared/States";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -35,18 +32,18 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { errorMessage } from '@/lib/errors';
-import { formatDateTimeBogota, formatPoints } from '@/lib/format';
-import type { RedemptionRedeemResult, RedemptionScanContext } from '@/types';
+} from "@/components/ui/dialog";
+import { errorMessage } from "@/lib/errors";
+import { formatDateTimeBogota, formatPoints } from "@/lib/format";
+import type { RedemptionRedeemResult, RedemptionScanContext } from "@/types";
 
 /**
  * Pantalla que abre el QR de canje (`/scan/:token`). El negocio y los permisos
  * los resuelve el servidor a partir del token: la URL no lleva `business_id`.
  */
 export function ScanRedemptionPage() {
-  usePortalTheme('admin');
-  const { token = '' } = useParams<{ token: string }>();
+  usePortalTheme("admin");
+  const { token = "" } = useParams<{ token: string }>();
   const context = useRedemptionScanContext(token);
   const [result, setResult] = useState<RedemptionRedeemResult | null>(null);
 
@@ -76,11 +73,7 @@ export function ScanRedemptionPage() {
     );
   }
 
-  return (
-    <ScanLayout>
-      {content}
-    </ScanLayout>
-  );
+  return <ScanLayout>{content}</ScanLayout>;
 }
 
 function ScanDetails({
@@ -101,13 +94,13 @@ function ScanDetails({
   const canRedeem = data.can_redeem && !expired && !redeem.isPending;
   const reasonCopy = scanReasonCopy(data.reason, data.status, data.approved_at);
 
-  const businessHome = data.role === 'admin' ? '/admin/dashboard' : '/encargado';
+  const businessHome = data.role === "admin" ? "/admin/dashboard" : "/encargado";
 
   async function confirmDelivery() {
     try {
       const redeemed = await redeem.mutateAsync({ token });
       setConfirmOpen(false);
-      toast.success('Entrega confirmada. Loopoints consumidos.');
+      toast.success("Entrega confirmada. Loopoints consumidos.");
       onRedeemed(redeemed);
     } catch (error) {
       setConfirmOpen(false);
@@ -164,13 +157,9 @@ function ScanDetails({
                   <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     Recompensa
                   </p>
-                  <p className="text-lg font-extrabold leading-tight">
-                    {data.reward_name}
-                  </p>
+                  <p className="text-lg font-extrabold leading-tight">{data.reward_name}</p>
                   <p className="mt-1 text-sm">
-                    <strong className="tabular-nums">
-                      {formatPoints(data.points_spent)}
-                    </strong>{' '}
+                    <strong className="tabular-nums">{formatPoints(data.points_spent)}</strong>{" "}
                     loopoints
                   </p>
                 </div>
@@ -184,9 +173,7 @@ function ScanDetails({
                   Cliente
                 </p>
                 <p className="mt-1 font-semibold">
-                  {data.customer_nickname
-                    ? `@${data.customer_nickname}`
-                    : 'Cliente afiliado'}
+                  {data.customer_nickname ? `@${data.customer_nickname}` : "Cliente afiliado"}
                 </p>
               </div>
               <div className="rounded-xl border p-3">
@@ -195,7 +182,7 @@ function ScanDetails({
                   Vigencia del QR
                 </p>
                 <p className="mt-1 font-semibold" role="timer" aria-live="polite">
-                  {expired ? 'QR vencido' : `Vence en ${countdown.label}`}
+                  {expired ? "QR vencido" : `Vence en ${countdown.label}`}
                 </p>
                 <p className="text-[11px] text-muted-foreground">
                   {formatDateTimeBogota(data.expires_at)}
@@ -206,9 +193,9 @@ function ScanDetails({
             {reasonCopy && (
               <div
                 className={
-                  reasonCopy.tone === 'warning'
-                    ? 'flex items-start gap-2 rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950'
-                    : 'flex items-start gap-2 rounded-xl border bg-muted/40 p-3 text-sm'
+                  reasonCopy.tone === "warning"
+                    ? "flex items-start gap-2 rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950"
+                    : "flex items-start gap-2 rounded-xl border bg-muted/40 p-3 text-sm"
                 }
               >
                 <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
@@ -240,9 +227,9 @@ function ScanDetails({
           <DialogHeader>
             <DialogTitle>¿Entregar esta recompensa?</DialogTitle>
             <DialogDescription>
-              Entrega <strong>{data.reward_name}</strong> a{' '}
-              {data.customer_nickname ? `@${data.customer_nickname}` : 'el cliente'} y
-              confirma para consumir {formatPoints(data.points_spent)} loopoints.
+              Entrega <strong>{data.reward_name}</strong> a{" "}
+              {data.customer_nickname ? `@${data.customer_nickname}` : "el cliente"} y confirma para
+              consumir {formatPoints(data.points_spent)} loopoints.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -253,10 +240,7 @@ function ScanDetails({
             >
               Volver
             </Button>
-            <Button
-              onClick={() => void confirmDelivery()}
-              loading={redeem.isPending}
-            >
+            <Button onClick={() => void confirmDelivery()} loading={redeem.isPending}>
               <CheckCircle2 aria-hidden="true" />
               Confirmar entrega
             </Button>
@@ -269,10 +253,9 @@ function ScanDetails({
 
 function ScanSuccess({ result }: { result: RedemptionRedeemResult }) {
   const registerPurchasePath =
-    result.role === 'admin' ? '/admin/purchases/new' : '/encargado/venta';
-  const requestsPath =
-    result.role === 'admin' ? '/admin/redemptions' : '/encargado';
-  const businessHome = result.role === 'admin' ? '/admin/dashboard' : '/encargado';
+    result.role === "admin" ? "/admin/purchases/new" : "/encargado/venta";
+  const requestsPath = result.role === "admin" ? "/admin/redemptions" : "/encargado";
+  const businessHome = result.role === "admin" ? "/admin/dashboard" : "/encargado";
 
   return (
     <Card className="animate-fade-in overflow-hidden">
@@ -294,7 +277,7 @@ function ScanSuccess({ result }: { result: RedemptionRedeemResult }) {
           <div className="flex items-center justify-between gap-3">
             <dt className="text-muted-foreground">Cliente</dt>
             <dd className="text-right font-semibold">
-              {result.customer_nickname ? `@${result.customer_nickname}` : 'Cliente'}
+              {result.customer_nickname ? `@${result.customer_nickname}` : "Cliente"}
             </dd>
           </div>
           <div className="flex items-center justify-between gap-3">
@@ -309,9 +292,7 @@ function ScanSuccess({ result }: { result: RedemptionRedeemResult }) {
           </div>
           <div className="flex items-center justify-between gap-3">
             <dt className="text-muted-foreground">Entregado</dt>
-            <dd className="text-right text-xs">
-              {formatDateTimeBogota(result.delivered_at)}
-            </dd>
+            <dd className="text-right text-xs">{formatDateTimeBogota(result.delivered_at)}</dd>
           </div>
         </dl>
 
@@ -344,56 +325,52 @@ function scanReasonCopy(
   reason: string | null,
   status: string,
   approvedAt: string | null,
-): { title: string; description: string; tone: 'warning' | 'info' } | null {
+): { title: string; description: string; tone: "warning" | "info" } | null {
   switch (reason) {
-    case 'redemption_already_delivered':
+    case "redemption_already_delivered":
       return {
-        title: 'Este canje ya fue entregado',
-        description: 'El token quedó consumido. No es necesario volver a confirmarlo.',
-        tone: 'info',
+        title: "Este canje ya fue entregado",
+        description: "El token quedó consumido. No es necesario volver a confirmarlo.",
+        tone: "info",
       };
-    case 'redemption_cancelled':
+    case "redemption_cancelled":
       return {
-        title: 'Este canje fue cancelado',
-        description: 'Los loopoints reservados fueron devueltos al cliente.',
-        tone: 'info',
+        title: "Este canje fue cancelado",
+        description: "Los loopoints reservados fueron devueltos al cliente.",
+        tone: "info",
       };
-    case 'redemption_expired':
+    case "redemption_expired":
       return {
-        title: 'Este canje expiró',
-        description: 'El cliente debe solicitarlo de nuevo si aún tiene saldo.',
-        tone: 'warning',
+        title: "Este canje expiró",
+        description: "El cliente debe solicitarlo de nuevo si aún tiene saldo.",
+        tone: "warning",
       };
-    case 'token_expired':
+    case "token_expired":
       return {
-        title: 'El QR venció',
+        title: "El QR venció",
+        description: "Pide al cliente que reemita el código desde “Mis canjes” antes de entregar.",
+        tone: "warning",
+      };
+    case "token_already_consumed":
+      return {
+        title: "Este QR ya fue utilizado",
+        description: "No puede reutilizarse. Verifica la solicitud en el listado.",
+        tone: "warning",
+      };
+    case "redemption_not_pending":
+      return {
+        title: status === "approved" ? "La solicitud ya está aprobada" : "Solicitud no disponible",
         description:
-          'Pide al cliente que reemita el código desde “Mis canjes” antes de entregar.',
-        tone: 'warning',
-      };
-    case 'token_already_consumed':
-      return {
-        title: 'Este QR ya fue utilizado',
-        description: 'No puede reutilizarse. Verifica la solicitud en el listado.',
-        tone: 'warning',
-      };
-    case 'redemption_not_pending':
-      return {
-        title:
-          status === 'approved'
-            ? 'La solicitud ya está aprobada'
-            : 'Solicitud no disponible',
-        description:
-          status === 'approved'
+          status === "approved"
             ? `Ya fue aprobada${
-                approvedAt ? ` el ${formatDateTimeBogota(approvedAt)}` : ''
+                approvedAt ? ` el ${formatDateTimeBogota(approvedAt)}` : ""
               }. Confirma la entrega desde Solicitudes.`
-            : 'Revisa el estado de la solicitud en el listado del negocio.',
-        tone: 'warning',
+            : "Revisa el estado de la solicitud en el listado del negocio.",
+        tone: "warning",
       };
     default:
       return reason
-        ? { title: 'No se puede entregar', description: reason, tone: 'warning' }
+        ? { title: "No se puede entregar", description: reason, tone: "warning" }
         : null;
   }
 }
@@ -408,7 +385,7 @@ function ManualTokenCard({
   onRetry: () => void;
 }) {
   const navigate = useNavigate();
-  const [manual, setManual] = useState('');
+  const [manual, setManual] = useState("");
 
   function submit(event: React.FormEvent) {
     event.preventDefault();

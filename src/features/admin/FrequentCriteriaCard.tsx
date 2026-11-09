@@ -1,16 +1,16 @@
-import { useEffect, useState } from 'react';
-import { CheckCircle2, HeartHandshake, Sparkles, TimerReset } from 'lucide-react';
-import { toast } from 'sonner';
-import { z } from 'zod';
-import { useUpdateFrequentCriteria } from '@/features/loyalty/hooks';
-import { errorMessage } from '@/lib/errors';
-import { formatCOP, formatNumber } from '@/lib/format';
-import { useFormDraft } from '@/lib/useFormDraft';
-import type { Business, LoyaltyProgram } from '@/types';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Field } from '@/components/shared/Field';
+import { useEffect, useState } from "react";
+import { CheckCircle2, HeartHandshake, Sparkles, TimerReset } from "lucide-react";
+import { toast } from "sonner";
+import { z } from "zod";
+import { useUpdateFrequentCriteria } from "@/features/loyalty/hooks";
+import { errorMessage } from "@/lib/errors";
+import { formatCOP, formatNumber } from "@/lib/format";
+import { useFormDraft } from "@/lib/useFormDraft";
+import type { Business, LoyaltyProgram } from "@/types";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Field } from "@/components/shared/Field";
 
 const integer = (label: string, min: number, max: number) =>
   z.coerce
@@ -21,19 +21,18 @@ const integer = (label: string, min: number, max: number) =>
 
 export const frequentSchema = z
   .object({
-    minPurchases: integer('Compras para ser frecuente', 1, 100),
-    periodDays: integer('Ventana de frecuencia', 7, 3650),
-    minSpendCop: integer('Gasto mínimo', 0, 50_000_000),
-    activeDays: integer('Días para seguir activo', 1, 365),
-    recoveryDays: integer('Días para recuperación', 7, 3650),
+    minPurchases: integer("Compras para ser frecuente", 1, 100),
+    periodDays: integer("Ventana de frecuencia", 7, 3650),
+    minSpendCop: integer("Gasto mínimo", 0, 50_000_000),
+    activeDays: integer("Días para seguir activo", 1, 365),
+    recoveryDays: integer("Días para recuperación", 7, 3650),
   })
   .superRefine((value, ctx) => {
     if (value.recoveryDays <= value.activeDays) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ['recoveryDays'],
-        message:
-          'Los días para recuperación deben ser mayores que los días para seguir activo.',
+        path: ["recoveryDays"],
+        message: "Los días para recuperación deben ser mayores que los días para seguir activo.",
       });
     }
   });
@@ -72,9 +71,7 @@ export function FrequentCriteriaCard({
   const draft = useFormDraft<FrequentFields>({
     key: `admin:frequent:${business.id}`,
   });
-  const [form, setForm] = useState<FrequentFields>(
-    () => draft.read() ?? fromProgram(program),
-  );
+  const [form, setForm] = useState<FrequentFields>(() => draft.read() ?? fromProgram(program));
   const [dirty, setDirty] = useState(false);
   const [errors, setErrors] = useState<Partial<Record<keyof FrequentFields, string>>>({});
 
@@ -98,7 +95,7 @@ export function FrequentCriteriaCard({
         if (key && !nextErrors[key]) nextErrors[key] = issue.message;
       }
       setErrors(nextErrors);
-      toast.error(parsed.error.issues[0]?.message ?? 'Revisa los criterios.');
+      toast.error(parsed.error.issues[0]?.message ?? "Revisa los criterios.");
       return;
     }
 
@@ -113,7 +110,7 @@ export function FrequentCriteriaCard({
       });
       setDirty(false);
       draft.clear();
-      toast.success('Criterios de cliente frecuente guardados.');
+      toast.success("Criterios de cliente frecuente guardados.");
     } catch (error) {
       toast.error(errorMessage(error));
     }
@@ -124,8 +121,9 @@ export function FrequentCriteriaCard({
   const minSpend = Number(form.minSpendCop);
   const activeDays = Number(form.activeDays);
   const recoveryDays = Number(form.recoveryDays);
-  const explanationValid = [minPurchases, periodDays, minSpend, activeDays, recoveryDays]
-    .every((value) => Number.isFinite(value));
+  const explanationValid = [minPurchases, periodDays, minSpend, activeDays, recoveryDays].every(
+    (value) => Number.isFinite(value),
+  );
 
   return (
     <Card>
@@ -138,8 +136,8 @@ export function FrequentCriteriaCard({
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-5" noValidate>
           <p className="text-sm text-muted-foreground">
-            Define cuándo un cliente es frecuente y cuándo sigue activo. Los
-            distintivos se recalculan cada vez que se abre la lista de clientes.
+            Define cuándo un cliente es frecuente y cuándo sigue activo. Los distintivos se
+            recalculan cada vez que se abre la lista de clientes.
           </p>
 
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -154,7 +152,7 @@ export function FrequentCriteriaCard({
                 id="frequent-min-purchases"
                 inputMode="numeric"
                 value={form.minPurchases}
-                onChange={(event) => update('minPurchases', event.target.value)}
+                onChange={(event) => update("minPurchases", event.target.value)}
                 aria-invalid={Boolean(errors.minPurchases)}
               />
             </Field>
@@ -169,7 +167,7 @@ export function FrequentCriteriaCard({
                 id="frequent-period-days"
                 inputMode="numeric"
                 value={form.periodDays}
-                onChange={(event) => update('periodDays', event.target.value)}
+                onChange={(event) => update("periodDays", event.target.value)}
                 aria-invalid={Boolean(errors.periodDays)}
               />
             </Field>
@@ -184,7 +182,7 @@ export function FrequentCriteriaCard({
                 id="frequent-min-spend"
                 inputMode="numeric"
                 value={form.minSpendCop}
-                onChange={(event) => update('minSpendCop', event.target.value)}
+                onChange={(event) => update("minSpendCop", event.target.value)}
                 aria-invalid={Boolean(errors.minSpendCop)}
               />
             </Field>
@@ -199,7 +197,7 @@ export function FrequentCriteriaCard({
                 id="frequent-active-days"
                 inputMode="numeric"
                 value={form.activeDays}
-                onChange={(event) => update('activeDays', event.target.value)}
+                onChange={(event) => update("activeDays", event.target.value)}
                 aria-invalid={Boolean(errors.activeDays)}
               />
             </Field>
@@ -214,7 +212,7 @@ export function FrequentCriteriaCard({
                 id="frequent-recovery-days"
                 inputMode="numeric"
                 value={form.recoveryDays}
-                onChange={(event) => update('recoveryDays', event.target.value)}
+                onChange={(event) => update("recoveryDays", event.target.value)}
                 aria-invalid={Boolean(errors.recoveryDays)}
               />
             </Field>
@@ -225,19 +223,18 @@ export function FrequentCriteriaCard({
               <p className="flex items-start gap-2">
                 <Sparkles className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
                 <span>
-                  Será <strong>frecuente</strong> con{' '}
-                  <strong>{formatNumber(minPurchases)} compra(s)</strong> en los
-                  últimos <strong>{formatNumber(periodDays)} días</strong> y un
-                  gasto mínimo de <strong>{formatCOP(minSpend)}</strong>.
+                  Será <strong>frecuente</strong> con{" "}
+                  <strong>{formatNumber(minPurchases)} compra(s)</strong> en los últimos{" "}
+                  <strong>{formatNumber(periodDays)} días</strong> y un gasto mínimo de{" "}
+                  <strong>{formatCOP(minSpend)}</strong>.
                 </span>
               </p>
               <p className="flex items-start gap-2 text-muted-foreground">
                 <TimerReset className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
                 <span>
-                  Se mantiene <strong>activo</strong> si compró en los últimos{' '}
-                  {formatNumber(activeDays)} días; pasa a{' '}
-                  <strong>recuperación</strong> tras {formatNumber(recoveryDays)}{' '}
-                  días sin comprar.
+                  Se mantiene <strong>activo</strong> si compró en los últimos{" "}
+                  {formatNumber(activeDays)} días; pasa a <strong>recuperación</strong> tras{" "}
+                  {formatNumber(recoveryDays)} días sin comprar.
                 </span>
               </p>
             </div>

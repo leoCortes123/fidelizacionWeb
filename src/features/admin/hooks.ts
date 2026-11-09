@@ -1,6 +1,6 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { rpc } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { rpc } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
 import type {
   AdminCancelRedemptionResult,
   AdminRedeemResult,
@@ -12,12 +12,12 @@ import type {
   DashboardSummary,
   RecentActivity,
   StaffCustomer,
-} from '@/types';
+} from "@/types";
 
 export function useAdminSettings() {
   return useQuery({
     queryKey: queryKeys.adminSettings,
-    queryFn: () => rpc<AdminSettings>('admin_get_settings'),
+    queryFn: () => rpc<AdminSettings>("admin_get_settings"),
   });
 }
 
@@ -25,7 +25,7 @@ export function useUpdateSettings() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (settings: Record<string, unknown>) =>
-      rpc<AdminSettings>('admin_update_settings', { p_settings: settings }),
+      rpc<AdminSettings>("admin_update_settings", { p_settings: settings }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.adminSettings });
       void queryClient.invalidateQueries({ queryKey: queryKeys.settings });
@@ -38,7 +38,7 @@ export function useUpdateSettings() {
 export function useAdminRewards() {
   return useQuery({
     queryKey: queryKeys.adminRewards,
-    queryFn: () => rpc<AdminReward[]>('admin_list_rewards'),
+    queryFn: () => rpc<AdminReward[]>("admin_list_rewards"),
   });
 }
 
@@ -53,7 +53,7 @@ export function useUpsertReward() {
       imageUrl: string | null;
       isActive: boolean;
     }) =>
-      rpc<AdminReward>('admin_upsert_reward', {
+      rpc<AdminReward>("admin_upsert_reward", {
         p_id: params.id ?? null,
         p_name: params.name,
         p_description: params.description,
@@ -73,16 +73,14 @@ export function useUpsertReward() {
 export function useAuditLog() {
   return useQuery({
     queryKey: queryKeys.auditLog,
-    queryFn: () =>
-      rpc<AuditEntry[]>('admin_get_audit_log', { p_limit: 100, p_offset: 0 }),
+    queryFn: () => rpc<AuditEntry[]>("admin_get_audit_log", { p_limit: 100, p_offset: 0 }),
   });
 }
 
 export function useConfigHistory() {
   return useQuery({
     queryKey: queryKeys.configHistory,
-    queryFn: () =>
-      rpc<ConfigHistoryEntry[]>('admin_get_config_history', { p_limit: 30 }),
+    queryFn: () => rpc<ConfigHistoryEntry[]>("admin_get_config_history", { p_limit: 30 }),
   });
 }
 
@@ -90,12 +88,10 @@ export function useExpirePoints() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: () =>
-      rpc<{ credits_expired: number; points_expired: number; days: number }>(
-        'admin_expire_points',
-      ),
+      rpc<{ credits_expired: number; points_expired: number; days: number }>("admin_expire_points"),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.dashboard });
-      void queryClient.invalidateQueries({ queryKey: ['staff-customers'] });
+      void queryClient.invalidateQueries({ queryKey: ["staff-customers"] });
       void queryClient.invalidateQueries({ queryKey: queryKeys.auditLog });
       void queryClient.invalidateQueries({ queryKey: queryKeys.configHistory });
     },
@@ -107,7 +103,7 @@ export function useBusinessDashboardSummary(businessId: string) {
   return useQuery<DashboardSummary>({
     queryKey: queryKeys.businessDashboardSummary(businessId),
     queryFn: () =>
-      rpc<DashboardSummary>('business_dashboard_summary', {
+      rpc<DashboardSummary>("business_dashboard_summary", {
         p_business_id: businessId,
       }),
     enabled: Boolean(businessId),
@@ -118,7 +114,7 @@ export function useBusinessRecentActivity(businessId: string, limit = 8) {
   return useQuery<RecentActivity[]>({
     queryKey: queryKeys.businessRecentActivity(businessId),
     queryFn: () =>
-      rpc<RecentActivity[]>('business_recent_activity', {
+      rpc<RecentActivity[]>("business_recent_activity", {
         p_business_id: businessId,
         p_limit: limit,
       }),
@@ -144,7 +140,7 @@ export function useAdminCustomers(
       onlyFrequent,
     ],
     queryFn: () =>
-      rpc<StaffCustomer[]>('staff_list_customers', {
+      rpc<StaffCustomer[]>("staff_list_customers", {
         p_search: search,
         p_limit: pageSize,
         p_offset: page * pageSize,
@@ -157,14 +153,11 @@ export function useAdminCustomers(
   });
 }
 
-export function useAdminCustomer(
-  businessId: string,
-  customerId: string | undefined,
-) {
+export function useAdminCustomer(businessId: string, customerId: string | undefined) {
   return useQuery({
-    queryKey: queryKeys.staffCustomer(businessId, customerId ?? ''),
+    queryKey: queryKeys.staffCustomer(businessId, customerId ?? ""),
     queryFn: () =>
-      rpc<CustomerDetail>('staff_get_customer', {
+      rpc<CustomerDetail>("staff_get_customer", {
         p_customer_id: customerId,
         p_business_id: businessId,
       }),
@@ -181,15 +174,15 @@ export function useAdminRedeemReward() {
       idempotencyKey: string;
       reason?: string | null;
     }) =>
-      rpc<AdminRedeemResult>('admin_redeem_reward', {
+      rpc<AdminRedeemResult>("admin_redeem_reward", {
         p_customer_id: params.customerId,
         p_reward_id: params.rewardId,
         p_idempotency_key: params.idempotencyKey,
         p_reason: params.reason?.trim() || null,
       }),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['staff-customer'] });
-      void queryClient.invalidateQueries({ queryKey: ['staff-customers'] });
+      void queryClient.invalidateQueries({ queryKey: ["staff-customer"] });
+      void queryClient.invalidateQueries({ queryKey: ["staff-customers"] });
       void queryClient.invalidateQueries({ queryKey: queryKeys.adminRewards });
       void queryClient.invalidateQueries({ queryKey: queryKeys.auditLog });
       void queryClient.invalidateQueries({ queryKey: queryKeys.dashboard });
@@ -202,13 +195,13 @@ export function useAdminCancelRedemption() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (params: { redemptionId: string; reason: string }) =>
-      rpc<AdminCancelRedemptionResult>('admin_cancel_redemption', {
+      rpc<AdminCancelRedemptionResult>("admin_cancel_redemption", {
         p_redemption_id: params.redemptionId,
         p_reason: params.reason,
       }),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ['staff-customer'] });
-      void queryClient.invalidateQueries({ queryKey: ['staff-customers'] });
+      void queryClient.invalidateQueries({ queryKey: ["staff-customer"] });
+      void queryClient.invalidateQueries({ queryKey: ["staff-customers"] });
       void queryClient.invalidateQueries({ queryKey: queryKeys.adminRewards });
       void queryClient.invalidateQueries({ queryKey: queryKeys.auditLog });
       void queryClient.invalidateQueries({ queryKey: queryKeys.dashboard });

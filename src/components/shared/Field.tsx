@@ -1,7 +1,7 @@
-import type { ReactNode } from 'react';
-import { Label } from '@/components/ui/label';
-import { cn } from '@/lib/utils';
-import { HelpHint } from './HelpHint';
+import type { ReactNode } from "react";
+import { Label } from "@/components/ui/label";
+import { cn } from "@/lib/utils";
+import { HelpHint } from "./HelpHint";
 
 interface FieldProps {
   id?: string;
@@ -18,18 +18,9 @@ interface FieldProps {
  * Campo de formulario con etiqueta, ayuda corta, tooltip y error.
  * Mantiene el mismo patrón visual en toda la configuración.
  */
-export function Field({
-  id,
-  label,
-  hint,
-  help,
-  error,
-  required,
-  className,
-  children,
-}: FieldProps) {
+export function Field({ id, label, hint, help, error, required, className, children }: FieldProps) {
   return (
-    <div className={cn('space-y-1.5', className)}>
+    <div className={cn("space-y-1.5", className)}>
       <div className="flex items-center gap-1.5">
         <Label htmlFor={id} className="leading-tight">
           {label}

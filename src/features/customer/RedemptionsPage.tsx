@@ -1,24 +1,21 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Building2, Gift, QrCode, RefreshCw, TicketCheck } from 'lucide-react';
-import { toast } from 'sonner';
-import {
-  useMyLoyaltyRedemptions,
-  useReissueRedemptionToken,
-} from '@/features/loyalty/hooks';
-import { useBusinessContext } from '@/features/loyalty/businessContext';
-import { errorMessage } from '@/lib/errors';
-import { formatDateTimeBogota, formatPoints } from '@/lib/format';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { Building2, Gift, QrCode, RefreshCw, TicketCheck } from "lucide-react";
+import { toast } from "sonner";
+import { useMyLoyaltyRedemptions, useReissueRedemptionToken } from "@/features/loyalty/hooks";
+import { useBusinessContext } from "@/features/loyalty/businessContext";
+import { errorMessage } from "@/lib/errors";
+import { formatDateTimeBogota, formatPoints } from "@/lib/format";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -26,17 +23,17 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { PageHeader } from '@/components/shared/PageHeader';
-import { EmptyState, ErrorState, ListSkeleton } from '@/components/shared/States';
-import { RedemptionRequestStatusBadge } from '@/components/shared/StatusBadge';
-import { RedemptionQrDialog } from '@/features/loyalty/RedemptionQrDialog';
+} from "@/components/ui/dialog";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { EmptyState, ErrorState, ListSkeleton } from "@/components/shared/States";
+import { RedemptionRequestStatusBadge } from "@/components/shared/StatusBadge";
+import { RedemptionQrDialog } from "@/features/loyalty/RedemptionQrDialog";
 import {
   readRedemptionToken,
   saveRedemptionToken,
   type StoredRedemptionToken,
-} from '@/features/loyalty/redemptionTokens';
-import type { MyLoyaltyRedemption } from '@/types';
+} from "@/features/loyalty/redemptionTokens";
+import type { MyLoyaltyRedemption } from "@/types";
 
 interface QrState extends StoredRedemptionToken {
   redemption: MyLoyaltyRedemption;
@@ -49,18 +46,17 @@ export function RedemptionsPage() {
 
   const [qr, setQr] = useState<QrState | null>(null);
   const [reissuingId, setReissuingId] = useState<string | null>(null);
-  const [businessFilter, setBusinessFilter] = useState('');
+  const [businessFilter, setBusinessFilter] = useState("");
   const [detail, setDetail] = useState<MyLoyaltyRedemption | null>(null);
 
   const rows = (redemptions.data ?? []).filter(
-    (redemption) =>
-      !businessFilter || redemption.business_id === businessFilter,
+    (redemption) => !businessFilter || redemption.business_id === businessFilter,
   );
 
   function openStoredQr(redemption: MyLoyaltyRedemption) {
     const stored = readRedemptionToken(redemption.id);
     if (!stored) {
-      toast.error('No encontramos el QR en este dispositivo. Reemítelo.');
+      toast.error("No encontramos el QR en este dispositivo. Reemítelo.");
       return;
     }
     setQr({ ...stored, redemption });
@@ -77,7 +73,7 @@ export function RedemptionsPage() {
       };
       saveRedemptionToken(redemption.id, stored);
       setQr({ ...stored, redemption });
-      toast.success('QR reemitido. El anterior dejó de ser válido.');
+      toast.success("QR reemitido. El anterior dejó de ser válido.");
     } catch (error) {
       toast.error(errorMessage(error));
     } finally {
@@ -98,15 +94,10 @@ export function RedemptionsPage() {
             Filtrar por negocio
           </span>
           <Select
-            value={businessFilter || 'all'}
-            onValueChange={(value) =>
-              setBusinessFilter(value === 'all' ? '' : value)
-            }
+            value={businessFilter || "all"}
+            onValueChange={(value) => setBusinessFilter(value === "all" ? "" : value)}
           >
-            <SelectTrigger
-              className="w-full sm:w-64"
-              aria-label="Filtrar canjes por negocio"
-            >
+            <SelectTrigger className="w-full sm:w-64" aria-label="Filtrar canjes por negocio">
               <SelectValue placeholder="Todos los negocios" />
             </SelectTrigger>
             <SelectContent>
@@ -124,10 +115,7 @@ export function RedemptionsPage() {
       {redemptions.isLoading ? (
         <ListSkeleton rows={3} />
       ) : redemptions.isError ? (
-        <ErrorState
-          error={redemptions.error}
-          onRetry={() => void redemptions.refetch()}
-        />
+        <ErrorState error={redemptions.error} onRetry={() => void redemptions.refetch()} />
       ) : !redemptions.data || redemptions.data.length === 0 ? (
         <EmptyState
           title="Aún no has solicitado recompensas"
@@ -145,10 +133,7 @@ export function RedemptionsPage() {
           description="Prueba con otro negocio o revisa todos tus canjes."
           icon={Gift}
           action={
-            <Button
-              variant="outline"
-              onClick={() => setBusinessFilter('')}
-            >
+            <Button variant="outline" onClick={() => setBusinessFilter("")}>
               Ver todos
             </Button>
           }
@@ -156,7 +141,7 @@ export function RedemptionsPage() {
       ) : (
         <div className="space-y-3">
           {rows.map((redemption) => {
-            const pending = redemption.status === 'pending';
+            const pending = redemption.status === "pending";
             const stored = pending ? readRedemptionToken(redemption.id) : null;
 
             return (
@@ -184,38 +169,33 @@ export function RedemptionsPage() {
                         </Badge>
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        {formatPoints(redemption.points_spent)} ·{' '}
+                        {formatPoints(redemption.points_spent)} ·{" "}
                         {formatDateTimeBogota(redemption.created_at)}
-                        {redemption.business_slug
-                          ? ` · @${redemption.business_slug}`
-                          : ''}
+                        {redemption.business_slug ? ` · @${redemption.business_slug}` : ""}
                       </p>
 
                       {pending && (
                         <p className="text-xs text-amber-800 dark:text-amber-300">
-                          Muestra el QR al encargado. Si cierras la pestaña,
-                          puedes recuperarlo aquí.
+                          Muestra el QR al encargado. Si cierras la pestaña, puedes recuperarlo
+                          aquí.
                         </p>
                       )}
-                      {redemption.status === 'approved' && (
+                      {redemption.status === "approved" && (
                         <p className="text-xs text-sky-800 dark:text-sky-300">
-                          El encargado ya validó el QR. Acércate a caja para que
-                          confirme la entrega.
+                          El encargado ya validó el QR. Acércate a caja para que confirme la
+                          entrega.
                         </p>
                       )}
-                      {redemption.status === 'delivered' &&
-                        redemption.delivered_at && (
-                          <p className="text-xs text-emerald-700 dark:text-emerald-300">
-                            Entregado el{' '}
-                            {formatDateTimeBogota(redemption.delivered_at)}
-                          </p>
-                        )}
-                      {(redemption.status === 'cancelled' ||
-                        redemption.status === 'expired') && (
+                      {redemption.status === "delivered" && redemption.delivered_at && (
+                        <p className="text-xs text-emerald-700 dark:text-emerald-300">
+                          Entregado el {formatDateTimeBogota(redemption.delivered_at)}
+                        </p>
+                      )}
+                      {(redemption.status === "cancelled" || redemption.status === "expired") && (
                         <p className="text-xs text-muted-foreground">
                           {redemption.cancelled_at
                             ? `Cancelado el ${formatDateTimeBogota(redemption.cancelled_at)} · loopoints devueltos`
-                            : 'Sin canje efectivo · loopoints devueltos'}
+                            : "Sin canje efectivo · loopoints devueltos"}
                         </p>
                       )}
                     </div>
@@ -225,11 +205,7 @@ export function RedemptionsPage() {
                     <p className="mr-auto font-display text-2xl font-extrabold text-muted-foreground sm:mr-2">
                       −{redemption.points_spent}
                     </p>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => setDetail(redemption)}
-                    >
+                    <Button size="sm" variant="ghost" onClick={() => setDetail(redemption)}>
                       Ver detalle
                     </Button>
                     {pending && stored && (
@@ -258,8 +234,8 @@ export function RedemptionsPage() {
       )}
 
       <p className="text-xs text-muted-foreground">
-        El QR contiene solo un token aleatorio, nunca datos personales. Al aprobar
-        la entrega queda inválido y los loopoints se descuentan de tu saldo.
+        El QR contiene solo un token aleatorio, nunca datos personales. Al aprobar la entrega queda
+        inválido y los loopoints se descuentan de tu saldo.
       </p>
 
       <Dialog open={detail !== null} onOpenChange={() => setDetail(null)}>
@@ -268,7 +244,7 @@ export function RedemptionsPage() {
             <DialogTitle>{detail?.reward_name}</DialogTitle>
             <DialogDescription>
               Canje en {detail?.business_name}
-              {detail?.business_slug ? ` (@${detail.business_slug})` : ''}.
+              {detail?.business_slug ? ` (@${detail.business_slug})` : ""}.
             </DialogDescription>
           </DialogHeader>
           {detail && (
@@ -316,15 +292,13 @@ export function RedemptionsPage() {
         onOpenChange={(open) => {
           if (!open) setQr(null);
         }}
-        rewardName={qr?.redemption.reward_name ?? ''}
-        code={qr?.redemption.code ?? ''}
+        rewardName={qr?.redemption.reward_name ?? ""}
+        code={qr?.redemption.code ?? ""}
         token={qr?.token ?? null}
         expiresAt={qr?.expires_at || null}
         businessName={qr?.redemption.business_name}
         onReissue={
-          qr && qr.redemption.status === 'pending'
-            ? () => void reissueQr(qr.redemption)
-            : undefined
+          qr && qr.redemption.status === "pending" ? () => void reissueQr(qr.redemption) : undefined
         }
         reissuing={qr ? reissuingId === qr.redemption.id : false}
       />

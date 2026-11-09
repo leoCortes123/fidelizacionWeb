@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import {
   Check,
   PackageCheck,
@@ -8,23 +8,23 @@ import {
   ScanLine,
   TicketCheck,
   X,
-} from 'lucide-react';
-import { toast } from 'sonner';
+} from "lucide-react";
+import { toast } from "sonner";
 import {
   useApproveRedemption,
   useBusinesses,
   useCancelRedemption,
   useDeliverRedemption,
   useLoyaltyRedemptions,
-} from '@/features/loyalty/hooks';
-import { useBusinessContext } from '@/features/loyalty/businessContext';
-import { errorMessage } from '@/lib/errors';
-import { formatDateTimeBogota, formatPoints } from '@/lib/format';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+} from "@/features/loyalty/hooks";
+import { useBusinessContext } from "@/features/loyalty/businessContext";
+import { errorMessage } from "@/lib/errors";
+import { formatDateTimeBogota, formatPoints } from "@/lib/format";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -32,28 +32,28 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { PageHeader } from '@/components/shared/PageHeader';
-import { EmptyState, ErrorState, ListSkeleton, LoadingScreen } from '@/components/shared/States';
-import { RedemptionRequestStatusBadge } from '@/components/shared/StatusBadge';
-import type { Business, LoyaltyRedemptionWithCustomer } from '@/types';
+} from "@/components/ui/select";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { EmptyState, ErrorState, ListSkeleton, LoadingScreen } from "@/components/shared/States";
+import { RedemptionRequestStatusBadge } from "@/components/shared/StatusBadge";
+import type { Business, LoyaltyRedemptionWithCustomer } from "@/types";
 
-type ActionKind = 'approve' | 'reject' | 'deliver' | 'cancel';
+type ActionKind = "approve" | "reject" | "deliver" | "cancel";
 
 const statusOptions: Array<{ value: string; label: string }> = [
-  { value: 'all', label: 'Todos los estados' },
-  { value: 'pending', label: 'Pendientes' },
-  { value: 'approved', label: 'Aprobados' },
-  { value: 'delivered', label: 'Entregados' },
-  { value: 'cancelled', label: 'Cancelados' },
-  { value: 'expired', label: 'Vencidos' },
+  { value: "all", label: "Todos los estados" },
+  { value: "pending", label: "Pendientes" },
+  { value: "approved", label: "Aprobados" },
+  { value: "delivered", label: "Entregados" },
+  { value: "cancelled", label: "Cancelados" },
+  { value: "expired", label: "Vencidos" },
 ];
 
 const actionCopy: Record<
@@ -61,31 +61,30 @@ const actionCopy: Record<
   { title: string; confirm: string; description: string; destructive: boolean }
 > = {
   approve: {
-    title: 'Aprobar solicitud',
-    confirm: 'Aprobar',
+    title: "Aprobar solicitud",
+    confirm: "Aprobar",
     description:
-      'Se validará el canje y el cliente podrá recibir la recompensa. Confirma la entrega después de darla.',
+      "Se validará el canje y el cliente podrá recibir la recompensa. Confirma la entrega después de darla.",
     destructive: false,
   },
   reject: {
-    title: 'Rechazar solicitud',
-    confirm: 'Rechazar y devolver loopoints',
+    title: "Rechazar solicitud",
+    confirm: "Rechazar y devolver loopoints",
     description:
-      'Se cancelará la solicitud y los loopoints reservados volverán al saldo del cliente.',
+      "Se cancelará la solicitud y los loopoints reservados volverán al saldo del cliente.",
     destructive: true,
   },
   deliver: {
-    title: 'Confirmar entrega',
-    confirm: 'Confirmar entrega',
+    title: "Confirmar entrega",
+    confirm: "Confirmar entrega",
     description:
-      'Marca la recompensa como entregada. Los loopoints quedan consumidos definitivamente.',
+      "Marca la recompensa como entregada. Los loopoints quedan consumidos definitivamente.",
     destructive: false,
   },
   cancel: {
-    title: 'Cancelar solicitud',
-    confirm: 'Cancelar y devolver loopoints',
-    description:
-      'Solo para solicitudes pendientes. Los loopoints reservados volverán al cliente.',
+    title: "Cancelar solicitud",
+    confirm: "Cancelar y devolver loopoints",
+    description: "Solo para solicitudes pendientes. Los loopoints reservados volverán al cliente.",
     destructive: true,
   },
 };
@@ -122,7 +121,7 @@ export function RedemptionsPage() {
                   className="mt-4 w-full"
                   onClick={() => {
                     setSelectedBusiness(business);
-                    navigate('/admin/redemptions');
+                    navigate("/admin/redemptions");
                   }}
                 >
                   Seleccionar
@@ -155,15 +154,15 @@ export function RedemptionsPage() {
 function RedemptionsSection({ business }: { business: Business }) {
   const { selectedRole, canApproveRedemptions } = useBusinessContext();
   const canAct =
-    selectedRole === 'admin' || (selectedRole === 'encargado' && canApproveRedemptions);
-  const canCancel = selectedRole === 'admin';
+    selectedRole === "admin" || (selectedRole === "encargado" && canApproveRedemptions);
+  const canCancel = selectedRole === "admin";
 
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [originFilter, setOriginFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [originFilter, setOriginFilter] = useState("all");
   const redemptions = useLoyaltyRedemptions(
     business.id,
-    statusFilter === 'all' ? '' : statusFilter,
-    originFilter === 'all' ? '' : originFilter,
+    statusFilter === "all" ? "" : statusFilter,
+    originFilter === "all" ? "" : originFilter,
   );
   const approveRedemption = useApproveRedemption();
   const deliverRedemption = useDeliverRedemption();
@@ -173,61 +172,59 @@ function RedemptionsSection({ business }: { business: Business }) {
     kind: ActionKind;
     redemption: LoyaltyRedemptionWithCustomer;
   } | null>(null);
-  const [reason, setReason] = useState('');
+  const [reason, setReason] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   if (redemptions.isLoading) return <LoadingScreen label="Cargando solicitudes…" />;
   if (redemptions.isError) {
-    return (
-      <ErrorState error={redemptions.error} onRetry={() => void redemptions.refetch()} />
-    );
+    return <ErrorState error={redemptions.error} onRetry={() => void redemptions.refetch()} />;
   }
 
   const rows = redemptions.data ?? [];
 
   function openAction(kind: ActionKind, redemption: LoyaltyRedemptionWithCustomer) {
     setAction({ kind, redemption });
-    setReason('');
+    setReason("");
   }
 
   async function runAction() {
     if (!action) return;
     const { kind, redemption } = action;
 
-    if (kind === 'cancel' && reason.trim().length < 3) {
-      toast.error('Escribe un motivo de al menos 3 caracteres.');
+    if (kind === "cancel" && reason.trim().length < 3) {
+      toast.error("Escribe un motivo de al menos 3 caracteres.");
       return;
     }
 
     setSubmitting(true);
     try {
-      if (kind === 'deliver') {
+      if (kind === "deliver") {
         await deliverRedemption.mutateAsync({
           businessId: business.id,
           redemptionId: redemption.id,
         });
-        toast.success('Entrega confirmada. Loopoints consumidos.');
-      } else if (kind === 'cancel') {
+        toast.success("Entrega confirmada. Loopoints consumidos.");
+      } else if (kind === "cancel") {
         await cancelRedemption.mutateAsync({
           businessId: business.id,
           redemptionId: redemption.id,
           reason: reason.trim(),
         });
-        toast.success('Solicitud cancelada y loopoints devueltos.');
+        toast.success("Solicitud cancelada y loopoints devueltos.");
       } else {
         await approveRedemption.mutateAsync({
           businessId: business.id,
           redemptionId: redemption.id,
-          approve: kind === 'approve',
+          approve: kind === "approve",
         });
         toast.success(
-          kind === 'approve'
-            ? 'Solicitud aprobada. Confirma la entrega al cliente.'
-            : 'Solicitud rechazada y loopoints devueltos.',
+          kind === "approve"
+            ? "Solicitud aprobada. Confirma la entrega al cliente."
+            : "Solicitud rechazada y loopoints devueltos.",
         );
       }
       setAction(null);
-      setReason('');
+      setReason("");
     } catch (error) {
       toast.error(errorMessage(error));
     } finally {
@@ -280,10 +277,10 @@ function RedemptionsSection({ business }: { business: Business }) {
 
       {!canAct && (
         <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-          Tu rol en este negocio es <strong>{selectedRole ?? 'sin rol'}</strong>
-          {selectedRole === 'encargado' ? ' y no tienes permiso de aprobación' : ''}.
-          Puedes consultar las solicitudes, pero solo un administrador o un encargado
-          autorizado puede aprobarlas y entregarlas.
+          Tu rol en este negocio es <strong>{selectedRole ?? "sin rol"}</strong>
+          {selectedRole === "encargado" ? " y no tienes permiso de aprobación" : ""}. Puedes
+          consultar las solicitudes, pero solo un administrador o un encargado autorizado puede
+          aprobarlas y entregarlas.
         </div>
       )}
 
@@ -291,9 +288,9 @@ function RedemptionsSection({ business }: { business: Business }) {
         <EmptyState
           title="Sin solicitudes"
           description={
-            statusFilter === 'all' && originFilter === 'all'
-              ? 'Todavía no hay canjes solicitados en este negocio.'
-              : 'No hay solicitudes con esos filtros.'
+            statusFilter === "all" && originFilter === "all"
+              ? "Todavía no hay canjes solicitados en este negocio."
+              : "No hay solicitudes con esos filtros."
           }
           icon={TicketCheck}
         />
@@ -302,13 +299,27 @@ function RedemptionsSection({ business }: { business: Business }) {
           <table className="w-full text-sm">
             <thead className="bg-muted/50 text-left text-xs uppercase tracking-wide text-muted-foreground">
               <tr>
-                <th scope="col" className="px-4 py-3">Cliente</th>
-                <th scope="col" className="px-4 py-3">Recompensa</th>
-                <th scope="col" className="px-4 py-3 text-right">Loopoints</th>
-                <th scope="col" className="px-4 py-3">Origen</th>
-                <th scope="col" className="px-4 py-3">Fecha</th>
-                <th scope="col" className="px-4 py-3">Estado</th>
-                <th scope="col" className="px-4 py-3 text-right">Acciones</th>
+                <th scope="col" className="px-4 py-3">
+                  Cliente
+                </th>
+                <th scope="col" className="px-4 py-3">
+                  Recompensa
+                </th>
+                <th scope="col" className="px-4 py-3 text-right">
+                  Loopoints
+                </th>
+                <th scope="col" className="px-4 py-3">
+                  Origen
+                </th>
+                <th scope="col" className="px-4 py-3">
+                  Fecha
+                </th>
+                <th scope="col" className="px-4 py-3">
+                  Estado
+                </th>
+                <th scope="col" className="px-4 py-3 text-right">
+                  Acciones
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -320,12 +331,8 @@ function RedemptionsSection({ business }: { business: Business }) {
                         ? `@${redemption.customer_nickname}`
                         : redemption.customer_email}
                     </p>
-                    <p className="text-xs text-muted-foreground">
-                      {redemption.customer_email}
-                    </p>
-                    <p className="font-mono text-xs text-muted-foreground">
-                      {redemption.code}
-                    </p>
+                    <p className="text-xs text-muted-foreground">{redemption.customer_email}</p>
+                    <p className="font-mono text-xs text-muted-foreground">{redemption.code}</p>
                   </td>
                   <td className="px-4 py-3">
                     <p className="font-semibold">{redemption.reward_name}</p>
@@ -352,42 +359,38 @@ function RedemptionsSection({ business }: { business: Business }) {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex flex-wrap justify-end gap-2">
-                      {redemption.status === 'pending' && canAct && (
+                      {redemption.status === "pending" && canAct && (
                         <>
-                          <Button size="sm" onClick={() => openAction('approve', redemption)}>
+                          <Button size="sm" onClick={() => openAction("approve", redemption)}>
                             <Check aria-hidden="true" />
                             Aprobar
                           </Button>
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => openAction('reject', redemption)}
+                            onClick={() => openAction("reject", redemption)}
                           >
                             <X aria-hidden="true" />
                             Rechazar
                           </Button>
                         </>
                       )}
-                      {redemption.status === 'pending' && canCancel && (
+                      {redemption.status === "pending" && canCancel && (
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => openAction('cancel', redemption)}
+                          onClick={() => openAction("cancel", redemption)}
                         >
                           Cancelar
                         </Button>
                       )}
-                      {redemption.status === 'approved' && canAct && (
-                        <Button
-                          size="sm"
-                          onClick={() => openAction('deliver', redemption)}
-                        >
+                      {redemption.status === "approved" && canAct && (
+                        <Button size="sm" onClick={() => openAction("deliver", redemption)}>
                           <PackageCheck aria-hidden="true" />
                           Confirmar entrega
                         </Button>
                       )}
-                      {(redemption.status === 'approved' ||
-                        redemption.status === 'delivered') && (
+                      {(redemption.status === "approved" || redemption.status === "delivered") && (
                         <Button size="sm" variant="outline" asChild>
                           <Link to="/admin/purchases/new">
                             <ReceiptText aria-hidden="true" />
@@ -395,10 +398,8 @@ function RedemptionsSection({ business }: { business: Business }) {
                           </Link>
                         </Button>
                       )}
-                      {redemption.status === 'cancelled' && (
-                        <span className="text-xs text-muted-foreground">
-                          Loopoints devueltos
-                        </span>
+                      {redemption.status === "cancelled" && (
+                        <span className="text-xs text-muted-foreground">Loopoints devueltos</span>
                       )}
                     </div>
                   </td>
@@ -410,10 +411,10 @@ function RedemptionsSection({ business }: { business: Business }) {
       )}
 
       <p className="text-xs text-muted-foreground">
-        Aprobar consume el token QR: el cliente ya no podrá reutilizarlo. Si el QR se
-        escanea desde <span className="font-mono">/scan</span>, la entrega se confirma
-        en un solo paso y la solicitud aparece como “QR escaneado”. Cancelar o rechazar
-        devuelve los loopoints reservados. Cada paso queda en la auditoría.
+        Aprobar consume el token QR: el cliente ya no podrá reutilizarlo. Si el QR se escanea desde{" "}
+        <span className="font-mono">/scan</span>, la entrega se confirma en un solo paso y la
+        solicitud aparece como “QR escaneado”. Cancelar o rechazar devuelve los loopoints
+        reservados. Cada paso queda en la auditoría.
       </p>
 
       <Dialog
@@ -421,7 +422,7 @@ function RedemptionsSection({ business }: { business: Business }) {
         onOpenChange={(open) => {
           if (!open && !submitting) {
             setAction(null);
-            setReason('');
+            setReason("");
           }
         }}
       >
@@ -432,16 +433,16 @@ function RedemptionsSection({ business }: { business: Business }) {
               {copy?.description}
               {action && (
                 <>
-                  {' '}
-                  <strong>{action.redemption.reward_name}</strong> ·{' '}
-                  {formatPoints(action.redemption.points_spent)} ·{' '}
+                  {" "}
+                  <strong>{action.redemption.reward_name}</strong> ·{" "}
+                  {formatPoints(action.redemption.points_spent)} ·{" "}
                   {action.redemption.customer_email}
                 </>
               )}
             </DialogDescription>
           </DialogHeader>
 
-          {action?.kind === 'cancel' && (
+          {action?.kind === "cancel" && (
             <div className="space-y-2">
               <Label htmlFor="cancel-reason">Motivo de la cancelación</Label>
               <Textarea
@@ -463,7 +464,7 @@ function RedemptionsSection({ business }: { business: Business }) {
               variant="outline"
               onClick={() => {
                 setAction(null);
-                setReason('');
+                setReason("");
               }}
               disabled={submitting}
             >
@@ -471,7 +472,7 @@ function RedemptionsSection({ business }: { business: Business }) {
             </Button>
             <Button
               type="button"
-              variant={copy?.destructive ? 'destructive' : 'default'}
+              variant={copy?.destructive ? "destructive" : "default"}
               onClick={() => void runAction()}
               loading={submitting}
             >
@@ -489,7 +490,7 @@ function RedemptionsSection({ business }: { business: Business }) {
  * entregó en el mismo acto; `manual` cuando se aprobó desde este listado.
  */
 function OriginBadge({ origin }: { origin: string }) {
-  if (origin === 'qr_scan') {
+  if (origin === "qr_scan") {
     return (
       <Badge variant="secondary" className="gap-1 whitespace-nowrap">
         <ScanLine className="size-3" aria-hidden="true" />

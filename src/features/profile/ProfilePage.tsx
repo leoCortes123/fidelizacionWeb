@@ -1,32 +1,20 @@
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import {
-  ArrowLeft,
-  AtSign,
-  BadgeCheck,
-  CircleAlert,
-  Loader2,
-  Save,
-  UserRound,
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { z } from 'zod';
-import { useAuth } from '@/features/auth/AuthProvider';
-import {
-  useMyProfile,
-  useNicknameAvailable,
-  useUpdateProfile,
-} from './hooks';
-import { errorMessage } from '@/lib/errors';
-import { formatDateBogota } from '@/lib/format';
-import { useFormDraft } from '@/lib/useFormDraft';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Field } from '@/components/shared/Field';
-import { PageHeader } from '@/components/shared/PageHeader';
-import { ErrorState, LoadingScreen } from '@/components/shared/States';
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { ArrowLeft, AtSign, BadgeCheck, CircleAlert, Loader2, Save, UserRound } from "lucide-react";
+import { toast } from "sonner";
+import { z } from "zod";
+import { useAuth } from "@/features/auth/AuthProvider";
+import { useMyProfile, useNicknameAvailable, useUpdateProfile } from "./hooks";
+import { errorMessage } from "@/lib/errors";
+import { formatDateBogota } from "@/lib/format";
+import { useFormDraft } from "@/lib/useFormDraft";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Field } from "@/components/shared/Field";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { ErrorState, LoadingScreen } from "@/components/shared/States";
 
 const NICKNAME_PATTERN = /^[a-z0-9._-]{3,24}$/;
 
@@ -34,15 +22,15 @@ const profileSchema = z.object({
   fullName: z
     .string()
     .trim()
-    .min(2, 'Escribe tu nombre (mínimo 2 caracteres).')
-    .max(120, 'El nombre no puede superar 120 caracteres.'),
+    .min(2, "Escribe tu nombre (mínimo 2 caracteres).")
+    .max(120, "El nombre no puede superar 120 caracteres."),
   nickname: z
     .string()
     .trim()
     .toLowerCase()
     .regex(
       NICKNAME_PATTERN,
-      'El alias debe tener 3 a 24 caracteres: minúsculas, números, punto, guion o guion bajo.',
+      "El alias debe tener 3 a 24 caracteres: minúsculas, números, punto, guion o guion bajo.",
     ),
 });
 
@@ -60,7 +48,7 @@ export function ProfilePage() {
   const updateProfile = useUpdateProfile();
   const { user } = useAuth();
   const draft = useFormDraft<ProfileFormState>({
-    key: `profile:${user?.id ?? 'anon'}`,
+    key: `profile:${user?.id ?? "anon"}`,
   });
 
   const [form, setForm] = useState<ProfileFormState | null>(null);
@@ -73,7 +61,7 @@ export function ProfilePage() {
     setForm(
       draft.read() ?? {
         fullName: profile.data.full_name,
-        nickname: profile.data.nickname ?? '',
+        nickname: profile.data.nickname ?? "",
       },
     );
     setInitialized(true);
@@ -83,15 +71,15 @@ export function ProfilePage() {
     if (dirty && form) draft.save(form);
   }, [dirty, draft.save, form]);
 
-  const currentNickname = profile.data?.nickname ?? '';
-  const normalizedNickname = (form?.nickname ?? '').trim().toLowerCase();
+  const currentNickname = profile.data?.nickname ?? "";
+  const normalizedNickname = (form?.nickname ?? "").trim().toLowerCase();
   const nicknameChanged = normalizedNickname !== currentNickname;
   const canChangeNickname =
     Boolean(profile.data) &&
     (profile.data?.nickname == null || (profile.data?.nickname_changes_left ?? 0) > 0);
 
   const availability = useNicknameAvailable(
-    canChangeNickname && nicknameChanged ? normalizedNickname : '',
+    canChangeNickname && nicknameChanged ? normalizedNickname : "",
   );
 
   if (profile.isLoading) return <LoadingScreen label="Cargando tu perfil…" />;
@@ -101,7 +89,7 @@ export function ProfilePage() {
       <div className="space-y-4">
         <BackLink />
         <ErrorState
-          error={profile.error ?? new Error('No encontramos tu perfil.')}
+          error={profile.error ?? new Error("No encontramos tu perfil.")}
           onRetry={() => void profile.refetch()}
         />
       </div>
@@ -128,12 +116,12 @@ export function ProfilePage() {
         if (key && !nextErrors[key]) nextErrors[key] = issue.message;
       }
       setErrors(nextErrors);
-      toast.error(parsed.error.issues[0]?.message ?? 'Revisa tus datos.');
+      toast.error(parsed.error.issues[0]?.message ?? "Revisa tus datos.");
       return;
     }
 
     if (nicknameChanged && availability.data === false) {
-      toast.error('Ese alias no está disponible. Elige otro.');
+      toast.error("Ese alias no está disponible. Elige otro.");
       return;
     }
 
@@ -142,13 +130,13 @@ export function ProfilePage() {
         fullName: parsed.data.fullName,
         nickname: parsed.data.nickname,
       });
-      setForm({ fullName: result.full_name, nickname: result.nickname ?? '' });
+      setForm({ fullName: result.full_name, nickname: result.nickname ?? "" });
       setDirty(false);
       draft.clear();
       toast.success(
         result.nickname_changes_left > 0
           ? `Perfil guardado. Te quedan ${result.nickname_changes_left} cambio(s) de alias.`
-          : 'Perfil guardado. Ya usaste tus 2 cambios de alias.',
+          : "Perfil guardado. Ya usaste tus 2 cambios de alias.",
       );
     } catch (error) {
       toast.error(errorMessage(error));
@@ -163,8 +151,7 @@ export function ProfilePage() {
         description="Tu nombre y tu alias público en Loopoint."
         actions={
           <Badge variant="secondary">
-            <AtSign aria-hidden="true" />
-            @{data.nickname ?? 'sin-alias'}
+            <AtSign aria-hidden="true" />@{data.nickname ?? "sin-alias"}
           </Badge>
         }
       />
@@ -179,10 +166,10 @@ export function ProfilePage() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-5" noValidate>
             <div className="rounded-xl border bg-muted/30 p-4 text-sm">
-              <p className="font-semibold">{data.full_name || 'Sin nombre'}</p>
+              <p className="font-semibold">{data.full_name || "Sin nombre"}</p>
               <p className="text-xs text-muted-foreground">{data.email}</p>
               <p className="mt-1 text-xs text-muted-foreground">
-                {data.business_count} negocio(s) · en Loopoint desde{' '}
+                {data.business_count} negocio(s) · en Loopoint desde{" "}
                 {formatDateBogota(data.created_at)}
               </p>
             </div>
@@ -196,8 +183,8 @@ export function ProfilePage() {
             >
               <Input
                 id="full-name"
-                value={form?.fullName ?? ''}
-                onChange={(event) => update('fullName', event.target.value)}
+                value={form?.fullName ?? ""}
+                onChange={(event) => update("fullName", event.target.value)}
                 autoComplete="name"
                 aria-invalid={Boolean(errors.fullName)}
               />
@@ -209,7 +196,7 @@ export function ProfilePage() {
               hint={
                 canChangeNickname
                   ? `Te quedan ${data.nickname_changes_left} de 2 cambios. El alias no aparece en los QR ni en datos de canje.`
-                  : 'Ya usaste tus 2 cambios de alias. El alias actual se mantiene.'
+                  : "Ya usaste tus 2 cambios de alias. El alias actual se mantiene."
               }
               help="Se usa para identificarte en las listas del negocio. Solo minúsculas, números, punto, guion y guion bajo."
               error={errors.nickname}
@@ -222,8 +209,8 @@ export function ProfilePage() {
                 <Input
                   id="nickname"
                   className="pl-9"
-                  value={form?.nickname ?? ''}
-                  onChange={(event) => update('nickname', event.target.value.toLowerCase())}
+                  value={form?.nickname ?? ""}
+                  onChange={(event) => update("nickname", event.target.value.toLowerCase())}
                   disabled={!canChangeNickname}
                   maxLength={24}
                   autoCapitalize="none"
@@ -242,7 +229,10 @@ export function ProfilePage() {
               >
                 {availability.isFetching ? (
                   <>
-                    <Loader2 className="size-4 animate-spin text-muted-foreground" aria-hidden="true" />
+                    <Loader2
+                      className="size-4 animate-spin text-muted-foreground"
+                      aria-hidden="true"
+                    />
                     <span className="text-muted-foreground">Comprobando disponibilidad…</span>
                   </>
                 ) : availability.data ? (
@@ -264,11 +254,7 @@ export function ProfilePage() {
             )}
 
             <div className="flex justify-end">
-              <Button
-                type="submit"
-                loading={updateProfile.isPending}
-                disabled={!dirty}
-              >
+              <Button type="submit" loading={updateProfile.isPending} disabled={!dirty}>
                 <Save aria-hidden="true" />
                 Guardar perfil
               </Button>

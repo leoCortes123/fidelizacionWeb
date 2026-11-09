@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
 export interface Countdown {
   remainingMs: number;
@@ -7,7 +7,7 @@ export interface Countdown {
 }
 
 export function formatRemaining(remainingMs: number): string {
-  if (remainingMs <= 0) return 'Vencido';
+  if (remainingMs <= 0) return "Vencido";
   const totalSeconds = Math.floor(remainingMs / 1000);
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
@@ -36,7 +36,7 @@ export function useCountdown(expiresAt: string | null | undefined): Countdown {
   }, [target, valid]);
 
   if (!valid) {
-    return { remainingMs: 0, expired: false, label: 'Sin vencimiento' };
+    return { remainingMs: 0, expired: false, label: "Sin vencimiento" };
   }
 
   const remainingMs = Math.max(target - now, 0);

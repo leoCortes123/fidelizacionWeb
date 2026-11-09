@@ -1,28 +1,20 @@
-import { useState } from 'react';
-import {
-  ChevronLeft,
-  ChevronRight,
-  ClipboardList,
-  Eye,
-  FileJson,
-  Search,
-  X,
-} from 'lucide-react';
-import { useBusinessAuditLog } from '@/features/loyalty/hooks';
-import { formatDateBogota, formatDateTimeBogota, formatNumber } from '@/lib/format';
-import { cn } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { useState } from "react";
+import { ChevronLeft, ChevronRight, ClipboardList, Eye, FileJson, Search, X } from "lucide-react";
+import { useBusinessAuditLog } from "@/features/loyalty/hooks";
+import { formatDateBogota, formatDateTimeBogota, formatNumber } from "@/lib/format";
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -31,7 +23,7 @@ import {
   SelectLabel,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -39,10 +31,10 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { PageHeader } from '@/components/shared/PageHeader';
-import { EmptyState, ErrorState, ListSkeleton } from '@/components/shared/States';
-import { BusinessGate } from './BusinessGate';
+} from "@/components/ui/table";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { EmptyState, ErrorState, ListSkeleton } from "@/components/shared/States";
+import { BusinessGate } from "./BusinessGate";
 import {
   AUDIT_CATEGORIES,
   AUDIT_SEVERITY_STYLES,
@@ -51,8 +43,8 @@ import {
   describeAudit,
   getAuditEntityLabel,
   getAuditLabel,
-} from './auditLabels';
-import type { Business, BusinessAuditFilters, BusinessAuditLog } from '@/types';
+} from "./auditLabels";
+import type { Business, BusinessAuditFilters, BusinessAuditLog } from "@/types";
 
 const PAGE_SIZE = 25;
 
@@ -65,11 +57,11 @@ interface FilterForm {
 }
 
 const EMPTY_FORM: FilterForm = {
-  operation: '',
-  actor: '',
-  from: '',
-  to: '',
-  search: '',
+  operation: "",
+  actor: "",
+  from: "",
+  to: "",
+  search: "",
 };
 
 export function AuditPage() {
@@ -93,21 +85,12 @@ function AuditSection({ business }: { business: Business }) {
   const [detail, setDetail] = useState<BusinessAuditLog | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
 
-  const log = useBusinessAuditLog(
-    business.id,
-    filters,
-    PAGE_SIZE,
-    page * PAGE_SIZE,
-  );
+  const log = useBusinessAuditLog(business.id, filters, PAGE_SIZE, page * PAGE_SIZE);
 
   const total = log.data?.[0]?.total_count ?? 0;
   const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const hasFilters = Boolean(
-    filters.operation ||
-      filters.actor ||
-      filters.from ||
-      filters.to ||
-      filters.search,
+    filters.operation || filters.actor || filters.from || filters.to || filters.search,
   );
   const activeChips = buildFilterChips(appliedForm);
 
@@ -121,7 +104,7 @@ function AuditSection({ business }: { business: Business }) {
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     if (form.from && form.to && form.from > form.to) {
-      setFormError('La fecha “Desde” no puede ser posterior a “Hasta”.');
+      setFormError("La fecha “Desde” no puede ser posterior a “Hasta”.");
       return;
     }
     setFormError(null);
@@ -129,7 +112,7 @@ function AuditSection({ business }: { business: Business }) {
   }
 
   function removeFilter(key: keyof FilterForm) {
-    const next = { ...appliedForm, [key]: '' };
+    const next = { ...appliedForm, [key]: "" };
     setFormError(null);
     applyForm(next);
   }
@@ -178,11 +161,11 @@ function AuditSection({ business }: { business: Business }) {
               <div className="space-y-1">
                 <Label htmlFor="audit-operation">Tipo de operación</Label>
                 <Select
-                  value={form.operation || 'all'}
+                  value={form.operation || "all"}
                   onValueChange={(value) =>
                     setForm((current) => ({
                       ...current,
-                      operation: value === 'all' ? '' : value,
+                      operation: value === "all" ? "" : value,
                     }))
                   }
                 >
@@ -282,11 +265,7 @@ function AuditSection({ business }: { business: Business }) {
                 Filtros activos
               </span>
               {activeChips.map((chip) => (
-                <Badge
-                  key={chip.key}
-                  variant="secondary"
-                  className="gap-1 font-normal"
-                >
+                <Badge key={chip.key} variant="secondary" className="gap-1 font-normal">
                   {chip.label}
                   <button
                     type="button"
@@ -309,11 +288,11 @@ function AuditSection({ business }: { business: Business }) {
         <ErrorState error={log.error} onRetry={() => void log.refetch()} />
       ) : !log.data || log.data.length === 0 ? (
         <EmptyState
-          title={hasFilters ? 'Sin resultados' : 'Aún no hay operaciones'}
+          title={hasFilters ? "Sin resultados" : "Aún no hay operaciones"}
           description={
             hasFilters
-              ? 'No hay operaciones que coincidan con los filtros. Prueba con otro rango de fechas o límpialos.'
-              : 'Cuando registres compras, canjes, campañas o cambios de configuración aparecerán aquí.'
+              ? "No hay operaciones que coincidan con los filtros. Prueba con otro rango de fechas o límpialos."
+              : "Cuando registres compras, canjes, campañas o cambios de configuración aparecerán aquí."
           }
           icon={ClipboardList}
           action={
@@ -329,11 +308,7 @@ function AuditSection({ business }: { business: Business }) {
           {/* Móvil: tarjetas legibles */}
           <div className="space-y-3 md:hidden" data-testid="audit-cards">
             {log.data.map((entry) => (
-              <AuditCard
-                key={entry.id}
-                entry={entry}
-                onDetail={() => setDetail(entry)}
-              />
+              <AuditCard key={entry.id} entry={entry} onDetail={() => setDetail(entry)} />
             ))}
           </div>
 
@@ -351,11 +326,7 @@ function AuditSection({ business }: { business: Business }) {
                 </TableHeader>
                 <TableBody>
                   {log.data.map((entry) => (
-                    <AuditTableRow
-                      key={entry.id}
-                      entry={entry}
-                      onDetail={() => setDetail(entry)}
-                    />
+                    <AuditTableRow key={entry.id} entry={entry} onDetail={() => setDetail(entry)} />
                   ))}
                 </TableBody>
               </Table>
@@ -367,8 +338,8 @@ function AuditSection({ business }: { business: Business }) {
       {total > 0 && (
         <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
           <p className="text-sm text-muted-foreground">
-            {formatNumber(total)} {total === 1 ? 'operación' : 'operaciones'} ·
-            página {page + 1} de {pageCount}
+            {formatNumber(total)} {total === 1 ? "operación" : "operaciones"} · página {page + 1} de{" "}
+            {pageCount}
           </p>
           <div className="flex w-full gap-2 sm:w-auto">
             <Button
@@ -397,22 +368,14 @@ function AuditSection({ business }: { business: Business }) {
 
       <Dialog open={Boolean(detail)} onOpenChange={(open) => !open && setDetail(null)}>
         <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
-          {detail && (
-            <AuditDetail key={detail.id} entry={detail} />
-          )}
+          {detail && <AuditDetail key={detail.id} entry={detail} />}
         </DialogContent>
       </Dialog>
     </div>
   );
 }
 
-function AuditTableRow({
-  entry,
-  onDetail,
-}: {
-  entry: BusinessAuditLog;
-  onDetail: () => void;
-}) {
+function AuditTableRow({ entry, onDetail }: { entry: BusinessAuditLog; onDetail: () => void }) {
   const label = getAuditLabel(entry.operation);
   const Icon = label.icon;
   const styles = AUDIT_SEVERITY_STYLES[label.severity];
@@ -423,7 +386,7 @@ function AuditTableRow({
         <div className="flex items-start gap-3">
           <span
             className={cn(
-              'mt-0.5 grid size-9 shrink-0 place-items-center rounded-full',
+              "mt-0.5 grid size-9 shrink-0 place-items-center rounded-full",
               styles.icon,
             )}
           >
@@ -431,9 +394,7 @@ function AuditTableRow({
           </span>
           <div className="min-w-0">
             <p className="font-semibold">{label.label}</p>
-            <p className="truncate text-xs text-muted-foreground">
-              {auditSubject(entry)}
-            </p>
+            <p className="truncate text-xs text-muted-foreground">{auditSubject(entry)}</p>
             <Badge variant="outline" className="mt-1 text-[10px] font-normal">
               {getAuditEntityLabel(entry.entity_type)}
             </Badge>
@@ -442,12 +403,10 @@ function AuditTableRow({
       </TableCell>
       <TableCell className="max-w-[14rem]">
         <p className="truncate text-sm font-medium">
-          {entry.actor_name || entry.actor_email || 'Sistema'}
+          {entry.actor_name || entry.actor_email || "Sistema"}
         </p>
         {entry.actor_name && entry.actor_email && (
-          <p className="truncate text-xs text-muted-foreground">
-            {entry.actor_email}
-          </p>
+          <p className="truncate text-xs text-muted-foreground">{entry.actor_email}</p>
         )}
       </TableCell>
       <TableCell className="whitespace-nowrap text-sm text-muted-foreground">
@@ -468,13 +427,7 @@ function AuditTableRow({
   );
 }
 
-function AuditCard({
-  entry,
-  onDetail,
-}: {
-  entry: BusinessAuditLog;
-  onDetail: () => void;
-}) {
+function AuditCard({ entry, onDetail }: { entry: BusinessAuditLog; onDetail: () => void }) {
   const label = getAuditLabel(entry.operation);
   const Icon = label.icon;
   const styles = AUDIT_SEVERITY_STYLES[label.severity];
@@ -484,10 +437,7 @@ function AuditCard({
       <CardContent className="space-y-3 p-4">
         <div className="flex items-start gap-3">
           <span
-            className={cn(
-              'grid size-10 shrink-0 place-items-center rounded-full',
-              styles.icon,
-            )}
+            className={cn("grid size-10 shrink-0 place-items-center rounded-full", styles.icon)}
           >
             <Icon className="size-5" aria-hidden="true" />
           </span>
@@ -502,7 +452,7 @@ function AuditCard({
         <div className="flex items-end justify-between gap-2 text-xs text-muted-foreground">
           <span className="min-w-0">
             <span className="block truncate font-medium text-foreground">
-              {entry.actor_name || entry.actor_email || 'Sistema'}
+              {entry.actor_name || entry.actor_email || "Sistema"}
             </span>
             {formatDateTimeBogota(entry.created_at)}
           </span>
@@ -533,10 +483,7 @@ function AuditDetail({ entry }: { entry: BusinessAuditLog }) {
       <DialogHeader>
         <div className="flex items-start gap-3 pr-6">
           <span
-            className={cn(
-              'grid size-10 shrink-0 place-items-center rounded-full',
-              styles.icon,
-            )}
+            className={cn("grid size-10 shrink-0 place-items-center rounded-full", styles.icon)}
           >
             <Icon className="size-5" aria-hidden="true" />
           </span>
@@ -550,36 +497,24 @@ function AuditDetail({ entry }: { entry: BusinessAuditLog }) {
       <div className="space-y-4">
         <div className="grid gap-3 rounded-xl border bg-muted/30 p-3 text-sm sm:grid-cols-3">
           <div>
-            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
-              Actor
-            </p>
-            <p className="font-medium">
-              {entry.actor_name || entry.actor_email || 'Sistema'}
-            </p>
+            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Actor</p>
+            <p className="font-medium">{entry.actor_name || entry.actor_email || "Sistema"}</p>
             {entry.actor_name && entry.actor_email && (
-              <p className="break-all text-xs text-muted-foreground">
-                {entry.actor_email}
-              </p>
+              <p className="break-all text-xs text-muted-foreground">{entry.actor_email}</p>
             )}
           </div>
           <div>
-            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
-              Fecha
-            </p>
+            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Fecha</p>
             <p className="font-medium">{formatDateTimeBogota(entry.created_at)}</p>
           </div>
           <div>
-            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
-              Entidad
-            </p>
+            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Entidad</p>
             <p className="font-medium">{getAuditEntityLabel(entry.entity_type)}</p>
           </div>
         </div>
 
         <div className="rounded-xl border p-3">
-          <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
-            Resumen
-          </p>
+          <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Resumen</p>
           <p className="font-medium">{auditSubject(entry)}</p>
         </div>
 
@@ -590,10 +525,7 @@ function AuditDetail({ entry }: { entry: BusinessAuditLog }) {
             </p>
             <dl className="grid gap-2 sm:grid-cols-2">
               {description.fields.map((field) => (
-                <div
-                  key={`${field.label}-${field.value}`}
-                  className="rounded-lg border p-2.5"
-                >
+                <div key={`${field.label}-${field.value}`} className="rounded-lg border p-2.5">
                   <dt className="text-[11px] uppercase tracking-wide text-muted-foreground">
                     {field.label}
                   </dt>
@@ -622,9 +554,7 @@ function AuditDetail({ entry }: { entry: BusinessAuditLog }) {
                   {description.changes.map((change) => (
                     <TableRow key={change.label}>
                       <TableCell className="font-medium">{change.label}</TableCell>
-                      <TableCell className="text-muted-foreground">
-                        {change.before}
-                      </TableCell>
+                      <TableCell className="text-muted-foreground">{change.before}</TableCell>
                       <TableCell>{change.after}</TableCell>
                     </TableRow>
                   ))}
@@ -649,7 +579,7 @@ function AuditDetail({ entry }: { entry: BusinessAuditLog }) {
             aria-expanded={showJson}
           >
             <FileJson aria-hidden="true" />
-            {showJson ? 'Ocultar JSON' : 'Ver JSON'}
+            {showJson ? "Ocultar JSON" : "Ver JSON"}
           </Button>
           {showJson && (
             <pre className="max-h-80 overflow-auto rounded-lg border bg-muted/40 p-3 text-xs">
@@ -692,39 +622,33 @@ function startOfNextBogotaDay(date: string): string | undefined {
   return value.toISOString();
 }
 
-function buildFilterChips(
-  form: FilterForm,
-): Array<{ key: keyof FilterForm; label: string }> {
+function buildFilterChips(form: FilterForm): Array<{ key: keyof FilterForm; label: string }> {
   const chips: Array<{ key: keyof FilterForm; label: string }> = [];
 
   if (form.operation) {
-    const category = AUDIT_CATEGORIES.find(
-      (item) => item.prefix === form.operation,
-    );
+    const category = AUDIT_CATEGORIES.find((item) => item.prefix === form.operation);
     chips.push({
-      key: 'operation',
-      label: category
-        ? `Tipo: ${category.label}`
-        : `Tipo: ${getAuditLabel(form.operation).label}`,
+      key: "operation",
+      label: category ? `Tipo: ${category.label}` : `Tipo: ${getAuditLabel(form.operation).label}`,
     });
   }
   if (form.actor.trim()) {
-    chips.push({ key: 'actor', label: `Actor: ${form.actor.trim()}` });
+    chips.push({ key: "actor", label: `Actor: ${form.actor.trim()}` });
   }
   if (form.from) {
     chips.push({
-      key: 'from',
+      key: "from",
       label: `Desde: ${formatDateBogota(startOfBogotaDay(form.from))}`,
     });
   }
   if (form.to) {
     chips.push({
-      key: 'to',
+      key: "to",
       label: `Hasta: ${formatDateBogota(startOfBogotaDay(form.to))}`,
     });
   }
   if (form.search.trim()) {
-    chips.push({ key: 'search', label: `Texto: “${form.search.trim()}”` });
+    chips.push({ key: "search", label: `Texto: “${form.search.trim()}”` });
   }
 
   return chips;

@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   AlertTriangle,
   Building2,
@@ -8,30 +8,30 @@ import {
   RotateCcw,
   Settings2,
   TimerReset,
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { z } from 'zod';
+} from "lucide-react";
+import { toast } from "sonner";
+import { z } from "zod";
 import {
   useBusinesses,
   useConfigureLoyaltyProgram,
   useExpirePointsDue,
   useLoyaltyProgram,
-} from '@/features/loyalty/hooks';
-import { useBusinessContext } from '@/features/loyalty/businessContext';
-import { errorMessage } from '@/lib/errors';
-import { formatCOP, formatNumber } from '@/lib/format';
-import { useFormDraft } from '@/lib/useFormDraft';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { FrequentCriteriaCard } from './FrequentCriteriaCard';
-import { PageHeader } from '@/components/shared/PageHeader';
-import { Field } from '@/components/shared/Field';
-import { EmptyState, ErrorState, ListSkeleton, LoadingScreen } from '@/components/shared/States';
-import type { Business, LoyaltyProgram } from '@/types';
+} from "@/features/loyalty/hooks";
+import { useBusinessContext } from "@/features/loyalty/businessContext";
+import { errorMessage } from "@/lib/errors";
+import { formatCOP, formatNumber } from "@/lib/format";
+import { useFormDraft } from "@/lib/useFormDraft";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { FrequentCriteriaCard } from "./FrequentCriteriaCard";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { Field } from "@/components/shared/Field";
+import { EmptyState, ErrorState, ListSkeleton, LoadingScreen } from "@/components/shared/States";
+import type { Business, LoyaltyProgram } from "@/types";
 
-const UNCONFIGURED_ID = '00000000-0000-0000-0000-000000000000';
+const UNCONFIGURED_ID = "00000000-0000-0000-0000-000000000000";
 
 const DEFAULTS = {
   copPerPointUnit: 1000,
@@ -53,25 +53,25 @@ const requiredInteger = (label: string, min: number, max: number) =>
 
 const programSchema = z
   .object({
-    copPerPointUnit: requiredInteger('COP por loopoint', 100, 1_000_000),
-    pointsPerCopUnit: requiredInteger('Loopoints por $1.000', 1, 1_000_000),
-    pointsExpiryDays: requiredInteger('Vencimiento de loopoints', 1, 3650),
+    copPerPointUnit: requiredInteger("COP por loopoint", 100, 1_000_000),
+    pointsPerCopUnit: requiredInteger("Loopoints por $1.000", 1, 1_000_000),
+    pointsExpiryDays: requiredInteger("Vencimiento de loopoints", 1, 3650),
     budgetRatePercent: z.coerce
-      .number({ invalid_type_error: 'Tasa de presupuesto: introduce un número.' })
-      .min(0, 'Tasa de presupuesto: el mínimo es 0 %.')
-      .max(100, 'Tasa de presupuesto: el máximo es 100 %.'),
-    firstPurchaseBonusPoints: requiredInteger('Bono de primera compra', 0, 1_000_000),
-    recurrenceBonusPoints: requiredInteger('Bono de recurrencia', 0, 1_000_000),
-    referralBonusPoints: requiredInteger('Bono por referidos', 0, 1_000_000),
-    qrExpiryHours: requiredInteger('Vigencia del QR', 1, 168),
+      .number({ invalid_type_error: "Tasa de presupuesto: introduce un número." })
+      .min(0, "Tasa de presupuesto: el mínimo es 0 %.")
+      .max(100, "Tasa de presupuesto: el máximo es 100 %."),
+    firstPurchaseBonusPoints: requiredInteger("Bono de primera compra", 0, 1_000_000),
+    recurrenceBonusPoints: requiredInteger("Bono de recurrencia", 0, 1_000_000),
+    referralBonusPoints: requiredInteger("Bono por referidos", 0, 1_000_000),
+    qrExpiryHours: requiredInteger("Vigencia del QR", 1, 168),
     isActive: z.boolean(),
   })
   .superRefine((value, ctx) => {
     if (value.isActive && value.pointsExpiryDays < 1) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ['pointsExpiryDays'],
-        message: 'Un programa activo necesita una vigencia de loopoints válida.',
+        path: ["pointsExpiryDays"],
+        message: "Un programa activo necesita una vigencia de loopoints válida.",
       });
     }
   });
@@ -142,7 +142,7 @@ export function ProgramPage() {
                   className="mt-4 w-full"
                   onClick={() => {
                     setSelectedBusiness(business);
-                    navigate('/admin/program');
+                    navigate("/admin/program");
                   }}
                 >
                   Seleccionar
@@ -202,8 +202,11 @@ function ProgramForm({ business, program }: { business: Business; program: Loyal
 
   const copPerPoint = Number(form.copPerPointUnit);
   const pointsPerThousand = Number(form.pointsPerCopUnit);
-  const validNumbers = Number.isFinite(copPerPoint) && Number.isFinite(pointsPerThousand)
-    && copPerPoint > 0 && pointsPerThousand > 0;
+  const validNumbers =
+    Number.isFinite(copPerPoint) &&
+    Number.isFinite(pointsPerThousand) &&
+    copPerPoint > 0 &&
+    pointsPerThousand > 0;
   const pointValueCop = validNumbers ? 1000 / pointsPerThousand : 0;
   const pointsPer1000Spent = validNumbers ? 1000 / copPerPoint : 0;
   const estimatedCostRate = validNumbers ? 1000 / (copPerPoint * pointsPerThousand) : 0;
@@ -241,7 +244,7 @@ function ProgramForm({ business, program }: { business: Business; program: Loyal
         if (key && !nextErrors[key]) nextErrors[key] = issue.message;
       }
       setErrors(nextErrors);
-      toast.error(parsed.error.issues[0]?.message ?? 'Revisa los datos del programa.');
+      toast.error(parsed.error.issues[0]?.message ?? "Revisa los datos del programa.");
       return;
     }
 
@@ -263,8 +266,8 @@ function ProgramForm({ business, program }: { business: Business; program: Loyal
       draft.clear();
       toast.success(
         values.isActive
-          ? 'Programa guardado y activo.'
-          : 'Programa guardado. Actívalo cuando estés listo.',
+          ? "Programa guardado y activo."
+          : "Programa guardado. Actívalo cuando estés listo.",
       );
     } catch (error) {
       toast.error(errorMessage(error));
@@ -281,7 +284,7 @@ function ProgramForm({ business, program }: { business: Business; program: Loyal
           )} lote(s) en ${formatNumber(result.accounts_affected)} cuenta(s).`,
         );
       } else {
-        toast.info('No había loopoints vencidos por procesar.');
+        toast.info("No había loopoints vencidos por procesar.");
       }
     } catch (error) {
       toast.error(errorMessage(error));
@@ -296,8 +299,8 @@ function ProgramForm({ business, program }: { business: Business; program: Loyal
         actions={
           <div className="flex flex-wrap items-center gap-2">
             {draft.hasDraft && <Badge variant="muted">Borrador guardado</Badge>}
-            <Badge variant={form.isActive ? 'success' : 'muted'}>
-              {form.isActive ? 'Programa activo' : 'Programa inactivo'}
+            <Badge variant={form.isActive ? "success" : "muted"}>
+              {form.isActive ? "Programa activo" : "Programa inactivo"}
             </Badge>
           </div>
         }
@@ -309,8 +312,8 @@ function ProgramForm({ business, program }: { business: Business; program: Loyal
           <div>
             <p className="font-semibold">El programa aún no está configurado</p>
             <p className="text-amber-800">
-              Hemos cargado valores sugeridos. Revísalos, guárdalos y activa el
-              programa para que tus clientes puedan acumular y canjear loopoints.
+              Hemos cargado valores sugeridos. Revísalos, guárdalos y activa el programa para que
+              tus clientes puedan acumular y canjear loopoints.
             </p>
           </div>
         </div>
@@ -320,8 +323,8 @@ function ProgramForm({ business, program }: { business: Business; program: Loyal
         <div className="flex items-start gap-3 rounded-xl border bg-muted/40 p-4 text-sm">
           <Info className="mt-0.5 size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
           <p className="text-muted-foreground">
-            El programa está configurado pero <strong>inactivo</strong>. Los
-            clientes no podrán acumular ni solicitar recompensas hasta que lo actives.
+            El programa está configurado pero <strong>inactivo</strong>. Los clientes no podrán
+            acumular ni solicitar recompensas hasta que lo actives.
           </p>
         </div>
       )}
@@ -348,7 +351,7 @@ function ProgramForm({ business, program }: { business: Business; program: Loyal
                     id="cop-per-point"
                     inputMode="numeric"
                     value={form.copPerPointUnit}
-                    onChange={(event) => update('copPerPointUnit', event.target.value)}
+                    onChange={(event) => update("copPerPointUnit", event.target.value)}
                     aria-invalid={Boolean(errors.copPerPointUnit)}
                   />
                 </Field>
@@ -363,7 +366,7 @@ function ProgramForm({ business, program }: { business: Business; program: Loyal
                     id="points-per-cop"
                     inputMode="numeric"
                     value={form.pointsPerCopUnit}
-                    onChange={(event) => update('pointsPerCopUnit', event.target.value)}
+                    onChange={(event) => update("pointsPerCopUnit", event.target.value)}
                     aria-invalid={Boolean(errors.pointsPerCopUnit)}
                   />
                 </Field>
@@ -378,7 +381,7 @@ function ProgramForm({ business, program }: { business: Business; program: Loyal
                     id="points-expiry-days"
                     inputMode="numeric"
                     value={form.pointsExpiryDays}
-                    onChange={(event) => update('pointsExpiryDays', event.target.value)}
+                    onChange={(event) => update("pointsExpiryDays", event.target.value)}
                     aria-invalid={Boolean(errors.pointsExpiryDays)}
                   />
                 </Field>
@@ -393,7 +396,7 @@ function ProgramForm({ business, program }: { business: Business; program: Loyal
                     id="budget-rate"
                     inputMode="decimal"
                     value={form.budgetRatePercent}
-                    onChange={(event) => update('budgetRatePercent', event.target.value)}
+                    onChange={(event) => update("budgetRatePercent", event.target.value)}
                     aria-invalid={Boolean(errors.budgetRatePercent)}
                   />
                 </Field>
@@ -408,7 +411,7 @@ function ProgramForm({ business, program }: { business: Business; program: Loyal
                     id="qr-expiry-hours"
                     inputMode="numeric"
                     value={form.qrExpiryHours}
-                    onChange={(event) => update('qrExpiryHours', event.target.value)}
+                    onChange={(event) => update("qrExpiryHours", event.target.value)}
                     aria-invalid={Boolean(errors.qrExpiryHours)}
                   />
                 </Field>
@@ -426,7 +429,7 @@ function ProgramForm({ business, program }: { business: Business; program: Loyal
                       id="first-purchase-bonus"
                       inputMode="numeric"
                       value={form.firstPurchaseBonusPoints}
-                      onChange={(event) => update('firstPurchaseBonusPoints', event.target.value)}
+                      onChange={(event) => update("firstPurchaseBonusPoints", event.target.value)}
                       aria-invalid={Boolean(errors.firstPurchaseBonusPoints)}
                     />
                   </Field>
@@ -439,27 +442,22 @@ function ProgramForm({ business, program }: { business: Business; program: Loyal
                       id="recurrence-bonus"
                       inputMode="numeric"
                       value={form.recurrenceBonusPoints}
-                      onChange={(event) => update('recurrenceBonusPoints', event.target.value)}
+                      onChange={(event) => update("recurrenceBonusPoints", event.target.value)}
                       aria-invalid={Boolean(errors.recurrenceBonusPoints)}
                     />
                   </Field>
-                  <Field
-                    id="referral-bonus"
-                    label="Referidos"
-                    error={errors.referralBonusPoints}
-                  >
+                  <Field id="referral-bonus" label="Referidos" error={errors.referralBonusPoints}>
                     <Input
                       id="referral-bonus"
                       inputMode="numeric"
                       value={form.referralBonusPoints}
-                      onChange={(event) => update('referralBonusPoints', event.target.value)}
+                      onChange={(event) => update("referralBonusPoints", event.target.value)}
                       aria-invalid={Boolean(errors.referralBonusPoints)}
                     />
                   </Field>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Los bonos son adicionales a los loopoints por compra. Usa 0 para
-                  desactivarlos.
+                  Los bonos son adicionales a los loopoints por compra. Usa 0 para desactivarlos.
                 </p>
               </div>
 
@@ -467,14 +465,14 @@ function ProgramForm({ business, program }: { business: Business; program: Loyal
                 <input
                   type="checkbox"
                   checked={form.isActive}
-                  onChange={(event) => update('isActive', event.target.checked)}
+                  onChange={(event) => update("isActive", event.target.checked)}
                   className="mt-0.5 size-4 rounded border-input"
                 />
                 <span className="space-y-1">
                   <span className="block text-sm font-semibold">Programa activo</span>
                   <span className="block text-xs text-muted-foreground">
-                    Al activarlo, los clientes afiliados podrán acumular loopoints y
-                    solicitar recompensas.
+                    Al activarlo, los clientes afiliados podrán acumular loopoints y solicitar
+                    recompensas.
                   </span>
                 </span>
               </label>
@@ -486,7 +484,7 @@ function ProgramForm({ business, program }: { business: Business; program: Loyal
                 </Button>
                 <Button type="submit" loading={configureProgram.isPending}>
                   <CheckCircle2 aria-hidden="true" />
-                  {form.isActive ? 'Guardar y activar' : 'Guardar programa'}
+                  {form.isActive ? "Guardar y activar" : "Guardar programa"}
                 </Button>
               </div>
             </form>
@@ -501,30 +499,20 @@ function ProgramForm({ business, program }: { business: Business; program: Loyal
             <CardContent className="space-y-3 text-sm">
               <SummaryRow
                 label="Acumulación"
-                value={
-                  validNumbers
-                    ? `1 loopoint por cada ${formatCOP(copPerPoint)}`
-                    : '—'
-                }
+                value={validNumbers ? `1 loopoint por cada ${formatCOP(copPerPoint)}` : "—"}
               />
               <SummaryRow
                 label="Valor al canjear"
-                value={
-                  validNumbers
-                    ? `1 loopoint = ${formatCOP(pointValueCop)}`
-                    : '—'
-                }
+                value={validNumbers ? `1 loopoint = ${formatCOP(pointValueCop)}` : "—"}
               />
               <SummaryRow
                 label="Cien loopoints"
-                value={validNumbers ? formatCOP(pointValueCop * 100) : '—'}
+                value={validNumbers ? formatCOP(pointValueCop * 100) : "—"}
               />
               <SummaryRow
                 label="Costo estimado"
                 value={
-                  validNumbers
-                    ? `${(estimatedCostRate * 100).toFixed(1)} % de las ventas`
-                    : '—'
+                  validNumbers ? `${(estimatedCostRate * 100).toFixed(1)} % de las ventas` : "—"
                 }
               />
               <SummaryRow
@@ -532,31 +520,32 @@ function ProgramForm({ business, program }: { business: Business; program: Loyal
                 value={
                   Number.isFinite(budgetRate)
                     ? `${(budgetRate * 100).toFixed(1)} % de las ventas`
-                    : '—'
+                    : "—"
                 }
               />
             </CardContent>
           </Card>
 
-          {validNumbers && Number.isFinite(budgetRate) && budgetRate > 0 && (
-            estimatedCostRate > budgetRate + 0.0005 ? (
+          {validNumbers &&
+            Number.isFinite(budgetRate) &&
+            budgetRate > 0 &&
+            (estimatedCostRate > budgetRate + 0.0005 ? (
               <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
                 <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
                 <p>
-                  El costo estimado de canje ({formatNumber(estimatedCostRate * 100)} %)
-                  supera el presupuesto declarado ({formatNumber(budgetRate * 100)} %).
-                  Ajusta la acumulación, el valor del loopoint o el presupuesto.
+                  El costo estimado de canje ({formatNumber(estimatedCostRate * 100)} %) supera el
+                  presupuesto declarado ({formatNumber(budgetRate * 100)} %). Ajusta la acumulación,
+                  el valor del loopoint o el presupuesto.
                 </p>
               </div>
             ) : (
               <p className="text-xs text-muted-foreground">
-                Con {formatNumber(pointsPer1000Spent)} loopoint(s) por cada $1.000
-                gastados y un loopoint de {formatCOP(pointValueCop)}, el costo de
-                canje estimado es {(estimatedCostRate * 100).toFixed(1)} % de las
-                ventas. Es una estimación comercial, no un costo contable.
+                Con {formatNumber(pointsPer1000Spent)} loopoint(s) por cada $1.000 gastados y un
+                loopoint de {formatCOP(pointValueCop)}, el costo de canje estimado es{" "}
+                {(estimatedCostRate * 100).toFixed(1)} % de las ventas. Es una estimación comercial,
+                no un costo contable.
               </p>
-            )
-          )}
+            ))}
 
           <Card>
             <CardHeader>
@@ -579,9 +568,9 @@ function ProgramForm({ business, program }: { business: Business; program: Loyal
             </CardHeader>
             <CardContent className="space-y-3 text-xs text-muted-foreground">
               <p>
-                Los loopoints vencen por lote desde su emisión, del más antiguo al más
-                nuevo y sin dejar saldo negativo. Un job diario los procesa
-                automáticamente; aquí puedes ejecutarlo ahora.
+                Los loopoints vencen por lote desde su emisión, del más antiguo al más nuevo y sin
+                dejar saldo negativo. Un job diario los procesa automáticamente; aquí puedes
+                ejecutarlo ahora.
               </p>
               <Button
                 type="button"

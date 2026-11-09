@@ -6,35 +6,31 @@ import {
   PiggyBank,
   TrendingUp,
   Wallet,
-} from 'lucide-react';
-import { toast } from 'sonner';
+} from "lucide-react";
+import { toast } from "sonner";
 import {
   useBudgetSnapshots,
   useBusinessEconomicDashboard,
   useBusinessEconomicProfile,
   useCreateBudgetSnapshot,
-} from '@/features/loyalty/hooks';
-import { errorMessage } from '@/lib/errors';
-import { formatCOP, formatDateBogota, formatDateTimeBogota, formatNumber } from '@/lib/format';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { PageHeader } from '@/components/shared/PageHeader';
-import { ErrorState, LoadingScreen } from '@/components/shared/States';
-import { BusinessGate } from './BusinessGate';
+} from "@/features/loyalty/hooks";
+import { errorMessage } from "@/lib/errors";
+import { formatCOP, formatDateBogota, formatDateTimeBogota, formatNumber } from "@/lib/format";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { ErrorState, LoadingScreen } from "@/components/shared/States";
+import { BusinessGate } from "./BusinessGate";
 import {
   ECONOMIC_FIELDS,
   ECONOMIC_STATUS_LABEL,
   ECONOMIC_STATUS_VARIANT,
   EconomicDataForm,
-} from './EconomicDataForm';
-import type {
-  Business,
-  BusinessEconomicDashboard,
-  EconomicDataStatus,
-} from '@/types';
+} from "./EconomicDataForm";
+import type { Business, BusinessEconomicDashboard, EconomicDataStatus } from "@/types";
 
 export function EconomicPage() {
   return (
@@ -71,7 +67,7 @@ function EconomicSection({ business }: { business: Business }) {
       />
 
       <EconomicDataForm
-        key={profile.data?.updated_at ?? 'new'}
+        key={profile.data?.updated_at ?? "new"}
         businessId={business.id}
         profile={profile.data ?? null}
       />
@@ -86,12 +82,7 @@ function EconomicSection({ business }: { business: Business }) {
 function EconomicDashboardCards({ data }: { data: BusinessEconomicDashboard }) {
   const committed = Math.max(0, data.budget_committed_percent);
   const status = data.data_status ?? {};
-  const card = (
-    label: string,
-    value: string,
-    hint: string,
-    icon: typeof Wallet,
-  ) => {
+  const card = (label: string, value: string, hint: string, icon: typeof Wallet) => {
     const Icon = icon;
     return (
       <Card>
@@ -129,45 +120,45 @@ function EconomicDashboardCards({ data }: { data: BusinessEconomicDashboard }) {
 
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {card(
-          'Ventas mensuales',
+          "Ventas mensuales",
           formatCOP(data.monthly_estimated_sales_cop),
-          data.estimated ? 'Estimado con los datos actuales' : 'Calculado',
+          data.estimated ? "Estimado con los datos actuales" : "Calculado",
           TrendingUp,
         )}
         {card(
-          'Presupuesto de referencia',
+          "Presupuesto de referencia",
           formatCOP(data.reference_budget_cop),
           `${(data.budget_rate * 100).toFixed(2)} % de las ventas`,
           Calculator,
         )}
         {card(
-          'Presupuesto máximo',
+          "Presupuesto máximo",
           formatCOP(data.max_monthly_reward_budget_cop),
-          'Tope mensual configurado',
+          "Tope mensual configurado",
           PiggyBank,
         )}
         {card(
-          'Costo redimido',
+          "Costo redimido",
           formatCOP(data.redeemed_rewards_cost_cop),
-          'Recompensas entregadas',
+          "Recompensas entregadas",
           Wallet,
         )}
         {card(
-          'Costo pendiente',
+          "Costo pendiente",
           formatCOP(data.pending_rewards_cost_cop),
-          'Solicitudes pendientes o aprobadas',
+          "Solicitudes pendientes o aprobadas",
           AlertTriangle,
         )}
         {card(
-          'Reservado',
+          "Reservado",
           formatCOP(data.reserved_rewards_cost_cop),
-          'Comprometido sin entregar',
+          "Comprometido sin entregar",
           BadgeDollarSign,
         )}
         {card(
-          'Presupuesto restante',
+          "Presupuesto restante",
           formatCOP(data.remaining_budget_cop),
-          'Descontando redimido y pendiente',
+          "Descontando redimido y pendiente",
           PiggyBank,
         )}
       </div>
@@ -192,9 +183,9 @@ function EconomicDashboardCards({ data }: { data: BusinessEconomicDashboard }) {
         {ECONOMIC_FIELDS.map((config) => {
           const value = status[config.field];
           const normalised: EconomicDataStatus =
-            value === 'confirmed' || value === 'estimated' || value === 'unknown'
+            value === "confirmed" || value === "estimated" || value === "unknown"
               ? value
-              : 'unknown';
+              : "unknown";
           return (
             <Badge key={config.field} variant={ECONOMIC_STATUS_VARIANT[normalised]}>
               {config.label}: {ECONOMIC_STATUS_LABEL[normalised]}
@@ -204,8 +195,8 @@ function EconomicDashboardCards({ data }: { data: BusinessEconomicDashboard }) {
       </div>
 
       <p className="text-xs text-muted-foreground">
-        Cálculo actualizado el {formatDateTimeBogota(data.calculated_at)}. Es una
-        estimación comercial basada en precios y loopoints, no un costo contable.
+        Cálculo actualizado el {formatDateTimeBogota(data.calculated_at)}. Es una estimación
+        comercial basada en precios y loopoints, no un costo contable.
       </p>
     </div>
   );
@@ -218,9 +209,7 @@ function BudgetSnapshotsCard({ businessId }: { businessId: string }) {
   async function handleCreate() {
     try {
       const snapshot = await createSnapshot.mutateAsync({ businessId });
-      toast.success(
-        `Snapshot de ${formatDateBogota(snapshot.period_start)} guardado.`,
-      );
+      toast.success(`Snapshot de ${formatDateBogota(snapshot.period_start)} guardado.`);
     } catch (error) {
       toast.error(errorMessage(error));
     }
@@ -251,25 +240,35 @@ function BudgetSnapshotsCard({ businessId }: { businessId: string }) {
       </CardHeader>
       <CardContent>
         {snapshots.isError ? (
-          <p className="text-sm text-destructive">
-            {errorMessage(snapshots.error)}
-          </p>
+          <p className="text-sm text-destructive">{errorMessage(snapshots.error)}</p>
         ) : !snapshots.data || snapshots.data.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            Aún no hay snapshots. Guarda el primero para dejar constancia del mes
-            actual. El job mensual también lo hace automáticamente.
+            Aún no hay snapshots. Guarda el primero para dejar constancia del mes actual. El job
+            mensual también lo hace automáticamente.
           </p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="text-left text-xs uppercase tracking-wide text-muted-foreground">
                 <tr>
-                  <th scope="col" className="py-2 pr-4">Periodo</th>
-                  <th scope="col" className="py-2 pr-4 text-right">Ventas</th>
-                  <th scope="col" className="py-2 pr-4 text-right">Presupuesto</th>
-                  <th scope="col" className="py-2 pr-4 text-right">Redimido</th>
-                  <th scope="col" className="py-2 pr-4 text-right">Pendiente</th>
-                  <th scope="col" className="py-2 text-right">Loopoints (emitidos / canjeados)</th>
+                  <th scope="col" className="py-2 pr-4">
+                    Periodo
+                  </th>
+                  <th scope="col" className="py-2 pr-4 text-right">
+                    Ventas
+                  </th>
+                  <th scope="col" className="py-2 pr-4 text-right">
+                    Presupuesto
+                  </th>
+                  <th scope="col" className="py-2 pr-4 text-right">
+                    Redimido
+                  </th>
+                  <th scope="col" className="py-2 pr-4 text-right">
+                    Pendiente
+                  </th>
+                  <th scope="col" className="py-2 text-right">
+                    Loopoints (emitidos / canjeados)
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -291,7 +290,7 @@ function BudgetSnapshotsCard({ businessId }: { businessId: string }) {
                       {formatCOP(snapshot.pending_cost_cop)}
                     </td>
                     <td className="py-2 text-right tabular-nums">
-                      {formatNumber(snapshot.points_issued)} /{' '}
+                      {formatNumber(snapshot.points_issued)} /{" "}
                       {formatNumber(snapshot.points_redeemed)}
                     </td>
                   </tr>

@@ -1,4 +1,4 @@
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from "react-router-dom";
 import {
   Banknote,
   Building2,
@@ -8,33 +8,33 @@ import {
   Sparkles,
   UserRound,
   Wrench,
-} from 'lucide-react';
-import { BusinessGate } from './BusinessGate';
-import { BusinessProfileForm } from './BusinessProfileForm';
-import { ProgramPage } from './ProgramPage';
-import { ProductsPage } from './ProductsPage';
-import { RewardsPage } from './RewardsPage';
-import { EconomicPage } from './EconomicPage';
-import { MembersPage } from './MembersPage';
-import { SettingsPage } from './SettingsPage';
-import { OnboardingWizardPage } from '@/features/loyalty/OnboardingWizardPage';
-import { useAuth } from '@/features/auth/AuthProvider';
-import { PageHeader } from '@/components/shared/PageHeader';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+} from "lucide-react";
+import { BusinessGate } from "./BusinessGate";
+import { BusinessProfileForm } from "./BusinessProfileForm";
+import { ProgramPage } from "./ProgramPage";
+import { ProductsPage } from "./ProductsPage";
+import { RewardsPage } from "./RewardsPage";
+import { EconomicPage } from "./EconomicPage";
+import { MembersPage } from "./MembersPage";
+import { SettingsPage } from "./SettingsPage";
+import { OnboardingWizardPage } from "@/features/loyalty/OnboardingWizardPage";
+import { useAuth } from "@/features/auth/AuthProvider";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 const tabs = [
-  { value: 'negocio', label: 'Negocio', icon: Building2 },
-  { value: 'programa', label: 'Programa', icon: Settings2 },
-  { value: 'carta', label: 'Carta', icon: Package },
-  { value: 'recompensas', label: 'Recompensas', icon: Gift },
-  { value: 'economico', label: 'Económico', icon: Banknote },
-  { value: 'equipo', label: 'Equipo', icon: UserRound },
-  { value: 'avanzado', label: 'Avanzado', icon: Wrench },
+  { value: "negocio", label: "Negocio", icon: Building2 },
+  { value: "programa", label: "Programa", icon: Settings2 },
+  { value: "carta", label: "Carta", icon: Package },
+  { value: "recompensas", label: "Recompensas", icon: Gift },
+  { value: "economico", label: "Económico", icon: Banknote },
+  { value: "equipo", label: "Equipo", icon: UserRound },
+  { value: "avanzado", label: "Avanzado", icon: Wrench },
 ] as const;
 
-type ConfigTab = (typeof tabs)[number]['value'];
+type ConfigTab = (typeof tabs)[number]["value"];
 
 const validTabs = new Set<string>(tabs.map((tab) => tab.value));
 
@@ -45,16 +45,16 @@ const validTabs = new Set<string>(tabs.map((tab) => tab.value));
  */
 export function ConfigPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const onboarding = searchParams.get('onboarding') === '1';
-  const rawTab = searchParams.get('tab') ?? 'negocio';
-  const tab: ConfigTab = validTabs.has(rawTab) ? (rawTab as ConfigTab) : 'negocio';
+  const onboarding = searchParams.get("onboarding") === "1";
+  const rawTab = searchParams.get("tab") ?? "negocio";
+  const tab: ConfigTab = validTabs.has(rawTab) ? (rawTab as ConfigTab) : "negocio";
   const { roles } = useAuth();
-  const showAdvanced = roles.includes('admin');
+  const showAdvanced = roles.includes("admin");
 
   function changeTab(value: string) {
     const next = new URLSearchParams(searchParams);
-    next.set('tab', value);
-    next.delete('onboarding');
+    next.set("tab", value);
+    next.delete("onboarding");
     setSearchParams(next, { replace: true });
   }
 
@@ -90,8 +90,8 @@ export function ConfigPage() {
             <div className="space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border bg-muted/40 px-4 py-3 text-sm">
                 <p>
-                  <strong>Asistente de configuración.</strong> Completa los pasos y
-                  vuelve cuando quieras a la configuración por pestañas.
+                  <strong>Asistente de configuración.</strong> Completa los pasos y vuelve cuando
+                  quieras a la configuración por pestañas.
                 </p>
                 <Button variant="outline" size="sm" asChild>
                   <Link to="/admin/config?tab=negocio">Salir del asistente</Link>
@@ -103,7 +103,7 @@ export function ConfigPage() {
             <Tabs value={tab} onValueChange={changeTab}>
               <TabsList aria-label="Secciones de configuración">
                 {tabs
-                  .filter((item) => item.value !== 'avanzado' || showAdvanced)
+                  .filter((item) => item.value !== "avanzado" || showAdvanced)
                   .map((item) => {
                     const Icon = item.icon;
                     return (

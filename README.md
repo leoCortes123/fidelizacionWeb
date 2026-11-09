@@ -28,15 +28,15 @@ Estado y cifras de pruebas: ver el README del workspace (`../README.md`) y
 
 ## Stack
 
-| Capa | Tecnología |
-| --- | --- |
-| Frontend | React 19 + TypeScript + Vite 6 |
-| Estilos | Tailwind CSS 3 + componentes estilo shadcn/ui |
-| Rutas | React Router 7 |
-| Datos y estado | TanStack Query 5 |
-| Backend | Supabase (PostgreSQL, Auth, PostgREST, RPC) — repo `fidelizacionApi` |
-| QR | `qrcode.react` |
-| Pruebas | Vitest + Testing Library + Playwright |
+| Capa           | Tecnología                                                           |
+| -------------- | -------------------------------------------------------------------- |
+| Frontend       | React 19 + TypeScript + Vite 6                                       |
+| Estilos        | Tailwind CSS 3 + componentes estilo shadcn/ui                        |
+| Rutas          | React Router 7                                                       |
+| Datos y estado | TanStack Query 5                                                     |
+| Backend        | Supabase (PostgreSQL, Auth, PostgREST, RPC) — repo `fidelizacionApi` |
+| QR             | `qrcode.react`                                                       |
+| Pruebas        | Vitest + Testing Library + Playwright                                |
 
 ## Inicio rápido
 
@@ -114,34 +114,34 @@ scripts/                smoke test del build
 
 ## Rutas principales
 
-| Ruta | Acceso | Contenido |
-| --- | --- | --- |
-| `/` | Público | Presentación y acceso |
-| `/login` | Público | Google, correo/contraseña y registro simple |
-| `/claim/:token` | Autenticado | Reclamar una compra escaneando el QR |
-| `/join/:slug` | Público | Ficha del negocio y afiliación al programa |
-| `/business/select` | Autenticado | Elegir negocio (la elección se recuerda por usuario) |
-| `/business/register` | Autenticado | Registrar un negocio nuevo como administrador |
-| `/customer` | Cualquier usuario | Saldo, recompensas y compras recientes |
-| `/customer/purchases` | Cualquier usuario | Historial con puntos por compra |
-| `/customer/redemptions` | Cualquier usuario | Mis canjes, estado y QR de entrega |
-| `/admin` | Solo admin | QR de compra (sistema anterior) |
-| `/admin/dashboard` | Solo admin | Panel del negocio y accesos rápidos |
-| `/admin/program` | Solo admin | Programa de puntos: acumulación, canje, bonos y presupuesto |
-| `/admin/products` | Solo admin | Carta de productos y costos estimados |
-| `/admin/rewards` | Solo admin | Recompensas: producto gratis, descuentos, vigencia y límites |
-| `/admin/campaigns` | Solo admin | Campañas: multiplicador, bono, mínimo y vigencia |
-| `/admin/redemptions` | Solo admin | Solicitudes: aprobar, rechazar, entregar o cancelar |
-| `/admin/members` | Solo admin | Miembros y permiso de aprobación de canjes |
-| `/admin/purchases/new` | Solo admin | Registrar compra presencial y acreditar puntos |
-| `/admin/economic` | Solo admin | Perfil económico, presupuesto y snapshots |
-| `/admin/audit` | Solo admin | Auditoría paginada por operación |
-| `/admin/onboarding` | Solo admin | Wizard de configuración inicial en cuatro pasos |
-| `/admin/customers` | Solo admin | Clientes con filtros y orden por puntos |
-| `/admin/customers/:id` | Solo admin | Detalle y canje de recompensa |
-| `/admin/purchases` | Solo admin | Compras y cancelaciones |
-| `/admin/settings` | Solo admin | Reglas, catálogo y auditoría (sistema anterior) |
-| `/encargado` | Admin/encargado | Validar QR, aprobar y confirmar entrega |
+| Ruta                    | Acceso            | Contenido                                                    |
+| ----------------------- | ----------------- | ------------------------------------------------------------ |
+| `/`                     | Público           | Presentación y acceso                                        |
+| `/login`                | Público           | Google, correo/contraseña y registro simple                  |
+| `/claim/:token`         | Autenticado       | Reclamar una compra escaneando el QR                         |
+| `/join/:slug`           | Público           | Ficha del negocio y afiliación al programa                   |
+| `/business/select`      | Autenticado       | Elegir negocio (la elección se recuerda por usuario)         |
+| `/business/register`    | Autenticado       | Registrar un negocio nuevo como administrador                |
+| `/customer`             | Cualquier usuario | Saldo, recompensas y compras recientes                       |
+| `/customer/purchases`   | Cualquier usuario | Historial con puntos por compra                              |
+| `/customer/redemptions` | Cualquier usuario | Mis canjes, estado y QR de entrega                           |
+| `/admin`                | Solo admin        | QR de compra (sistema anterior)                              |
+| `/admin/dashboard`      | Solo admin        | Panel del negocio y accesos rápidos                          |
+| `/admin/program`        | Solo admin        | Programa de puntos: acumulación, canje, bonos y presupuesto  |
+| `/admin/products`       | Solo admin        | Carta de productos y costos estimados                        |
+| `/admin/rewards`        | Solo admin        | Recompensas: producto gratis, descuentos, vigencia y límites |
+| `/admin/campaigns`      | Solo admin        | Campañas: multiplicador, bono, mínimo y vigencia             |
+| `/admin/redemptions`    | Solo admin        | Solicitudes: aprobar, rechazar, entregar o cancelar          |
+| `/admin/members`        | Solo admin        | Miembros y permiso de aprobación de canjes                   |
+| `/admin/purchases/new`  | Solo admin        | Registrar compra presencial y acreditar puntos               |
+| `/admin/economic`       | Solo admin        | Perfil económico, presupuesto y snapshots                    |
+| `/admin/audit`          | Solo admin        | Auditoría paginada por operación                             |
+| `/admin/onboarding`     | Solo admin        | Wizard de configuración inicial en cuatro pasos              |
+| `/admin/customers`      | Solo admin        | Clientes con filtros y orden por puntos                      |
+| `/admin/customers/:id`  | Solo admin        | Detalle y canje de recompensa                                |
+| `/admin/purchases`      | Solo admin        | Compras y cancelaciones                                      |
+| `/admin/settings`       | Solo admin        | Reglas, catálogo y auditoría (sistema anterior)              |
+| `/encargado`            | Admin/encargado   | Validar QR, aprobar y confirmar entrega                      |
 
 Las rutas antiguas `/registrar/*` y `/customer/rewards` redirigen a las nuevas.
 

@@ -6,12 +6,12 @@ import {
   useMemo,
   useState,
   type ReactNode,
-} from 'react';
+} from "react";
 
-export type Theme = 'light' | 'dark';
-export type Portal = 'admin' | 'customer';
+export type Theme = "light" | "dark";
+export type Portal = "admin" | "customer";
 
-const THEME_STORAGE_KEY = 'loopoint:theme';
+const THEME_STORAGE_KEY = "loopoint:theme";
 
 interface ThemeContextValue {
   theme: Theme;
@@ -24,7 +24,7 @@ const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 function readStoredTheme(): Theme | null {
   try {
     const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
-    return stored === 'light' || stored === 'dark' ? stored : null;
+    return stored === "light" || stored === "dark" ? stored : null;
   } catch {
     return null;
   }
@@ -32,9 +32,9 @@ function readStoredTheme(): Theme | null {
 
 function systemTheme(): Theme {
   try {
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
   } catch {
-    return 'light';
+    return "light";
   }
 }
 
@@ -43,7 +43,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     const root = document.documentElement;
-    root.classList.toggle('dark', theme === 'dark');
+    root.classList.toggle("dark", theme === "dark");
     root.style.colorScheme = theme;
     try {
       window.localStorage.setItem(THEME_STORAGE_KEY, theme);
@@ -53,27 +53,24 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) {
-      meta.setAttribute('content', theme === 'dark' ? '#0b1418' : '#f7fbfc');
+      meta.setAttribute("content", theme === "dark" ? "#0b1418" : "#f7fbfc");
     }
   }, [theme]);
 
   const setTheme = useCallback((next: Theme) => setThemeState(next), []);
   const toggleTheme = useCallback(
-    () => setThemeState((current) => (current === 'dark' ? 'light' : 'dark')),
+    () => setThemeState((current) => (current === "dark" ? "light" : "dark")),
     [],
   );
 
-  const value = useMemo(
-    () => ({ theme, setTheme, toggleTheme }),
-    [theme, setTheme, toggleTheme],
-  );
+  const value = useMemo(() => ({ theme, setTheme, toggleTheme }), [theme, setTheme, toggleTheme]);
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 
 export function useTheme() {
   const context = useContext(ThemeContext);
-  if (!context) throw new Error('useTheme debe usarse dentro de ThemeProvider');
+  if (!context) throw new Error("useTheme debe usarse dentro de ThemeProvider");
   return context;
 }
 

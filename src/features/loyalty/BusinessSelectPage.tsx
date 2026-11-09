@@ -1,15 +1,15 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Plus, Building2 } from 'lucide-react';
-import { useBusinesses } from './hooks';
-import { businessHomePath } from '@/lib/config';
-import { useBusinessContext } from './businessContext';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { PageHeader } from '@/components/shared/PageHeader';
-import { EmptyState, ErrorState, ListSkeleton } from '@/components/shared/States';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { ArrowRight, Plus, Building2 } from "lucide-react";
+import { useBusinesses } from "./hooks";
+import { businessHomePath } from "@/lib/config";
+import { useBusinessContext } from "./businessContext";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { EmptyState, ErrorState, ListSkeleton } from "@/components/shared/States";
 
 export function BusinessSelectPage() {
   const businesses = useBusinesses();
@@ -40,11 +40,13 @@ export function BusinessSelectPage() {
               onSubmit={(event) => {
                 event.preventDefault();
                 const form = new FormData(event.currentTarget);
-                const name = form.get('name') as string;
-                const slug = form.get('slug') as string;
+                const name = form.get("name") as string;
+                const slug = form.get("slug") as string;
                 if (!name || !slug) return;
                 // El registro real se hace desde /business/register
-                navigate(`/business/register?name=${encodeURIComponent(name)}&slug=${encodeURIComponent(slug)}`);
+                navigate(
+                  `/business/register?name=${encodeURIComponent(name)}&slug=${encodeURIComponent(slug)}`,
+                );
               }}
               className="space-y-4"
             >
@@ -67,7 +69,7 @@ export function BusinessSelectPage() {
           </CardContent>
         </Card>
         <p className="text-center text-xs text-muted-foreground">
-          ¿Ya tienes un negocio?{' '}
+          ¿Ya tienes un negocio?{" "}
           <Button variant="link" onClick={() => setRegistering(false)}>
             Seleccionar uno existente
           </Button>
@@ -132,11 +134,7 @@ export function BusinessSelectPage() {
       )}
 
       <div className="flex justify-center">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setRegistering(true)}
-        >
+        <Button variant="outline" size="sm" onClick={() => setRegistering(true)}>
           <Plus aria-hidden="true" />
           Registrar un negocio nuevo
         </Button>

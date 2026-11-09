@@ -1,9 +1,9 @@
-import { useEffect, useState } from 'react';
-import { Navigate } from 'react-router-dom';
-import { FullPageLoader } from '@/components/shared/States';
-import { defaultPathForRoles } from '@/lib/config';
-import { resolvePostLoginPath } from '@/lib/postLogin';
-import { useAuth } from './AuthProvider';
+import { useEffect, useState } from "react";
+import { Navigate } from "react-router-dom";
+import { FullPageLoader } from "@/components/shared/States";
+import { defaultPathForRoles } from "@/lib/config";
+import { resolvePostLoginPath } from "@/lib/postLogin";
+import { useAuth } from "./AuthProvider";
 
 /**
  * La landing comercial se retiró: `/` lleva al portal del rol autenticado y,
@@ -15,7 +15,7 @@ export function RootRedirect() {
 
   useEffect(() => {
     if (!session) {
-      setTarget('/login');
+      setTarget("/login");
       return;
     }
     if (rolesLoading || !rolesLoaded) return;

@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   ArrowRight,
   Building2,
@@ -10,34 +10,34 @@ import {
   Instagram,
   MapPin,
   Phone,
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { Brand } from '@/components/shared/Brand';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { ErrorState, LoadingScreen } from '@/components/shared/States';
-import { useAuth } from '@/features/auth/AuthProvider';
-import { useBusinessPublic, useJoinBusiness } from './hooks';
-import { persistBusinessSelection } from './businessContext';
-import { businessHomePath } from '@/lib/config';
-import { errorMessage } from '@/lib/errors';
+} from "lucide-react";
+import { toast } from "sonner";
+import { Brand } from "@/components/shared/Brand";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { ErrorState, LoadingScreen } from "@/components/shared/States";
+import { useAuth } from "@/features/auth/AuthProvider";
+import { useBusinessPublic, useJoinBusiness } from "./hooks";
+import { persistBusinessSelection } from "./businessContext";
+import { businessHomePath } from "@/lib/config";
+import { errorMessage } from "@/lib/errors";
 
-const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+const dayNames = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
 
 function operatingDaysLabel(days: number[] | null | undefined): string {
-  if (!days || days.length === 0) return 'Horario no publicado';
-  if (days.length === 7) return 'Todos los días';
+  if (!days || days.length === 0) return "Horario no publicado";
+  if (days.length === 7) return "Todos los días";
   return days
     .slice()
     .sort((a, b) => a - b)
     .map((day) => dayNames[day] ?? day)
-    .join(' · ');
+    .join(" · ");
 }
 
 export function BusinessJoinPage() {
-  const { slug = '' } = useParams();
+  const { slug = "" } = useParams();
   const navigate = useNavigate();
   const { session, user } = useAuth();
   const business = useBusinessPublic(slug);
@@ -86,10 +86,7 @@ export function BusinessJoinPage() {
           <div className="flex justify-center">
             <Brand />
           </div>
-          <ErrorState
-            error={business.error}
-            onRetry={() => void business.refetch()}
-          />
+          <ErrorState error={business.error} onRetry={() => void business.refetch()} />
           <Button variant="outline" className="w-full" asChild>
             <Link to="/">Volver al inicio</Link>
           </Button>
@@ -109,12 +106,10 @@ export function BusinessJoinPage() {
               <span className="mx-auto grid size-12 place-items-center rounded-full bg-muted text-muted-foreground">
                 <MapPin className="size-5" aria-hidden="true" />
               </span>
-              <h1 className="font-display text-xl font-extrabold">
-                No encontramos este negocio
-              </h1>
+              <h1 className="font-display text-xl font-extrabold">No encontramos este negocio</h1>
               <p className="text-sm text-muted-foreground">
-                El enlace puede haber cambiado o el negocio ya no está disponible.
-                Pide al local un enlace de invitación actualizado.
+                El enlace puede haber cambiado o el negocio ya no está disponible. Pide al local un
+                enlace de invitación actualizado.
               </p>
               <Button variant="outline" asChild className="w-full">
                 <Link to="/">Volver al inicio</Link>
@@ -146,9 +141,7 @@ export function BusinessJoinPage() {
                 <Building2 className="size-6" aria-hidden="true" />
               </span>
             )}
-            <h1 className="mt-4 font-display text-3xl font-extrabold leading-tight">
-              {data.name}
-            </h1>
+            <h1 className="mt-4 font-display text-3xl font-extrabold leading-tight">{data.name}</h1>
             <p className="mt-1 text-sm text-background/70">@{data.slug}</p>
             {data.description && (
               <p className="mt-3 max-w-md text-sm leading-relaxed text-background/80">
@@ -156,10 +149,8 @@ export function BusinessJoinPage() {
               </p>
             )}
             <div className="mt-4 flex flex-wrap gap-2">
-              <Badge variant={data.loyalty_active ? 'success' : 'warning'}>
-                {data.loyalty_active
-                  ? 'Programa de loopoints activo'
-                  : 'Programa en preparación'}
+              <Badge variant={data.loyalty_active ? "success" : "warning"}>
+                {data.loyalty_active ? "Programa de loopoints activo" : "Programa en preparación"}
               </Badge>
             </div>
           </div>
@@ -172,18 +163,19 @@ export function BusinessJoinPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Afíliate con tu cuenta para acumular loopoints en tus compras y canjear
-              recompensas. No necesitas tarjeta física.
+              Afíliate con tu cuenta para acumular loopoints en tus compras y canjear recompensas.
+              No necesitas tarjeta física.
             </p>
 
             <div className="space-y-2 rounded-lg border bg-muted/30 p-3 text-sm">
               {(data.address || data.neighborhood || data.city) && (
                 <p className="flex items-start gap-2">
-                  <MapPin className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                  <MapPin
+                    className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+                    aria-hidden="true"
+                  />
                   <span>
-                    {[data.address, data.neighborhood, data.city]
-                      .filter(Boolean)
-                      .join(', ')}
+                    {[data.address, data.neighborhood, data.city].filter(Boolean).join(", ")}
                   </span>
                 </p>
               )}
@@ -200,7 +192,7 @@ export function BusinessJoinPage() {
                   <Phone className="size-4 text-muted-foreground" aria-hidden="true" />
                   <a
                     className="font-semibold underline-offset-4 hover:underline"
-                    href={`https://wa.me/${data.phone_whatsapp.replace(/\D/g, '')}`}
+                    href={`https://wa.me/${data.phone_whatsapp.replace(/\D/g, "")}`}
                     target="_blank"
                     rel="noreferrer"
                   >
@@ -230,7 +222,7 @@ export function BusinessJoinPage() {
                     target="_blank"
                     rel="noreferrer"
                   >
-                    {data.website.replace(/^https?:\/\//, '')}
+                    {data.website.replace(/^https?:\/\//, "")}
                   </a>
                 </p>
               )}
@@ -240,8 +232,8 @@ export function BusinessJoinPage() {
               <Alert variant="warning">
                 <AlertTitle>El programa aún no está activo</AlertTitle>
                 <AlertDescription>
-                  Puedes afiliarte desde ya. Cuando el negocio active su programa,
-                  tus compras empezarán a sumar loopoints automáticamente.
+                  Puedes afiliarte desde ya. Cuando el negocio active su programa, tus compras
+                  empezarán a sumar loopoints automáticamente.
                 </AlertDescription>
               </Alert>
             )}
@@ -266,15 +258,18 @@ export function BusinessJoinPage() {
             )}
 
             <p className="text-center text-xs text-muted-foreground">
-              Al unirte aceptas que el negocio asocie tu nombre y correo a tu cuenta
-              de loopoints. No compartimos datos con otros negocios.
+              Al unirte aceptas que el negocio asocie tu nombre y correo a tu cuenta de loopoints.
+              No compartimos datos con otros negocios.
             </p>
           </CardContent>
         </Card>
 
         <p className="text-center text-xs text-muted-foreground">
-          ¿Ya tienes loopoints?{' '}
-          <Link to="/login" className="font-semibold text-primary underline-offset-4 hover:underline">
+          ¿Ya tienes loopoints?{" "}
+          <Link
+            to="/login"
+            className="font-semibold text-primary underline-offset-4 hover:underline"
+          >
             Inicia sesión
           </Link>
         </p>

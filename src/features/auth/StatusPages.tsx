@@ -1,8 +1,8 @@
-import { Link } from 'react-router-dom';
-import { ArrowLeft, ShieldAlert } from 'lucide-react';
-import { Brand } from '@/components/shared/Brand';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Link } from "react-router-dom";
+import { ArrowLeft, ShieldAlert } from "lucide-react";
+import { Brand } from "@/components/shared/Brand";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 
 export function UnauthorizedPage() {
   return (
@@ -18,8 +18,8 @@ export function UnauthorizedPage() {
           <div className="space-y-1">
             <h1 className="font-display text-2xl font-extrabold">Acceso restringido</h1>
             <p className="text-sm text-muted-foreground">
-              Tu cuenta no tiene el rol necesario para este panel. Pide a un
-              administrador que habilite tu acceso.
+              Tu cuenta no tiene el rol necesario para este panel. Pide a un administrador que
+              habilite tu acceso.
             </p>
           </div>
           <div className="flex flex-col gap-2">

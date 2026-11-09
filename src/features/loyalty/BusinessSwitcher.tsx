@@ -1,19 +1,19 @@
-import { Building2 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { Building2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { cn } from '@/lib/utils';
-import { useBusinessContext } from './businessContext';
+} from "@/components/ui/select";
+import { cn } from "@/lib/utils";
+import { useBusinessContext } from "./businessContext";
 
 const roleLabels: Record<string, string> = {
-  admin: 'Admin',
-  encargado: 'Encargado',
-  cliente: 'Cliente',
+  admin: "Admin",
+  encargado: "Encargado",
+  cliente: "Cliente",
 };
 
 /**
@@ -37,7 +37,7 @@ export function BusinessSwitcher({
   const role = selectedBusiness?.role;
 
   return (
-    <div className={cn('flex min-w-0 items-center gap-2', className)}>
+    <div className={cn("flex min-w-0 items-center gap-2", className)}>
       <Building2 className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
       <Select
         value={value}

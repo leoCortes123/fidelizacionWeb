@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
 import {
   ArrowRight,
   BadgeCheck,
@@ -9,26 +9,26 @@ import {
   ShieldCheck,
   Sparkles,
   UserPlus,
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { Brand } from '@/components/shared/Brand';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { FullPageLoader } from '@/components/shared/States';
-import { useAuth } from '@/features/auth/AuthProvider';
-import { persistBusinessSelection } from '@/features/loyalty/businessContext';
-import { useClaimPurchase, usePurchaseQrPreview } from './hooks';
-import { errorMessage } from '@/lib/errors';
-import { formatCOP, formatNumber, formatPoints } from '@/lib/format';
-import { clearPendingClaim, rememberPendingClaim } from '@/lib/pendingClaim';
-import { cn } from '@/lib/utils';
-import type { ClaimResult } from '@/types';
+} from "lucide-react";
+import { toast } from "sonner";
+import { Brand } from "@/components/shared/Brand";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { FullPageLoader } from "@/components/shared/States";
+import { useAuth } from "@/features/auth/AuthProvider";
+import { persistBusinessSelection } from "@/features/loyalty/businessContext";
+import { useClaimPurchase, usePurchaseQrPreview } from "./hooks";
+import { errorMessage } from "@/lib/errors";
+import { formatCOP, formatNumber, formatPoints } from "@/lib/format";
+import { clearPendingClaim, rememberPendingClaim } from "@/lib/pendingClaim";
+import { cn } from "@/lib/utils";
+import type { ClaimResult } from "@/types";
 
 const TOKEN_PATTERN = /^[A-Za-z0-9_-]{20,100}$/;
 
 export function ClaimPage() {
-  const { token = '' } = useParams();
+  const { token = "" } = useParams();
   const { session, user, loading, signInWithGoogle } = useAuth();
   const preview = usePurchaseQrPreview(token);
   const claim = useClaimPurchase();
@@ -46,7 +46,7 @@ export function ClaimPage() {
   }, [token, tokenLooksValid]);
 
   useEffect(() => {
-    if (preview.data && preview.data.status !== 'pending_claim') {
+    if (preview.data && preview.data.status !== "pending_claim") {
       clearPendingClaim();
     }
   }, [preview.data]);
@@ -87,12 +87,10 @@ export function ClaimPage() {
             <span className="mx-auto grid size-14 place-items-center rounded-full bg-destructive/10 text-destructive">
               <CircleAlert className="size-7" aria-hidden="true" />
             </span>
-            <h1 className="font-display text-2xl font-extrabold">
-              Enlace de compra inválido
-            </h1>
+            <h1 className="font-display text-2xl font-extrabold">Enlace de compra inválido</h1>
             <p className="text-sm text-muted-foreground">
-              El código del QR no tiene el formato esperado. Pide en caja que
-              generen una venta nueva.
+              El código del QR no tiene el formato esperado. Pide en caja que generen una venta
+              nueva.
             </p>
             <Button asChild>
               <Link to="/customer">Ir a mis loopoints</Link>
@@ -115,13 +113,11 @@ export function ClaimPage() {
             <span className="mx-auto grid size-14 place-items-center rounded-full bg-destructive/10 text-destructive">
               <CircleAlert className="size-7" aria-hidden="true" />
             </span>
-            <h1 className="font-display text-2xl font-extrabold">
-              No pudimos abrir este QR
-            </h1>
+            <h1 className="font-display text-2xl font-extrabold">No pudimos abrir este QR</h1>
             <p className="text-sm text-muted-foreground">
               {preview.isError
                 ? errorMessage(preview.error)
-                : 'El código no existe o el enlace está incompleto.'}
+                : "El código no existe o el enlace está incompleto."}
             </p>
             <Button asChild variant="outline">
               <Link to="/customer">Ir a mis loopoints</Link>
@@ -142,9 +138,7 @@ export function ClaimPage() {
             <span className="mx-auto grid size-14 place-items-center rounded-full bg-primary-foreground/15">
               <BadgeCheck className="size-8" aria-hidden="true" />
             </span>
-            <h1 className="mt-3 font-display text-2xl font-extrabold">
-              ¡Loopoints acreditados!
-            </h1>
+            <h1 className="mt-3 font-display text-2xl font-extrabold">¡Loopoints acreditados!</h1>
             <p className="mt-1 text-sm text-primary-foreground/80">
               Tu compra en {result.business_name} ya está asociada a tu cuenta.
             </p>
@@ -186,13 +180,11 @@ export function ClaimPage() {
     );
   }
 
-  if (data.status !== 'pending_claim') {
+  if (data.status !== "pending_claim") {
     const messages = {
-      claimed:
-        'Este QR ya fue reclamado. Si eras tú, entra a tu cuenta para ver los loopoints.',
-      expired:
-        'Este QR venció. Pide en caja que generen una venta nueva para sumar los loopoints.',
-      cancelled: 'Esta venta fue cancelada, así que sus loopoints ya no están disponibles.',
+      claimed: "Este QR ya fue reclamado. Si eras tú, entra a tu cuenta para ver los loopoints.",
+      expired: "Este QR venció. Pide en caja que generen una venta nueva para sumar los loopoints.",
+      cancelled: "Esta venta fue cancelada, así que sus loopoints ya no están disponibles.",
     } as const;
     return (
       <ClaimLayout>
@@ -202,18 +194,14 @@ export function ClaimPage() {
               <QrCode className="size-7" aria-hidden="true" />
             </span>
             <h1 className="font-display text-2xl font-extrabold">
-              {data.status === 'claimed' ? 'QR ya reclamado' : 'QR no disponible'}
+              {data.status === "claimed" ? "QR ya reclamado" : "QR no disponible"}
             </h1>
             <p className="text-sm text-muted-foreground">{messages[data.status]}</p>
             <Button asChild className="w-full">
               <Link
-                to={
-                  session
-                    ? `/customer/business/${data.business_id}`
-                    : `/login?next=${loginNext}`
-                }
+                to={session ? `/customer/business/${data.business_id}` : `/login?next=${loginNext}`}
               >
-                {session ? 'Ir a mis loopoints' : 'Entrar a mi cuenta'}
+                {session ? "Ir a mis loopoints" : "Entrar a mi cuenta"}
               </Link>
             </Button>
             <Button asChild variant="outline" className="w-full">
@@ -271,24 +259,17 @@ export function ClaimPage() {
                 <ShieldCheck aria-hidden="true" />
                 <AlertTitle>Confirma la compra con tu cuenta</AlertTitle>
                 <AlertDescription>
-                  Si aún no tienes cuenta, créala con Google o con tu correo en
-                  segundos. Conservaremos este QR hasta que confirmes.
+                  Si aún no tienes cuenta, créala con Google o con tu correo en segundos.
+                  Conservaremos este QR hasta que confirmes.
                 </AlertDescription>
               </Alert>
 
-              <Button
-                size="lg"
-                className="w-full"
-                onClick={handleGoogle}
-                loading={signingIn}
-              >
+              <Button size="lg" className="w-full" onClick={handleGoogle} loading={signingIn}>
                 <UserPlus aria-hidden="true" />
                 Continuar con Google
               </Button>
               <Button asChild variant="outline" className="w-full">
-                <Link to={`/login?next=${loginNext}&mode=register`}>
-                  Crear cuenta con correo
-                </Link>
+                <Link to={`/login?next=${loginNext}&mode=register`}>Crear cuenta con correo</Link>
               </Button>
               <Button asChild variant="ghost" className="w-full">
                 <Link to={`/login?next=${loginNext}`}>Ya tengo cuenta</Link>
@@ -323,12 +304,7 @@ export function ClaimPage() {
                 </ul>
               </div>
 
-              <Button
-                size="lg"
-                className="w-full"
-                onClick={handleClaim}
-                loading={claim.isPending}
-              >
+              <Button size="lg" className="w-full" onClick={handleClaim} loading={claim.isPending}>
                 Confirmar y sumar loopoints
               </Button>
               <Button asChild variant="ghost" className="w-full">
@@ -338,9 +314,9 @@ export function ClaimPage() {
           )}
 
           <p className="text-center text-xs text-muted-foreground">
-            El QR vence el{' '}
-            {new Date(data.expires_at).toLocaleString('es-CO', {
-              timeZone: 'America/Bogota',
+            El QR vence el{" "}
+            {new Date(data.expires_at).toLocaleString("es-CO", {
+              timeZone: "America/Bogota",
             })}
             . Si ya expiró, pide uno nuevo en caja.
           </p>
@@ -358,7 +334,7 @@ function ClaimLayout({ children }: { children: React.ReactNode }) {
           <Brand />
         </div>
         {children}
-        <p className={cn('text-center text-xs text-muted-foreground')}>
+        <p className={cn("text-center text-xs text-muted-foreground")}>
           Tus datos se usan solo para el programa de loopoints del negocio.
         </p>
       </div>

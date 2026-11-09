@@ -1,46 +1,43 @@
-import { useRef } from 'react';
-import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
-import { Home, ReceiptText, TicketCheck, Wrench } from 'lucide-react';
-import { Brand } from '@/components/shared/Brand';
-import { Button } from '@/components/ui/button';
-import { BusinessSwitcher } from '@/features/loyalty/BusinessSwitcher';
-import { useAuth } from '@/features/auth/AuthProvider';
-import { usePortalTheme } from '@/components/theme/ThemeProvider';
-import { cn } from '@/lib/utils';
-import { UserMenu } from './UserMenu';
-import { useHideOnScroll } from './useHideOnScroll';
+import { useRef } from "react";
+import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
+import { Home, ReceiptText, TicketCheck, Wrench } from "lucide-react";
+import { Brand } from "@/components/shared/Brand";
+import { Button } from "@/components/ui/button";
+import { BusinessSwitcher } from "@/features/loyalty/BusinessSwitcher";
+import { useAuth } from "@/features/auth/AuthProvider";
+import { usePortalTheme } from "@/components/theme/ThemeProvider";
+import { cn } from "@/lib/utils";
+import { UserMenu } from "./UserMenu";
+import { useHideOnScroll } from "./useHideOnScroll";
 
 const navItems = [
-  { to: '/customer', label: 'Inicio', icon: Home, end: true },
-  { to: '/customer/purchases', label: 'Compras', icon: ReceiptText },
-  { to: '/customer/redemptions', label: 'Canjes', icon: TicketCheck },
+  { to: "/customer", label: "Inicio", icon: Home, end: true },
+  { to: "/customer/purchases", label: "Compras", icon: ReceiptText },
+  { to: "/customer/redemptions", label: "Canjes", icon: TicketCheck },
 ];
 
 export function CustomerShell() {
-  usePortalTheme('customer');
+  usePortalTheme("customer");
   const { roles } = useAuth();
   const { pathname } = useLocation();
   const scrollRef = useRef<HTMLElement | null>(null);
   const headerHidden = useHideOnScroll(scrollRef);
-  const isAdmin = roles.includes('admin');
+  const isAdmin = roles.includes("admin");
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-background">
       <header
         data-testid="app-header"
         className={cn(
-          'z-30 shrink-0 overflow-hidden border-b bg-background/95 backdrop-blur transition-all duration-300 ease-out no-print',
+          "z-30 shrink-0 overflow-hidden border-b bg-background/95 backdrop-blur transition-all duration-300 ease-out no-print",
           headerHidden
-            ? 'max-h-0 -translate-y-full border-transparent opacity-0'
-            : 'max-h-40 opacity-100',
+            ? "max-h-0 -translate-y-full border-transparent opacity-0"
+            : "max-h-40 opacity-100",
         )}
       >
         <div className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between gap-3 px-4">
           <Brand linkTo="/customer" />
-          <nav
-            className="hidden items-center gap-1 md:flex"
-            aria-label="Navegación del cliente"
-          >
+          <nav className="hidden items-center gap-1 md:flex" aria-label="Navegación del cliente">
             {navItems.map((item) => (
               <NavLink
                 key={item.to}
@@ -48,10 +45,10 @@ export function CustomerShell() {
                 end={item.end}
                 className={({ isActive }) =>
                   cn(
-                    'rounded-md px-3 py-2 text-sm font-semibold transition-colors',
+                    "rounded-md px-3 py-2 text-sm font-semibold transition-colors",
                     isActive
-                      ? 'bg-secondary text-secondary-foreground'
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                      ? "bg-secondary text-secondary-foreground"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
                   )
                 }
               >
@@ -60,10 +57,7 @@ export function CustomerShell() {
             ))}
           </nav>
           <div className="flex items-center gap-2">
-            <BusinessSwitcher
-              className="hidden md:flex"
-              linkToCustomerHome
-            />
+            <BusinessSwitcher className="hidden md:flex" linkToCustomerHome />
             {isAdmin && (
               <Button variant="outline" size="sm" asChild className="hidden sm:inline-flex">
                 <Link to="/admin">
@@ -106,8 +100,8 @@ export function CustomerShell() {
                 to={item.to}
                 end={item.end}
                 className={cn(
-                  'flex flex-col items-center gap-1 py-2.5 text-[11px] font-semibold transition-colors',
-                  active ? 'text-primary' : 'text-muted-foreground hover:text-foreground',
+                  "flex flex-col items-center gap-1 py-2.5 text-[11px] font-semibold transition-colors",
+                  active ? "text-primary" : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 <Icon className="size-5" aria-hidden="true" />

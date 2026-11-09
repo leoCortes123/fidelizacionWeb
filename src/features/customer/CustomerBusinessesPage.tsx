@@ -1,26 +1,18 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import {
-  ArrowRight,
-  Building2,
-  Gift,
-  Link2,
-  Sparkles,
-  Store,
-  TicketCheck,
-} from 'lucide-react';
-import { useAuth } from '@/features/auth/AuthProvider';
-import { useCustomerBusinessesSummary } from '@/features/loyalty/hooks';
-import { formatLoopoints } from '@/lib/format';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { PageHeader } from '@/components/shared/PageHeader';
-import { EmptyState, ErrorState, CardSkeleton } from '@/components/shared/States';
-import { FrequencyBadge } from '@/components/shared/StatusBadge';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { ArrowRight, Building2, Gift, Link2, Sparkles, Store, TicketCheck } from "lucide-react";
+import { useAuth } from "@/features/auth/AuthProvider";
+import { useCustomerBusinessesSummary } from "@/features/loyalty/hooks";
+import { formatLoopoints } from "@/lib/format";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { EmptyState, ErrorState, CardSkeleton } from "@/components/shared/States";
+import { FrequencyBadge } from "@/components/shared/StatusBadge";
 
 const SLUG_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
@@ -37,10 +29,10 @@ export function CustomerBusinessesPage() {
   const { displayName } = useAuth();
   const summary = useCustomerBusinessesSummary();
   const navigate = useNavigate();
-  const [invitation, setInvitation] = useState('');
+  const [invitation, setInvitation] = useState("");
   const [invitationError, setInvitationError] = useState<string | null>(null);
 
-  const firstName = displayName.split(' ')[0] || 'hola';
+  const firstName = displayName.split(" ")[0] || "hola";
   const rows = summary.data ?? [];
   const total = rows.reduce((sum, row) => sum + row.balance, 0);
   const ready = rows.reduce((sum, row) => sum + row.ready_rewards, 0);
@@ -50,7 +42,7 @@ export function CustomerBusinessesPage() {
     const slug = parseInvitationSlug(invitation);
     if (!slug) {
       setInvitationError(
-        'Pega el enlace de invitación o el código del negocio (por ejemplo, mi-negocio).',
+        "Pega el enlace de invitación o el código del negocio (por ejemplo, mi-negocio).",
       );
       return;
     }
@@ -71,12 +63,7 @@ export function CustomerBusinessesPage() {
   }
 
   if (summary.isError) {
-    return (
-      <ErrorState
-        error={summary.error}
-        onRetry={() => void summary.refetch()}
-      />
-    );
+    return <ErrorState error={summary.error} onRetry={() => void summary.refetch()} />;
   }
 
   return (
@@ -96,9 +83,7 @@ export function CustomerBusinessesPage() {
           <Card className="mx-auto max-w-md">
             <CardContent className="space-y-3 p-5">
               <div className="space-y-1">
-                <Label htmlFor="invitation-link">
-                  Enlace o código del negocio
-                </Label>
+                <Label htmlFor="invitation-link">Enlace o código del negocio</Label>
                 <p className="text-xs text-muted-foreground">
                   Ejemplo: https://loopoint.app/join/mi-negocio
                 </p>
@@ -113,9 +98,7 @@ export function CustomerBusinessesPage() {
                   }}
                   placeholder="mi-negocio"
                   aria-invalid={invitationError ? true : undefined}
-                  aria-describedby={
-                    invitationError ? 'invitation-link-error' : undefined
-                  }
+                  aria-describedby={invitationError ? "invitation-link-error" : undefined}
                 />
                 <Button type="submit" className="shrink-0">
                   <Link2 aria-hidden="true" />
@@ -123,11 +106,7 @@ export function CustomerBusinessesPage() {
                 </Button>
               </form>
               {invitationError && (
-                <p
-                  id="invitation-link-error"
-                  role="alert"
-                  className="text-xs text-destructive"
-                >
+                <p id="invitation-link-error" role="alert" className="text-xs text-destructive">
                   {invitationError}
                 </p>
               )}
@@ -149,8 +128,8 @@ export function CustomerBusinessesPage() {
                   {total}
                 </p>
                 <p className="text-xs text-background/70">
-                  {formatLoopoints(total)} en {rows.length}{' '}
-                  {rows.length === 1 ? 'negocio' : 'negocios'}
+                  {formatLoopoints(total)} en {rows.length}{" "}
+                  {rows.length === 1 ? "negocio" : "negocios"}
                 </p>
               </CardContent>
             </Card>
@@ -162,9 +141,7 @@ export function CustomerBusinessesPage() {
                 <div>
                   <p className="font-display text-2xl font-extrabold">{ready}</p>
                   <p className="text-xs text-muted-foreground">
-                    {ready === 1
-                      ? 'recompensa por reclamar'
-                      : 'recompensas por reclamar'}
+                    {ready === 1 ? "recompensa por reclamar" : "recompensas por reclamar"}
                   </p>
                 </div>
               </CardContent>
@@ -178,9 +155,7 @@ export function CustomerBusinessesPage() {
                   <p className="font-display text-2xl font-extrabold">
                     {rows.reduce((sum, row) => sum + row.pending_redemptions, 0)}
                   </p>
-                  <p className="text-xs text-muted-foreground">
-                    canjes en curso
-                  </p>
+                  <p className="text-xs text-muted-foreground">canjes en curso</p>
                 </div>
               </CardContent>
             </Card>
@@ -189,10 +164,7 @@ export function CustomerBusinessesPage() {
           <section className="space-y-3" aria-labelledby="businesses-title">
             <div className="flex items-end justify-between gap-3">
               <div>
-                <h2
-                  id="businesses-title"
-                  className="font-display text-xl font-extrabold"
-                >
+                <h2 id="businesses-title" className="font-display text-xl font-extrabold">
                   Mis negocios
                 </h2>
                 <p className="text-sm text-muted-foreground">
@@ -216,9 +188,9 @@ export function CustomerBusinessesPage() {
                 >
                   <Card
                     className={cn(
-                      'h-full transition-shadow group-hover:shadow-md',
+                      "h-full transition-shadow group-hover:shadow-md",
                       row.ready_rewards > 0
-                        ? 'border-emerald-300 dark:border-emerald-800'
+                        ? "border-emerald-300 dark:border-emerald-800"
                         : undefined,
                     )}
                   >
@@ -236,12 +208,8 @@ export function CustomerBusinessesPage() {
                           )}
                         </span>
                         <div className="min-w-0 flex-1">
-                          <h3 className="truncate font-bold leading-tight">
-                            {row.name}
-                          </h3>
-                          <p className="truncate text-xs text-muted-foreground">
-                            @{row.slug}
-                          </p>
+                          <h3 className="truncate font-bold leading-tight">{row.name}</h3>
+                          <p className="truncate text-xs text-muted-foreground">@{row.slug}</p>
                           <div className="mt-1 flex flex-wrap gap-1">
                             <FrequencyBadge
                               isFrequent={row.is_frequent}
@@ -266,8 +234,7 @@ export function CustomerBusinessesPage() {
                         {row.ready_rewards > 0 ? (
                           <Badge variant="success" className="shrink-0">
                             <Gift className="mr-1 size-3.5" aria-hidden="true" />
-                            {row.ready_rewards}{' '}
-                            {row.ready_rewards === 1 ? 'lista' : 'listas'}
+                            {row.ready_rewards} {row.ready_rewards === 1 ? "lista" : "listas"}
                           </Badge>
                         ) : row.pending_redemptions > 0 ? (
                           <Badge variant="secondary" className="shrink-0">
@@ -279,8 +246,8 @@ export function CustomerBusinessesPage() {
                       <div className="flex items-center justify-between border-t pt-3 text-xs text-muted-foreground">
                         <span>
                           {row.last_purchase_at
-                            ? 'Última compra registrada'
-                            : 'Sin compras todavía'}
+                            ? "Última compra registrada"
+                            : "Sin compras todavía"}
                         </span>
                         <ArrowRight
                           className="size-4 transition-transform group-hover:translate-x-0.5"
@@ -298,9 +265,8 @@ export function CustomerBusinessesPage() {
             <CardContent className="space-y-2 p-5 text-sm">
               <p className="font-semibold">¿Quieres sumar otro negocio?</p>
               <p className="text-muted-foreground">
-                Pide en caja el enlace de invitación o escanea su QR. Tus
-                loopoints de cada negocio se mantienen separados y siempre
-                disponibles aquí.
+                Pide en caja el enlace de invitación o escanea su QR. Tus loopoints de cada negocio
+                se mantienen separados y siempre disponibles aquí.
               </p>
             </CardContent>
           </Card>

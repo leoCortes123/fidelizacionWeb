@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from "react";
 import {
   Building2,
   Camera,
@@ -8,26 +8,26 @@ import {
   MapPin,
   Phone,
   Trash2,
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { z } from 'zod';
+} from "lucide-react";
+import { toast } from "sonner";
+import { z } from "zod";
 import {
   useBusinessProfile,
   useSetBusinessLogo,
   useUpdateBusinessProfile,
-} from '@/features/loyalty/hooks';
-import { errorMessage } from '@/lib/errors';
-import { useFormDraft } from '@/lib/useFormDraft';
-import { isSupportedImage, prepareImage } from '@/lib/image';
-import { supabase } from '@/lib/supabase';
-import type { Business, BusinessProfile } from '@/types';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
-import { Field } from '@/components/shared/Field';
-import { ErrorState, LoadingScreen } from '@/components/shared/States';
+} from "@/features/loyalty/hooks";
+import { errorMessage } from "@/lib/errors";
+import { useFormDraft } from "@/lib/useFormDraft";
+import { isSupportedImage, prepareImage } from "@/lib/image";
+import { supabase } from "@/lib/supabase";
+import type { Business, BusinessProfile } from "@/types";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
+import { Field } from "@/components/shared/Field";
+import { ErrorState, LoadingScreen } from "@/components/shared/States";
 
 const phonePattern = /^\+?[0-9\s().-]{7,20}$/;
 const instagramPattern = /^@?[A-Za-z0-9._]{1,30}$/;
@@ -37,42 +37,39 @@ export const businessProfileSchema = z.object({
   name: z
     .string()
     .trim()
-    .min(2, 'El nombre debe tener al menos 2 caracteres.')
-    .max(120, 'El nombre no puede superar 120 caracteres.'),
-  description: z
-    .string()
-    .trim()
-    .max(500, 'La descripción no puede superar 500 caracteres.'),
-  address: z.string().trim().max(160, 'La dirección supera 160 caracteres.'),
-  neighborhood: z.string().trim().max(160, 'El barrio supera 160 caracteres.'),
-  city: z.string().trim().max(160, 'La ciudad supera 160 caracteres.'),
+    .min(2, "El nombre debe tener al menos 2 caracteres.")
+    .max(120, "El nombre no puede superar 120 caracteres."),
+  description: z.string().trim().max(500, "La descripción no puede superar 500 caracteres."),
+  address: z.string().trim().max(160, "La dirección supera 160 caracteres."),
+  neighborhood: z.string().trim().max(160, "El barrio supera 160 caracteres."),
+  city: z.string().trim().max(160, "La ciudad supera 160 caracteres."),
   phoneWhatsapp: z
     .string()
     .trim()
     .refine(
-      (value) => value === '' || phonePattern.test(value),
-      'Escribe un WhatsApp válido (7 a 15 dígitos).',
+      (value) => value === "" || phonePattern.test(value),
+      "Escribe un WhatsApp válido (7 a 15 dígitos).",
     ),
   phone: z
     .string()
     .trim()
     .refine(
-      (value) => value === '' || phonePattern.test(value),
-      'Escribe un teléfono válido (7 a 15 dígitos).',
+      (value) => value === "" || phonePattern.test(value),
+      "Escribe un teléfono válido (7 a 15 dígitos).",
     ),
   instagram: z
     .string()
     .trim()
     .refine(
-      (value) => value === '' || instagramPattern.test(value),
-      'Escribe un usuario de Instagram válido.',
+      (value) => value === "" || instagramPattern.test(value),
+      "Escribe un usuario de Instagram válido.",
     ),
   website: z
     .string()
     .trim()
     .refine(
-      (value) => value === '' || websitePattern.test(value),
-      'Escribe una dirección web válida.',
+      (value) => value === "" || websitePattern.test(value),
+      "Escribe una dirección web válida.",
     ),
 });
 
@@ -81,14 +78,14 @@ export type BusinessProfileFormState = z.infer<typeof businessProfileSchema>;
 function fromProfile(profile: BusinessProfile): BusinessProfileFormState {
   return {
     name: profile.name,
-    description: profile.description ?? '',
-    address: profile.address ?? '',
-    neighborhood: profile.neighborhood ?? '',
-    city: profile.city ?? '',
-    phoneWhatsapp: profile.phone_whatsapp ?? '',
-    phone: profile.phone ?? '',
-    instagram: profile.instagram ?? '',
-    website: profile.website ?? '',
+    description: profile.description ?? "",
+    address: profile.address ?? "",
+    neighborhood: profile.neighborhood ?? "",
+    city: profile.city ?? "",
+    phoneWhatsapp: profile.phone_whatsapp ?? "",
+    phone: profile.phone ?? "",
+    instagram: profile.instagram ?? "",
+    website: profile.website ?? "",
   };
 }
 
@@ -104,7 +101,7 @@ export function BusinessProfileForm({ business }: { business: Business }) {
   if (profile.isError || !profile.data) {
     return (
       <ErrorState
-        error={profile.error ?? new Error('No encontramos el negocio.')}
+        error={profile.error ?? new Error("No encontramos el negocio.")}
         onRetry={() => void profile.refetch()}
       />
     );
@@ -129,9 +126,7 @@ function BusinessProfileFields({
   const [form, setForm] = useState<BusinessProfileFormState>(
     () => draft.read() ?? fromProfile(profile),
   );
-  const [errors, setErrors] = useState<
-    Partial<Record<keyof BusinessProfileFormState, string>>
-  >({});
+  const [errors, setErrors] = useState<Partial<Record<keyof BusinessProfileFormState, string>>>({});
   const [dirty, setDirty] = useState(false);
   const [uploading, setUploading] = useState(false);
 
@@ -158,7 +153,7 @@ function BusinessProfileFields({
         if (key && !nextErrors[key]) nextErrors[key] = issue.message;
       }
       setErrors(nextErrors);
-      toast.error(parsed.error.issues[0]?.message ?? 'Revisa los datos del negocio.');
+      toast.error(parsed.error.issues[0]?.message ?? "Revisa los datos del negocio.");
       return;
     }
 
@@ -178,7 +173,7 @@ function BusinessProfileFields({
       setForm(fromProfile(result));
       setDirty(false);
       draft.clear();
-      toast.success('Datos del negocio guardados.');
+      toast.success("Datos del negocio guardados.");
     } catch (error) {
       toast.error(errorMessage(error));
     }
@@ -186,11 +181,11 @@ function BusinessProfileFields({
 
   async function handleLogo(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
-    event.target.value = '';
+    event.target.value = "";
     if (!file) return;
 
     if (!isSupportedImage(file)) {
-      toast.error('Usa una imagen JPEG, PNG o WebP.');
+      toast.error("Usa una imagen JPEG, PNG o WebP.");
       return;
     }
 
@@ -198,25 +193,22 @@ function BusinessProfileFields({
     try {
       const prepared = await prepareImage(file);
       const path = `business/${business.id}/logo-${Date.now()}.${prepared.extension}`;
-      const { error } = await supabase.storage
-        .from('business-assets')
-        .upload(path, prepared.blob, {
-          contentType: prepared.contentType,
-          cacheControl: '3600',
-          upsert: false,
-        });
+      const { error } = await supabase.storage.from("business-assets").upload(path, prepared.blob, {
+        contentType: prepared.contentType,
+        cacheControl: "3600",
+        upsert: false,
+      });
       if (error) throw error;
 
-      const { data } = supabase.storage.from('business-assets').getPublicUrl(path);
+      const { data } = supabase.storage.from("business-assets").getPublicUrl(path);
       await setLogo.mutateAsync({
         businessId: business.id,
         logoUrl: data.publicUrl,
       });
-      toast.success('Logo actualizado.');
+      toast.success("Logo actualizado.");
     } catch (error) {
       toast.error(
-        errorMessage(error) ||
-          'No pudimos subir el logo. Revisa el almacenamiento del negocio.',
+        errorMessage(error) || "No pudimos subir el logo. Revisa el almacenamiento del negocio.",
       );
     } finally {
       setUploading(false);
@@ -227,7 +219,7 @@ function BusinessProfileFields({
     setUploading(true);
     try {
       await setLogo.mutateAsync({ businessId: business.id, logoUrl: null });
-      toast.success('Logo eliminado.');
+      toast.success("Logo eliminado.");
     } catch (error) {
       toast.error(errorMessage(error));
     } finally {
@@ -271,7 +263,7 @@ function BusinessProfileFields({
                   onClick={() => fileInput.current?.click()}
                 >
                   <Camera aria-hidden="true" />
-                  {profile.logo_url ? 'Reemplazar logo' : 'Subir logo'}
+                  {profile.logo_url ? "Reemplazar logo" : "Subir logo"}
                 </Button>
                 {profile.logo_url && (
                   <Button
@@ -312,7 +304,7 @@ function BusinessProfileFields({
                 <Input
                   id="business-name"
                   value={form.name}
-                  onChange={(event) => update('name', event.target.value)}
+                  onChange={(event) => update("name", event.target.value)}
                   aria-invalid={Boolean(errors.name)}
                 />
               </Field>
@@ -334,7 +326,7 @@ function BusinessProfileFields({
               <Textarea
                 id="business-description"
                 value={form.description}
-                onChange={(event) => update('description', event.target.value)}
+                onChange={(event) => update("description", event.target.value)}
                 rows={3}
                 maxLength={500}
                 aria-invalid={Boolean(errors.description)}
@@ -350,7 +342,7 @@ function BusinessProfileFields({
                 <Input
                   id="business-address"
                   value={form.address}
-                  onChange={(event) => update('address', event.target.value)}
+                  onChange={(event) => update("address", event.target.value)}
                   autoComplete="street-address"
                 />
               </Field>
@@ -358,14 +350,14 @@ function BusinessProfileFields({
                 <Input
                   id="business-neighborhood"
                   value={form.neighborhood}
-                  onChange={(event) => update('neighborhood', event.target.value)}
+                  onChange={(event) => update("neighborhood", event.target.value)}
                 />
               </Field>
               <Field id="business-city" label="Ciudad" error={errors.city}>
                 <Input
                   id="business-city"
                   value={form.city}
-                  onChange={(event) => update('city', event.target.value)}
+                  onChange={(event) => update("city", event.target.value)}
                   autoComplete="address-level2"
                 />
               </Field>
@@ -385,7 +377,7 @@ function BusinessProfileFields({
                 <Input
                   id="business-whatsapp"
                   value={form.phoneWhatsapp}
-                  onChange={(event) => update('phoneWhatsapp', event.target.value)}
+                  onChange={(event) => update("phoneWhatsapp", event.target.value)}
                   inputMode="tel"
                   autoComplete="tel"
                 />
@@ -394,7 +386,7 @@ function BusinessProfileFields({
                 <Input
                   id="business-phone"
                   value={form.phone}
-                  onChange={(event) => update('phone', event.target.value)}
+                  onChange={(event) => update("phone", event.target.value)}
                   inputMode="tel"
                 />
               </Field>
@@ -407,7 +399,7 @@ function BusinessProfileFields({
                 <Input
                   id="business-instagram"
                   value={form.instagram}
-                  onChange={(event) => update('instagram', event.target.value)}
+                  onChange={(event) => update("instagram", event.target.value)}
                   autoCapitalize="none"
                   spellCheck={false}
                 />
@@ -421,7 +413,7 @@ function BusinessProfileFields({
                 <Input
                   id="business-website"
                   value={form.website}
-                  onChange={(event) => update('website', event.target.value)}
+                  onChange={(event) => update("website", event.target.value)}
                   inputMode="url"
                   autoCapitalize="none"
                   spellCheck={false}

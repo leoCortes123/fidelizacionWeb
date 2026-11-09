@@ -1,24 +1,19 @@
-import { useEffect, useState } from 'react';
-import { Info } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { useEffect, useState } from "react";
+import { Info } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 function useHasHover() {
   const [hasHover, setHasHover] = useState(true);
 
   useEffect(() => {
-    if (typeof window.matchMedia !== 'function') return;
-    const query = window.matchMedia('(hover: hover) and (pointer: fine)');
+    if (typeof window.matchMedia !== "function") return;
+    const query = window.matchMedia("(hover: hover) and (pointer: fine)");
     const update = () => setHasHover(query.matches);
     update();
-    query.addEventListener?.('change', update);
-    return () => query.removeEventListener?.('change', update);
+    query.addEventListener?.("change", update);
+    return () => query.removeEventListener?.("change", update);
   }, []);
 
   return hasHover;
@@ -34,7 +29,7 @@ interface HelpHintProps {
  * Ayuda corta para campos y acciones. En escritorio se muestra como tooltip;
  * en pantallas táctiles se abre al toque para que no dependa del hover.
  */
-export function HelpHint({ text, label = 'Mostrar explicación', className }: HelpHintProps) {
+export function HelpHint({ text, label = "Mostrar explicación", className }: HelpHintProps) {
   const hasHover = useHasHover();
 
   const trigger = (
@@ -42,7 +37,7 @@ export function HelpHint({ text, label = 'Mostrar explicación', className }: He
       type="button"
       aria-label={label}
       className={cn(
-        'inline-grid size-5 shrink-0 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+        "inline-grid size-5 shrink-0 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         className,
       )}
     >

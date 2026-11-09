@@ -1,11 +1,11 @@
-import type { LucideIcon } from 'lucide-react';
-import { useBusinesses } from '@/features/loyalty/hooks';
-import { useBusinessContext } from '@/features/loyalty/businessContext';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { PageHeader } from '@/components/shared/PageHeader';
-import { EmptyState, ErrorState, ListSkeleton } from '@/components/shared/States';
-import type { Business } from '@/types';
+import type { LucideIcon } from "lucide-react";
+import { useBusinesses } from "@/features/loyalty/hooks";
+import { useBusinessContext } from "@/features/loyalty/businessContext";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { EmptyState, ErrorState, ListSkeleton } from "@/components/shared/States";
+import type { Business } from "@/types";
 
 /**
  * Resuelve el negocio activo para las pantallas administrativas nuevas.

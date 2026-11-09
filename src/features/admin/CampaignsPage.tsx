@@ -1,24 +1,16 @@
-import { useMemo, useState } from 'react';
-import {
-  CalendarClock,
-  Megaphone,
-  Pencil,
-  Plus,
-  Power,
-  Sparkles,
-  Trash2,
-} from 'lucide-react';
-import { toast } from 'sonner';
+import { useMemo, useState } from "react";
+import { CalendarClock, Megaphone, Pencil, Plus, Power, Sparkles, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import {
   useDeleteLoyaltyCampaign,
   useLoyaltyCampaigns,
   useUpsertLoyaltyCampaign,
-} from '@/features/loyalty/hooks';
-import { errorMessage } from '@/lib/errors';
-import { formatCOP, formatDateTimeBogota, formatNumber, parseCopInput } from '@/lib/format';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+} from "@/features/loyalty/hooks";
+import { errorMessage } from "@/lib/errors";
+import { formatCOP, formatDateTimeBogota, formatNumber, parseCopInput } from "@/lib/format";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -26,15 +18,15 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
-import { PageHeader } from '@/components/shared/PageHeader';
-import { EmptyState, ErrorState, ListSkeleton } from '@/components/shared/States';
-import { BusinessGate } from '@/features/admin/BusinessGate';
-import type { Business, LoyaltyCampaign } from '@/types';
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { EmptyState, ErrorState, ListSkeleton } from "@/components/shared/States";
+import { BusinessGate } from "@/features/admin/BusinessGate";
+import type { Business, LoyaltyCampaign } from "@/types";
 
 interface CampaignFormState {
   name: string;
@@ -50,13 +42,13 @@ interface CampaignFormState {
 type CampaignErrors = Partial<Record<keyof CampaignFormState, string>>;
 
 function pad(value: number): string {
-  return String(value).padStart(2, '0');
+  return String(value).padStart(2, "0");
 }
 
 function toLocalInput(value: string | null): string {
-  if (!value) return '';
+  if (!value) return "";
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return '';
+  if (Number.isNaN(date.getTime())) return "";
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(
     date.getHours(),
   )}:${pad(date.getMinutes())}`;
@@ -74,13 +66,13 @@ function nowLocalInput(): string {
 
 function emptyForm(): CampaignFormState {
   return {
-    name: '',
-    description: '',
-    multiplier: '2',
-    bonusPoints: '0',
-    minPurchase: '0',
+    name: "",
+    description: "",
+    multiplier: "2",
+    bonusPoints: "0",
+    minPurchase: "0",
     validFrom: nowLocalInput(),
-    validUntil: '',
+    validUntil: "",
     isActive: true,
   };
 }
@@ -143,10 +135,7 @@ function CampaignsSection({ business }: { business: Business }) {
     setDialogOpen(true);
   }
 
-  function update<K extends keyof CampaignFormState>(
-    key: K,
-    value: CampaignFormState[K],
-  ) {
+  function update<K extends keyof CampaignFormState>(key: K, value: CampaignFormState[K]) {
     setForm((current) => ({ ...current, [key]: value }));
     setErrors((current) => ({ ...current, [key]: undefined }));
   }
@@ -154,37 +143,37 @@ function CampaignsSection({ business }: { business: Business }) {
   function validate(): { payload?: Parameters<typeof upsertCampaign.mutateAsync>[0] } {
     const nextErrors: CampaignErrors = {};
     const name = form.name.trim();
-    const multiplier = Number(form.multiplier.replace(',', '.'));
+    const multiplier = Number(form.multiplier.replace(",", "."));
     const bonusPoints = Number(form.bonusPoints);
     const minPurchase = parseCopInput(form.minPurchase) ?? 0;
     const validFrom = fromLocalInput(form.validFrom);
     const validUntil = fromLocalInput(form.validUntil);
 
     if (name.length < 2 || name.length > 120) {
-      nextErrors.name = 'El nombre debe tener entre 2 y 120 caracteres.';
+      nextErrors.name = "El nombre debe tener entre 2 y 120 caracteres.";
     }
     if (!Number.isFinite(multiplier) || multiplier < 1 || multiplier > 10) {
-      nextErrors.multiplier = 'El multiplicador debe estar entre 1 y 10.';
+      nextErrors.multiplier = "El multiplicador debe estar entre 1 y 10.";
     }
     if (!Number.isInteger(bonusPoints) || bonusPoints < 0 || bonusPoints > 1_000_000) {
-      nextErrors.bonusPoints = 'El bono debe ser un entero entre 0 y 1.000.000.';
+      nextErrors.bonusPoints = "El bono debe ser un entero entre 0 y 1.000.000.";
     }
     if (minPurchase < 0) {
-      nextErrors.minPurchase = 'La compra mínima no puede ser negativa.';
+      nextErrors.minPurchase = "La compra mínima no puede ser negativa.";
     }
     if (!validFrom) {
-      nextErrors.validFrom = 'Indica la fecha de inicio.';
+      nextErrors.validFrom = "Indica la fecha de inicio.";
     }
     if (form.validUntil && !validUntil) {
-      nextErrors.validUntil = 'La fecha de fin no es válida.';
+      nextErrors.validUntil = "La fecha de fin no es válida.";
     }
     if (validFrom && validUntil && validUntil <= validFrom) {
-      nextErrors.validUntil = 'La fecha de fin debe ser posterior al inicio.';
+      nextErrors.validUntil = "La fecha de fin debe ser posterior al inicio.";
     }
 
     if (Object.keys(nextErrors).length > 0 || !validFrom) {
       setErrors(nextErrors);
-      toast.error('Revisa los datos de la campaña.');
+      toast.error("Revisa los datos de la campaña.");
       return {};
     }
 
@@ -211,7 +200,7 @@ function CampaignsSection({ business }: { business: Business }) {
 
     try {
       await upsertCampaign.mutateAsync(payload);
-      toast.success(editing ? 'Campaña actualizada' : 'Campaña creada');
+      toast.success(editing ? "Campaña actualizada" : "Campaña creada");
       setDialogOpen(false);
       setEditing(null);
     } catch (error) {
@@ -233,7 +222,7 @@ function CampaignsSection({ business }: { business: Business }) {
         validUntil: campaign.valid_until,
         isActive: !campaign.is_active,
       });
-      toast.success(campaign.is_active ? 'Campaña desactivada' : 'Campaña activada');
+      toast.success(campaign.is_active ? "Campaña desactivada" : "Campaña activada");
     } catch (error) {
       toast.error(errorMessage(error));
     }
@@ -246,7 +235,7 @@ function CampaignsSection({ business }: { business: Business }) {
         businessId: business.id,
         campaignId: deleteTarget.id,
       });
-      toast.success('Campaña eliminada');
+      toast.success("Campaña eliminada");
       setDeleteTarget(null);
     } catch (error) {
       toast.error(errorMessage(error));
@@ -276,11 +265,10 @@ function CampaignsSection({ business }: { business: Business }) {
         <CardContent className="flex items-start gap-3 p-4 text-sm text-muted-foreground">
           <Sparkles className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
           <p>
-            En cada compra se aplica la campaña vigente con mayor beneficio. Los
-            loopoints resultantes quedan registrados con la regla
-            {' '}
-            <code className="rounded bg-muted px-1 py-0.5 text-xs">v1+campaign:…</code>
-            {' '}en el movimiento y en la auditoría.
+            En cada compra se aplica la campaña vigente con mayor beneficio. Los loopoints
+            resultantes quedan registrados con la regla{" "}
+            <code className="rounded bg-muted px-1 py-0.5 text-xs">v1+campaign:…</code> en el
+            movimiento y en la auditoría.
           </p>
         </CardContent>
       </Card>
@@ -301,12 +289,24 @@ function CampaignsSection({ business }: { business: Business }) {
           <table className="w-full text-sm">
             <thead className="bg-muted/50 text-left text-xs uppercase tracking-wide text-muted-foreground">
               <tr>
-                <th scope="col" className="px-4 py-3">Campaña</th>
-                <th scope="col" className="px-4 py-3">Beneficio</th>
-                <th scope="col" className="px-4 py-3 text-right">Compra mínima</th>
-                <th scope="col" className="px-4 py-3">Vigencia</th>
-                <th scope="col" className="px-4 py-3">Estado</th>
-                <th scope="col" className="px-4 py-3 text-right">Acciones</th>
+                <th scope="col" className="px-4 py-3">
+                  Campaña
+                </th>
+                <th scope="col" className="px-4 py-3">
+                  Beneficio
+                </th>
+                <th scope="col" className="px-4 py-3 text-right">
+                  Compra mínima
+                </th>
+                <th scope="col" className="px-4 py-3">
+                  Vigencia
+                </th>
+                <th scope="col" className="px-4 py-3">
+                  Estado
+                </th>
+                <th scope="col" className="px-4 py-3 text-right">
+                  Acciones
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -315,9 +315,7 @@ function CampaignsSection({ business }: { business: Business }) {
                   <td className="px-4 py-3">
                     <p className="font-semibold">{campaign.name}</p>
                     {campaign.description && (
-                      <p className="text-xs text-muted-foreground">
-                        {campaign.description}
-                      </p>
+                      <p className="text-xs text-muted-foreground">{campaign.description}</p>
                     )}
                   </td>
                   <td className="px-4 py-3">
@@ -331,14 +329,14 @@ function CampaignsSection({ business }: { business: Business }) {
                   <td className="px-4 py-3 text-right tabular-nums">
                     {campaign.min_purchase_amount > 0
                       ? formatCOP(campaign.min_purchase_amount)
-                      : '—'}
+                      : "—"}
                   </td>
                   <td className="px-4 py-3 text-xs text-muted-foreground">
                     <p>Desde {formatDateTimeBogota(campaign.valid_from)}</p>
                     <p>
                       {campaign.valid_until
                         ? `Hasta ${formatDateTimeBogota(campaign.valid_until)}`
-                        : 'Sin fecha de fin'}
+                        : "Sin fecha de fin"}
                     </p>
                   </td>
                   <td className="px-4 py-3">{statusBadge(campaign)}</td>
@@ -389,10 +387,10 @@ function CampaignsSection({ business }: { business: Business }) {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editing ? 'Editar campaña' : 'Nueva campaña'}</DialogTitle>
+            <DialogTitle>{editing ? "Editar campaña" : "Nueva campaña"}</DialogTitle>
             <DialogDescription>
-              El multiplicador se aplica a los loopoints base de la compra y el bono se
-              suma al final. Solo aplica dentro de la vigencia.
+              El multiplicador se aplica a los loopoints base de la compra y el bono se suma al
+              final. Solo aplica dentro de la vigencia.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={save} className="space-y-4" noValidate>
@@ -402,7 +400,7 @@ function CampaignsSection({ business }: { business: Business }) {
                 <Input
                   id="campaign-name"
                   value={form.name}
-                  onChange={(event) => update('name', event.target.value)}
+                  onChange={(event) => update("name", event.target.value)}
                   maxLength={120}
                   aria-invalid={Boolean(errors.name)}
                 />
@@ -417,7 +415,7 @@ function CampaignsSection({ business }: { business: Business }) {
                 <Textarea
                   id="campaign-description"
                   value={form.description}
-                  onChange={(event) => update('description', event.target.value)}
+                  onChange={(event) => update("description", event.target.value)}
                   maxLength={500}
                 />
               </div>
@@ -427,7 +425,7 @@ function CampaignsSection({ business }: { business: Business }) {
                   id="campaign-multiplier"
                   inputMode="decimal"
                   value={form.multiplier}
-                  onChange={(event) => update('multiplier', event.target.value)}
+                  onChange={(event) => update("multiplier", event.target.value)}
                   aria-invalid={Boolean(errors.multiplier)}
                 />
                 {errors.multiplier ? (
@@ -446,7 +444,7 @@ function CampaignsSection({ business }: { business: Business }) {
                   id="campaign-bonus"
                   inputMode="numeric"
                   value={form.bonusPoints}
-                  onChange={(event) => update('bonusPoints', event.target.value)}
+                  onChange={(event) => update("bonusPoints", event.target.value)}
                   aria-invalid={Boolean(errors.bonusPoints)}
                 />
                 {errors.bonusPoints ? (
@@ -466,7 +464,7 @@ function CampaignsSection({ business }: { business: Business }) {
                   inputMode="numeric"
                   placeholder="0"
                   value={form.minPurchase}
-                  onChange={(event) => update('minPurchase', event.target.value)}
+                  onChange={(event) => update("minPurchase", event.target.value)}
                   aria-invalid={Boolean(errors.minPurchase)}
                 />
                 {errors.minPurchase && (
@@ -481,7 +479,7 @@ function CampaignsSection({ business }: { business: Business }) {
                   id="campaign-from"
                   type="datetime-local"
                   value={form.validFrom}
-                  onChange={(event) => update('validFrom', event.target.value)}
+                  onChange={(event) => update("validFrom", event.target.value)}
                   aria-invalid={Boolean(errors.validFrom)}
                 />
                 {errors.validFrom && (
@@ -496,7 +494,7 @@ function CampaignsSection({ business }: { business: Business }) {
                   id="campaign-until"
                   type="datetime-local"
                   value={form.validUntil}
-                  onChange={(event) => update('validUntil', event.target.value)}
+                  onChange={(event) => update("validUntil", event.target.value)}
                   aria-invalid={Boolean(errors.validUntil)}
                 />
                 {errors.validUntil && (
@@ -511,7 +509,7 @@ function CampaignsSection({ business }: { business: Business }) {
               <input
                 type="checkbox"
                 checked={form.isActive}
-                onChange={(event) => update('isActive', event.target.checked)}
+                onChange={(event) => update("isActive", event.target.checked)}
                 className="size-4 rounded border-input"
               />
               Campaña activa

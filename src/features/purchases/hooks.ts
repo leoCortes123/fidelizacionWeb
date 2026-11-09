@@ -1,6 +1,6 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { rpc } from '@/lib/supabase';
-import { queryKeys } from '@/lib/queryKeys';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { rpc } from "@/lib/supabase";
+import { queryKeys } from "@/lib/queryKeys";
 import type {
   BusinessPurchasePageRow,
   ClaimResult,
@@ -9,7 +9,7 @@ import type {
   PurchaseQrCreateResult,
   PurchaseQrPreview,
   PurchaseStatus,
-} from '@/types';
+} from "@/types";
 
 const TOKEN_PATTERN = /^[A-Za-z0-9_-]{20,100}$/;
 
@@ -17,8 +17,7 @@ const TOKEN_PATTERN = /^[A-Za-z0-9_-]{20,100}$/;
 export function usePurchaseQrPreview(token: string) {
   return useQuery({
     queryKey: queryKeys.purchaseQrPreview(token),
-    queryFn: () =>
-      rpc<PurchaseQrPreview>('purchase_qr_preview', { p_token: token }),
+    queryFn: () => rpc<PurchaseQrPreview>("purchase_qr_preview", { p_token: token }),
     enabled: TOKEN_PATTERN.test(token),
     retry: false,
   });
@@ -38,9 +37,9 @@ export function useCreatePurchaseQr(businessId: string) {
     number | { amountCop: number; items: PurchaseItemInput[] }
   >({
     mutationFn: (input) => {
-      const amountCop = typeof input === 'number' ? input : input.amountCop;
-      const items = typeof input === 'number' ? [] : input.items;
-      return rpc<PurchaseQrCreateResult>('purchase_qr_create_with_items', {
+      const amountCop = typeof input === "number" ? input : input.amountCop;
+      const items = typeof input === "number" ? [] : input.items;
+      return rpc<PurchaseQrCreateResult>("purchase_qr_create_with_items", {
         p_business_id: businessId,
         p_amount_cop: amountCop,
         p_items: items,
@@ -48,7 +47,7 @@ export function useCreatePurchaseQr(businessId: string) {
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({
-        queryKey: ['business-purchases', businessId],
+        queryKey: ["business-purchases", businessId],
       });
       void queryClient.invalidateQueries({
         queryKey: queryKeys.businessDashboardSummary(businessId),
@@ -68,15 +67,14 @@ export function useCreatePurchaseQr(businessId: string) {
 export function useClaimPurchase() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (token: string) =>
-      rpc<ClaimResult>('purchase_qr_claim', { p_token: token }),
+    mutationFn: (token: string) => rpc<ClaimResult>("purchase_qr_claim", { p_token: token }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.dashboard });
       void queryClient.invalidateQueries({ queryKey: queryKeys.rewards });
-      void queryClient.invalidateQueries({ queryKey: ['my-purchases'] });
+      void queryClient.invalidateQueries({ queryKey: ["my-purchases"] });
       void queryClient.invalidateQueries({ queryKey: queryKeys.businesses });
       void queryClient.invalidateQueries({ queryKey: queryKeys.myRedemptions });
-      void queryClient.invalidateQueries({ queryKey: ['my-loyalty-redemptions'] });
+      void queryClient.invalidateQueries({ queryKey: ["my-loyalty-redemptions"] });
       void queryClient.invalidateQueries({
         queryKey: queryKeys.customerBusinessesSummary,
       });
@@ -94,7 +92,7 @@ export function useBusinessPurchases(
   return useQuery({
     queryKey: queryKeys.businessPurchases(businessId, page, status),
     queryFn: () =>
-      rpc<BusinessPurchasePageRow[]>('business_purchases_page', {
+      rpc<BusinessPurchasePageRow[]>("business_purchases_page", {
         p_business_id: businessId,
         p_limit: pageSize,
         p_offset: page * pageSize,
@@ -109,12 +107,9 @@ export function useBusinessPurchaseDetail(
   purchaseId: string | null | undefined,
 ) {
   return useQuery<PurchaseDetail>({
-    queryKey: queryKeys.businessPurchaseDetail(
-      businessId,
-      purchaseId ?? '',
-    ),
+    queryKey: queryKeys.businessPurchaseDetail(businessId, purchaseId ?? ""),
     queryFn: () =>
-      rpc<PurchaseDetail>('business_purchase_detail', {
+      rpc<PurchaseDetail>("business_purchase_detail", {
         p_business_id: businessId,
         p_purchase_id: purchaseId,
       }),
@@ -127,7 +122,7 @@ export function useMyPurchasesPage(businessId: string, page: number, pageSize: n
   return useQuery({
     queryKey: queryKeys.myPurchasesPage(businessId, page),
     queryFn: () =>
-      rpc<MyPurchasePageRow[]>('my_purchases_page', {
+      rpc<MyPurchasePageRow[]>("my_purchases_page", {
         p_business_id: businessId || null,
         p_limit: pageSize,
         p_offset: page * pageSize,
@@ -137,9 +132,9 @@ export function useMyPurchasesPage(businessId: string, page: number, pageSize: n
 
 export function useMyPurchaseDetail(purchaseId: string | null | undefined) {
   return useQuery<PurchaseDetail>({
-    queryKey: queryKeys.myPurchaseDetail(purchaseId ?? ''),
+    queryKey: queryKeys.myPurchaseDetail(purchaseId ?? ""),
     queryFn: () =>
-      rpc<PurchaseDetail>('my_purchase_detail', {
+      rpc<PurchaseDetail>("my_purchase_detail", {
         p_purchase_id: purchaseId,
       }),
     enabled: Boolean(purchaseId),
@@ -150,23 +145,23 @@ export function useCancelBusinessPurchase(businessId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (params: { purchaseId: string; reason: string }) =>
-      rpc<{ purchase_id: string; status: string }>('purchase_qr_cancel', {
+      rpc<{ purchase_id: string; status: string }>("purchase_qr_cancel", {
         p_business_id: businessId,
         p_purchase_id: params.purchaseId,
         p_reason: params.reason,
       }),
     onSuccess: () => {
       void queryClient.invalidateQueries({
-        queryKey: ['business-purchases', businessId],
+        queryKey: ["business-purchases", businessId],
       });
       void queryClient.invalidateQueries({
-        queryKey: queryKeys.businessPurchaseDetail(businessId, ''),
+        queryKey: queryKeys.businessPurchaseDetail(businessId, ""),
       });
       void queryClient.invalidateQueries({
         queryKey: queryKeys.businessDashboardSummary(businessId),
       });
       void queryClient.invalidateQueries({
-        queryKey: ['business-purchase-detail', businessId],
+        queryKey: ["business-purchase-detail", businessId],
       });
       void queryClient.invalidateQueries({
         queryKey: queryKeys.businessAuditLogPrefix(businessId),

@@ -1,21 +1,20 @@
-import { useEffect } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { Brand } from '@/components/shared/Brand';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { FullPageLoader } from '@/components/shared/States';
-import { useAuth } from './AuthProvider';
-import { safeNextPath } from '@/lib/config';
-import { resolvePostLoginPath } from '@/lib/postLogin';
+import { useEffect } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Brand } from "@/components/shared/Brand";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { FullPageLoader } from "@/components/shared/States";
+import { useAuth } from "./AuthProvider";
+import { safeNextPath } from "@/lib/config";
+import { resolvePostLoginPath } from "@/lib/postLogin";
 
 export function AuthCallbackPage() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
   const { session, roles, loading, rolesLoading } = useAuth();
-  const nextParam = params.get('next');
+  const nextParam = params.get("next");
   const next = nextParam ? safeNextPath(nextParam) : null;
-  const oauthError =
-    params.get('error_description') || params.get('error');
+  const oauthError = params.get("error_description") || params.get("error");
 
   useEffect(() => {
     if (loading) return;
@@ -67,7 +66,7 @@ export function AuthCallbackPage() {
             </AlertDescription>
           </Alert>
           <Button asChild className="w-full">
-            <Link to={next ? `/login?next=${encodeURIComponent(next)}` : '/login'}>
+            <Link to={next ? `/login?next=${encodeURIComponent(next)}` : "/login"}>
               Iniciar sesión
             </Link>
           </Button>

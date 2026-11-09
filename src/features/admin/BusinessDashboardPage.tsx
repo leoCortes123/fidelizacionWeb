@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { QRCodeCanvas } from 'qrcode.react';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { QRCodeCanvas } from "qrcode.react";
 import {
   AlertTriangle,
   Building2,
@@ -20,37 +20,25 @@ import {
   UserPlus,
   Users,
   Wallet,
-} from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
-import { toast } from 'sonner';
-import { useBusinesses, useLoyaltyProgram } from '@/features/loyalty/hooks';
-import { useBusinessContext } from '@/features/loyalty/businessContext';
-import {
-  useBusinessDashboardSummary,
-  useBusinessRecentActivity,
-} from './hooks';
-import { publicAppUrl } from '@/lib/config';
-import {
-  formatCOP,
-  formatDateTimeBogota,
-  formatNumber,
-} from '@/lib/format';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { PageHeader } from '@/components/shared/PageHeader';
-import {
-  EmptyState,
-  ErrorState,
-  CardSkeleton,
-  ListSkeleton,
-} from '@/components/shared/States';
+} from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import { toast } from "sonner";
+import { useBusinesses, useLoyaltyProgram } from "@/features/loyalty/hooks";
+import { useBusinessContext } from "@/features/loyalty/businessContext";
+import { useBusinessDashboardSummary, useBusinessRecentActivity } from "./hooks";
+import { publicAppUrl } from "@/lib/config";
+import { formatCOP, formatDateTimeBogota, formatNumber } from "@/lib/format";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { EmptyState, ErrorState, CardSkeleton, ListSkeleton } from "@/components/shared/States";
 
 export function BusinessDashboardPage() {
   const businesses = useBusinesses();
   const { selectedBusiness, setSelectedBusiness } = useBusinessContext();
   const navigate = useNavigate();
-  const activeBusinessId = selectedBusiness?.id ?? businesses.data?.[0]?.id ?? '';
+  const activeBusinessId = selectedBusiness?.id ?? businesses.data?.[0]?.id ?? "";
   const program = useLoyaltyProgram(activeBusinessId);
   const summary = useBusinessDashboardSummary(activeBusinessId);
   const activity = useBusinessRecentActivity(activeBusinessId, 8);
@@ -58,7 +46,7 @@ export function BusinessDashboardPage() {
 
   const programUnconfigured =
     !program.data ||
-    program.data.id === '00000000-0000-0000-0000-000000000000' ||
+    program.data.id === "00000000-0000-0000-0000-000000000000" ||
     !program.data.configured_at;
 
   if (businesses.isLoading) return <ListSkeleton rows={3} />;
@@ -139,11 +127,11 @@ export function BusinessDashboardPage() {
               </Button>
             )}
             <Badge variant="secondary">
-              {current.role === 'admin'
-                ? 'Administrador'
-                : current.role === 'encargado'
-                  ? 'Encargado'
-                  : 'Cliente'}
+              {current.role === "admin"
+                ? "Administrador"
+                : current.role === "encargado"
+                  ? "Encargado"
+                  : "Cliente"}
             </Badge>
             <Button variant="outline" size="sm" onClick={() => setSelectedBusiness(null)}>
               Cambiar negocio
@@ -161,7 +149,7 @@ export function BusinessDashboardPage() {
         </div>
       ) : summary.isError || !data ? (
         <ErrorState
-          error={summary.error ?? new Error('No pudimos cargar las métricas.')}
+          error={summary.error ?? new Error("No pudimos cargar las métricas.")}
           onRetry={() => void summary.refetch()}
         />
       ) : (
@@ -177,7 +165,7 @@ export function BusinessDashboardPage() {
             label="Solicitudes pendientes"
             value={formatNumber(data.pending_redemptions)}
             hint={`${formatNumber(data.approved_pending_delivery)} por entregar`}
-            tone={data.pending_redemptions > 0 ? 'warning' : 'default'}
+            tone={data.pending_redemptions > 0 ? "warning" : "default"}
           />
           <StatCard
             icon={Users}
@@ -218,7 +206,7 @@ export function BusinessDashboardPage() {
             hint={
               data.last_activity_at
                 ? `Última actividad: ${formatDateTimeBogota(data.last_activity_at)}`
-                : 'Sin actividad todavía'
+                : "Sin actividad todavía"
             }
           />
         </div>
@@ -236,10 +224,7 @@ export function BusinessDashboardPage() {
             {activity.isLoading ? (
               <ListSkeleton rows={3} />
             ) : activity.isError ? (
-              <ErrorState
-                error={activity.error}
-                onRetry={() => void activity.refetch()}
-              />
+              <ErrorState error={activity.error} onRetry={() => void activity.refetch()} />
             ) : !activity.data || activity.data.length === 0 ? (
               <p className="py-6 text-center text-sm text-muted-foreground">
                 Aún no hay compras ni canjes. Genera el primer QR de venta.
@@ -250,12 +235,12 @@ export function BusinessDashboardPage() {
                   <li key={`${item.kind}-${item.id}`} className="flex items-start gap-3 py-3">
                     <span
                       className={
-                        item.kind === 'purchase'
-                          ? 'grid size-9 shrink-0 place-items-center rounded-full bg-emerald-100 text-emerald-700'
-                          : 'grid size-9 shrink-0 place-items-center rounded-full bg-secondary text-secondary-foreground'
+                        item.kind === "purchase"
+                          ? "grid size-9 shrink-0 place-items-center rounded-full bg-emerald-100 text-emerald-700"
+                          : "grid size-9 shrink-0 place-items-center rounded-full bg-secondary text-secondary-foreground"
                       }
                     >
-                      {item.kind === 'purchase' ? (
+                      {item.kind === "purchase" ? (
                         <ReceiptText className="size-4" aria-hidden="true" />
                       ) : (
                         <Gift className="size-4" aria-hidden="true" />
@@ -270,8 +255,8 @@ export function BusinessDashboardPage() {
                       </span>
                       <span className="block truncate text-xs text-muted-foreground">
                         {item.detail}
-                        {item.amount_cop ? ` · ${formatCOP(item.amount_cop)}` : ''}
-                        {item.points ? ` · ${formatNumber(item.points)} loopoints` : ''}
+                        {item.amount_cop ? ` · ${formatCOP(item.amount_cop)}` : ""}
+                        {item.points ? ` · ${formatNumber(item.points)} loopoints` : ""}
                       </span>
                     </span>
                   </li>
@@ -307,7 +292,7 @@ export function BusinessDashboardPage() {
                 </summary>
                 <div className="space-y-4 pt-3">
                   <p className="text-sm text-muted-foreground">
-                    Comparte este enlace o QR. Quien lo abra podrá afiliarse a{' '}
+                    Comparte este enlace o QR. Quien lo abra podrá afiliarse a{" "}
                     <strong>{current.name}</strong> y empezar a acumular.
                   </p>
                   <div className="flex gap-2">
@@ -325,8 +310,8 @@ export function BusinessDashboardPage() {
                       onClick={() => {
                         void navigator.clipboard
                           .writeText(joinUrl)
-                          .then(() => toast.success('Enlace copiado.'))
-                          .catch(() => toast.error('No se pudo copiar el enlace.'));
+                          .then(() => toast.success("Enlace copiado."))
+                          .catch(() => toast.error("No se pudo copiar el enlace."));
                       }}
                     >
                       <Copy aria-hidden="true" />
@@ -365,18 +350,14 @@ export function BusinessDashboardPage() {
                 <span className="font-medium">Estado del programa</span>
                 <Badge
                   variant={
-                    programUnconfigured
-                      ? 'warning'
-                      : program.data?.is_active
-                        ? 'success'
-                        : 'muted'
+                    programUnconfigured ? "warning" : program.data?.is_active ? "success" : "muted"
                   }
                 >
                   {programUnconfigured
-                    ? 'Sin configurar'
+                    ? "Sin configurar"
                     : program.data?.is_active
-                      ? 'Activo'
-                      : 'Inactivo'}
+                      ? "Activo"
+                      : "Inactivo"}
                 </Badge>
               </div>
               <div className="grid gap-2 sm:grid-cols-2">
@@ -418,13 +399,13 @@ function StatCard({
   label,
   value,
   hint,
-  tone = 'default',
+  tone = "default",
 }: {
   icon: LucideIcon;
   label: string;
   value: string;
   hint?: string;
-  tone?: 'default' | 'warning';
+  tone?: "default" | "warning";
 }) {
   return (
     <Card>
@@ -435,18 +416,16 @@ function StatCard({
           </p>
           <Icon
             className={
-              tone === 'warning'
-                ? 'size-4 shrink-0 text-amber-600'
-                : 'size-4 shrink-0 text-muted-foreground'
+              tone === "warning"
+                ? "size-4 shrink-0 text-amber-600"
+                : "size-4 shrink-0 text-muted-foreground"
             }
             aria-hidden="true"
           />
         </div>
-        <p className="font-display text-xl font-extrabold leading-tight sm:text-2xl">
-          {value}
-        </p>
+        <p className="font-display text-xl font-extrabold leading-tight sm:text-2xl">{value}</p>
         {hint && <p className="truncate text-[11px] text-muted-foreground">{hint}</p>}
-        {tone === 'warning' && (
+        {tone === "warning" && (
           <p className="flex items-center gap-1 text-[11px] font-semibold text-amber-700">
             <AlertTriangle className="size-3" aria-hidden="true" />
             Requieren atención

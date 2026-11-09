@@ -1,28 +1,28 @@
-import { useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Building2, CheckCircle } from 'lucide-react';
-import { useRegisterBusiness } from './hooks';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { PageHeader } from '@/components/shared/PageHeader';
-import { LoadingScreen } from '@/components/shared/States';
+import { useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { ArrowLeft, Building2, CheckCircle } from "lucide-react";
+import { useRegisterBusiness } from "./hooks";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { LoadingScreen } from "@/components/shared/States";
 
 export function BusinessRegisterPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const registerBusiness = useRegisterBusiness();
-  const [name, setName] = useState(searchParams.get('name') ?? '');
-  const [slug, setSlug] = useState(searchParams.get('slug') ?? '');
-  const [timezone, setTimezone] = useState('America/Bogota');
+  const [name, setName] = useState(searchParams.get("name") ?? "");
+  const [slug, setSlug] = useState(searchParams.get("slug") ?? "");
+  const [timezone, setTimezone] = useState("America/Bogota");
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     if (!name.trim() || !slug.trim()) return;
     try {
       await registerBusiness.mutateAsync({ name: name.trim(), slug: slug.trim(), timezone });
-      navigate('/business/select');
+      navigate("/business/select");
     } catch {
       // El error se muestra mediante el mutation error
     }
@@ -46,8 +46,11 @@ export function BusinessRegisterPage() {
         </CardHeader>
         <CardContent>
           {registerBusiness.isError && (
-            <div role="alert" className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive mb-4">
-              {registerBusiness.error?.message ?? 'No se pudo crear el negocio.'}
+            <div
+              role="alert"
+              className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive mb-4"
+            >
+              {registerBusiness.error?.message ?? "No se pudo crear el negocio."}
             </div>
           )}
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -102,9 +105,8 @@ export function BusinessRegisterPage() {
             </div>
           </form>
           <p className="text-xs text-muted-foreground mt-4">
-            Al crear el negocio, tu cuenta quedará como su{' '}
-            <strong>administrador</strong> y podrás configurar el programa de
-            loopoints, crear encargados y gestionar recompensas.
+            Al crear el negocio, tu cuenta quedará como su <strong>administrador</strong> y podrás
+            configurar el programa de loopoints, crear encargados y gestionar recompensas.
           </p>
         </CardContent>
       </Card>

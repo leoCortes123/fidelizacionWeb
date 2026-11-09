@@ -50,7 +50,7 @@
   }
 
   /* Paleta del negocio: turquesa/cian profundo + azul noche + dorado. */
-  :root[data-portal='admin'] {
+  :root[data-portal="admin"] {
     --background: 195 40% 97%;
     --foreground: 200 35% 12%;
     --card: 0 0% 100%;
@@ -72,7 +72,7 @@
     --ring: 187 85% 30%;
   }
 
-  :root.dark[data-portal='admin'] {
+  :root.dark[data-portal="admin"] {
     --background: 200 35% 9%;
     --foreground: 190 20% 94%;
     --card: 200 30% 12%;
@@ -105,7 +105,7 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
     min-height: 100vh;
   }
 
@@ -113,7 +113,7 @@
   h2,
   h3,
   h4 {
-    font-family: 'Bricolage Grotesque', 'Inter', ui-sans-serif, sans-serif;
+    font-family: "Bricolage Grotesque", "Inter", ui-sans-serif, sans-serif;
     letter-spacing: -0.02em;
   }
 
@@ -154,14 +154,14 @@
       linear-gradient(90deg, hsl(20 18% 22% / 0.6) 1px, transparent 1px);
   }
 
-  :root[data-portal='admin'] .hero-glow {
+  :root[data-portal="admin"] .hero-glow {
     background:
       radial-gradient(60% 80% at 15% 10%, hsl(187 70% 88% / 0.9), transparent 60%),
       radial-gradient(50% 70% at 90% 20%, hsl(43 95% 75% / 0.55), transparent 65%),
       linear-gradient(180deg, hsl(195 40% 98%), hsl(195 35% 95%));
   }
 
-  :root.dark[data-portal='admin'] .hero-glow {
+  :root.dark[data-portal="admin"] .hero-glow {
     background:
       radial-gradient(60% 80% at 15% 10%, hsl(187 60% 18% / 0.9), transparent 60%),
       radial-gradient(50% 70% at 90% 20%, hsl(43 60% 20% / 0.6), transparent 65%),

@@ -1,35 +1,25 @@
-import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import {
-  ArrowLeft,
-  Mail,
-  ReceiptText,
-  TicketCheck,
-  TrendingUp,
-} from 'lucide-react';
-import { useAdminCustomer } from './hooks';
-import { useBusinessContext } from '@/features/loyalty/businessContext';
-import { PurchaseDetailDialog } from '@/features/purchases/PurchaseDetailDialog';
-import {
-  formatCOP,
-  formatDateTimeBogota,
-  formatPoints,
-} from '@/lib/format';
-import type { PointsMovementType } from '@/types';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { PageHeader } from '@/components/shared/PageHeader';
-import { FrequencyBadge, RedemptionStatusBadge } from '@/components/shared/StatusBadge';
-import { EmptyState, ErrorState, LoadingScreen } from '@/components/shared/States';
+import { useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import { ArrowLeft, Mail, ReceiptText, TicketCheck, TrendingUp } from "lucide-react";
+import { useAdminCustomer } from "./hooks";
+import { useBusinessContext } from "@/features/loyalty/businessContext";
+import { PurchaseDetailDialog } from "@/features/purchases/PurchaseDetailDialog";
+import { formatCOP, formatDateTimeBogota, formatPoints } from "@/lib/format";
+import type { PointsMovementType } from "@/types";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { FrequencyBadge, RedemptionStatusBadge } from "@/components/shared/StatusBadge";
+import { EmptyState, ErrorState, LoadingScreen } from "@/components/shared/States";
 
 const movementLabels: Record<PointsMovementType, string> = {
-  purchase_credit: 'Compra acreditada',
-  redemption_debit: 'Canje',
-  redemption_refund: 'Devolución de canje',
-  expiry_debit: 'Vencimiento de loopoints',
-  admin_adjustment: 'Ajuste administrativo',
-  bonus_credit: 'Bono acreditado',
+  purchase_credit: "Compra acreditada",
+  redemption_debit: "Canje",
+  redemption_refund: "Devolución de canje",
+  expiry_debit: "Vencimiento de loopoints",
+  admin_adjustment: "Ajuste administrativo",
+  bonus_credit: "Bono acreditado",
 };
 
 /**
@@ -39,7 +29,7 @@ const movementLabels: Record<PointsMovementType, string> = {
 export function CustomerDetailPage() {
   const { id } = useParams();
   const { selectedBusiness } = useBusinessContext();
-  const businessId = selectedBusiness?.id ?? '';
+  const businessId = selectedBusiness?.id ?? "";
   const customer = useAdminCustomer(businessId, id);
   const [detailId, setDetailId] = useState<string | null>(null);
 
@@ -54,7 +44,7 @@ export function CustomerDetailPage() {
           </Link>
         </Button>
         <ErrorState
-          error={customer.error ?? new Error('Cliente no encontrado')}
+          error={customer.error ?? new Error("Cliente no encontrado")}
           onRetry={() => void customer.refetch()}
         />
       </div>
@@ -75,7 +65,7 @@ export function CustomerDetailPage() {
       </Button>
 
       <PageHeader
-        title={data.profile.full_name || 'Cliente sin nombre'}
+        title={data.profile.full_name || "Cliente sin nombre"}
         description={
           data.profile.nickname
             ? `@${data.profile.nickname} · registrado el ${formatDateTimeBogota(
@@ -104,9 +94,7 @@ export function CustomerDetailPage() {
             >
               {balance}
             </p>
-            <p className="mt-2 text-sm text-background/70">
-              {formatPoints(balance)}
-            </p>
+            <p className="mt-2 text-sm text-background/70">{formatPoints(balance)}</p>
           </div>
           <div className="space-y-1 text-sm text-background/80 sm:text-right">
             <p className="flex items-center gap-1.5 break-all sm:justify-end">
@@ -119,7 +107,7 @@ export function CustomerDetailPage() {
             <p className="text-xs text-background/60">
               {lastPurchaseAt
                 ? `Última compra: ${formatDateTimeBogota(lastPurchaseAt)}`
-                : 'Sin compras registradas'}
+                : "Sin compras registradas"}
             </p>
           </div>
         </CardContent>
@@ -154,17 +142,13 @@ export function CustomerDetailPage() {
                         {formatDateTimeBogota(purchase.claimed_at)}
                         {purchase.items_count
                           ? ` · ${purchase.items_count} ítem(s)`
-                          : ' · sin detalle'}
+                          : " · sin detalle"}
                       </p>
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
                       <Badge variant="success">+{purchase.points_awarded} pts</Badge>
                       {purchase.items_count ? (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setDetailId(purchase.id)}
-                        >
+                        <Button variant="ghost" size="sm" onClick={() => setDetailId(purchase.id)}>
                           Detalle
                         </Button>
                       ) : null}
@@ -200,8 +184,7 @@ export function CustomerDetailPage() {
                   >
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium">
-                        {movementLabels[movement.movement_type] ??
-                          movement.movement_type}
+                        {movementLabels[movement.movement_type] ?? movement.movement_type}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {formatDateTimeBogota(movement.created_at)}
@@ -210,11 +193,11 @@ export function CustomerDetailPage() {
                     <span
                       className={
                         movement.points >= 0
-                          ? 'shrink-0 text-sm font-bold text-emerald-700'
-                          : 'shrink-0 text-sm font-bold text-destructive'
+                          ? "shrink-0 text-sm font-bold text-emerald-700"
+                          : "shrink-0 text-sm font-bold text-destructive"
                       }
                     >
-                      {movement.points > 0 ? '+' : ''}
+                      {movement.points > 0 ? "+" : ""}
                       {movement.points}
                     </span>
                   </li>
@@ -253,11 +236,11 @@ export function CustomerDetailPage() {
                       <RedemptionStatusBadge status={redemption.status} />
                     </div>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      {formatDateTimeBogota(redemption.created_at)} · −
-                      {redemption.points_spent} loopoints
+                      {formatDateTimeBogota(redemption.created_at)} · −{redemption.points_spent}{" "}
+                      loopoints
                       {redemption.cancelled_at
                         ? ` · anulado ${formatDateTimeBogota(redemption.cancelled_at)}`
-                        : ''}
+                        : ""}
                     </p>
                   </div>
                   <Button asChild variant="outline" size="sm" className="self-start">

@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
   ArrowRight,
@@ -14,8 +14,8 @@ import {
   Sparkles,
   Store,
   Trash2,
-} from 'lucide-react';
-import { toast } from 'sonner';
+} from "lucide-react";
+import { toast } from "sonner";
 import {
   useBusinessEconomicProfile,
   useConfigureLoyaltyProgram,
@@ -25,55 +25,55 @@ import {
   useUpdateBusiness,
   useUpsertLoyaltyReward,
   useUpsertProduct,
-} from '@/features/loyalty/hooks';
-import { errorMessage } from '@/lib/errors';
-import { formatCOP, formatNumber, parseCopInput } from '@/lib/format';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { PageHeader } from '@/components/shared/PageHeader';
-import { ErrorState, LoadingScreen } from '@/components/shared/States';
-import { BusinessGate } from '@/features/admin/BusinessGate';
-import { EconomicDataForm } from '@/features/admin/EconomicDataForm';
+} from "@/features/loyalty/hooks";
+import { errorMessage } from "@/lib/errors";
+import { formatCOP, formatNumber, parseCopInput } from "@/lib/format";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { ErrorState, LoadingScreen } from "@/components/shared/States";
+import { BusinessGate } from "@/features/admin/BusinessGate";
+import { EconomicDataForm } from "@/features/admin/EconomicDataForm";
 import type {
   Business,
   BusinessEconomicProfile,
   LoyaltyProgram,
   LoyaltyReward,
   Product,
-} from '@/types';
+} from "@/types";
 
 const STEPS = [
-  'Datos del negocio',
-  'Carta y costos',
-  'Datos económicos',
-  'Programa y activación',
+  "Datos del negocio",
+  "Carta y costos",
+  "Datos económicos",
+  "Programa y activación",
 ] as const;
 
 const DAY_LABELS: Record<number, string> = {
-  1: 'Lun',
-  2: 'Mar',
-  3: 'Mié',
-  4: 'Jue',
-  5: 'Vie',
-  6: 'Sáb',
-  7: 'Dom',
+  1: "Lun",
+  2: "Mar",
+  3: "Mié",
+  4: "Jue",
+  5: "Vie",
+  6: "Sáb",
+  7: "Dom",
 };
 
 const TIMEZONES = [
-  'America/Bogota',
-  'America/Mexico_City',
-  'America/Lima',
-  'America/Panama',
-  'America/Caracas',
-  'America/Santiago',
-  'America/Argentina/Buenos_Aires',
-  'America/New_York',
-  'Europe/Madrid',
-  'UTC',
+  "America/Bogota",
+  "America/Mexico_City",
+  "America/Lima",
+  "America/Panama",
+  "America/Caracas",
+  "America/Santiago",
+  "America/Argentina/Buenos_Aires",
+  "America/New_York",
+  "Europe/Madrid",
+  "UTC",
 ];
 
 interface WizardDraft {
@@ -91,7 +91,7 @@ interface WizardDraft {
   savedAt: string;
 }
 
-const ZERO_PROGRAM_ID = '00000000-0000-0000-0000-000000000000';
+const ZERO_PROGRAM_ID = "00000000-0000-0000-0000-000000000000";
 
 function draftKey(businessId: string): string {
   return `fidelizacion:onboarding:${businessId}`;
@@ -106,49 +106,41 @@ function loadDraft(businessId: string): WizardDraft | null {
     if (!Array.isArray(parsed.operatingDays)) return null;
     return {
       version: 2,
-      step: typeof parsed.step === 'number' ? parsed.step : 0,
-      name: String(parsed.name ?? ''),
-      timezone: String(parsed.timezone ?? ''),
+      step: typeof parsed.step === "number" ? parsed.step : 0,
+      name: String(parsed.name ?? ""),
+      timezone: String(parsed.timezone ?? ""),
       operatingDays: parsed.operatingDays.filter(
-        (day): day is number => typeof day === 'number' && day >= 1 && day <= 7,
+        (day): day is number => typeof day === "number" && day >= 1 && day <= 7,
       ),
-      copPerPointUnit: String(parsed.copPerPointUnit ?? '1000'),
-      budgetRatePercent: String(parsed.budgetRatePercent ?? '1'),
-      pointsExpiryDays: String(parsed.pointsExpiryDays ?? '365'),
-      qrExpiryHours: String(parsed.qrExpiryHours ?? '24'),
+      copPerPointUnit: String(parsed.copPerPointUnit ?? "1000"),
+      budgetRatePercent: String(parsed.budgetRatePercent ?? "1"),
+      pointsExpiryDays: String(parsed.pointsExpiryDays ?? "365"),
+      qrExpiryHours: String(parsed.qrExpiryHours ?? "24"),
       rewardPoints: parsed.rewardPoints ?? {},
       includedRewards: parsed.includedRewards ?? {},
-      savedAt: String(parsed.savedAt ?? ''),
+      savedAt: String(parsed.savedAt ?? ""),
     };
   } catch {
     return null;
   }
 }
 
-function initialDraft(
-  business: Business,
-  program: LoyaltyProgram | null,
-): WizardDraft {
-  const configured =
-    program && program.id !== ZERO_PROGRAM_ID && program.configured_at;
+function initialDraft(business: Business, program: LoyaltyProgram | null): WizardDraft {
+  const configured = program && program.id !== ZERO_PROGRAM_ID && program.configured_at;
   return {
     version: 2,
     step: 0,
     name: business.name,
-    timezone: business.timezone || 'America/Bogota',
+    timezone: business.timezone || "America/Bogota",
     operatingDays:
-      business.operating_days.length > 0
-        ? [...business.operating_days]
-        : [1, 2, 3, 4, 5, 6],
+      business.operating_days.length > 0 ? [...business.operating_days] : [1, 2, 3, 4, 5, 6],
     copPerPointUnit: String(configured ? program.cop_per_point_unit : 1000),
-    budgetRatePercent: String(
-      configured ? Math.round(program.budget_rate * 10000) / 100 : 1,
-    ),
+    budgetRatePercent: String(configured ? Math.round(program.budget_rate * 10000) / 100 : 1),
     pointsExpiryDays: String(configured ? program.points_expiry_days : 365),
     qrExpiryHours: String(configured ? program.qr_expiry_hours : 24),
     rewardPoints: {},
     includedRewards: {},
-    savedAt: '',
+    savedAt: "",
   };
 }
 
@@ -172,17 +164,12 @@ function OnboardingSection({ business }: { business: Business }) {
   const rewards = useLoyaltyRewards(business.id, false);
 
   const isLoading =
-    program.isLoading ||
-    products.isLoading ||
-    economic.isLoading ||
-    rewards.isLoading;
-  const isError =
-    program.isError || products.isError || economic.isError || rewards.isError;
+    program.isLoading || products.isLoading || economic.isLoading || rewards.isLoading;
+  const isError = program.isError || products.isError || economic.isError || rewards.isError;
 
   if (isLoading) return <LoadingScreen label="Preparando la configuración…" />;
   if (isError) {
-    const error =
-      program.error ?? products.error ?? economic.error ?? rewards.error;
+    const error = program.error ?? products.error ?? economic.error ?? rewards.error;
     return (
       <ErrorState
         error={error}
@@ -229,9 +216,9 @@ function Wizard({
   const [showRestored, setShowRestored] = useState(Boolean(restoredDraft));
   const [costEdits, setCostEdits] = useState<Record<string, string>>({});
   const [newProduct, setNewProduct] = useState({
-    name: '',
-    price: '',
-    cost: '',
+    name: "",
+    price: "",
+    cost: "",
   });
   const [error, setError] = useState<string | null>(null);
   const [activating, setActivating] = useState(false);
@@ -271,7 +258,7 @@ function Wizard({
     }
     setDraft(initialDraft(business, program));
     setCostEdits({});
-    setNewProduct({ name: '', price: '', cost: '' });
+    setNewProduct({ name: "", price: "", cost: "" });
     setShowRestored(false);
     setError(null);
   }
@@ -285,15 +272,15 @@ function Wizard({
 
   async function saveBusinessStep() {
     if (draft.name.trim().length < 2) {
-      setError('El nombre del negocio debe tener al menos 2 caracteres.');
+      setError("El nombre del negocio debe tener al menos 2 caracteres.");
       return;
     }
     if (!draft.timezone.trim()) {
-      setError('Elige una zona horaria.');
+      setError("Elige una zona horaria.");
       return;
     }
     if (draft.operatingDays.length === 0) {
-      setError('Selecciona al menos un día de operación.');
+      setError("Selecciona al menos un día de operación.");
       return;
     }
 
@@ -304,7 +291,7 @@ function Wizard({
         timezone: draft.timezone,
         operatingDays: draft.operatingDays,
       });
-      toast.success('Datos del negocio guardados');
+      toast.success("Datos del negocio guardados");
       go(1);
     } catch (caught) {
       setError(errorMessage(caught));
@@ -313,19 +300,18 @@ function Wizard({
 
   async function addProduct() {
     const priceCop = parseCopInput(newProduct.price);
-    const costCop =
-      newProduct.cost.trim() === '' ? null : parseCopInput(newProduct.cost);
+    const costCop = newProduct.cost.trim() === "" ? null : parseCopInput(newProduct.cost);
 
     if (newProduct.name.trim().length < 2) {
-      setError('El nombre del producto debe tener al menos 2 caracteres.');
+      setError("El nombre del producto debe tener al menos 2 caracteres.");
       return;
     }
     if (priceCop === null || priceCop <= 0) {
-      setError('El precio del producto debe ser mayor que cero.');
+      setError("El precio del producto debe ser mayor que cero.");
       return;
     }
     if (costCop !== null && costCop < 0) {
-      setError('El costo no puede ser negativo.');
+      setError("El costo no puede ser negativo.");
       return;
     }
 
@@ -337,16 +323,16 @@ function Wizard({
         costCop,
         isActive: true,
       });
-      setNewProduct({ name: '', price: '', cost: '' });
+      setNewProduct({ name: "", price: "", cost: "" });
       setError(null);
-      toast.success('Producto añadido a la carta');
+      toast.success("Producto añadido a la carta");
     } catch (caught) {
       setError(errorMessage(caught));
     }
   }
 
   async function saveCost(product: Product) {
-    const raw = costEdits[product.id] ?? '';
+    const raw = costEdits[product.id] ?? "";
     const costCop = parseCopInput(raw);
     if (costCop === null) {
       setError(`Introduce un costo válido para ${product.name}.`);
@@ -393,13 +379,9 @@ function Wizard({
     monthlySales !== null && Number.isFinite(budgetRate)
       ? Math.floor(monthlySales * budgetRate)
       : null;
-  const maxBudget =
-    profile?.max_monthly_reward_budget ?? referenceBudget ?? null;
+  const maxBudget = profile?.max_monthly_reward_budget ?? referenceBudget ?? null;
   const costPerPoint =
-    Number.isFinite(copPerPoint) &&
-    copPerPoint > 0 &&
-    Number.isFinite(budgetRate) &&
-    budgetRate > 0
+    Number.isFinite(copPerPoint) && copPerPoint > 0 && Number.isFinite(budgetRate) && budgetRate > 0
       ? budgetRate * copPerPoint
       : null;
 
@@ -426,18 +408,18 @@ function Wizard({
 
   function validateProgram(): string | null {
     if (!Number.isInteger(copPerPoint) || copPerPoint < 100 || copPerPoint > 1_000_000) {
-      return 'El valor por loopoint debe ser un entero entre 100 y 1.000.000 COP.';
+      return "El valor por loopoint debe ser un entero entre 100 y 1.000.000 COP.";
     }
     if (!Number.isFinite(budgetRate) || budgetRate < 0 || budgetRate > 1) {
-      return 'La tasa de presupuesto debe estar entre 0 % y 100 %.';
+      return "La tasa de presupuesto debe estar entre 0 % y 100 %.";
     }
     const expiry = Number(draft.pointsExpiryDays);
     if (!Number.isInteger(expiry) || expiry < 1 || expiry > 3650) {
-      return 'El vencimiento de loopoints debe estar entre 1 y 3.650 días.';
+      return "El vencimiento de loopoints debe estar entre 1 y 3.650 días.";
     }
     const qrHours = Number(draft.qrExpiryHours);
     if (!Number.isInteger(qrHours) || qrHours < 1 || qrHours > 168) {
-      return 'La vigencia del QR debe estar entre 1 y 168 horas.';
+      return "La vigencia del QR debe estar entre 1 y 168 horas.";
     }
 
     for (const product of productsWithCost) {
@@ -464,9 +446,7 @@ function Wizard({
     setError(null);
 
     try {
-      const existingNames = new Set(
-        existingRewards.map((reward) => reward.name.toLowerCase()),
-      );
+      const existingNames = new Set(existingRewards.map((reward) => reward.name.toLowerCase()));
 
       for (const product of productsWithCost) {
         if (!included(product.id)) continue;
@@ -478,10 +458,10 @@ function Wizard({
 
         await upsertReward.mutateAsync({
           businessId: business.id,
-          type: 'free_product',
+          type: "free_product",
           productId: product.id,
           name,
-          description: 'Recompensa creada desde la configuración inicial.',
+          description: "Recompensa creada desde la configuración inicial.",
           pointsRequired: points,
           isActive: true,
         });
@@ -507,8 +487,8 @@ function Wizard({
         // Ignorado.
       }
 
-      toast.success('Programa activado. ¡Ya puedes acreditar compras!');
-      navigate('/admin/dashboard');
+      toast.success("Programa activado. ¡Ya puedes acreditar compras!");
+      navigate("/admin/dashboard");
     } catch (caught) {
       setError(errorMessage(caught));
       toast.error(errorMessage(caught));
@@ -527,8 +507,8 @@ function Wizard({
         title={`Configuración inicial — ${business.name}`}
         description="Cuatro pasos para dejar el programa de loopoints operativo."
         actions={
-          <Badge variant={program?.is_active ? 'success' : 'warning'}>
-            {program?.is_active ? 'Programa activo' : 'Programa inactivo'}
+          <Badge variant={program?.is_active ? "success" : "warning"}>
+            {program?.is_active ? "Programa activo" : "Programa inactivo"}
           </Badge>
         }
       />
@@ -554,22 +534,22 @@ function Wizard({
               <button
                 type="button"
                 onClick={() => go(index)}
-                aria-current={current ? 'step' : undefined}
+                aria-current={current ? "step" : undefined}
                 className={`flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm font-semibold transition-colors ${
                   current
-                    ? 'border-primary bg-primary/5 text-primary'
+                    ? "border-primary bg-primary/5 text-primary"
                     : done
-                      ? 'border-emerald-200 bg-emerald-50 text-emerald-800'
-                      : 'text-muted-foreground hover:bg-muted'
+                      ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                      : "text-muted-foreground hover:bg-muted"
                 }`}
               >
                 <span
                   className={`grid size-6 shrink-0 place-items-center rounded-full text-xs ${
                     current
-                      ? 'bg-primary text-primary-foreground'
+                      ? "bg-primary text-primary-foreground"
                       : done
-                        ? 'bg-emerald-600 text-white'
-                        : 'bg-muted text-muted-foreground'
+                        ? "bg-emerald-600 text-white"
+                        : "bg-muted text-muted-foreground"
                   }`}
                 >
                   {done ? <Check className="size-3.5" aria-hidden="true" /> : index + 1}
@@ -638,8 +618,8 @@ function Wizard({
                       onClick={() => toggleDay(value)}
                       className={`rounded-lg border px-3 py-2 text-sm font-semibold transition-colors ${
                         selected
-                          ? 'border-primary bg-primary text-primary-foreground'
-                          : 'text-muted-foreground hover:bg-muted'
+                          ? "border-primary bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:bg-muted"
                       }`}
                     >
                       {label}
@@ -677,21 +657,21 @@ function Wizard({
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Las recompensas sugeridas usan el <strong>costo</strong> de cada producto.
-                Añade el costo de los que falten; no es obligatorio para continuar.
+                Las recompensas sugeridas usan el <strong>costo</strong> de cada producto. Añade el
+                costo de los que falten; no es obligatorio para continuar.
               </p>
 
               {products.length === 0 ? (
                 <p className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-                  La carta está vacía. Puedes añadir productos ahora o continuar y
-                  hacerlo más tarde.
+                  La carta está vacía. Puedes añadir productos ahora o continuar y hacerlo más
+                  tarde.
                 </p>
               ) : (
                 <div className="space-y-3">
                   {products.map((product) => {
                     const edited = costEdits[product.id];
                     const value =
-                      edited ?? (product.cost_cop === null ? '' : String(product.cost_cop));
+                      edited ?? (product.cost_cop === null ? "" : String(product.cost_cop));
                     return (
                       <div
                         key={product.id}
@@ -701,13 +681,11 @@ function Wizard({
                           <p className="truncate font-semibold">{product.name}</p>
                           <p className="text-xs text-muted-foreground">
                             Precio {formatCOP(product.price_cop)}
-                            {!product.is_active && ' · Inactivo'}
+                            {!product.is_active && " · Inactivo"}
                           </p>
                         </div>
                         <div className="space-y-1">
-                          <Label htmlFor={`cost-${product.id}`}>
-                            Costo de {product.name}
-                          </Label>
+                          <Label htmlFor={`cost-${product.id}`}>Costo de {product.name}</Label>
                           <Input
                             id={`cost-${product.id}`}
                             inputMode="numeric"
@@ -727,8 +705,8 @@ function Wizard({
                             variant="outline"
                             size="sm"
                             disabled={
-                              value.trim() === '' ||
-                              value === (product.cost_cop === null ? '' : String(product.cost_cop))
+                              value.trim() === "" ||
+                              value === (product.cost_cop === null ? "" : String(product.cost_cop))
                             }
                             onClick={() => void saveCost(product)}
                           >
@@ -746,7 +724,7 @@ function Wizard({
                 <Alert variant="warning">
                   <AlertTitle>
                     {productsWithoutCost.length} producto
-                    {productsWithoutCost.length === 1 ? '' : 's'} sin costo
+                    {productsWithoutCost.length === 1 ? "" : "s"} sin costo
                   </AlertTitle>
                   <AlertDescription>
                     No generarán una recompensa sugerida hasta que añadas su costo.
@@ -867,9 +845,7 @@ function Wizard({
                     id="onboarding-cop-per-point"
                     inputMode="numeric"
                     value={draft.copPerPointUnit}
-                    onChange={(event) =>
-                      patch({ copPerPointUnit: event.target.value })
-                    }
+                    onChange={(event) => patch({ copPerPointUnit: event.target.value })}
                   />
                   <p className="text-xs text-muted-foreground">
                     1 loopoint por cada {formatCOP(copPerPoint || 0)} de compra elegible.
@@ -881,9 +857,7 @@ function Wizard({
                     id="onboarding-budget-rate"
                     inputMode="decimal"
                     value={draft.budgetRatePercent}
-                    onChange={(event) =>
-                      patch({ budgetRatePercent: event.target.value })
-                    }
+                    onChange={(event) => patch({ budgetRatePercent: event.target.value })}
                   />
                   <p className="text-xs text-muted-foreground">
                     Parte de las ventas destinada a recompensas.
@@ -895,9 +869,7 @@ function Wizard({
                     id="onboarding-expiry"
                     inputMode="numeric"
                     value={draft.pointsExpiryDays}
-                    onChange={(event) =>
-                      patch({ pointsExpiryDays: event.target.value })
-                    }
+                    onChange={(event) => patch({ pointsExpiryDays: event.target.value })}
                   />
                 </div>
                 <div className="space-y-2">
@@ -923,9 +895,9 @@ function Wizard({
             <CardContent className="space-y-3">
               {productsWithCost.length === 0 ? (
                 <p className="rounded-lg border border-dashed p-4 text-sm text-muted-foreground">
-                  No hay productos con costo. Vuelve al paso 2 y añade el costo para
-                  generar recompensas sugeridas. Puedes activar el programa sin
-                  recompensas y crearlas después.
+                  No hay productos con costo. Vuelve al paso 2 y añade el costo para generar
+                  recompensas sugeridas. Puedes activar el programa sin recompensas y crearlas
+                  después.
                 </p>
               ) : (
                 productsWithCost.map((product) => {
@@ -956,7 +928,7 @@ function Wizard({
                       <div className="min-w-0">
                         <p className="truncate font-semibold">{product.name} gratis</p>
                         <p className="text-xs text-muted-foreground">
-                          Costo {formatCOP(product.cost_cop ?? 0)} · Precio{' '}
+                          Costo {formatCOP(product.cost_cop ?? 0)} · Precio{" "}
                           {formatCOP(product.price_cop)}
                         </p>
                         <p className="text-xs text-muted-foreground">
@@ -990,8 +962,8 @@ function Wizard({
               {productsWithoutCost.length > 0 && (
                 <p className="text-xs text-muted-foreground">
                   {productsWithoutCost.length} producto
-                  {productsWithoutCost.length === 1 ? '' : 's'} sin costo no aparece
-                  {productsWithoutCost.length === 1 ? '' : 'n'} en la propuesta.
+                  {productsWithoutCost.length === 1 ? "" : "s"} sin costo no aparece
+                  {productsWithoutCost.length === 1 ? "" : "n"} en la propuesta.
                 </p>
               )}
             </CardContent>
@@ -1010,37 +982,35 @@ function Wizard({
                 elegible.
               </p>
               <p>
-                Presupuesto objetivo: <strong>{draft.budgetRatePercent || '0'} %</strong>{' '}
-                de las ventas mensuales
-                {referenceBudget !== null ? ` (≈ ${formatCOP(referenceBudget)})` : ''}.
+                Presupuesto objetivo: <strong>{draft.budgetRatePercent || "0"} %</strong> de las
+                ventas mensuales
+                {referenceBudget !== null ? ` (≈ ${formatCOP(referenceBudget)})` : ""}.
               </p>
               {monthlySales !== null ? (
                 <p>
-                  Ventas mensuales estimadas:{' '}
-                  <strong>{formatCOP(monthlySales)}</strong>.
+                  Ventas mensuales estimadas: <strong>{formatCOP(monthlySales)}</strong>.
                 </p>
               ) : (
                 <p className="text-amber-700">
-                  No se pueden calcular las ventas mensuales: faltan ventas diarias o
-                  días de operación en el paso 3.
+                  No se pueden calcular las ventas mensuales: faltan ventas diarias o días de
+                  operación en el paso 3.
                 </p>
               )}
               {costPerPoint !== null ? (
                 <p>
-                  Costo estimado por loopoint:{' '}
-                  <strong>{formatCOP(costPerPoint)}</strong>. Los loopoints sugeridos
-                  igualan el costo del producto con ese presupuesto.
+                  Costo estimado por loopoint: <strong>{formatCOP(costPerPoint)}</strong>. Los
+                  loopoints sugeridos igualan el costo del producto con ese presupuesto.
                 </p>
               ) : (
                 <p className="text-amber-700">
-                  No se puede calcular el costo por loopoint (tasa de presupuesto en 0 % o
-                  valor por loopoint inválido), así que no hay propuesta de loopoints.
+                  No se puede calcular el costo por loopoint (tasa de presupuesto en 0 % o valor por
+                  loopoint inválido), así que no hay propuesta de loopoints.
                 </p>
               )}
               {profile?.daily_gain == null && (
                 <p className="text-muted-foreground">
-                  Sin ganancia diaria: no se puede estimar cuánto absorbe el programa de
-                  la utilidad.
+                  Sin ganancia diaria: no se puede estimar cuánto absorbe el programa de la
+                  utilidad.
                 </p>
               )}
               {profile?.gross_margin == null && (
@@ -1049,8 +1019,8 @@ function Wizard({
                 </p>
               )}
               <p className="text-xs text-muted-foreground">
-                Es una estimación comercial para fijar el presupuesto, no un costo
-                contable. Presupuesto máximo usado: {maxBudget !== null ? formatCOP(maxBudget) : 'sin dato'}.
+                Es una estimación comercial para fijar el presupuesto, no un costo contable.
+                Presupuesto máximo usado: {maxBudget !== null ? formatCOP(maxBudget) : "sin dato"}.
               </p>
             </CardContent>
           </Card>
@@ -1064,16 +1034,12 @@ function Wizard({
               <Button
                 type="button"
                 variant="ghost"
-                onClick={() => toast.success('Borrador guardado en este navegador.')}
+                onClick={() => toast.success("Borrador guardado en este navegador.")}
               >
                 <Save aria-hidden="true" />
                 Guardar borrador
               </Button>
-              <Button
-                type="button"
-                onClick={() => void activateProgram()}
-                loading={activating}
-              >
+              <Button type="button" onClick={() => void activateProgram()} loading={activating}>
                 <CheckCircle2 aria-hidden="true" />
                 Activar programa
               </Button>
@@ -1084,8 +1050,7 @@ function Wizard({
 
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
         <Trash2 className="size-3.5" aria-hidden="true" />
-        El borrador se guarda automáticamente en este navegador. Puedes cerrar y
-        continuar después.
+        El borrador se guarda automáticamente en este navegador. Puedes cerrar y continuar después.
       </div>
     </div>
   );

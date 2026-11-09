@@ -31,6 +31,12 @@ jobs:
       - name: TypeScript
         run: npm run typecheck
 
+      - name: Lint
+        run: npm run lint
+
+      - name: Formato
+        run: npm run format
+
       - name: Pruebas unitarias y de componentes
         run: npm test
 

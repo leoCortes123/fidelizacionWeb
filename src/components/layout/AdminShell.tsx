@@ -1,5 +1,5 @@
-import { useRef, useState } from 'react';
-import { Link, NavLink, Outlet, useLocation, type NavLinkRenderProps } from 'react-router-dom';
+import { useRef, useState } from "react";
+import { Link, NavLink, Outlet, useLocation, type NavLinkRenderProps } from "react-router-dom";
 import {
   ClipboardList,
   Home,
@@ -11,23 +11,23 @@ import {
   TicketCheck,
   Users,
   Wrench,
-} from 'lucide-react';
-import { Brand } from '@/components/shared/Brand';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+} from "lucide-react";
+import { Brand } from "@/components/shared/Brand";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { BusinessSwitcher } from '@/features/loyalty/BusinessSwitcher';
-import { usePortalTheme } from '@/components/theme/ThemeProvider';
-import { cn } from '@/lib/utils';
-import { UserMenu } from './UserMenu';
-import { PurchaseFab } from './Fab';
-import { useHideOnScroll } from './useHideOnScroll';
+} from "@/components/ui/dialog";
+import { BusinessSwitcher } from "@/features/loyalty/BusinessSwitcher";
+import { usePortalTheme } from "@/components/theme/ThemeProvider";
+import { cn } from "@/lib/utils";
+import { UserMenu } from "./UserMenu";
+import { PurchaseFab } from "./Fab";
+import { useHideOnScroll } from "./useHideOnScroll";
 
 type AdminNavItem = {
   to: string;
@@ -39,43 +39,43 @@ type AdminNavItem = {
 };
 
 const mainNav: AdminNavItem[] = [
-  { to: '/admin/dashboard', label: 'Inicio', icon: Home, end: true },
-  { to: '/admin/config', label: 'Configuración', icon: Settings2, config: true },
-  { to: '/admin/campaigns', label: 'Campañas', icon: Megaphone },
-  { to: '/admin/redemptions', label: 'Solicitudes', icon: TicketCheck },
-  { to: '/admin/audit', label: 'Auditoría', icon: ClipboardList },
-  { to: '/admin/customers', label: 'Clientes', icon: Users },
-  { to: '/admin/purchases', label: 'Compras', icon: ReceiptText, end: true },
+  { to: "/admin/dashboard", label: "Inicio", icon: Home, end: true },
+  { to: "/admin/config", label: "Configuración", icon: Settings2, config: true },
+  { to: "/admin/campaigns", label: "Campañas", icon: Megaphone },
+  { to: "/admin/redemptions", label: "Solicitudes", icon: TicketCheck },
+  { to: "/admin/audit", label: "Auditoría", icon: ClipboardList },
+  { to: "/admin/customers", label: "Clientes", icon: Users },
+  { to: "/admin/purchases", label: "Compras", icon: ReceiptText, end: true },
 ];
 
 const configPaths = [
-  '/admin/config',
-  '/admin/business',
-  '/admin/program',
-  '/admin/products',
-  '/admin/rewards',
-  '/admin/economic',
-  '/admin/members',
-  '/admin/onboarding',
-  '/admin/settings',
+  "/admin/config",
+  "/admin/business",
+  "/admin/program",
+  "/admin/products",
+  "/admin/rewards",
+  "/admin/economic",
+  "/admin/members",
+  "/admin/onboarding",
+  "/admin/settings",
 ];
 
 const moreNav: AdminNavItem[] = [
-  { to: '/admin/campaigns', label: 'Campañas', icon: Megaphone },
-  { to: '/admin/audit', label: 'Auditoría', icon: ClipboardList },
-  { to: '/admin/customers', label: 'Clientes', icon: Users },
-  { to: '/admin/settings', label: 'Ajustes anteriores', icon: Wrench },
+  { to: "/admin/campaigns", label: "Campañas", icon: Megaphone },
+  { to: "/admin/audit", label: "Auditoría", icon: ClipboardList },
+  { to: "/admin/customers", label: "Clientes", icon: Users },
+  { to: "/admin/settings", label: "Ajustes anteriores", icon: Wrench },
 ];
 
 const bottomNav: AdminNavItem[] = [
-  { to: '/admin/dashboard', label: 'Inicio', icon: Home, end: true },
-  { to: '/admin/config', label: 'Configuración', icon: Settings2, config: true },
-  { to: '/admin/redemptions', label: 'Solicitudes', shortLabel: 'Solicitudes', icon: TicketCheck },
-  { to: '/admin/purchases', label: 'Compras', icon: ReceiptText, end: true },
+  { to: "/admin/dashboard", label: "Inicio", icon: Home, end: true },
+  { to: "/admin/config", label: "Configuración", icon: Settings2, config: true },
+  { to: "/admin/redemptions", label: "Solicitudes", shortLabel: "Solicitudes", icon: TicketCheck },
+  { to: "/admin/purchases", label: "Compras", icon: ReceiptText, end: true },
 ];
 
 function isItemActive(item: AdminNavItem, pathname: string) {
-  if (item.to === '/admin/config') {
+  if (item.to === "/admin/config") {
     return configPaths.some((path) => pathname === path || pathname.startsWith(`${path}/`));
   }
   if (item.end) return pathname === item.to;
@@ -84,25 +84,25 @@ function isItemActive(item: AdminNavItem, pathname: string) {
 
 function navClass(isActive: boolean) {
   return cn(
-    'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors',
+    "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors",
     isActive
-      ? 'bg-primary text-primary-foreground shadow-sm'
-      : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+      ? "bg-primary text-primary-foreground shadow-sm"
+      : "text-muted-foreground hover:bg-muted hover:text-foreground",
   );
 }
 
 export function AdminShell() {
-  usePortalTheme('admin');
+  usePortalTheme("admin");
   const { pathname } = useLocation();
   const scrollRef = useRef<HTMLElement | null>(null);
   const headerHidden = useHideOnScroll(scrollRef);
   const [moreOpen, setMoreOpen] = useState(false);
 
-  const dateLabel = new Date().toLocaleDateString('es-CO', {
-    timeZone: 'America/Bogota',
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
+  const dateLabel = new Date().toLocaleDateString("es-CO", {
+    timeZone: "America/Bogota",
+    weekday: "long",
+    day: "numeric",
+    month: "long",
   });
 
   return (
@@ -152,10 +152,10 @@ export function AdminShell() {
         <header
           data-testid="app-header"
           className={cn(
-            'z-30 shrink-0 overflow-hidden border-b bg-background/95 backdrop-blur transition-all duration-300 ease-out no-print',
+            "z-30 shrink-0 overflow-hidden border-b bg-background/95 backdrop-blur transition-all duration-300 ease-out no-print",
             headerHidden
-              ? 'max-h-0 -translate-y-full border-transparent opacity-0'
-              : 'max-h-40 opacity-100',
+              ? "max-h-0 -translate-y-full border-transparent opacity-0"
+              : "max-h-40 opacity-100",
           )}
         >
           <div className="flex h-14 items-center justify-between gap-3 px-4">
@@ -200,8 +200,8 @@ export function AdminShell() {
                 to={item.to}
                 end={item.end}
                 className={cn(
-                  'flex flex-col items-center gap-1 py-2.5 text-[10px] font-semibold transition-colors',
-                  active ? 'text-primary' : 'text-muted-foreground hover:text-foreground',
+                  "flex flex-col items-center gap-1 py-2.5 text-[10px] font-semibold transition-colors",
+                  active ? "text-primary" : "text-muted-foreground hover:text-foreground",
                 )}
               >
                 <Icon className="size-5" aria-hidden="true" />

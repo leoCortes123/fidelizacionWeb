@@ -1,39 +1,31 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import {
-  BadgeCheck,
-  ChefHat,
-  Package,
-  Pencil,
-  Plus,
-  Search,
-  Trash2,
-} from 'lucide-react';
-import { toast } from 'sonner';
-import { z } from 'zod';
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { BadgeCheck, ChefHat, Package, Pencil, Plus, Search, Trash2 } from "lucide-react";
+import { toast } from "sonner";
+import { z } from "zod";
 import {
   useBusinesses,
   useProducts,
   useSetProductCombo,
   useUpsertProduct,
-} from '@/features/loyalty/hooks';
-import { useBusinessContext } from '@/features/loyalty/businessContext';
-import { errorMessage } from '@/lib/errors';
-import { formatCOP, parseCopInput } from '@/lib/format';
-import { useFormDraft } from '@/lib/useFormDraft';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+} from "@/features/loyalty/hooks";
+import { useBusinessContext } from "@/features/loyalty/businessContext";
+import { errorMessage } from "@/lib/errors";
+import { formatCOP, parseCopInput } from "@/lib/format";
+import { useFormDraft } from "@/lib/useFormDraft";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -41,10 +33,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { PageHeader } from '@/components/shared/PageHeader';
-import { EmptyState, ErrorState, ListSkeleton, LoadingScreen } from '@/components/shared/States';
-import type { Business, Product, ProductKind } from '@/types';
+} from "@/components/ui/dialog";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { EmptyState, ErrorState, ListSkeleton, LoadingScreen } from "@/components/shared/States";
+import type { Business, Product, ProductKind } from "@/types";
 
 const MAX_PRICE_COP = 100_000_000;
 
@@ -52,22 +44,22 @@ const productSchema = z.object({
   name: z
     .string()
     .trim()
-    .min(2, 'El nombre debe tener al menos 2 caracteres.')
-    .max(120, 'El nombre no puede superar 120 caracteres.'),
-  description: z.string().max(500, 'La descripción no puede superar 500 caracteres.'),
+    .min(2, "El nombre debe tener al menos 2 caracteres.")
+    .max(120, "El nombre no puede superar 120 caracteres."),
+  description: z.string().max(500, "La descripción no puede superar 500 caracteres."),
   priceCop: z
-    .number({ invalid_type_error: 'Introduce un precio válido.' })
-    .int('El precio debe ser un número entero de pesos.')
-    .min(1, 'El precio debe ser mayor que cero.')
-    .max(MAX_PRICE_COP, 'El precio es demasiado alto.'),
+    .number({ invalid_type_error: "Introduce un precio válido." })
+    .int("El precio debe ser un número entero de pesos.")
+    .min(1, "El precio debe ser mayor que cero.")
+    .max(MAX_PRICE_COP, "El precio es demasiado alto."),
   costCop: z
-    .number({ invalid_type_error: 'Introduce un costo válido.' })
-    .int('El costo debe ser un número entero de pesos.')
-    .min(0, 'El costo no puede ser negativo.')
-    .max(MAX_PRICE_COP, 'El costo es demasiado alto.')
+    .number({ invalid_type_error: "Introduce un costo válido." })
+    .int("El costo debe ser un número entero de pesos.")
+    .min(0, "El costo no puede ser negativo.")
+    .max(MAX_PRICE_COP, "El costo es demasiado alto.")
     .nullable(),
   isActive: z.boolean(),
-  kind: z.enum(['simple', 'combo']),
+  kind: z.enum(["simple", "combo"]),
 });
 
 interface ProductFormState {
@@ -81,12 +73,12 @@ interface ProductFormState {
 }
 
 const EMPTY_FORM: ProductFormState = {
-  name: '',
-  description: '',
-  priceCop: '',
-  costCop: '',
+  name: "",
+  description: "",
+  priceCop: "",
+  costCop: "",
   isActive: true,
-  kind: 'simple',
+  kind: "simple",
   comboItems: {},
 };
 
@@ -122,7 +114,7 @@ export function ProductsPage() {
                   className="mt-4 w-full"
                   onClick={() => {
                     setSelectedBusiness(business);
-                    navigate('/admin/products');
+                    navigate("/admin/products");
                   }}
                 >
                   Seleccionar
@@ -158,7 +150,7 @@ function ProductsSection({ business }: { business: Business }) {
   const upsertProduct = useUpsertProduct();
   const setCombo = useSetProductCombo();
 
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
   const [form, setForm] = useState<ProductFormState>(EMPTY_FORM);
@@ -176,7 +168,7 @@ function ProductsSection({ business }: { business: Business }) {
     const rows = products.data ?? [];
     if (!term) return rows;
     return rows.filter((product) =>
-      `${product.name} ${product.description ?? ''}`.toLowerCase().includes(term),
+      `${product.name} ${product.description ?? ""}`.toLowerCase().includes(term),
     );
   }, [products.data, search]);
 
@@ -187,10 +179,8 @@ function ProductsSection({ business }: { business: Business }) {
 
   const rows = products.data ?? [];
   const parsedPrice = parseCopInput(form.priceCop);
-  const parsedCost =
-    form.costCop.trim() === '' ? null : parseCopInput(form.costCop);
-  const costWarning =
-    parsedPrice !== null && parsedCost !== null && parsedCost > parsedPrice;
+  const parsedCost = form.costCop.trim() === "" ? null : parseCopInput(form.costCop);
+  const costWarning = parsedPrice !== null && parsedCost !== null && parsedCost > parsedPrice;
 
   function openCreate() {
     setEditing(null);
@@ -203,9 +193,9 @@ function ProductsSection({ business }: { business: Business }) {
     setEditing(product);
     setForm({
       name: product.name,
-      description: product.description ?? '',
+      description: product.description ?? "",
       priceCop: String(product.price_cop),
-      costCop: product.cost_cop === null ? '' : String(product.cost_cop),
+      costCop: product.cost_cop === null ? "" : String(product.cost_cop),
       isActive: product.is_active,
       kind: product.kind,
       comboItems: Object.fromEntries(
@@ -224,7 +214,7 @@ function ProductsSection({ business }: { business: Business }) {
   async function saveProduct(event: React.FormEvent) {
     event.preventDefault();
     const priceCop = parseCopInput(form.priceCop);
-    const costCop = form.costCop.trim() === '' ? null : parseCopInput(form.costCop);
+    const costCop = form.costCop.trim() === "" ? null : parseCopInput(form.costCop);
 
     const parsed = productSchema.safeParse({
       name: form.name,
@@ -242,7 +232,7 @@ function ProductsSection({ business }: { business: Business }) {
         if (key && !nextErrors[key]) nextErrors[key] = issue.message;
       }
       setErrors(nextErrors);
-      toast.error(parsed.error.issues[0]?.message ?? 'Revisa los datos del producto.');
+      toast.error(parsed.error.issues[0]?.message ?? "Revisa los datos del producto.");
       return;
     }
 
@@ -254,8 +244,8 @@ function ProductsSection({ business }: { business: Business }) {
         }))
         .filter((item) => Number.isFinite(item.quantity) && item.quantity > 0);
 
-      if (parsed.data.kind === 'combo' && comboItems.length === 0) {
-        toast.error('Un combo necesita al menos un producto componente.');
+      if (parsed.data.kind === "combo" && comboItems.length === 0) {
+        toast.error("Un combo necesita al menos un producto componente.");
         return;
       }
 
@@ -270,7 +260,7 @@ function ProductsSection({ business }: { business: Business }) {
         kind: parsed.data.kind,
       });
 
-      if (parsed.data.kind === 'combo') {
+      if (parsed.data.kind === "combo") {
         await setCombo.mutateAsync({
           businessId: business.id,
           productId: saved.id,
@@ -279,7 +269,7 @@ function ProductsSection({ business }: { business: Business }) {
       }
 
       if (!editing) newProductDraft.clear();
-      toast.success(editing ? 'Producto actualizado' : 'Producto creado');
+      toast.success(editing ? "Producto actualizado" : "Producto creado");
       setDialogOpen(false);
       setEditing(null);
     } catch (error) {
@@ -299,11 +289,7 @@ function ProductsSection({ business }: { business: Business }) {
         isActive: !product.is_active,
         kind: product.kind,
       })
-      .then(() =>
-        toast.success(
-          product.is_active ? 'Producto desactivado' : 'Producto activado',
-        ),
-      )
+      .then(() => toast.success(product.is_active ? "Producto desactivado" : "Producto activado"))
       .catch((error) => toast.error(errorMessage(error)));
   }
 
@@ -356,11 +342,21 @@ function ProductsSection({ business }: { business: Business }) {
           <table className="w-full text-sm">
             <thead className="bg-muted/50 text-left text-xs uppercase tracking-wide text-muted-foreground">
               <tr>
-                <th scope="col" className="px-4 py-3">Producto</th>
-                <th scope="col" className="px-4 py-3 text-right">Precio</th>
-                <th scope="col" className="px-4 py-3 text-right">Costo</th>
-                <th scope="col" className="px-4 py-3">Estado</th>
-                <th scope="col" className="px-4 py-3 text-right">Acciones</th>
+                <th scope="col" className="px-4 py-3">
+                  Producto
+                </th>
+                <th scope="col" className="px-4 py-3 text-right">
+                  Precio
+                </th>
+                <th scope="col" className="px-4 py-3 text-right">
+                  Costo
+                </th>
+                <th scope="col" className="px-4 py-3">
+                  Estado
+                </th>
+                <th scope="col" className="px-4 py-3 text-right">
+                  Acciones
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y">
@@ -369,18 +365,16 @@ function ProductsSection({ business }: { business: Business }) {
                   <td className="px-4 py-3">
                     <p className="flex items-center gap-2 font-semibold">
                       {product.name}
-                      {product.kind === 'combo' && (
-                        <Badge variant="secondary">Combo</Badge>
-                      )}
+                      {product.kind === "combo" && <Badge variant="secondary">Combo</Badge>}
                     </p>
                     {product.description && (
                       <p className="text-xs text-muted-foreground">{product.description}</p>
                     )}
-                    {product.kind === 'combo' && product.combo_items.length > 0 && (
+                    {product.kind === "combo" && product.combo_items.length > 0 && (
                       <p className="text-xs text-muted-foreground">
                         {product.combo_items
                           .map((item) => `${item.quantity} × ${item.name}`)
-                          .join(' · ')}
+                          .join(" · ")}
                       </p>
                     )}
                   </td>
@@ -395,8 +389,8 @@ function ProductsSection({ business }: { business: Business }) {
                     )}
                   </td>
                   <td className="px-4 py-3">
-                    <Badge variant={product.is_active ? 'success' : 'muted'}>
-                      {product.is_active ? 'Activo' : 'Inactivo'}
+                    <Badge variant={product.is_active ? "success" : "muted"}>
+                      {product.is_active ? "Activo" : "Inactivo"}
                     </Badge>
                   </td>
                   <td className="px-4 py-3">
@@ -435,14 +429,14 @@ function ProductsSection({ business }: { business: Business }) {
       )}
 
       <p className="text-xs text-muted-foreground">
-        El costo es <strong>estimado y no contable</strong>: se usa para calcular el
-        costo de las recompensas y el presupuesto del programa.
+        El costo es <strong>estimado y no contable</strong>: se usa para calcular el costo de las
+        recompensas y el presupuesto del programa.
       </p>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editing ? 'Editar producto' : 'Nuevo producto'}</DialogTitle>
+            <DialogTitle>{editing ? "Editar producto" : "Nuevo producto"}</DialogTitle>
             <DialogDescription>
               Los productos activos pueden vincularse a recompensas de producto gratis.
             </DialogDescription>
@@ -453,13 +447,15 @@ function ProductsSection({ business }: { business: Business }) {
               <Input
                 id="product-name"
                 value={form.name}
-                onChange={(event) => update('name', event.target.value)}
+                onChange={(event) => update("name", event.target.value)}
                 maxLength={120}
                 required
                 aria-invalid={Boolean(errors.name)}
               />
               {errors.name && (
-                <p className="text-xs font-medium text-destructive" role="alert">{errors.name}</p>
+                <p className="text-xs font-medium text-destructive" role="alert">
+                  {errors.name}
+                </p>
               )}
             </div>
             <div className="space-y-2">
@@ -467,18 +463,20 @@ function ProductsSection({ business }: { business: Business }) {
               <Textarea
                 id="product-description"
                 value={form.description}
-                onChange={(event) => update('description', event.target.value)}
+                onChange={(event) => update("description", event.target.value)}
                 maxLength={500}
               />
               {errors.description && (
-                <p className="text-xs font-medium text-destructive" role="alert">{errors.description}</p>
+                <p className="text-xs font-medium text-destructive" role="alert">
+                  {errors.description}
+                </p>
               )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="product-kind">Tipo de producto</Label>
               <Select
                 value={form.kind}
-                onValueChange={(value) => update('kind', value as ProductKind)}
+                onValueChange={(value) => update("kind", value as ProductKind)}
               >
                 <SelectTrigger id="product-kind">
                   <SelectValue />
@@ -489,12 +487,11 @@ function ProductsSection({ business }: { business: Business }) {
                 </SelectContent>
               </Select>
               <p className="text-xs text-muted-foreground">
-                El precio del combo es el que se cobra; el detalle muestra sus
-                componentes.
+                El precio del combo es el que se cobra; el detalle muestra sus componentes.
               </p>
             </div>
 
-            {form.kind === 'combo' && (
+            {form.kind === "combo" && (
               <div className="space-y-2 rounded-xl border p-3">
                 <Label className="flex items-center gap-2">
                   <ChefHat className="size-4 text-muted-foreground" aria-hidden="true" />
@@ -502,9 +499,7 @@ function ProductsSection({ business }: { business: Business }) {
                 </Label>
                 {rows.filter(
                   (product) =>
-                    product.kind === 'simple' &&
-                    product.id !== editing?.id &&
-                    product.is_active,
+                    product.kind === "simple" && product.id !== editing?.id && product.is_active,
                 ).length === 0 ? (
                   <p className="text-xs text-muted-foreground">
                     Necesitas al menos un producto simple activo en la carta.
@@ -514,17 +509,14 @@ function ProductsSection({ business }: { business: Business }) {
                     {rows
                       .filter(
                         (product) =>
-                          product.kind === 'simple' &&
+                          product.kind === "simple" &&
                           product.id !== editing?.id &&
                           product.is_active,
                       )
                       .map((product) => {
                         const checked = Boolean(form.comboItems[product.id]);
                         return (
-                          <li
-                            key={product.id}
-                            className="flex items-center justify-between gap-2"
-                          >
+                          <li key={product.id} className="flex items-center justify-between gap-2">
                             <label className="flex min-w-0 items-center gap-2 text-sm">
                               <input
                                 type="checkbox"
@@ -533,7 +525,7 @@ function ProductsSection({ business }: { business: Business }) {
                                 onChange={(event) => {
                                   setForm((current) => {
                                     const next = { ...current.comboItems };
-                                    if (event.target.checked) next[product.id] = '1';
+                                    if (event.target.checked) next[product.id] = "1";
                                     else delete next[product.id];
                                     return { ...current, comboItems: next };
                                   });
@@ -576,17 +568,19 @@ function ProductsSection({ business }: { business: Business }) {
                   inputMode="numeric"
                   placeholder="2.500"
                   value={form.priceCop}
-                  onChange={(event) => update('priceCop', event.target.value)}
+                  onChange={(event) => update("priceCop", event.target.value)}
                   required
                   aria-invalid={Boolean(errors.priceCop)}
                 />
                 {errors.priceCop ? (
-                  <p className="text-xs font-medium text-destructive" role="alert">{errors.priceCop}</p>
+                  <p className="text-xs font-medium text-destructive" role="alert">
+                    {errors.priceCop}
+                  </p>
                 ) : (
                   <p className="text-xs text-muted-foreground">
                     {parseCopInput(form.priceCop) !== null
                       ? formatCOP(parseCopInput(form.priceCop)!)
-                      : 'Precio de venta al público.'}
+                      : "Precio de venta al público."}
                   </p>
                 )}
               </div>
@@ -597,15 +591,16 @@ function ProductsSection({ business }: { business: Business }) {
                   inputMode="numeric"
                   placeholder="800"
                   value={form.costCop}
-                  onChange={(event) => update('costCop', event.target.value)}
+                  onChange={(event) => update("costCop", event.target.value)}
                   aria-invalid={Boolean(errors.costCop)}
                 />
                 {errors.costCop ? (
-                  <p className="text-xs font-medium text-destructive" role="alert">{errors.costCop}</p>
+                  <p className="text-xs font-medium text-destructive" role="alert">
+                    {errors.costCop}
+                  </p>
                 ) : costWarning ? (
                   <p className="text-xs font-medium text-amber-700" role="status">
-                    El costo supera el precio de venta. Verifica el dato: es solo una
-                    estimación.
+                    El costo supera el precio de venta. Verifica el dato: es solo una estimación.
                   </p>
                 ) : (
                   <p className="text-xs text-muted-foreground">Estimado, no contable.</p>
@@ -616,7 +611,7 @@ function ProductsSection({ business }: { business: Business }) {
               <input
                 type="checkbox"
                 checked={form.isActive}
-                onChange={(event) => update('isActive', event.target.checked)}
+                onChange={(event) => update("isActive", event.target.checked)}
                 className="size-4 rounded border-input"
               />
               Disponible en la carta

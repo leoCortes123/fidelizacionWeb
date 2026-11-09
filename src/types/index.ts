@@ -1,13 +1,13 @@
-export type AppRole = 'customer' | 'registrar' | 'admin';
-export type PurchaseStatus = 'pending_claim' | 'claimed' | 'expired' | 'cancelled';
-export type RedemptionStatus = 'pending_delivery' | 'redeemed' | 'cancelled';
+export type AppRole = "customer" | "registrar" | "admin";
+export type PurchaseStatus = "pending_claim" | "claimed" | "expired" | "cancelled";
+export type RedemptionStatus = "pending_delivery" | "redeemed" | "cancelled";
 export type PointsMovementType =
-  | 'purchase_credit'
-  | 'redemption_debit'
-  | 'redemption_refund'
-  | 'expiry_debit'
-  | 'admin_adjustment'
-  | 'bonus_credit';
+  | "purchase_credit"
+  | "redemption_debit"
+  | "redemption_refund"
+  | "expiry_debit"
+  | "admin_adjustment"
+  | "bonus_credit";
 
 export interface ProgramSettings {
   cop_per_point_unit: number;
@@ -119,7 +119,7 @@ export interface PurchaseQrCreateResult {
   amount_cop: number;
   points_preview: number;
   expires_at: string;
-  status: 'pending_claim';
+  status: "pending_claim";
   items?: PurchaseLine[];
 }
 
@@ -160,7 +160,7 @@ export interface CustomerPurchase {
   claimed_at: string;
   status: PurchaseStatus;
   items_count?: number;
-  source?: 'qr' | 'manual';
+  source?: "qr" | "manual";
 }
 
 export interface CustomerMovement {
@@ -295,7 +295,7 @@ export interface AdminCancelRedemptionResult {
 // ---------------------------------------------------------------------
 // Negocio y membresías (aislamiento multiempresa)
 // ---------------------------------------------------------------------
-export type BusinessRole = 'admin' | 'encargado' | 'cliente';
+export type BusinessRole = "admin" | "encargado" | "cliente";
 
 export interface Business {
   id: string;
@@ -362,10 +362,7 @@ export interface LoyaltyProgram {
 }
 
 export type LoyaltyRewardType =
-  | 'free_product'
-  | 'fixed_discount'
-  | 'percentage_discount'
-  | 'configurable_benefit';
+  "free_product" | "fixed_discount" | "percentage_discount" | "configurable_benefit";
 
 export interface LoyaltyReward {
   id: string;
@@ -399,7 +396,7 @@ export interface LoyaltyRewardAvailable extends LoyaltyReward {
   can_redeem: boolean;
 }
 
-export type ProductKind = 'simple' | 'combo';
+export type ProductKind = "simple" | "combo";
 
 export interface ComboItem {
   product_id: string;
@@ -509,7 +506,7 @@ export interface DashboardSummary {
 
 export interface RecentActivity {
   id: string;
-  kind: 'purchase' | 'redemption';
+  kind: "purchase" | "redemption";
   title: string;
   detail: string;
   points: number | null;
@@ -531,12 +528,12 @@ export interface LoyaltyPointAccount {
 }
 
 export type PointMovementType =
-  | 'purchase_credit'
-  | 'redemption_debit'
-  | 'redemption_refund'
-  | 'expiry_debit'
-  | 'admin_adjustment'
-  | 'bonus_credit';
+  | "purchase_credit"
+  | "redemption_debit"
+  | "redemption_refund"
+  | "expiry_debit"
+  | "admin_adjustment"
+  | "bonus_credit";
 
 export interface LoyaltyPointTransaction {
   id: string;
@@ -556,11 +553,7 @@ export interface LoyaltyPointTransaction {
 // Redenciones y tokens QR
 // ---------------------------------------------------------------------
 export type RedemptionRequestStatus =
-  | 'pending'
-  | 'approved'
-  | 'delivered'
-  | 'cancelled'
-  | 'expired';
+  "pending" | "approved" | "delivered" | "cancelled" | "expired";
 
 export interface LoyaltyRedemption {
   id: string;
@@ -589,7 +582,7 @@ export interface LoyaltyRedemptionWithCustomer extends LoyaltyRedemption {
   customer_nickname: string | null;
 }
 
-export type RedemptionOrigin = 'manual' | 'qr_scan';
+export type RedemptionOrigin = "manual" | "qr_scan";
 
 /** Contexto de `/scan/:token`: el negocio lo resuelve el servidor. */
 export interface RedemptionScanContext {
@@ -623,7 +616,7 @@ export interface RedemptionRedeemResult {
   reward_name: string;
   points_spent: number;
   customer_nickname: string | null;
-  status: 'delivered';
+  status: "delivered";
   origin: RedemptionOrigin;
   delivered_at: string;
   role: BusinessRole;
@@ -654,15 +647,15 @@ export interface RedemptionRequestResult {
 // ---------------------------------------------------------------------
 // Perfil económico del negocio
 // ---------------------------------------------------------------------
-export type EconomicDataStatus = 'confirmed' | 'estimated' | 'unknown';
+export type EconomicDataStatus = "confirmed" | "estimated" | "unknown";
 
 export type EconomicField =
-  | 'daily_avg_sales'
-  | 'monthly_operation_days'
-  | 'daily_gain'
-  | 'gross_margin'
-  | 'avg_customers_per_day'
-  | 'max_monthly_reward_budget';
+  | "daily_avg_sales"
+  | "monthly_operation_days"
+  | "daily_gain"
+  | "gross_margin"
+  | "avg_customers_per_day"
+  | "max_monthly_reward_budget";
 
 export interface BusinessEconomicProfile {
   id: string;
@@ -875,4 +868,3 @@ export interface RedemptionTokenReissueResult {
   token: string;
   expires_at: string;
 }
-

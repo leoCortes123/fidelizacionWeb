@@ -1,5 +1,5 @@
-import { QueryClient } from '@tanstack/react-query';
-import { isBusinessError } from '@/lib/errors';
+import { QueryClient } from "@tanstack/react-query";
+import { isBusinessError } from "@/lib/errors";
 
 export const queryClient = new QueryClient({
   defaultOptions: {

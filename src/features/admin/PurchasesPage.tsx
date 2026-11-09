@@ -1,25 +1,15 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import {
-  Ban,
-  ChevronLeft,
-  ChevronRight,
-  PlusCircle,
-  QrCode,
-  ReceiptText,
-} from 'lucide-react';
-import { toast } from 'sonner';
-import {
-  useBusinessPurchases,
-  useCancelBusinessPurchase,
-} from '@/features/purchases/hooks';
-import { formatCOP, formatDateTimeBogota, formatPoints } from '@/lib/format';
-import { errorMessage } from '@/lib/errors';
-import type { Business, BusinessPurchase } from '@/types';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { Ban, ChevronLeft, ChevronRight, PlusCircle, QrCode, ReceiptText } from "lucide-react";
+import { toast } from "sonner";
+import { useBusinessPurchases, useCancelBusinessPurchase } from "@/features/purchases/hooks";
+import { formatCOP, formatDateTimeBogota, formatPoints } from "@/lib/format";
+import { errorMessage } from "@/lib/errors";
+import type { Business, BusinessPurchase } from "@/types";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Table,
   TableBody,
@@ -27,25 +17,25 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { PageHeader } from '@/components/shared/PageHeader';
-import { PurchaseStatusBadge } from '@/components/shared/StatusBadge';
-import { EmptyState, ErrorState, ListSkeleton } from '@/components/shared/States';
-import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
-import { BusinessGate } from './BusinessGate';
-import { PurchaseDetailDialog } from '@/features/purchases/PurchaseDetailDialog';
+} from "@/components/ui/select";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { PurchaseStatusBadge } from "@/components/shared/StatusBadge";
+import { EmptyState, ErrorState, ListSkeleton } from "@/components/shared/States";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { BusinessGate } from "./BusinessGate";
+import { PurchaseDetailDialog } from "@/features/purchases/PurchaseDetailDialog";
 
 const PAGE_SIZE = 15;
 
 function canCancel(purchase: BusinessPurchase) {
-  return purchase.status === 'pending_claim' || purchase.status === 'expired';
+  return purchase.status === "pending_claim" || purchase.status === "expired";
 }
 
 export function PurchasesPage() {
@@ -63,16 +53,16 @@ export function PurchasesPage() {
 
 function PurchasesSection({ business }: { business: Business }) {
   const [page, setPage] = useState(0);
-  const [status, setStatus] = useState('all');
+  const [status, setStatus] = useState("all");
   const purchases = useBusinessPurchases(
     business.id,
     page,
     PAGE_SIZE,
-    status === 'all' ? '' : status,
+    status === "all" ? "" : status,
   );
   const cancelPurchase = useCancelBusinessPurchase(business.id);
   const [target, setTarget] = useState<BusinessPurchase | null>(null);
-  const [reason, setReason] = useState('');
+  const [reason, setReason] = useState("");
   const [detailId, setDetailId] = useState<string | null>(null);
 
   const total = purchases.data?.[0]?.total_count ?? 0;
@@ -80,13 +70,13 @@ function PurchasesSection({ business }: { business: Business }) {
 
   function openCancel(purchase: BusinessPurchase) {
     setTarget(purchase);
-    setReason('');
+    setReason("");
   }
 
   async function confirmCancel() {
     if (!target) return;
     if (reason.trim().length < 3) {
-      toast.error('Escribe un motivo de al menos 3 caracteres.');
+      toast.error("Escribe un motivo de al menos 3 caracteres.");
       return;
     }
     try {
@@ -94,7 +84,7 @@ function PurchasesSection({ business }: { business: Business }) {
         purchaseId: target.id,
         reason: reason.trim(),
       });
-      toast.success('Venta cancelada');
+      toast.success("Venta cancelada");
       setTarget(null);
     } catch (error) {
       toast.error(errorMessage(error));
@@ -172,34 +162,24 @@ function PurchasesSection({ business }: { business: Business }) {
                         </span>
                       </>
                     ) : (
-                      <span className="text-xs text-muted-foreground">
-                        Sin reclamar
-                      </span>
+                      <span className="text-xs text-muted-foreground">Sin reclamar</span>
                     )}
                   </p>
                   <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-muted-foreground">
                     <span>
                       {purchase.points_awarded > 0
                         ? formatPoints(purchase.points_awarded)
-                        : 'Sin loopoints aún'}
+                        : "Sin loopoints aún"}
                       {purchase.items_count
                         ? ` · ${purchase.items_count} ítem(s)`
-                        : ' · sin detalle'}
+                        : " · sin detalle"}
                     </span>
                     <div className="flex gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setDetailId(purchase.id)}
-                      >
+                      <Button variant="ghost" size="sm" onClick={() => setDetailId(purchase.id)}>
                         Ver detalle
                       </Button>
                       {canCancel(purchase) && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => openCancel(purchase)}
-                        >
+                        <Button variant="outline" size="sm" onClick={() => openCancel(purchase)}>
                           <Ban aria-hidden="true" />
                           Cancelar
                         </Button>
@@ -228,9 +208,7 @@ function PurchasesSection({ business }: { business: Business }) {
                   {purchases.data.map((purchase) => (
                     <TableRow key={purchase.id}>
                       <TableCell>
-                        <p className="font-medium">
-                          {formatDateTimeBogota(purchase.created_at)}
-                        </p>
+                        <p className="font-medium">{formatDateTimeBogota(purchase.created_at)}</p>
                         <p className="text-xs text-muted-foreground">
                           Vence {formatDateTimeBogota(purchase.expires_at)}
                         </p>
@@ -247,9 +225,7 @@ function PurchasesSection({ business }: { business: Business }) {
                             </p>
                           </>
                         ) : (
-                          <span className="text-xs text-muted-foreground">
-                            Sin reclamar
-                          </span>
+                          <span className="text-xs text-muted-foreground">Sin reclamar</span>
                         )}
                       </TableCell>
                       <TableCell>
@@ -258,9 +234,7 @@ function PurchasesSection({ business }: { business: Business }) {
                       <TableCell>
                         <p>{purchase.points_awarded}</p>
                         <p className="text-xs text-muted-foreground">
-                          {purchase.items_count
-                            ? `${purchase.items_count} ítem(s)`
-                            : 'Sin detalle'}
+                          {purchase.items_count ? `${purchase.items_count} ítem(s)` : "Sin detalle"}
                         </p>
                       </TableCell>
                       <TableCell className="text-right">

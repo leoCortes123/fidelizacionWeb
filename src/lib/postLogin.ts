@@ -1,6 +1,6 @@
-import { defaultPathForRoles } from './config';
-import { pendingClaimPath } from './pendingClaim';
-import { rpc } from './supabase';
+import { defaultPathForRoles } from "./config";
+import { pendingClaimPath } from "./pendingClaim";
+import { rpc } from "./supabase";
 
 interface BusinessSummary {
   id: string;
@@ -16,9 +16,9 @@ export async function resolvePostLoginPath(roles: string[]): Promise<string> {
   if (claimPath) return claimPath;
   const fallback = defaultPathForRoles(roles);
   try {
-    const businesses = await rpc<BusinessSummary[]>('businesses_list');
+    const businesses = await rpc<BusinessSummary[]>("businesses_list");
     if (Array.isArray(businesses) && businesses.length > 0) {
-      return '/business/select';
+      return "/business/select";
     }
   } catch {
     // Si falla la consulta, el portal por roles sigue siendo un destino seguro.

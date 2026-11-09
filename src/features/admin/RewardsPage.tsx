@@ -1,24 +1,24 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Gift, Plus, Pencil, Trash2, BadgeCheck } from 'lucide-react';
-import { toast } from 'sonner';
-import { z } from 'zod';
+import { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Gift, Plus, Pencil, Trash2, BadgeCheck } from "lucide-react";
+import { toast } from "sonner";
+import { z } from "zod";
 import {
   useLoyaltyRewards,
   useUpsertLoyaltyReward,
   useBusinesses,
   useProducts,
-} from '@/features/loyalty/hooks';
-import { useBusinessContext } from '@/features/loyalty/businessContext';
-import { errorMessage } from '@/lib/errors';
-import { formatCOP, formatPoints, formatDateBogota, parseCopInput } from '@/lib/format';
-import { useFormDraft } from '@/lib/useFormDraft';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
+} from "@/features/loyalty/hooks";
+import { useBusinessContext } from "@/features/loyalty/businessContext";
+import { errorMessage } from "@/lib/errors";
+import { formatCOP, formatPoints, formatDateBogota, parseCopInput } from "@/lib/format";
+import { useFormDraft } from "@/lib/useFormDraft";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -26,23 +26,23 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { PageHeader } from '@/components/shared/PageHeader';
-import { EmptyState, ErrorState, ListSkeleton, LoadingScreen } from '@/components/shared/States';
-import type { Business, LoyaltyReward, LoyaltyRewardType, Product } from '@/types';
+} from "@/components/ui/select";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { EmptyState, ErrorState, ListSkeleton, LoadingScreen } from "@/components/shared/States";
+import type { Business, LoyaltyReward, LoyaltyRewardType, Product } from "@/types";
 
 const rewardTypeLabels: Record<LoyaltyRewardType, string> = {
-  free_product: 'Producto gratuito',
-  fixed_discount: 'Descuento fijo',
-  percentage_discount: 'Descuento porcentual',
-  configurable_benefit: 'Beneficio configurable',
+  free_product: "Producto gratuito",
+  fixed_discount: "Descuento fijo",
+  percentage_discount: "Descuento porcentual",
+  configurable_benefit: "Beneficio configurable",
 };
 
 interface RewardFormState {
@@ -64,20 +64,20 @@ interface RewardFormState {
 }
 
 const EMPTY_FORM: RewardFormState = {
-  name: '',
-  description: '',
-  type: 'free_product',
-  productId: '',
-  pointsRequired: '',
-  minPurchaseAmount: '',
-  maxDiscountAmount: '',
-  discountPercentage: '',
-  validFrom: '',
-  validUntil: '',
-  maxRedemptionsPerCustomer: '',
-  maxRedemptionsPerPeriod: '',
-  redemptionPeriodDays: '',
-  totalRedemptionLimit: '',
+  name: "",
+  description: "",
+  type: "free_product",
+  productId: "",
+  pointsRequired: "",
+  minPurchaseAmount: "",
+  maxDiscountAmount: "",
+  discountPercentage: "",
+  validFrom: "",
+  validUntil: "",
+  maxRedemptionsPerCustomer: "",
+  maxRedemptionsPerPeriod: "",
+  redemptionPeriodDays: "",
+  totalRedemptionLimit: "",
   isActive: true,
 };
 
@@ -94,55 +94,58 @@ const rewardSchema = z
     name: z
       .string()
       .trim()
-      .min(2, 'El nombre debe tener al menos 2 caracteres.')
-      .max(120, 'El nombre no puede superar 120 caracteres.'),
-    description: z.string().max(500, 'La descripción no puede superar 500 caracteres.'),
-    type: z.enum(['free_product', 'fixed_discount', 'percentage_discount', 'configurable_benefit']),
+      .min(2, "El nombre debe tener al menos 2 caracteres.")
+      .max(120, "El nombre no puede superar 120 caracteres."),
+    description: z.string().max(500, "La descripción no puede superar 500 caracteres."),
+    type: z.enum(["free_product", "fixed_discount", "percentage_discount", "configurable_benefit"]),
     productId: z.string().nullable(),
     pointsRequired: z
-      .number({ invalid_type_error: 'Introduce los loopoints requeridos.' })
-      .int('Los loopoints requeridos deben ser un entero.')
-      .min(1, 'Los loopoints requeridos deben ser mayores que cero.')
-      .max(10_000_000, 'Los loopoints requeridos son demasiado altos.'),
+      .number({ invalid_type_error: "Introduce los loopoints requeridos." })
+      .int("Los loopoints requeridos deben ser un entero.")
+      .min(1, "Los loopoints requeridos deben ser mayores que cero.")
+      .max(10_000_000, "Los loopoints requeridos son demasiado altos."),
     minPurchaseAmount: z
-      .number({ invalid_type_error: 'Introduce un importe válido.' })
-      .int('El importe mínimo debe ser un entero de pesos.')
-      .min(0, 'El importe mínimo no puede ser negativo.')
-      .max(100_000_000, 'El importe mínimo es demasiado alto.'),
-    maxDiscountAmount: optionalInteger('Descuento máximo', 0, 100_000_000),
+      .number({ invalid_type_error: "Introduce un importe válido." })
+      .int("El importe mínimo debe ser un entero de pesos.")
+      .min(0, "El importe mínimo no puede ser negativo.")
+      .max(100_000_000, "El importe mínimo es demasiado alto."),
+    maxDiscountAmount: optionalInteger("Descuento máximo", 0, 100_000_000),
     discountPercentage: z
-      .number({ invalid_type_error: 'Porcentaje de descuento: introduce un número.' })
-      .min(1, 'El porcentaje debe estar entre 1 y 100.')
-      .max(100, 'El porcentaje debe estar entre 1 y 100.')
+      .number({ invalid_type_error: "Porcentaje de descuento: introduce un número." })
+      .min(1, "El porcentaje debe estar entre 1 y 100.")
+      .max(100, "El porcentaje debe estar entre 1 y 100.")
       .nullable(),
     validFrom: z.string().nullable(),
     validUntil: z.string().nullable(),
-    maxRedemptionsPerCustomer: optionalInteger('Límite por cliente', 1, 10_000),
-    maxRedemptionsPerPeriod: optionalInteger('Límite por periodo', 1, 10_000),
-    redemptionPeriodDays: optionalInteger('Días del periodo', 1, 3650),
-    totalRedemptionLimit: optionalInteger('Límite total', 1, 1_000_000),
+    maxRedemptionsPerCustomer: optionalInteger("Límite por cliente", 1, 10_000),
+    maxRedemptionsPerPeriod: optionalInteger("Límite por periodo", 1, 10_000),
+    redemptionPeriodDays: optionalInteger("Días del periodo", 1, 3650),
+    totalRedemptionLimit: optionalInteger("Límite total", 1, 1_000_000),
     isActive: z.boolean(),
   })
   .superRefine((value, ctx) => {
-    if (value.type === 'free_product' && !value.productId) {
+    if (value.type === "free_product" && !value.productId) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ['productId'],
-        message: 'Elige el producto que se entrega con esta recompensa.',
+        path: ["productId"],
+        message: "Elige el producto que se entrega con esta recompensa.",
       });
     }
-    if (value.type === 'percentage_discount' && value.discountPercentage === null) {
+    if (value.type === "percentage_discount" && value.discountPercentage === null) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ['discountPercentage'],
-        message: 'Indica el porcentaje de descuento (1 a 100).',
+        path: ["discountPercentage"],
+        message: "Indica el porcentaje de descuento (1 a 100).",
       });
     }
-    if (value.type === 'fixed_discount' && (value.maxDiscountAmount === null || value.maxDiscountAmount <= 0)) {
+    if (
+      value.type === "fixed_discount" &&
+      (value.maxDiscountAmount === null || value.maxDiscountAmount <= 0)
+    ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ['maxDiscountAmount'],
-        message: 'Indica el importe del descuento fijo.',
+        path: ["maxDiscountAmount"],
+        message: "Indica el importe del descuento fijo.",
       });
     }
     if (
@@ -152,22 +155,22 @@ const rewardSchema = z
     ) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ['maxDiscountAmount'],
-        message: 'El descuento máximo no puede superar la compra mínima.',
+        path: ["maxDiscountAmount"],
+        message: "El descuento máximo no puede superar la compra mínima.",
       });
     }
     if (value.validFrom && value.validUntil && value.validUntil < value.validFrom) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ['validUntil'],
-        message: 'La fecha final no puede ser anterior a la inicial.',
+        path: ["validUntil"],
+        message: "La fecha final no puede ser anterior a la inicial.",
       });
     }
     if (value.maxRedemptionsPerPeriod !== null && value.redemptionPeriodDays === null) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
-        path: ['redemptionPeriodDays'],
-        message: 'Indica cuántos días dura el periodo del límite.',
+        path: ["redemptionPeriodDays"],
+        message: "Indica cuántos días dura el periodo del límite.",
       });
     }
   });
@@ -181,39 +184,33 @@ function toIsoEnd(value: string): string | null {
 }
 
 function fromIso(value: string | null): string {
-  return value ? value.slice(0, 10) : '';
+  return value ? value.slice(0, 10) : "";
 }
 
 function fromReward(reward: LoyaltyReward): RewardFormState {
   return {
     name: reward.name,
-    description: reward.description ?? '',
+    description: reward.description ?? "",
     type: reward.type,
-    productId: reward.product_id ?? '',
+    productId: reward.product_id ?? "",
     pointsRequired: String(reward.points_required),
-    minPurchaseAmount: reward.min_purchase_amount ? String(reward.min_purchase_amount) : '',
+    minPurchaseAmount: reward.min_purchase_amount ? String(reward.min_purchase_amount) : "",
     maxDiscountAmount:
-      reward.max_discount_amount === null ? '' : String(reward.max_discount_amount),
+      reward.max_discount_amount === null ? "" : String(reward.max_discount_amount),
     discountPercentage:
-      reward.discount_percentage === null ? '' : String(reward.discount_percentage),
+      reward.discount_percentage === null ? "" : String(reward.discount_percentage),
     validFrom: fromIso(reward.valid_from),
     validUntil: fromIso(reward.valid_until),
     maxRedemptionsPerCustomer:
       reward.max_redemptions_per_customer === null
-        ? ''
+        ? ""
         : String(reward.max_redemptions_per_customer),
     maxRedemptionsPerPeriod:
-      reward.max_redemptions_per_period === null
-        ? ''
-        : String(reward.max_redemptions_per_period),
+      reward.max_redemptions_per_period === null ? "" : String(reward.max_redemptions_per_period),
     redemptionPeriodDays:
-      reward.redemption_period_days === null
-        ? ''
-        : String(reward.redemption_period_days),
+      reward.redemption_period_days === null ? "" : String(reward.redemption_period_days),
     totalRedemptionLimit:
-      reward.total_redemption_limit === null
-        ? ''
-        : String(reward.total_redemption_limit),
+      reward.total_redemption_limit === null ? "" : String(reward.total_redemption_limit),
     isActive: reward.is_active,
   };
 }
@@ -257,7 +254,7 @@ export function RewardsPage() {
                   className="mt-4 w-full"
                   onClick={() => {
                     setSelectedBusiness(business);
-                    navigate('/admin/rewards');
+                    navigate("/admin/rewards");
                   }}
                 >
                   Seleccionar
@@ -275,7 +272,11 @@ export function RewardsPage() {
     return (
       <div className="space-y-6 animate-fade-in">
         <PageHeader title="Sin negocios" description="No tienes negocios asignados." />
-        <EmptyState title="Sin negocios" description="Registra un negocio para continuar." icon={Gift} />
+        <EmptyState
+          title="Sin negocios"
+          description="Registra un negocio para continuar."
+          icon={Gift}
+        />
       </div>
     );
   }
@@ -319,7 +320,7 @@ function RewardsSection({ business }: { business: Business }) {
     setForm(
       newRewardDraft.read() ?? {
         ...EMPTY_FORM,
-        productId: products.data?.[0]?.id ?? '',
+        productId: products.data?.[0]?.id ?? "",
       },
     );
     setErrors({});
@@ -348,9 +349,7 @@ function RewardsSection({ business }: { business: Business }) {
       pointsRequired: Number(form.pointsRequired || Number.NaN),
       minPurchaseAmount: parseCopInput(form.minPurchaseAmount) ?? 0,
       maxDiscountAmount:
-        form.maxDiscountAmount.trim() === ''
-          ? null
-          : parseCopInput(form.maxDiscountAmount),
+        form.maxDiscountAmount.trim() === "" ? null : parseCopInput(form.maxDiscountAmount),
       discountPercentage: parseOptionalInteger(form.discountPercentage),
       validFrom: form.validFrom || null,
       validUntil: form.validUntil || null,
@@ -368,7 +367,7 @@ function RewardsSection({ business }: { business: Business }) {
         if (key && !nextErrors[key]) nextErrors[key] = issue.message;
       }
       setErrors(nextErrors);
-      toast.error(parsed.error.issues[0]?.message ?? 'Revisa los datos de la recompensa.');
+      toast.error(parsed.error.issues[0]?.message ?? "Revisa los datos de la recompensa.");
       return;
     }
 
@@ -378,17 +377,16 @@ function RewardsSection({ business }: { business: Business }) {
         businessId: business.id,
         id: editing?.id ?? null,
         type: values.type,
-        productId: values.type === 'free_product' ? values.productId : null,
+        productId: values.type === "free_product" ? values.productId : null,
         name: values.name,
         description: values.description.trim(),
         pointsRequired: values.pointsRequired,
         minPurchaseAmount: values.minPurchaseAmount,
-        maxDiscountAmount:
-          values.type === 'free_product' ? null : values.maxDiscountAmount,
+        maxDiscountAmount: values.type === "free_product" ? null : values.maxDiscountAmount,
         discountPercentage:
-          values.type === 'percentage_discount' ? values.discountPercentage : null,
-        validFrom: toIsoStart(values.validFrom ?? ''),
-        validUntil: toIsoEnd(values.validUntil ?? ''),
+          values.type === "percentage_discount" ? values.discountPercentage : null,
+        validFrom: toIsoStart(values.validFrom ?? ""),
+        validUntil: toIsoEnd(values.validUntil ?? ""),
         maxRedemptionsPerCustomer: values.maxRedemptionsPerCustomer,
         maxRedemptionsPerPeriod: values.maxRedemptionsPerPeriod,
         redemptionPeriodDays:
@@ -397,7 +395,7 @@ function RewardsSection({ business }: { business: Business }) {
         isActive: values.isActive,
       });
       if (!editing) newRewardDraft.clear();
-      toast.success(editing ? 'Recompensa actualizada' : 'Recompensa creada');
+      toast.success(editing ? "Recompensa actualizada" : "Recompensa creada");
       setDialogOpen(false);
       setEditing(null);
     } catch (error) {
@@ -428,17 +426,17 @@ function RewardsSection({ business }: { business: Business }) {
         isActive: !reward.is_active,
       })
       .then(() =>
-        toast.success(reward.is_active ? 'Recompensa desactivada' : 'Recompensa activada'),
+        toast.success(reward.is_active ? "Recompensa desactivada" : "Recompensa activada"),
       )
       .catch((error) => toast.error(errorMessage(error)));
   }
 
-  const showProduct = form.type === 'free_product';
-  const showPercentage = form.type === 'percentage_discount';
+  const showProduct = form.type === "free_product";
+  const showPercentage = form.type === "percentage_discount";
   const showAmount =
-    form.type === 'fixed_discount' ||
-    form.type === 'percentage_discount' ||
-    form.type === 'configurable_benefit';
+    form.type === "fixed_discount" ||
+    form.type === "percentage_discount" ||
+    form.type === "configurable_benefit";
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -458,17 +456,24 @@ function RewardsSection({ business }: { business: Business }) {
           title="Sin recompensas"
           description="Crea la primera recompensa del catálogo."
           icon={Gift}
-          action={<Button variant="outline" onClick={openCreate}>Crear recompensa</Button>}
+          action={
+            <Button variant="outline" onClick={openCreate}>
+              Crear recompensa
+            </Button>
+          }
         />
       ) : (
         <ul className="divide-y rounded-xl border px-4">
           {rewardsData.map((reward) => (
-            <li key={reward.id} className="py-3 sm:flex sm:items-center sm:justify-between sm:gap-4">
+            <li
+              key={reward.id}
+              className="py-3 sm:flex sm:items-center sm:justify-between sm:gap-4"
+            >
               <div className="min-w-0">
                 <div className="mb-1 flex flex-wrap items-center gap-2">
                   <p className="font-semibold">{reward.name}</p>
-                  <Badge variant={reward.is_active ? 'success' : 'muted'}>
-                    {reward.is_active ? 'Activa' : 'Inactiva'}
+                  <Badge variant={reward.is_active ? "success" : "muted"}>
+                    {reward.is_active ? "Activa" : "Inactiva"}
                   </Badge>
                   <Badge variant="secondary" className="text-xs">
                     {rewardTypeLabels[reward.type]}
@@ -481,9 +486,9 @@ function RewardsSection({ business }: { business: Business }) {
                   <span className="font-semibold text-foreground">
                     {formatPoints(reward.points_required)}
                   </span>
-                  {reward.type === 'free_product' && reward.product_id && (
+                  {reward.type === "free_product" && reward.product_id && (
                     <span>
-                      Producto: {productById.get(reward.product_id)?.name ?? 'No encontrado'}
+                      Producto: {productById.get(reward.product_id)?.name ?? "No encontrado"}
                     </span>
                   )}
                   {reward.min_purchase_amount > 0 && (
@@ -497,7 +502,7 @@ function RewardsSection({ business }: { business: Business }) {
                   )}
                   {(reward.valid_from || reward.valid_until) && (
                     <span>
-                      Vigencia: {formatDateBogota(reward.valid_from)} —{' '}
+                      Vigencia: {formatDateBogota(reward.valid_from)} —{" "}
                       {formatDateBogota(reward.valid_until)}
                     </span>
                   )}
@@ -506,16 +511,14 @@ function RewardsSection({ business }: { business: Business }) {
                   )}
                   {reward.max_redemptions_per_period !== null && (
                     <span>
-                      Máx. {reward.max_redemptions_per_period} cada{' '}
-                      {reward.redemption_period_days ?? '—'} días
+                      Máx. {reward.max_redemptions_per_period} cada{" "}
+                      {reward.redemption_period_days ?? "—"} días
                     </span>
                   )}
                   {reward.total_redemption_limit !== null && (
                     <span>Límite total: {reward.total_redemption_limit}</span>
                   )}
-                  {reward.times_redeemed > 0 && (
-                    <span>Canjeadas: {reward.times_redeemed}</span>
-                  )}
+                  {reward.times_redeemed > 0 && <span>Canjeadas: {reward.times_redeemed}</span>}
                 </div>
               </div>
               <div className="mt-2 flex gap-2 sm:mt-0">
@@ -550,7 +553,7 @@ function RewardsSection({ business }: { business: Business }) {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editing ? 'Editar recompensa' : 'Nueva recompensa'}</DialogTitle>
+            <DialogTitle>{editing ? "Editar recompensa" : "Nueva recompensa"}</DialogTitle>
             <DialogDescription>
               Configura el beneficio, los loopoints requeridos y sus límites de uso.
             </DialogDescription>
@@ -561,13 +564,15 @@ function RewardsSection({ business }: { business: Business }) {
               <Input
                 id="reward-name"
                 value={form.name}
-                onChange={(event) => update('name', event.target.value)}
+                onChange={(event) => update("name", event.target.value)}
                 required
                 maxLength={120}
                 aria-invalid={Boolean(errors.name)}
               />
               {errors.name && (
-                <p className="text-xs font-medium text-destructive" role="alert">{errors.name}</p>
+                <p className="text-xs font-medium text-destructive" role="alert">
+                  {errors.name}
+                </p>
               )}
             </div>
             <div className="space-y-2">
@@ -575,11 +580,13 @@ function RewardsSection({ business }: { business: Business }) {
               <Textarea
                 id="reward-description"
                 value={form.description}
-                onChange={(event) => update('description', event.target.value)}
+                onChange={(event) => update("description", event.target.value)}
                 maxLength={500}
               />
               {errors.description && (
-                <p className="text-xs font-medium text-destructive" role="alert">{errors.description}</p>
+                <p className="text-xs font-medium text-destructive" role="alert">
+                  {errors.description}
+                </p>
               )}
             </div>
 
@@ -588,7 +595,7 @@ function RewardsSection({ business }: { business: Business }) {
                 <Label htmlFor="reward-type">Tipo de recompensa</Label>
                 <Select
                   value={form.type}
-                  onValueChange={(value) => update('type', value as LoyaltyRewardType)}
+                  onValueChange={(value) => update("type", value as LoyaltyRewardType)}
                 >
                   <SelectTrigger id="reward-type">
                     <SelectValue placeholder="Selecciona un tipo" />
@@ -608,7 +615,7 @@ function RewardsSection({ business }: { business: Business }) {
                   id="reward-points"
                   inputMode="numeric"
                   value={form.pointsRequired}
-                  onChange={(event) => update('pointsRequired', event.target.value)}
+                  onChange={(event) => update("pointsRequired", event.target.value)}
                   required
                   aria-invalid={Boolean(errors.pointsRequired)}
                 />
@@ -625,13 +632,13 @@ function RewardsSection({ business }: { business: Business }) {
                 <Label htmlFor="reward-product">Producto que se entrega</Label>
                 {(products.data ?? []).length === 0 ? (
                   <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
-                    La carta está vacía. Crea un producto en <strong>Carta</strong> antes
-                    de usar una recompensa de producto gratis.
+                    La carta está vacía. Crea un producto en <strong>Carta</strong> antes de usar
+                    una recompensa de producto gratis.
                   </p>
                 ) : (
                   <Select
                     value={form.productId}
-                    onValueChange={(value) => update('productId', value)}
+                    onValueChange={(value) => update("productId", value)}
                   >
                     <SelectTrigger id="reward-product" aria-invalid={Boolean(errors.productId)}>
                       <SelectValue placeholder="Elige un producto" />
@@ -640,7 +647,7 @@ function RewardsSection({ business }: { business: Business }) {
                       {(products.data ?? []).map((product) => (
                         <SelectItem key={product.id} value={product.id}>
                           {product.name} · {formatCOP(product.price_cop)}
-                          {product.is_active ? '' : ' (inactivo)'}
+                          {product.is_active ? "" : " (inactivo)"}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -662,7 +669,7 @@ function RewardsSection({ business }: { business: Business }) {
                   inputMode="numeric"
                   placeholder="0"
                   value={form.minPurchaseAmount}
-                  onChange={(event) => update('minPurchaseAmount', event.target.value)}
+                  onChange={(event) => update("minPurchaseAmount", event.target.value)}
                   aria-invalid={Boolean(errors.minPurchaseAmount)}
                 />
                 {errors.minPurchaseAmount ? (
@@ -676,13 +683,15 @@ function RewardsSection({ business }: { business: Business }) {
               {showAmount && (
                 <div className="space-y-2">
                   <Label htmlFor="reward-max-discount">
-                    {form.type === 'fixed_discount' ? 'Importe del descuento (COP)' : 'Descuento máximo (COP)'}
+                    {form.type === "fixed_discount"
+                      ? "Importe del descuento (COP)"
+                      : "Descuento máximo (COP)"}
                   </Label>
                   <Input
                     id="reward-max-discount"
                     inputMode="numeric"
                     value={form.maxDiscountAmount}
-                    onChange={(event) => update('maxDiscountAmount', event.target.value)}
+                    onChange={(event) => update("maxDiscountAmount", event.target.value)}
                     aria-invalid={Boolean(errors.maxDiscountAmount)}
                   />
                   {errors.maxDiscountAmount ? (
@@ -702,7 +711,7 @@ function RewardsSection({ business }: { business: Business }) {
                     inputMode="numeric"
                     placeholder="10"
                     value={form.discountPercentage}
-                    onChange={(event) => update('discountPercentage', event.target.value)}
+                    onChange={(event) => update("discountPercentage", event.target.value)}
                     aria-invalid={Boolean(errors.discountPercentage)}
                   />
                   {errors.discountPercentage && (
@@ -721,7 +730,7 @@ function RewardsSection({ business }: { business: Business }) {
                   id="reward-valid-from"
                   type="date"
                   value={form.validFrom}
-                  onChange={(event) => update('validFrom', event.target.value)}
+                  onChange={(event) => update("validFrom", event.target.value)}
                 />
               </div>
               <div className="space-y-2">
@@ -730,7 +739,7 @@ function RewardsSection({ business }: { business: Business }) {
                   id="reward-valid-until"
                   type="date"
                   value={form.validUntil}
-                  onChange={(event) => update('validUntil', event.target.value)}
+                  onChange={(event) => update("validUntil", event.target.value)}
                   aria-invalid={Boolean(errors.validUntil)}
                 />
                 {errors.validUntil && (
@@ -750,7 +759,7 @@ function RewardsSection({ business }: { business: Business }) {
                     id="reward-max-customer"
                     inputMode="numeric"
                     value={form.maxRedemptionsPerCustomer}
-                    onChange={(event) => update('maxRedemptionsPerCustomer', event.target.value)}
+                    onChange={(event) => update("maxRedemptionsPerCustomer", event.target.value)}
                     aria-invalid={Boolean(errors.maxRedemptionsPerCustomer)}
                   />
                   {errors.maxRedemptionsPerCustomer && (
@@ -765,7 +774,7 @@ function RewardsSection({ business }: { business: Business }) {
                     id="reward-total-limit"
                     inputMode="numeric"
                     value={form.totalRedemptionLimit}
-                    onChange={(event) => update('totalRedemptionLimit', event.target.value)}
+                    onChange={(event) => update("totalRedemptionLimit", event.target.value)}
                     aria-invalid={Boolean(errors.totalRedemptionLimit)}
                   />
                   {errors.totalRedemptionLimit && (
@@ -780,7 +789,7 @@ function RewardsSection({ business }: { business: Business }) {
                     id="reward-max-period"
                     inputMode="numeric"
                     value={form.maxRedemptionsPerPeriod}
-                    onChange={(event) => update('maxRedemptionsPerPeriod', event.target.value)}
+                    onChange={(event) => update("maxRedemptionsPerPeriod", event.target.value)}
                     aria-invalid={Boolean(errors.maxRedemptionsPerPeriod)}
                   />
                   {errors.maxRedemptionsPerPeriod && (
@@ -795,7 +804,7 @@ function RewardsSection({ business }: { business: Business }) {
                     id="reward-period-days"
                     inputMode="numeric"
                     value={form.redemptionPeriodDays}
-                    onChange={(event) => update('redemptionPeriodDays', event.target.value)}
+                    onChange={(event) => update("redemptionPeriodDays", event.target.value)}
                     aria-invalid={Boolean(errors.redemptionPeriodDays)}
                   />
                   {errors.redemptionPeriodDays && (
@@ -814,7 +823,7 @@ function RewardsSection({ business }: { business: Business }) {
               <input
                 type="checkbox"
                 checked={form.isActive}
-                onChange={(event) => update('isActive', event.target.checked)}
+                onChange={(event) => update("isActive", event.target.checked)}
                 className="size-4 rounded border-input"
               />
               Disponible en el catálogo

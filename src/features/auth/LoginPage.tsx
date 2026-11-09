@@ -1,26 +1,16 @@
-import { useEffect, useState } from 'react';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Loader2 } from 'lucide-react';
-import { Brand } from '@/components/shared/Brand';
-import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useAuth } from './AuthProvider';
-import {
-  brandName,
-  isSupabaseConfigured,
-  safeNextPath,
-} from '@/lib/config';
-import { resolvePostLoginPath } from '@/lib/postLogin';
-import { errorMessage } from '@/lib/errors';
+import { useEffect, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { ArrowLeft, Loader2 } from "lucide-react";
+import { Brand } from "@/components/shared/Brand";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useAuth } from "./AuthProvider";
+import { brandName, isSupabaseConfigured, safeNextPath } from "@/lib/config";
+import { resolvePostLoginPath } from "@/lib/postLogin";
+import { errorMessage } from "@/lib/errors";
 
 function GoogleIcon() {
   return (
@@ -47,7 +37,7 @@ function GoogleIcon() {
 
 export function LoginPage() {
   const [params] = useSearchParams();
-  const next = safeNextPath(params.get('next'));
+  const next = safeNextPath(params.get("next"));
   const navigate = useNavigate();
   const {
     session,
@@ -59,19 +49,19 @@ export function LoginPage() {
     signInWithPassword,
     signUpWithPassword,
   } = useAuth();
-  const [mode, setMode] = useState<'login' | 'register'>(
-    params.get('mode') === 'register' ? 'register' : 'login',
+  const [mode, setMode] = useState<"login" | "register">(
+    params.get("mode") === "register" ? "register" : "login",
   );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
 
   useEffect(() => {
     if (loading || !session || rolesLoading || !rolesLoaded) return;
-    if (params.get('next')) {
+    if (params.get("next")) {
       navigate(next, { replace: true });
       return;
     }
@@ -99,22 +89,22 @@ export function LoginPage() {
     event.preventDefault();
     setError(null);
     setNotice(null);
-    if (!email.includes('@')) {
-      setError('Escribe un correo válido.');
+    if (!email.includes("@")) {
+      setError("Escribe un correo válido.");
       return;
     }
     if (password.length < 6) {
-      setError('La contraseña debe tener al menos 6 caracteres.');
+      setError("La contraseña debe tener al menos 6 caracteres.");
       return;
     }
-    if (mode === 'register' && fullName.trim().length < 2) {
-      setError('Escribe tu nombre para personalizar tu cuenta.');
+    if (mode === "register" && fullName.trim().length < 2) {
+      setError("Escribe tu nombre para personalizar tu cuenta.");
       return;
     }
 
     setSubmitting(true);
     try {
-      if (mode === 'login') {
+      if (mode === "login") {
         await signInWithPassword(email, password);
       } else {
         const { needsConfirmation } = await signUpWithPassword({
@@ -124,7 +114,7 @@ export function LoginPage() {
           nextPath: next,
         });
         if (needsConfirmation) {
-          setNotice('Revisa tu correo para confirmar la cuenta y luego entra.');
+          setNotice("Revisa tu correo para confirmar la cuenta y luego entra.");
         }
       }
     } catch (submitError) {
@@ -134,7 +124,7 @@ export function LoginPage() {
     }
   }
 
-  function switchMode(nextMode: 'login' | 'register') {
+  function switchMode(nextMode: "login" | "register") {
     setMode(nextMode);
     setError(null);
     setNotice(null);
@@ -151,12 +141,12 @@ export function LoginPage() {
         <Card className="shadow-lg">
           <CardHeader className="space-y-2 text-center">
             <CardTitle className="text-2xl">
-              {mode === 'login' ? 'Entra a tus loopoints' : 'Crea tu cuenta'}
+              {mode === "login" ? "Entra a tus loopoints" : "Crea tu cuenta"}
             </CardTitle>
             <CardDescription>
-              {mode === 'login'
-                ? 'Revisa tu saldo y tus recompensas desde el teléfono.'
-                : 'Regístrate en segundos para empezar a acumular.'}
+              {mode === "login"
+                ? "Revisa tu saldo y tus recompensas desde el teléfono."
+                : "Regístrate en segundos para empezar a acumular."}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -164,9 +154,8 @@ export function LoginPage() {
               <Alert variant="warning">
                 <AlertTitle>Configuración pendiente</AlertTitle>
                 <AlertDescription>
-                  Define las variables de Supabase en <code>.env</code> para
-                  habilitar el inicio de sesión. Consulta{' '}
-                  <code>docs/CONFIGURACION.md</code>.
+                  Define las variables de Supabase en <code>.env</code> para habilitar el inicio de
+                  sesión. Consulta <code>docs/CONFIGURACION.md</code>.
                 </AlertDescription>
               </Alert>
             )}
@@ -208,7 +197,7 @@ export function LoginPage() {
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-3">
-              {mode === 'register' && (
+              {mode === "register" && (
                 <div className="space-y-1.5">
                   <Label htmlFor="full-name">Nombre</Label>
                   <Input
@@ -239,9 +228,7 @@ export function LoginPage() {
                 <Input
                   id="password"
                   type="password"
-                  autoComplete={
-                    mode === 'login' ? 'current-password' : 'new-password'
-                  }
+                  autoComplete={mode === "login" ? "current-password" : "new-password"}
                   value={password}
                   onChange={(event) => setPassword(event.target.value)}
                   placeholder="Mínimo 6 caracteres"
@@ -257,20 +244,18 @@ export function LoginPage() {
                 className="w-full"
                 loading={submitting}
               >
-                {mode === 'login' ? 'Entrar con correo' : 'Crear cuenta'}
+                {mode === "login" ? "Entrar con correo" : "Crear cuenta"}
               </Button>
             </form>
 
             <p className="text-center text-sm text-muted-foreground">
-              {mode === 'login' ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?'}{' '}
+              {mode === "login" ? "¿No tienes cuenta?" : "¿Ya tienes cuenta?"}{" "}
               <button
                 type="button"
                 className="font-semibold text-primary underline-offset-4 hover:underline"
-                onClick={() =>
-                  switchMode(mode === 'login' ? 'register' : 'login')
-                }
+                onClick={() => switchMode(mode === "login" ? "register" : "login")}
               >
-                {mode === 'login' ? 'Regístrate' : 'Inicia sesión'}
+                {mode === "login" ? "Regístrate" : "Inicia sesión"}
               </button>
             </p>
 
@@ -284,8 +269,8 @@ export function LoginPage() {
         </Card>
 
         <p className="text-center text-xs leading-relaxed text-muted-foreground">
-          Al entrar aceptas que guardemos tu nombre y correo para asociar tus
-          compras. No pedimos datos de tarjetas.
+          Al entrar aceptas que guardemos tu nombre y correo para asociar tus compras. No pedimos
+          datos de tarjetas.
         </p>
       </div>
     </div>

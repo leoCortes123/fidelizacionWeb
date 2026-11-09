@@ -1,4 +1,4 @@
-import type { BrowserContext, Page, Route } from '@playwright/test';
+import type { BrowserContext, Page, Route } from "@playwright/test";
 
 /**
  * Backend de pruebas en memoria para Playwright.
@@ -8,7 +8,7 @@ import type { BrowserContext, Page, Route } from '@playwright/test';
  * base de datos se prueba en tests/db/run-tests.sql contra PostgreSQL + RLS.
  */
 
-export type FakeRole = 'customer' | 'registrar' | 'admin' | 'encargado' | 'cliente';
+export type FakeRole = "customer" | "registrar" | "admin" | "encargado" | "cliente";
 
 export interface FakeUser {
   id: string;
@@ -63,7 +63,7 @@ export interface FakeProduct {
   priceCop: number;
   costCop: number | null;
   isActive: boolean;
-  kind: 'simple' | 'combo';
+  kind: "simple" | "combo";
   comboItems: FakeComboItem[];
 }
 
@@ -87,7 +87,7 @@ export interface FakeLoyaltyReward {
   id: string;
   businessId: string;
   productId: string | null;
-  type: 'free_product' | 'fixed_discount' | 'percentage_discount' | 'configurable_benefit';
+  type: "free_product" | "fixed_discount" | "percentage_discount" | "configurable_benefit";
   name: string;
   description: string;
   pointsRequired: number;
@@ -114,14 +114,14 @@ export interface FakeRedemptionRequest {
   rewardType: string;
   pointsSpent: number;
   code: string;
-  status: 'pending' | 'approved' | 'delivered' | 'cancelled' | 'expired';
+  status: "pending" | "approved" | "delivered" | "cancelled" | "expired";
   idempotencyKey: string;
   createdAt: string;
   approvedBy: string | null;
   approvedAt: string | null;
   deliveredAt?: string | null;
   cancelledAt?: string | null;
-  origin: 'manual' | 'qr_scan';
+  origin: "manual" | "qr_scan";
 }
 
 export interface FakeToken {
@@ -148,7 +148,7 @@ export interface FakePurchase {
   token: string;
   businessId?: string;
   amount_cop: number;
-  status: 'pending_claim' | 'claimed' | 'expired' | 'cancelled';
+  status: "pending_claim" | "claimed" | "expired" | "cancelled";
   points_awarded: number;
   customerId: string | null;
   registrarId: string;
@@ -231,7 +231,7 @@ export interface FakeRedemption {
   reward_name: string;
   points_spent: number;
   code: string;
-  status: 'pending_delivery' | 'redeemed' | 'cancelled';
+  status: "pending_delivery" | "redeemed" | "cancelled";
   createdAt: string;
   delivered_at: string | null;
   cancelled_at: string | null;
@@ -257,22 +257,25 @@ export interface FakeState {
   businessBalances: Record<string, number>;
   campaigns: FakeCampaign[];
   budgetSnapshots: FakeBudgetSnapshot[];
-  loyaltyPrograms: Record<string, {
-    cop_per_point_unit: number;
-    points_per_cop_unit: number;
-    points_expiry_days: number;
-    budget_rate: number;
-    first_purchase_bonus_points: number;
-    recurrence_bonus_points: number;
-    referral_bonus_points: number;
-    qr_expiry_hours: number;
-    frequent_min_purchases: number;
-    frequent_period_days: number;
-    frequent_min_spend_cop: number;
-    frequent_active_days: number;
-    recovery_inactive_days: number;
-    is_active: boolean;
-  }>;
+  loyaltyPrograms: Record<
+    string,
+    {
+      cop_per_point_unit: number;
+      points_per_cop_unit: number;
+      points_expiry_days: number;
+      budget_rate: number;
+      first_purchase_bonus_points: number;
+      recurrence_bonus_points: number;
+      referral_bonus_points: number;
+      qr_expiry_hours: number;
+      frequent_min_purchases: number;
+      frequent_period_days: number;
+      frequent_min_spend_cop: number;
+      frequent_active_days: number;
+      recovery_inactive_days: number;
+      is_active: boolean;
+    }
+  >;
   settings: {
     cop_per_point_unit: number;
     min_purchase_amount: number;
@@ -284,84 +287,84 @@ export interface FakeState {
 }
 
 export const TOKENS = {
-  registrar: 'test-token-registrar',
-  customer: 'test-token-customer',
-  customer2: 'test-token-customer2',
-  admin: 'test-token-admin',
+  registrar: "test-token-registrar",
+  customer: "test-token-customer",
+  customer2: "test-token-customer2",
+  admin: "test-token-admin",
 } as const;
 
-const STORAGE_KEY = 'sb-127-auth-token';
+const STORAGE_KEY = "sb-127-auth-token";
 const now = () => new Date().toISOString();
 
 export function createFakeState(): FakeState {
   return {
     users: [
       {
-        id: 'user-registrar',
-        name: 'Regina Caja',
-        email: 'registradora@example.test',
-        nickname: 'reginacaja',
+        id: "user-registrar",
+        name: "Regina Caja",
+        email: "registradora@example.test",
+        nickname: "reginacaja",
         nicknameChanges: 0,
         token: TOKENS.registrar,
-        roles: ['customer'],
+        roles: ["customer"],
         balance: 0,
-        createdAt: '2026-01-10T12:00:00.000Z',
+        createdAt: "2026-01-10T12:00:00.000Z",
       },
       {
-        id: 'user-customer',
-        name: 'Carla Cliente',
-        email: 'carla@example.test',
-        nickname: 'carlacliente',
+        id: "user-customer",
+        name: "Carla Cliente",
+        email: "carla@example.test",
+        nickname: "carlacliente",
         nicknameChanges: 0,
         token: TOKENS.customer,
-        roles: ['customer'],
+        roles: ["customer"],
         balance: 0,
-        createdAt: '2026-02-11T12:00:00.000Z',
+        createdAt: "2026-02-11T12:00:00.000Z",
       },
       {
-        id: 'user-customer2',
-        name: 'Diego Cliente',
-        email: 'diego@example.test',
-        nickname: 'diegocliente',
+        id: "user-customer2",
+        name: "Diego Cliente",
+        email: "diego@example.test",
+        nickname: "diegocliente",
         nicknameChanges: 0,
         token: TOKENS.customer2,
-        roles: ['customer'],
+        roles: ["customer"],
         balance: 0,
-        createdAt: '2026-03-12T12:00:00.000Z',
+        createdAt: "2026-03-12T12:00:00.000Z",
       },
       {
-        id: 'user-admin',
-        name: 'Ana Admin',
-        email: 'admin@example.test',
-        nickname: 'anaadmin',
+        id: "user-admin",
+        name: "Ana Admin",
+        email: "admin@example.test",
+        nickname: "anaadmin",
         nicknameChanges: 0,
         token: TOKENS.admin,
-        roles: ['admin'],
+        roles: ["admin"],
         balance: 0,
-        createdAt: '2026-01-01T12:00:00.000Z',
+        createdAt: "2026-01-01T12:00:00.000Z",
       },
     ],
     rewards: [
       {
-        id: '11111111-1111-4111-8111-111111111111',
-        name: 'Taco individual',
-        description: 'Un taco de guisado con doble tortilla.',
+        id: "11111111-1111-4111-8111-111111111111",
+        name: "Taco individual",
+        description: "Un taco de guisado con doble tortilla.",
         image_url: null,
         points_cost: 40,
         is_active: true,
       },
       {
-        id: '44444444-4444-4444-8444-444444444444',
-        name: 'Agua fresca',
-        description: 'Vaso de horchata o jamaica.',
+        id: "44444444-4444-4444-8444-444444444444",
+        name: "Agua fresca",
+        description: "Vaso de horchata o jamaica.",
         image_url: null,
         points_cost: 30,
         is_active: true,
       },
       {
-        id: '22222222-2222-4222-8222-222222222222',
-        name: 'Combo Enganche',
-        description: 'Dos tacos de guisado.',
+        id: "22222222-2222-4222-8222-222222222222",
+        name: "Combo Enganche",
+        description: "Dos tacos de guisado.",
         image_url: null,
         points_cost: 80,
         is_active: true,
@@ -399,15 +402,15 @@ function newId() {
 }
 
 function newToken() {
-  return `tok_${crypto.randomUUID().replace(/-/g, '')}`;
+  return `tok_${crypto.randomUUID().replace(/-/g, "")}`;
 }
 
 function newCode() {
-  return `TP${crypto.randomUUID().replace(/-/g, '').slice(0, 12).toUpperCase()}`;
+  return `TP${crypto.randomUUID().replace(/-/g, "").slice(0, 12).toUpperCase()}`;
 }
 
 function normalizeCode(value: string) {
-  return value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+  return value.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
 }
 
 function userFor(state: FakeState, token: string) {
@@ -418,54 +421,40 @@ function userFor(state: FakeState, token: string) {
  * Saldo simulado del programa: parte de 100 loopoints y descuenta las solicitudes
  * que reservaron loopoints (pendientes, aprobadas o entregadas).
  */
-function loyaltyBalance(
-  state: FakeState,
-  userId: string,
-  businessId?: string,
-) {
+function loyaltyBalance(state: FakeState, userId: string, businessId?: string) {
   const reserved = state.redemptionRequests
     .filter(
       (request) =>
         request.accountId === userId &&
         (!businessId || request.businessId === businessId) &&
-        request.status !== 'cancelled' &&
-        request.status !== 'expired',
+        request.status !== "cancelled" &&
+        request.status !== "expired",
     )
     .reduce((sum, request) => sum + request.pointsSpent, 0);
-  const explicit = businessId
-    ? state.businessBalances[`${businessId}:${userId}`]
-    : undefined;
+  const explicit = businessId ? state.businessBalances[`${businessId}:${userId}`] : undefined;
   const base = explicit ?? 100 + (state.purchaseCredits[userId] ?? 0);
   return Math.max(base - reserved, 0);
 }
 
-function customerFrequency(
-  state: FakeState,
-  userId: string,
-  businessId?: string | null,
-) {
+function customerFrequency(state: FakeState, userId: string, businessId?: string | null) {
   const purchases = state.purchases.filter(
     (purchase) =>
       purchase.customerId === userId &&
-      purchase.status === 'claimed' &&
+      purchase.status === "claimed" &&
       (!businessId || purchase.businessId === businessId),
   );
-  const last = purchases
-    .map((purchase) => purchase.claimed_at ?? purchase.createdAt)
-    .sort()
-    .at(-1) ?? null;
-  const ageDays = last
-    ? (Date.now() - new Date(last).getTime()) / (24 * 3600 * 1000)
-    : null;
+  const last =
+    purchases
+      .map((purchase) => purchase.claimed_at ?? purchase.createdAt)
+      .sort()
+      .at(-1) ?? null;
+  const ageDays = last ? (Date.now() - new Date(last).getTime()) / (24 * 3600 * 1000) : null;
   const isFrequent = purchases.length >= 3;
   const isActive = isFrequent && ageDays !== null && ageDays <= 30;
   const isRecovering = last !== null && !isActive && (ageDays ?? 0) > 60;
   return {
     purchase_count: purchases.length,
-    total_spent_cop: purchases.reduce(
-      (sum, purchase) => sum + purchase.amount_cop,
-      0,
-    ),
+    total_spent_cop: purchases.reduce((sum, purchase) => sum + purchase.amount_cop, 0),
     last_purchase_at: last,
     is_frequent: isFrequent,
     is_frequent_active: isActive,
@@ -478,19 +467,19 @@ export function sessionFor(user: FakeUser) {
   return {
     access_token: user.token,
     refresh_token: `${user.token}-refresh`,
-    token_type: 'bearer',
+    token_type: "bearer",
     expires_in: 3600,
     expires_at: timestamp + 3600,
     user: {
       id: user.id,
-      aud: 'authenticated',
-      role: 'authenticated',
+      aud: "authenticated",
+      role: "authenticated",
       email: user.email,
       email_confirmed_at: new Date().toISOString(),
-      phone: '',
+      phone: "",
       confirmed_at: new Date().toISOString(),
       last_sign_in_at: new Date().toISOString(),
-      app_metadata: { provider: 'google', providers: ['google'] },
+      app_metadata: { provider: "google", providers: ["google"] },
       user_metadata: { full_name: user.name, name: user.name },
       identities: [],
       created_at: user.createdAt,
@@ -499,11 +488,7 @@ export function sessionFor(user: FakeUser) {
   };
 }
 
-export async function injectSession(
-  context: BrowserContext,
-  state: FakeState,
-  token: string,
-) {
+export async function injectSession(context: BrowserContext, state: FakeState, token: string) {
   const user = userFor(state, token);
   if (!user) throw new Error(`Usuario falso desconocido: ${token}`);
   const session = sessionFor(user);
@@ -520,35 +505,26 @@ export async function injectSession(
 }
 
 const CORS_HEADERS = {
-  'access-control-allow-origin': '*',
-  'access-control-allow-headers': '*',
-  'access-control-allow-methods': 'GET,POST,OPTIONS',
-  'cache-control': 'no-store',
+  "access-control-allow-origin": "*",
+  "access-control-allow-headers": "*",
+  "access-control-allow-methods": "GET,POST,OPTIONS",
+  "cache-control": "no-store",
 };
 
 function json(route: Route, body: unknown, status = 200) {
   return route.fulfill({
     status,
-    headers: { ...CORS_HEADERS, 'content-type': 'application/json' },
+    headers: { ...CORS_HEADERS, "content-type": "application/json" },
     body: JSON.stringify(body),
   });
 }
 
 function fail(route: Route, message: string) {
-  return json(
-    route,
-    { code: 'P0001', details: null, hint: null, message },
-    400,
-  );
+  return json(route, { code: "P0001", details: null, hint: null, message }, 400);
 }
 
-
 /** Loopoints de una compra aplicando la campaña vigente (misma regla del backend). */
-function purchasePoints(
-  state: FakeState,
-  businessId: string,
-  amountCop: number,
-): number {
+function purchasePoints(state: FakeState, businessId: string, amountCop: number): number {
   const program = state.loyaltyPrograms[businessId];
   if (!program) return 0;
   const base = Math.floor(amountCop / Math.max(program.cop_per_point_unit, 1));
@@ -563,9 +539,7 @@ function purchasePoints(
         amountCop >= item.minPurchaseAmount,
     )
     .sort((a, b) => b.multiplier - a.multiplier || b.bonusPoints - a.bonusPoints)[0];
-  const points = campaign
-    ? Math.floor(base * campaign.multiplier) + campaign.bonusPoints
-    : base;
+  const points = campaign ? Math.floor(base * campaign.multiplier) + campaign.bonusPoints : base;
   return Math.min(Math.max(points, 0), 1_000_000);
 }
 
@@ -603,8 +577,8 @@ function fakePurchaseDetail(state: FakeState, purchase: FakePurchase) {
     },
     business: {
       id: business?.id ?? purchase.businessId,
-      name: business?.name ?? 'Negocio',
-      slug: business?.slug ?? '',
+      name: business?.name ?? "Negocio",
+      slug: business?.slug ?? "",
       logo_url: business?.logoUrl ?? null,
     },
     customer: customer
@@ -623,11 +597,7 @@ function fakePurchaseDetail(state: FakeState, purchase: FakePurchase) {
   };
 }
 
-function buildPurchaseLines(
-  state: FakeState,
-  businessId: string,
-  rawItems: unknown,
-) {
+function buildPurchaseLines(state: FakeState, businessId: string, rawItems: unknown) {
   if (!Array.isArray(rawItems) || rawItems.length === 0) {
     return { items: [] as FakePurchaseLine[], total: 0 };
   }
@@ -637,10 +607,10 @@ function buildPurchaseLines(
     const product = state.products.find(
       (row) => row.id === raw.product_id && row.businessId === businessId,
     );
-    if (!product) throw new Error('product_not_found');
+    if (!product) throw new Error("product_not_found");
     const quantity = Number(raw.quantity ?? 0);
     if (!Number.isInteger(quantity) || quantity < 1 || quantity > 99) {
-      throw new Error('invalid_purchase_quantity');
+      throw new Error("invalid_purchase_quantity");
     }
     const lineTotal = product.priceCop * quantity;
     total += lineTotal;
@@ -651,8 +621,8 @@ function buildPurchaseLines(
       quantity,
       unit_price_cop: product.priceCop,
       line_total_cop: lineTotal,
-      is_combo: product.kind === 'combo',
-      combo_detail: product.kind === 'combo' ? comboItemsFor(state, product) : [],
+      is_combo: product.kind === "combo",
+      combo_detail: product.kind === "combo" ? comboItemsFor(state, product) : [],
     });
   }
   return { items, total };
@@ -661,21 +631,20 @@ function buildPurchaseLines(
 function purchasePreview(state: FakeState, purchase: FakePurchase) {
   const business = state.businesses.find((item) => item.id === purchase.businessId);
   const expired =
-    purchase.status === 'pending_claim' &&
-    new Date(purchase.expiresAt).getTime() <= Date.now();
-  const status = expired ? 'expired' : purchase.status;
+    purchase.status === "pending_claim" && new Date(purchase.expiresAt).getTime() <= Date.now();
+  const status = expired ? "expired" : purchase.status;
   return {
     purchase_id: purchase.id,
-    business_id: purchase.businessId ?? '',
-    business_name: business?.name ?? 'Negocio',
-    business_slug: business?.slug ?? '',
+    business_id: purchase.businessId ?? "",
+    business_name: business?.name ?? "Negocio",
+    business_slug: business?.slug ?? "",
     amount_cop: purchase.amount_cop,
     points_preview:
-      status === 'claimed'
+      status === "claimed"
         ? purchase.points_awarded
-        : purchasePoints(state, purchase.businessId ?? '', purchase.amount_cop),
+        : purchasePoints(state, purchase.businessId ?? "", purchase.amount_cop),
     status,
-    claimed: status === 'claimed',
+    claimed: status === "claimed",
     expires_at: purchase.expiresAt,
     business_logo_url: business?.logoUrl ?? null,
     items: purchase.items ?? [],
@@ -685,8 +654,7 @@ function purchasePreview(state: FakeState, purchase: FakePurchase) {
 
 function dashboard(state: FakeState, user: FakeUser) {
   const claimed = state.purchases.filter(
-    (purchase) =>
-      purchase.customerId === user.id && purchase.status === 'claimed',
+    (purchase) => purchase.customerId === user.id && purchase.status === "claimed",
   );
   const nextReward =
     state.rewards
@@ -700,9 +668,7 @@ function dashboard(state: FakeState, user: FakeUser) {
       (reward) => reward.is_active && reward.points_cost <= user.balance,
     ).length,
     pending_redemptions: state.redemptions.filter(
-      (redemption) =>
-        redemption.customerId === user.id &&
-        redemption.status === 'pending_delivery',
+      (redemption) => redemption.customerId === user.id && redemption.status === "pending_delivery",
     ).length,
     next_reward: nextReward
       ? {
@@ -731,69 +697,59 @@ function lookupRedemption(state: FakeState, code: string) {
     created_at: redemption.createdAt,
     delivered_at: redemption.delivered_at,
     cancelled_at: redemption.cancelled_at,
-    customer_name: customer?.name ?? 'Cliente',
-    customer_email: customer?.email ?? '',
+    customer_name: customer?.name ?? "Cliente",
+    customer_email: customer?.email ?? "",
   };
 }
 
 export async function installFakeSupabase(page: Page, state: FakeState) {
-  await page.route('**/auth/v1/**', async (route) => {
+  await page.route("**/auth/v1/**", async (route) => {
     const request = route.request();
-    if (request.method() === 'OPTIONS') {
+    if (request.method() === "OPTIONS") {
       return route.fulfill({ status: 204, headers: CORS_HEADERS });
     }
-    const token = (request.headers()['authorization'] ?? '').replace(
-      /^Bearer\s+/i,
-      '',
-    );
+    const token = (request.headers()["authorization"] ?? "").replace(/^Bearer\s+/i, "");
     const user = userFor(state, token) ?? state.users.find((u) => u.token === TOKENS.admin);
-    if (request.url().includes('/user') && user) {
+    if (request.url().includes("/user") && user) {
       return json(route, sessionFor(user).user);
     }
-    if (request.url().includes('/logout')) {
+    if (request.url().includes("/logout")) {
       return json(route, {});
     }
-    if (request.url().includes('/token') && user) {
+    if (request.url().includes("/token") && user) {
       return json(route, sessionFor(user));
     }
     return json(route, {});
   });
 
-  await page.route('**/rest/v1/rpc/**', async (route) => {
+  await page.route("**/rest/v1/rpc/**", async (route) => {
     const request = route.request();
-    if (request.method() === 'OPTIONS') {
+    if (request.method() === "OPTIONS") {
       return route.fulfill({ status: 204, headers: CORS_HEADERS });
     }
 
-    const functionName = new URL(request.url()).pathname.split('/').pop() ?? '';
+    const functionName = new URL(request.url()).pathname.split("/").pop() ?? "";
     const body = (request.postDataJSON() ?? {}) as any;
-    const token = (request.headers()['authorization'] ?? '').replace(
-      /^Bearer\s+/i,
-      '',
-    );
+    const token = (request.headers()["authorization"] ?? "").replace(/^Bearer\s+/i, "");
     // En E2E el cliente envía la sesión desde localStorage. Si no hay token
     // válido, usamos el administrador por defecto para permitir los flujos de UI.
     const user = userFor(state, token) ?? state.users.find((u) => u.token === TOKENS.admin);
-    const isStaff = Boolean(user?.roles.includes('admin') || user?.roles.includes('encargado'));
-    const isAdmin = Boolean(user?.roles.includes('admin'));
+    const isStaff = Boolean(user?.roles.includes("admin") || user?.roles.includes("encargado"));
+    const isAdmin = Boolean(user?.roles.includes("admin"));
 
     switch (functionName) {
-      case 'get_my_roles':
+      case "get_my_roles":
         return json(route, user?.roles ?? []);
-      case 'get_my_app_roles': {
+      case "get_my_app_roles": {
         if (!user) return json(route, []);
         const mapped = state.memberships
           .filter((m) => m.userId === user.id)
           .map((m) =>
-            m.role === 'admin'
-              ? 'admin'
-              : m.role === 'encargado'
-                ? 'registrar'
-                : 'customer',
+            m.role === "admin" ? "admin" : m.role === "encargado" ? "registrar" : "customer",
           );
         return json(route, Array.from(new Set([...user.roles, ...mapped])));
       }
-      case 'get_my_profile':
+      case "get_my_profile":
         return json(route, {
           id: user?.id,
           full_name: user?.name,
@@ -801,51 +757,46 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           nickname: user?.nickname ?? null,
           nickname_changes: user?.nicknameChanges ?? 0,
           nickname_changes_left: 2 - (user?.nicknameChanges ?? 0),
-          business_count: state.memberships.filter((m) => m.userId === user?.id)
-            .length,
+          business_count: state.memberships.filter((m) => m.userId === user?.id).length,
           created_at: user?.createdAt,
         });
-      case 'profile_nickname_ensure':
-        return json(route, user?.nickname ?? 'cliente');
-      case 'profile_nickname_available': {
-        const candidate = String(body.p_nickname ?? '').trim().toLowerCase();
+      case "profile_nickname_ensure":
+        return json(route, user?.nickname ?? "cliente");
+      case "profile_nickname_available": {
+        const candidate = String(body.p_nickname ?? "")
+          .trim()
+          .toLowerCase();
         if (!/^[a-z0-9._-]{3,24}$/.test(candidate)) return json(route, false);
-        if (['admin', 'loopoint', 'soporte', 'sistema'].includes(candidate)) {
+        if (["admin", "loopoint", "soporte", "sistema"].includes(candidate)) {
           return json(route, false);
         }
         return json(
           route,
-          !state.users.some(
-            (item) => item.id !== user?.id && item.nickname === candidate,
-          ),
+          !state.users.some((item) => item.id !== user?.id && item.nickname === candidate),
         );
       }
-      case 'profile_update': {
-        if (!user) return fail(route, 'not_authenticated');
+      case "profile_update": {
+        if (!user) return fail(route, "not_authenticated");
         const nextName = String(body.p_full_name ?? user.name).trim();
-        const nextNickname = String(body.p_nickname ?? user.nickname ?? '')
+        const nextNickname = String(body.p_nickname ?? user.nickname ?? "")
           .trim()
           .toLowerCase();
         if (nextName.length < 2 || nextName.length > 120) {
-          return fail(route, 'invalid_full_name');
+          return fail(route, "invalid_full_name");
         }
         if (!/^[a-z0-9._-]{3,24}$/.test(nextNickname)) {
-          return fail(route, 'invalid_nickname');
+          return fail(route, "invalid_nickname");
         }
-        if (['admin', 'loopoint', 'soporte', 'sistema'].includes(nextNickname)) {
-          return fail(route, 'nickname_reserved');
+        if (["admin", "loopoint", "soporte", "sistema"].includes(nextNickname)) {
+          return fail(route, "nickname_reserved");
         }
-        if (
-          state.users.some(
-            (item) => item.id !== user.id && item.nickname === nextNickname,
-          )
-        ) {
-          return fail(route, 'nickname_taken');
+        if (state.users.some((item) => item.id !== user.id && item.nickname === nextNickname)) {
+          return fail(route, "nickname_taken");
         }
         const previous = user.nickname;
         if (previous && previous !== nextNickname) {
           if ((user.nicknameChanges ?? 0) >= 2) {
-            return fail(route, 'nickname_change_limit');
+            return fail(route, "nickname_change_limit");
           }
           user.nicknameChanges = (user.nicknameChanges ?? 0) + 1;
         }
@@ -858,21 +809,16 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           nickname: user.nickname,
           nickname_changes: user.nicknameChanges ?? 0,
           nickname_changes_left: 2 - (user.nicknameChanges ?? 0),
-          business_count: state.memberships.filter((m) => m.userId === user.id)
-            .length,
+          business_count: state.memberships.filter((m) => m.userId === user.id).length,
         });
       }
-      case 'get_program_settings':
+      case "get_program_settings":
         return json(route, state.settings);
-      case 'get_my_dashboard':
+      case "get_my_dashboard":
         return json(route, dashboard(state, user!));
-      case 'list_my_purchases': {
+      case "list_my_purchases": {
         const claimed = state.purchases
-          .filter(
-            (purchase) =>
-              purchase.customerId === user!.id &&
-              purchase.status === 'claimed',
-          )
+          .filter((purchase) => purchase.customerId === user!.id && purchase.status === "claimed")
           .sort(
             (a, b) =>
               new Date(b.claimed_at ?? b.createdAt).getTime() -
@@ -892,7 +838,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           })),
         );
       }
-      case 'list_active_rewards':
+      case "list_active_rewards":
         return json(
           route,
           state.rewards
@@ -905,15 +851,12 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
               can_redeem: user!.balance >= reward.points_cost,
             })),
         );
-      case 'list_my_redemptions':
+      case "list_my_redemptions":
         return json(
           route,
           state.redemptions
             .filter((redemption) => redemption.customerId === user!.id)
-            .sort(
-              (a, b) =>
-                new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-            )
+            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
             .map((redemption) => ({
               id: redemption.id,
               reward_name: redemption.reward_name,
@@ -925,43 +868,38 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
               cancelled_at: redemption.cancelled_at,
             })),
         );
-      case 'purchase_qr_create_with_items':
-      case 'purchase_qr_create': {
-        if (!isStaff) return fail(route, 'forbidden');
-        const businessId = String(body.p_business_id ?? '');
+      case "purchase_qr_create_with_items":
+      case "purchase_qr_create": {
+        if (!isStaff) return fail(route, "forbidden");
+        const businessId = String(body.p_business_id ?? "");
         const program = state.loyaltyPrograms[businessId];
-        if (!program?.is_active) return fail(route, 'program_not_active');
+        if (!program?.is_active) return fail(route, "program_not_active");
         const amount = Number(body.p_amount_cop ?? 0);
         if (!Number.isFinite(amount) || amount <= 0) {
-          return fail(route, 'amount_invalid');
+          return fail(route, "amount_invalid");
         }
-        if (amount > 50_000_000) return fail(route, 'amount_too_large');
+        if (amount > 50_000_000) return fail(route, "amount_too_large");
         let lines: FakePurchaseLine[] = [];
         try {
           const built = buildPurchaseLines(state, businessId, body.p_items);
           lines = built.items;
           if (lines.length > 0 && built.total !== amount) {
-            return fail(route, 'purchase_items_total_mismatch');
+            return fail(route, "purchase_items_total_mismatch");
           }
         } catch (error) {
-          return fail(
-            route,
-            error instanceof Error ? error.message : 'invalid_purchase_items',
-          );
+          return fail(route, error instanceof Error ? error.message : "invalid_purchase_items");
         }
         const purchase: FakePurchase = {
           id: newId(),
           token: newToken(),
           businessId,
           amount_cop: amount,
-          status: 'pending_claim',
+          status: "pending_claim",
           points_awarded: 0,
           customerId: null,
           registrarId: user!.id,
           createdAt: now(),
-          expiresAt: new Date(
-            Date.now() + program.qr_expiry_hours * 3600 * 1000,
-          ).toISOString(),
+          expiresAt: new Date(Date.now() + program.qr_expiry_hours * 3600 * 1000).toISOString(),
           claimed_at: null,
           items: lines,
         };
@@ -971,8 +909,8 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           id: `audit-${crypto.randomUUID().slice(0, 8)}`,
           businessId,
           actorEmail: user!.email,
-          operation: 'purchase.qr_created',
-          entityType: 'purchase',
+          operation: "purchase.qr_created",
+          entityType: "purchase",
           entityId: purchase.id,
           metadata: {
             amount_cop: amount,
@@ -984,49 +922,48 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           purchase_id: purchase.id,
           token: purchase.token,
           business_id: businessId,
-          business_name: business?.name ?? 'Negocio',
+          business_name: business?.name ?? "Negocio",
           amount_cop: amount,
           points_preview: purchasePoints(state, businessId, amount),
           expires_at: purchase.expiresAt,
-          status: 'pending_claim',
+          status: "pending_claim",
           items: lines,
         });
       }
-      case 'purchase_qr_preview': {
-        const tokenValue = String(body.p_token ?? '');
+      case "purchase_qr_preview": {
+        const tokenValue = String(body.p_token ?? "");
         const purchase = state.purchases.find((item) => item.token === tokenValue);
-        if (!purchase) return fail(route, 'invalid_token');
+        if (!purchase) return fail(route, "invalid_token");
         return json(route, purchasePreview(state, purchase));
       }
-      case 'purchase_qr_claim': {
-        if (!user) return fail(route, 'not_authenticated');
-        const tokenValue = String(body.p_token ?? '');
+      case "purchase_qr_claim": {
+        if (!user) return fail(route, "not_authenticated");
+        const tokenValue = String(body.p_token ?? "");
         const purchase = state.purchases.find((item) => item.token === tokenValue);
-        if (!purchase) return fail(route, 'invalid_token');
-        if (purchase.status === 'cancelled') return fail(route, 'purchase_cancelled');
-        if (purchase.status === 'claimed') {
-          return fail(route, 'purchase_already_claimed');
+        if (!purchase) return fail(route, "invalid_token");
+        if (purchase.status === "cancelled") return fail(route, "purchase_cancelled");
+        if (purchase.status === "claimed") {
+          return fail(route, "purchase_already_claimed");
         }
-        if (
-          purchase.status === 'expired' ||
-          new Date(purchase.expiresAt).getTime() <= Date.now()
-        ) {
-          purchase.status = 'expired';
-          return fail(route, 'purchase_expired');
+        if (purchase.status === "expired" || new Date(purchase.expiresAt).getTime() <= Date.now()) {
+          purchase.status = "expired";
+          return fail(route, "purchase_expired");
         }
-        const businessId = purchase.businessId ?? '';
+        const businessId = purchase.businessId ?? "";
         const business = state.businesses.find((item) => item.id === businessId);
         const program = state.loyaltyPrograms[businessId];
-        if (!program?.is_active) return fail(route, 'program_not_active');
+        if (!program?.is_active) return fail(route, "program_not_active");
 
-        if (!state.memberships.some(
-          (item) => item.businessId === businessId && item.userId === user.id,
-        )) {
+        if (
+          !state.memberships.some(
+            (item) => item.businessId === businessId && item.userId === user.id,
+          )
+        ) {
           state.memberships.push({
             id: newId(),
             businessId,
             userId: user.id,
-            role: 'cliente',
+            role: "cliente",
             canApproveRedemptions: false,
             createdAt: now(),
           });
@@ -1046,7 +983,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
         };
         state.purchaseEvents.push(event);
         state.purchaseCredits[user.id] = (state.purchaseCredits[user.id] ?? 0) + points;
-        purchase.status = 'claimed';
+        purchase.status = "claimed";
         purchase.customerId = user.id;
         purchase.claimed_at = now();
         purchase.points_awarded = points;
@@ -1054,8 +991,8 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           id: `audit-${crypto.randomUUID().slice(0, 8)}`,
           businessId,
           actorEmail: user.email,
-          operation: 'purchase.qr_claimed',
-          entityType: 'purchase',
+          operation: "purchase.qr_claimed",
+          entityType: "purchase",
           entityId: purchase.id,
           metadata: {
             amount_cop: purchase.amount_cop,
@@ -1067,8 +1004,8 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
         return json(route, {
           purchase_id: purchase.id,
           business_id: businessId,
-          business_name: business?.name ?? 'Negocio',
-          business_slug: business?.slug ?? '',
+          business_name: business?.name ?? "Negocio",
+          business_slug: business?.slug ?? "",
           amount_cop: purchase.amount_cop,
           points_awarded: points,
           balance: loyaltyBalance(state, user.id, businessId),
@@ -1076,31 +1013,23 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           duplicate: false,
         });
       }
-      case 'business_purchases_list': {
-        if (!isStaff) return fail(route, 'forbidden');
-        const businessId = String(body.p_business_id ?? '');
-        const status = body.p_status ? String(body.p_status) : '';
+      case "business_purchases_list": {
+        if (!isStaff) return fail(route, "forbidden");
+        const businessId = String(body.p_business_id ?? "");
+        const status = body.p_status ? String(body.p_status) : "";
         const limit = Number(body.p_limit ?? 20);
         const offset = Number(body.p_offset ?? 0);
         const rows = state.purchases
           .filter(
             (purchase) =>
-              purchase.businessId === businessId &&
-              (!status || purchase.status === status),
+              purchase.businessId === businessId && (!status || purchase.status === status),
           )
-          .sort(
-            (a, b) =>
-              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-          );
+          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         return json(
           route,
           rows.slice(offset, offset + limit).map((purchase) => {
-            const customer = state.users.find(
-              (item) => item.id === purchase.customerId,
-            );
-            const registrar = state.users.find(
-              (item) => item.id === purchase.registrarId,
-            );
+            const customer = state.users.find((item) => item.id === purchase.customerId);
+            const registrar = state.users.find((item) => item.id === purchase.registrarId);
             return {
               id: purchase.id,
               amount_cop: purchase.amount_cop,
@@ -1117,28 +1046,21 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           }),
         );
       }
-      case 'business_purchases_page': {
-        if (!isStaff) return fail(route, 'forbidden');
-        const businessId = String(body.p_business_id ?? '');
-        const status = body.p_status ? String(body.p_status) : '';
+      case "business_purchases_page": {
+        if (!isStaff) return fail(route, "forbidden");
+        const businessId = String(body.p_business_id ?? "");
+        const status = body.p_status ? String(body.p_status) : "";
         const limit = Number(body.p_limit ?? 20);
         const offset = Number(body.p_offset ?? 0);
         const rows = state.purchases
           .filter((purchase) => purchase.businessId === businessId)
           .filter((purchase) => !status || purchase.status === status)
-          .sort(
-            (a, b) =>
-              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-          );
+          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         return json(
           route,
           rows.slice(offset, offset + limit).map((purchase) => {
-            const customer = state.users.find(
-              (item) => item.id === purchase.customerId,
-            );
-            const registrar = state.users.find(
-              (item) => item.id === purchase.registrarId,
-            );
+            const customer = state.users.find((item) => item.id === purchase.customerId);
+            const registrar = state.users.find((item) => item.id === purchase.registrarId);
             return {
               id: purchase.id,
               amount_cop: purchase.amount_cop,
@@ -1157,26 +1079,23 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           }),
         );
       }
-      case 'business_purchase_detail': {
-        if (!isStaff) return fail(route, 'forbidden');
+      case "business_purchase_detail": {
+        if (!isStaff) return fail(route, "forbidden");
         const purchase = state.purchases.find(
           (item) =>
-            item.id === String(body.p_purchase_id ?? '') &&
-            item.businessId === String(body.p_business_id ?? ''),
+            item.id === String(body.p_purchase_id ?? "") &&
+            item.businessId === String(body.p_business_id ?? ""),
         );
-        if (!purchase) return fail(route, 'purchase_not_found');
+        if (!purchase) return fail(route, "purchase_not_found");
         return json(route, fakePurchaseDetail(state, purchase));
       }
-      case 'my_purchases_page': {
-        if (!user) return fail(route, 'not_authenticated');
-        const businessId = body.p_business_id ? String(body.p_business_id) : '';
+      case "my_purchases_page": {
+        if (!user) return fail(route, "not_authenticated");
+        const businessId = body.p_business_id ? String(body.p_business_id) : "";
         const limit = Number(body.p_limit ?? 20);
         const offset = Number(body.p_offset ?? 0);
         const rows = state.purchases
-          .filter(
-            (purchase) =>
-              purchase.customerId === user.id && purchase.status === 'claimed',
-          )
+          .filter((purchase) => purchase.customerId === user.id && purchase.status === "claimed")
           .filter((purchase) => !businessId || purchase.businessId === businessId)
           .sort(
             (a, b) =>
@@ -1186,14 +1105,12 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
         return json(
           route,
           rows.slice(offset, offset + limit).map((purchase) => {
-            const business = state.businesses.find(
-              (item) => item.id === purchase.businessId,
-            );
+            const business = state.businesses.find((item) => item.id === purchase.businessId);
             return {
               id: purchase.id,
               business_id: purchase.businessId,
-              business_name: business?.name ?? 'Negocio',
-              business_slug: business?.slug ?? '',
+              business_name: business?.name ?? "Negocio",
+              business_slug: business?.slug ?? "",
               business_logo_url: business?.logoUrl ?? null,
               amount_cop: purchase.amount_cop,
               points_awarded: purchase.points_awarded,
@@ -1205,59 +1122,54 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           }),
         );
       }
-      case 'my_purchase_detail': {
-        if (!user) return fail(route, 'not_authenticated');
+      case "my_purchase_detail": {
+        if (!user) return fail(route, "not_authenticated");
         const purchase = state.purchases.find(
           (item) =>
-            item.id === String(body.p_purchase_id ?? '') &&
+            item.id === String(body.p_purchase_id ?? "") &&
             item.customerId === user.id &&
-            item.status === 'claimed',
+            item.status === "claimed",
         );
-        if (!purchase) return fail(route, 'purchase_not_found');
+        if (!purchase) return fail(route, "purchase_not_found");
         return json(route, fakePurchaseDetail(state, purchase));
       }
-      case 'purchase_qr_cancel': {
-        if (!isStaff) return fail(route, 'forbidden');
+      case "purchase_qr_cancel": {
+        if (!isStaff) return fail(route, "forbidden");
         const purchase = state.purchases.find(
           (item) =>
-            item.id === String(body.p_purchase_id ?? '') &&
-            item.businessId === String(body.p_business_id ?? ''),
+            item.id === String(body.p_purchase_id ?? "") &&
+            item.businessId === String(body.p_business_id ?? ""),
         );
-        if (!purchase) return fail(route, 'purchase_not_found');
-        if (purchase.status === 'claimed') {
-          return fail(route, 'purchase_already_claimed');
+        if (!purchase) return fail(route, "purchase_not_found");
+        if (purchase.status === "claimed") {
+          return fail(route, "purchase_already_claimed");
         }
-        purchase.status = 'cancelled';
+        purchase.status = "cancelled";
         state.auditLogs.unshift({
           id: `audit-${crypto.randomUUID().slice(0, 8)}`,
-          businessId: String(body.p_business_id ?? ''),
+          businessId: String(body.p_business_id ?? ""),
           actorEmail: user!.email,
-          operation: 'purchase.qr_cancelled',
-          entityType: 'purchase',
+          operation: "purchase.qr_cancelled",
+          entityType: "purchase",
           entityId: purchase.id,
-          metadata: { reason: String(body.p_reason ?? '') },
+          metadata: { reason: String(body.p_reason ?? "") },
           createdAt: now(),
         });
-        return json(route, { purchase_id: purchase.id, status: 'cancelled' });
+        return json(route, { purchase_id: purchase.id, status: "cancelled" });
       }
-      case 'claim_purchase': {
-        const tokenValue = String(body.p_token ?? '');
-        const purchase = state.purchases.find(
-          (item) => item.token === tokenValue,
-        );
-        if (!purchase) return fail(route, 'invalid_token');
-        if (purchase.status === 'cancelled') return fail(route, 'purchase_cancelled');
-        if (purchase.status === 'claimed') {
-          return fail(route, 'purchase_already_claimed');
+      case "claim_purchase": {
+        const tokenValue = String(body.p_token ?? "");
+        const purchase = state.purchases.find((item) => item.token === tokenValue);
+        if (!purchase) return fail(route, "invalid_token");
+        if (purchase.status === "cancelled") return fail(route, "purchase_cancelled");
+        if (purchase.status === "claimed") {
+          return fail(route, "purchase_already_claimed");
         }
-        if (
-          purchase.status === 'expired' ||
-          new Date(purchase.expiresAt).getTime() <= Date.now()
-        ) {
-          purchase.status = 'expired';
-          return fail(route, 'purchase_expired');
+        if (purchase.status === "expired" || new Date(purchase.expiresAt).getTime() <= Date.now()) {
+          purchase.status = "expired";
+          return fail(route, "purchase_expired");
         }
-        purchase.status = 'claimed';
+        purchase.status = "claimed";
         purchase.customerId = user!.id;
         purchase.claimed_at = now();
         purchase.points_awarded = Math.min(
@@ -1273,16 +1185,14 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           claimed_at: purchase.claimed_at,
         });
       }
-      case 'customer_redeem_reward':
-        return fail(route, 'redemption_requires_admin');
-      case 'admin_redeem_reward': {
-        if (!isAdmin) return fail(route, 'forbidden');
-        const customer = state.users.find(
-          (item) => item.id === String(body.p_customer_id ?? ''),
-        );
-        if (!customer) return fail(route, 'customer_not_found');
-        const rewardId = String(body.p_reward_id ?? '');
-        const key = String(body.p_idempotency_key ?? '');
+      case "customer_redeem_reward":
+        return fail(route, "redemption_requires_admin");
+      case "admin_redeem_reward": {
+        if (!isAdmin) return fail(route, "forbidden");
+        const customer = state.users.find((item) => item.id === String(body.p_customer_id ?? ""));
+        if (!customer) return fail(route, "customer_not_found");
+        const rewardId = String(body.p_reward_id ?? "");
+        const key = String(body.p_idempotency_key ?? "");
         const existing = state.redemptions.find(
           (item) => item.customerId === customer.id && item.idempotencyKey === key,
         );
@@ -1298,9 +1208,9 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           });
         }
         const reward = state.rewards.find((item) => item.id === rewardId);
-        if (!reward || !reward.is_active) return fail(route, 'reward_unavailable');
+        if (!reward || !reward.is_active) return fail(route, "reward_unavailable");
         if (customer.balance < reward.points_cost) {
-          return fail(route, 'insufficient_points');
+          return fail(route, "insufficient_points");
         }
         const redemption: FakeRedemption = {
           id: newId(),
@@ -1309,7 +1219,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           reward_name: reward.name,
           points_spent: reward.points_cost,
           code: newCode(),
-          status: 'redeemed',
+          status: "redeemed",
           createdAt: now(),
           delivered_at: now(),
           cancelled_at: null,
@@ -1327,21 +1237,21 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           duplicate: false,
         });
       }
-      case 'create_purchase': {
-        if (!isStaff) return fail(route, 'forbidden');
+      case "create_purchase": {
+        if (!isStaff) return fail(route, "forbidden");
         const amount = Number(body.p_amount_cop ?? 0);
         if (!Number.isFinite(amount) || amount <= 0) {
-          return fail(route, 'amount_invalid');
+          return fail(route, "amount_invalid");
         }
         if (amount < state.settings.min_purchase_amount) {
-          return fail(route, 'amount_below_minimum');
+          return fail(route, "amount_below_minimum");
         }
-        if (amount > 50_000_000) return fail(route, 'amount_too_large');
+        if (amount > 50_000_000) return fail(route, "amount_too_large");
         const purchase: FakePurchase = {
           id: newId(),
           token: newToken(),
           amount_cop: amount,
-          status: 'pending_claim',
+          status: "pending_claim",
           points_awarded: 0,
           customerId: null,
           registrarId: user!.id,
@@ -1361,23 +1271,21 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
             state.settings.max_points_per_purchase,
           ),
           expires_at: purchase.expiresAt,
-          status: 'pending_claim',
+          status: "pending_claim",
         });
       }
-      case 'staff_list_customers': {
-        if (!isStaff) return fail(route, 'forbidden');
-        const search = String(body.p_search ?? '').toLowerCase();
+      case "staff_list_customers": {
+        if (!isStaff) return fail(route, "forbidden");
+        const search = String(body.p_search ?? "").toLowerCase();
         const limit = Number(body.p_limit ?? 20);
         const offset = Number(body.p_offset ?? 0);
-        const sort = String(body.p_sort ?? 'created_at');
-        const direction = String(body.p_direction ?? 'desc') === 'asc' ? 1 : -1;
-        const businessId = body.p_business_id
-          ? String(body.p_business_id)
-          : null;
+        const sort = String(body.p_sort ?? "created_at");
+        const direction = String(body.p_direction ?? "desc") === "asc" ? 1 : -1;
+        const businessId = body.p_business_id ? String(body.p_business_id) : null;
         const onlyFrequent = Boolean(body.p_only_frequent);
         const rows = state.users
-          .filter((item) => item.roles.includes('customer'))
-          .filter((item) => !item.roles.includes('admin'))
+          .filter((item) => item.roles.includes("customer"))
+          .filter((item) => !item.roles.includes("admin"))
           .filter(
             (item) =>
               !businessId ||
@@ -1385,7 +1293,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
                 (membership) =>
                   membership.businessId === businessId &&
                   membership.userId === item.id &&
-                  membership.role === 'cliente',
+                  membership.role === "cliente",
               ),
           )
           .filter(
@@ -1393,17 +1301,14 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
               !search ||
               item.name.toLowerCase().includes(search) ||
               item.email.toLowerCase().includes(search) ||
-              (item.nickname ?? '').toLowerCase().includes(search),
+              (item.nickname ?? "").toLowerCase().includes(search),
           )
           .filter(
-            (item) =>
-              !onlyFrequent ||
-              customerFrequency(state, item.id, businessId).is_frequent,
+            (item) => !onlyFrequent || customerFrequency(state, item.id, businessId).is_frequent,
           )
           .map((item) => {
             const claimed = state.purchases.filter(
-              (purchase) =>
-                purchase.customerId === item.id && purchase.status === 'claimed',
+              (purchase) => purchase.customerId === item.id && purchase.status === "claimed",
             );
             const frequency = customerFrequency(state, item.id, businessId);
             return {
@@ -1415,10 +1320,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
               purchase_count: businessId ? frequency.purchase_count : claimed.length,
               total_spent: businessId
                 ? frequency.total_spent_cop
-                : claimed.reduce(
-                    (sum, purchase) => sum + purchase.amount_cop,
-                    0,
-                  ),
+                : claimed.reduce((sum, purchase) => sum + purchase.amount_cop, 0),
               is_frequent: frequency.is_frequent,
               is_frequent_active: frequency.is_frequent_active,
               last_purchase_at: frequency.last_purchase_at,
@@ -1426,19 +1328,20 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
             };
           });
         rows.sort((a, b) => {
-          const key = (
-            {
-              name: 'full_name',
-              email: 'email',
-              points: 'points_balance',
-              purchases: 'purchase_count',
-              total_spent: 'total_spent',
-              created_at: 'created_at',
-            } as Record<string, keyof (typeof rows)[number]>
-          )[sort] ?? 'created_at';
+          const key =
+            (
+              {
+                name: "full_name",
+                email: "email",
+                points: "points_balance",
+                purchases: "purchase_count",
+                total_spent: "total_spent",
+                created_at: "created_at",
+              } as Record<string, keyof (typeof rows)[number]>
+            )[sort] ?? "created_at";
           const av = a[key];
           const bv = b[key];
-          if (typeof av === 'number' && typeof bv === 'number') {
+          if (typeof av === "number" && typeof bv === "number") {
             return (av - bv) * direction;
           }
           return String(av).localeCompare(String(bv)) * direction;
@@ -1451,20 +1354,17 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           })),
         );
       }
-      case 'staff_get_customer': {
-        if (!isStaff) return fail(route, 'forbidden');
-        const customer = state.users.find(
-          (item) => item.id === String(body.p_customer_id ?? ''),
-        );
-        if (!customer) return fail(route, 'customer_not_found');
+      case "staff_get_customer": {
+        if (!isStaff) return fail(route, "forbidden");
+        const customer = state.users.find((item) => item.id === String(body.p_customer_id ?? ""));
+        if (!customer) return fail(route, "customer_not_found");
         const claimed = state.purchases.filter(
-          (purchase) =>
-            purchase.customerId === customer.id && purchase.status === 'claimed',
+          (purchase) => purchase.customerId === customer.id && purchase.status === "claimed",
         );
         const movements = [
           ...claimed.map((purchase) => ({
             id: `purchase-${purchase.id}`,
-            movement_type: 'purchase_credit',
+            movement_type: "purchase_credit",
             points: purchase.points_awarded,
             reason: null,
             created_at: purchase.claimed_at,
@@ -1474,20 +1374,16 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
             .map((redemption) => ({
               id: `redemption-${redemption.id}`,
               movement_type:
-                redemption.status === 'cancelled'
-                  ? 'redemption_refund'
-                  : 'redemption_debit',
+                redemption.status === "cancelled" ? "redemption_refund" : "redemption_debit",
               points:
-                redemption.status === 'cancelled'
+                redemption.status === "cancelled"
                   ? redemption.points_spent
                   : -redemption.points_spent,
               reason: null,
               created_at: redemption.createdAt,
             })),
         ];
-        const businessId = body.p_business_id
-          ? String(body.p_business_id)
-          : null;
+        const businessId = body.p_business_id ? String(body.p_business_id) : null;
         const frequency = customerFrequency(state, customer.id, businessId);
         return json(route, {
           profile: {
@@ -1516,14 +1412,14 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
               claimed_at: purchase.claimed_at,
               status: purchase.status,
               items_count: purchase.items?.length ?? 0,
-              source: 'qr',
+              source: "qr",
             })),
             ...state.purchaseEvents
               .filter(
                 (event) =>
                   event.customerId === customer.id &&
                   (!businessId || event.businessId === businessId) &&
-                  !event.idempotencyKey.startsWith('purchase_qr:') &&
+                  !event.idempotencyKey.startsWith("purchase_qr:") &&
                   !event.reversed,
               )
               .map((event) => ({
@@ -1531,14 +1427,12 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
                 amount_cop: event.amountCop,
                 points_awarded: event.pointsEarned,
                 claimed_at: event.createdAt,
-                status: 'claimed',
+                status: "claimed",
                 items_count: 0,
-                source: 'manual',
+                source: "manual",
               })),
           ].sort(
-            (a, b) =>
-              new Date(b.claimed_at ?? 0).getTime() -
-              new Date(a.claimed_at ?? 0).getTime(),
+            (a, b) => new Date(b.claimed_at ?? 0).getTime() - new Date(a.claimed_at ?? 0).getTime(),
           ),
           movements,
           redemptions: [
@@ -1566,11 +1460,11 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
                 points_spent: request.pointsSpent,
                 code: request.code,
                 status:
-                  request.status === 'delivered'
-                    ? 'redeemed'
-                    : request.status === 'cancelled' || request.status === 'expired'
-                      ? 'cancelled'
-                      : 'pending_delivery',
+                  request.status === "delivered"
+                    ? "redeemed"
+                    : request.status === "cancelled" || request.status === "expired"
+                      ? "cancelled"
+                      : "pending_delivery",
                 created_at: request.createdAt,
                 delivered_at: request.deliveredAt ?? null,
                 cancelled_at: request.cancelledAt ?? null,
@@ -1578,26 +1472,19 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           ],
         });
       }
-      case 'staff_list_purchases': {
-        if (!isStaff) return fail(route, 'forbidden');
-        const status = body.p_status ? String(body.p_status) : '';
+      case "staff_list_purchases": {
+        if (!isStaff) return fail(route, "forbidden");
+        const status = body.p_status ? String(body.p_status) : "";
         const limit = Number(body.p_limit ?? 20);
         const offset = Number(body.p_offset ?? 0);
         const rows = state.purchases
           .filter((purchase) => !status || purchase.status === status)
-          .sort(
-            (a, b) =>
-              new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-          );
+          .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         return json(
           route,
           rows.slice(offset, offset + limit).map((purchase) => {
-            const customer = state.users.find(
-              (item) => item.id === purchase.customerId,
-            );
-            const registrar = state.users.find(
-              (item) => item.id === purchase.registrarId,
-            );
+            const customer = state.users.find((item) => item.id === purchase.customerId);
+            const registrar = state.users.find((item) => item.id === purchase.registrarId);
             return {
               id: purchase.id,
               amount_cop: purchase.amount_cop,
@@ -1614,26 +1501,21 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           }),
         );
       }
-      case 'staff_list_redemptions': {
-        if (!isStaff) return fail(route, 'forbidden');
-        const status = body.p_status ? String(body.p_status) : '';
+      case "staff_list_redemptions": {
+        if (!isStaff) return fail(route, "forbidden");
+        const status = body.p_status ? String(body.p_status) : "";
         return json(
           route,
           state.redemptions
             .filter((redemption) => !status || redemption.status === status)
             .sort((a, b) => {
               if (a.status === b.status) {
-                return (
-                  new Date(b.createdAt).getTime() -
-                  new Date(a.createdAt).getTime()
-                );
+                return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
               }
-              return a.status === 'pending_delivery' ? -1 : 1;
+              return a.status === "pending_delivery" ? -1 : 1;
             })
             .map((redemption) => {
-              const customer = state.users.find(
-                (item) => item.id === redemption.customerId,
-              );
+              const customer = state.users.find((item) => item.id === redemption.customerId);
               return {
                 id: redemption.id,
                 reward_name: redemption.reward_name,
@@ -1643,106 +1525,100 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
                 created_at: redemption.createdAt,
                 delivered_at: redemption.delivered_at,
                 cancelled_at: redemption.cancelled_at,
-                customer_name: customer?.name ?? '',
-                customer_email: customer?.email ?? '',
+                customer_name: customer?.name ?? "",
+                customer_email: customer?.email ?? "",
               };
             }),
         );
       }
-      case 'staff_lookup_redemption': {
-        if (!isStaff) return fail(route, 'forbidden');
-        const result = lookupRedemption(state, String(body.p_code ?? ''));
-        return result ? json(route, result) : fail(route, 'redemption_not_found');
+      case "staff_lookup_redemption": {
+        if (!isStaff) return fail(route, "forbidden");
+        const result = lookupRedemption(state, String(body.p_code ?? ""));
+        return result ? json(route, result) : fail(route, "redemption_not_found");
       }
-      case 'staff_confirm_redemption': {
-        if (!isStaff) return fail(route, 'forbidden');
-        const result = lookupRedemption(state, String(body.p_code ?? ''));
-        if (!result) return fail(route, 'redemption_not_found');
-        if (result.status === 'redeemed') {
-          return fail(route, 'redemption_already_redeemed');
+      case "staff_confirm_redemption": {
+        if (!isStaff) return fail(route, "forbidden");
+        const result = lookupRedemption(state, String(body.p_code ?? ""));
+        if (!result) return fail(route, "redemption_not_found");
+        if (result.status === "redeemed") {
+          return fail(route, "redemption_already_redeemed");
         }
-        if (result.status === 'cancelled') return fail(route, 'redemption_cancelled');
-        const redemption = state.redemptions.find(
-          (item) => item.id === result.id,
-        )!;
-        redemption.status = 'redeemed';
+        if (result.status === "cancelled") return fail(route, "redemption_cancelled");
+        const redemption = state.redemptions.find((item) => item.id === result.id)!;
+        redemption.status = "redeemed";
         redemption.delivered_at = now();
         return json(route, lookupRedemption(state, redemption.code));
       }
-      case 'admin_cancel_redemption': {
-        if (!isAdmin) return fail(route, 'forbidden');
+      case "admin_cancel_redemption": {
+        if (!isAdmin) return fail(route, "forbidden");
         const redemption = state.redemptions.find(
-          (item) => item.id === String(body.p_redemption_id ?? ''),
+          (item) => item.id === String(body.p_redemption_id ?? ""),
         );
-        if (!redemption) return fail(route, 'redemption_not_found');
-        if (redemption.status === 'cancelled') {
-          return fail(route, 'redemption_cancelled');
+        if (!redemption) return fail(route, "redemption_not_found");
+        if (redemption.status === "cancelled") {
+          return fail(route, "redemption_cancelled");
         }
-        redemption.status = 'cancelled';
+        redemption.status = "cancelled";
         redemption.cancelled_at = now();
-        const customer = state.users.find(
-          (item) => item.id === redemption.customerId,
-        );
+        const customer = state.users.find((item) => item.id === redemption.customerId);
         if (customer) customer.balance += redemption.points_spent;
         return json(route, {
           redemption_id: redemption.id,
-          status: 'cancelled',
+          status: "cancelled",
           points_refunded: redemption.points_spent,
           balance: customer?.balance ?? 0,
         });
       }
-      case 'staff_cancel_redemption': {
-        if (!isStaff) return fail(route, 'forbidden');
+      case "staff_cancel_redemption": {
+        if (!isStaff) return fail(route, "forbidden");
         const redemption = state.redemptions.find(
-          (item) => item.id === String(body.p_redemption_id ?? ''),
+          (item) => item.id === String(body.p_redemption_id ?? ""),
         );
-        if (!redemption) return fail(route, 'redemption_not_found');
-        if (redemption.status !== 'pending_delivery') {
-          return fail(route, 'redemption_not_pending');
+        if (!redemption) return fail(route, "redemption_not_found");
+        if (redemption.status !== "pending_delivery") {
+          return fail(route, "redemption_not_pending");
         }
-        redemption.status = 'cancelled';
+        redemption.status = "cancelled";
         redemption.cancelled_at = now();
-        const customer = state.users.find(
-          (item) => item.id === redemption.customerId,
-        );
+        const customer = state.users.find((item) => item.id === redemption.customerId);
         if (customer) customer.balance += redemption.points_spent;
         return json(route, {
           redemption_id: redemption.id,
-          status: 'cancelled',
+          status: "cancelled",
           points_refunded: redemption.points_spent,
         });
       }
-      case 'staff_cancel_purchase': {
-        if (!isStaff) return fail(route, 'forbidden');
+      case "staff_cancel_purchase": {
+        if (!isStaff) return fail(route, "forbidden");
         const purchase = state.purchases.find(
-          (item) => item.id === String(body.p_purchase_id ?? ''),
+          (item) => item.id === String(body.p_purchase_id ?? ""),
         );
-        if (!purchase) return fail(route, 'purchase_not_found');
-        if (purchase.status === 'claimed') {
-          return fail(route, 'purchase_already_claimed');
+        if (!purchase) return fail(route, "purchase_not_found");
+        if (purchase.status === "claimed") {
+          return fail(route, "purchase_already_claimed");
         }
-        purchase.status = 'cancelled';
+        purchase.status = "cancelled";
         return json(route, {
           purchase_id: purchase.id,
-          status: 'cancelled',
+          status: "cancelled",
         });
       }
-      case 'admin_get_settings':
-        if (!isAdmin) return fail(route, 'forbidden');
+      case "admin_get_settings":
+        if (!isAdmin) return fail(route, "forbidden");
         return json(route, {
           ...state.settings,
           updated_at: now(),
           updated_by_email: user?.email,
         });
-      case 'admin_update_settings':
-        if (!isAdmin) return fail(route, 'forbidden');
+      case "admin_update_settings":
+        if (!isAdmin) return fail(route, "forbidden");
         state.settings = {
           ...state.settings,
-          ...(body.p_settings as Partial<FakeState['settings']>),
+          ...(body.p_settings as Partial<FakeState["settings"]>),
         };
         return json(route, state.settings);
-      case 'admin_list_rewards':
-        if (!isAdmin) return fail(route, 'forbidden');
+      case "admin_list_rewards":
+        if (!isAdmin) return fail(route, "forbidden");
         return json(
           route,
           state.rewards.map((reward) => ({
@@ -1754,14 +1630,14 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
             ).length,
           })),
         );
-      case 'admin_upsert_reward': {
-        if (!isAdmin) return fail(route, 'forbidden');
+      case "admin_upsert_reward": {
+        if (!isAdmin) return fail(route, "forbidden");
         const id = body.p_id ? String(body.p_id) : newId();
         const existing = state.rewards.find((reward) => reward.id === id);
         const reward: FakeReward = {
           id,
-          name: String(body.p_name ?? ''),
-          description: String(body.p_description ?? ''),
+          name: String(body.p_name ?? ""),
+          description: String(body.p_description ?? ""),
           image_url: (body.p_image_url as string | null) ?? null,
           points_cost: Number(body.p_points_cost ?? 0),
           is_active: Boolean(body.p_is_active ?? true),
@@ -1770,15 +1646,12 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
         else state.rewards.push(reward);
         return json(route, reward);
       }
-      case 'admin_list_staff':
-        if (!isAdmin) return fail(route, 'forbidden');
+      case "admin_list_staff":
+        if (!isAdmin) return fail(route, "forbidden");
         return json(
           route,
           state.users
-            .filter(
-              (item) =>
-                item.roles.includes('registrar') || item.roles.includes('admin'),
-            )
+            .filter((item) => item.roles.includes("registrar") || item.roles.includes("admin"))
             .map((item) => ({
               user_id: item.id,
               full_name: item.name,
@@ -1787,15 +1660,15 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
               created_at: item.createdAt,
             })),
         );
-      case 'admin_search_profiles':
-        if (!isAdmin) return fail(route, 'forbidden');
+      case "admin_search_profiles":
+        if (!isAdmin) return fail(route, "forbidden");
         return json(
           route,
           state.users
             .filter((item) =>
               `${item.name} ${item.email}`
                 .toLowerCase()
-                .includes(String(body.p_query ?? '').toLowerCase()),
+                .includes(String(body.p_query ?? "").toLowerCase()),
             )
             .map((item) => ({
               user_id: item.id,
@@ -1805,15 +1678,13 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
               created_at: item.createdAt,
             })),
         );
-      case 'admin_grant_role': {
-        if (!isAdmin) return fail(route, 'forbidden');
-        const target = state.users.find(
-          (item) => item.id === String(body.p_user_id ?? ''),
-        );
-        const role = String(body.p_role ?? '') as FakeRole;
-        if (!target) return fail(route, 'user_not_found');
-        if (role !== 'registrar' && role !== 'admin') {
-          return fail(route, 'invalid_role');
+      case "admin_grant_role": {
+        if (!isAdmin) return fail(route, "forbidden");
+        const target = state.users.find((item) => item.id === String(body.p_user_id ?? ""));
+        const role = String(body.p_role ?? "") as FakeRole;
+        if (!target) return fail(route, "user_not_found");
+        if (role !== "registrar" && role !== "admin") {
+          return fail(route, "invalid_role");
         }
         if (!target.roles.includes(role)) target.roles.push(role);
         return json(route, {
@@ -1822,13 +1693,11 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           granted: true,
         });
       }
-      case 'admin_revoke_role': {
-        if (!isAdmin) return fail(route, 'forbidden');
-        const target = state.users.find(
-          (item) => item.id === String(body.p_user_id ?? ''),
-        );
-        const role = String(body.p_role ?? '') as FakeRole;
-        if (!target) return fail(route, 'user_not_found');
+      case "admin_revoke_role": {
+        if (!isAdmin) return fail(route, "forbidden");
+        const target = state.users.find((item) => item.id === String(body.p_user_id ?? ""));
+        const role = String(body.p_role ?? "") as FakeRole;
+        if (!target) return fail(route, "user_not_found");
         target.roles = target.roles.filter((item) => item !== role);
         return json(route, {
           user_id: target.id,
@@ -1836,25 +1705,25 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           revoked: true,
         });
       }
-      case 'admin_get_audit_log':
-        if (!isAdmin) return fail(route, 'forbidden');
+      case "admin_get_audit_log":
+        if (!isAdmin) return fail(route, "forbidden");
         return json(route, []);
-      case 'admin_get_config_history':
-        if (!isAdmin) return fail(route, 'forbidden');
+      case "admin_get_config_history":
+        if (!isAdmin) return fail(route, "forbidden");
         return json(route, []);
-      case 'admin_expire_points':
-        if (!isAdmin) return fail(route, 'forbidden');
+      case "admin_expire_points":
+        if (!isAdmin) return fail(route, "forbidden");
         return json(route, { credits_expired: 0, points_expired: 0, days: 30 });
 
       // ------------------------------------------------------------------
       // Negocio y membresías
       // ------------------------------------------------------------------
-      case 'business_profile_get': {
-        if (!user) return fail(route, 'not_authenticated');
+      case "business_profile_get": {
+        if (!user) return fail(route, "not_authenticated");
         const business = state.businesses.find(
-          (item) => item.id === String(body.p_business_id ?? ''),
+          (item) => item.id === String(body.p_business_id ?? ""),
         );
-        if (!business) return fail(route, 'business_not_found');
+        if (!business) return fail(route, "business_not_found");
         return json(route, {
           id: business.id,
           name: business.name,
@@ -1874,32 +1743,32 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           updated_at: now(),
         });
       }
-      case 'business_profile_update': {
-        if (!isAdmin) return fail(route, 'forbidden');
+      case "business_profile_update": {
+        if (!isAdmin) return fail(route, "forbidden");
         const business = state.businesses.find(
-          (item) => item.id === String(body.p_business_id ?? ''),
+          (item) => item.id === String(body.p_business_id ?? ""),
         );
-        if (!business) return fail(route, 'business_not_found');
+        if (!business) return fail(route, "business_not_found");
         const name = String(body.p_name ?? business.name).trim();
         if (name.length < 2 || name.length > 120) {
-          return fail(route, 'invalid_business_name');
+          return fail(route, "invalid_business_name");
         }
         business.name = name;
         const nullable = (value: unknown) => {
-          const text = String(value ?? '').trim();
-          return text === '' ? null : text;
+          const text = String(value ?? "").trim();
+          return text === "" ? null : text;
         };
         business.description = nullable(body.p_description);
         business.address = nullable(body.p_address);
         business.neighborhood = nullable(body.p_neighborhood);
         business.city = nullable(body.p_city);
-        const whatsapp = nullable(body.p_phone_whatsapp)?.replace(/[\s().-]/g, '');
+        const whatsapp = nullable(body.p_phone_whatsapp)?.replace(/[\s().-]/g, "");
         if (whatsapp && !/^\+?[0-9]{7,15}$/.test(whatsapp)) {
-          return fail(route, 'invalid_whatsapp');
+          return fail(route, "invalid_whatsapp");
         }
         business.phoneWhatsapp = whatsapp ?? null;
-        business.phone = nullable(body.p_phone)?.replace(/[\s().-]/g, '') ?? null;
-        business.instagram = nullable(body.p_instagram)?.replace(/^@/, '') ?? null;
+        business.phone = nullable(body.p_phone)?.replace(/[\s().-]/g, "") ?? null;
+        business.instagram = nullable(body.p_instagram)?.replace(/^@/, "") ?? null;
         business.website = nullable(body.p_website);
         return json(route, {
           business_id: business.id,
@@ -1915,27 +1784,22 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           website: business.website,
         });
       }
-      case 'business_logo_set': {
-        if (!isAdmin) return fail(route, 'forbidden');
+      case "business_logo_set": {
+        if (!isAdmin) return fail(route, "forbidden");
         const business = state.businesses.find(
-          (item) => item.id === String(body.p_business_id ?? ''),
+          (item) => item.id === String(body.p_business_id ?? ""),
         );
-        if (!business) return fail(route, 'business_not_found');
+        if (!business) return fail(route, "business_not_found");
         const logoUrl = body.p_logo_url ? String(body.p_logo_url) : null;
-        if (
-          logoUrl &&
-          !logoUrl.includes(`/business-assets/business/${business.id}/`)
-        ) {
-          return fail(route, 'logo_outside_business');
+        if (logoUrl && !logoUrl.includes(`/business-assets/business/${business.id}/`)) {
+          return fail(route, "logo_outside_business");
         }
         business.logoUrl = logoUrl;
         return json(route, { business_id: business.id, logo_url: logoUrl });
       }
-      case 'businesses_list': {
-        if (!user) return fail(route, 'not_authenticated');
-        const userMemberships = state.memberships.filter(
-          (m) => m.userId === user.id,
-        );
+      case "businesses_list": {
+        if (!user) return fail(route, "not_authenticated");
+        const userMemberships = state.memberships.filter((m) => m.userId === user.id);
         const list = state.businesses.filter((b) =>
           userMemberships.some((m) => m.businessId === b.id),
         );
@@ -1953,27 +1817,20 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
               created_by: b.createdBy,
               created_at: b.createdAt,
               updated_at: b.createdAt,
-              role: membership?.role ?? 'cliente',
-              can_approve_redemptions:
-                membership?.canApproveRedemptions ?? false,
+              role: membership?.role ?? "cliente",
+              can_approve_redemptions: membership?.canApproveRedemptions ?? false,
             };
           }),
         );
       }
-      case 'customer_businesses_summary': {
-        if (!user) return fail(route, 'not_authenticated');
+      case "customer_businesses_summary": {
+        if (!user) return fail(route, "not_authenticated");
         const rows = state.memberships
           .filter((membership) => membership.userId === user.id)
           .map((membership) => {
-            const business = state.businesses.find(
-              (item) => item.id === membership.businessId,
-            );
+            const business = state.businesses.find((item) => item.id === membership.businessId);
             if (!business) return null;
-            const frequency = customerFrequency(
-              state,
-              user.id,
-              business.id,
-            );
+            const frequency = customerFrequency(state, user.id, business.id);
             const balance = loyaltyBalance(state, user.id, business.id);
             const program = state.loyaltyPrograms[business.id];
             return {
@@ -1994,8 +1851,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
                 (request) =>
                   request.accountId === user.id &&
                   request.businessId === business.id &&
-                  (request.status === 'pending' ||
-                    request.status === 'approved'),
+                  (request.status === "pending" || request.status === "approved"),
               ).length,
               last_purchase_at: frequency.last_purchase_at,
               is_frequent: frequency.is_frequent,
@@ -2004,19 +1860,19 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           })
           .filter((row): row is NonNullable<typeof row> => row !== null)
           .sort((a, b) => {
-            const left = a.last_purchase_at ?? '';
-            const right = b.last_purchase_at ?? '';
+            const left = a.last_purchase_at ?? "";
+            const right = b.last_purchase_at ?? "";
             if (left !== right) return right.localeCompare(left);
             return a.name.localeCompare(b.name);
           });
         return json(route, rows);
       }
-      case 'business_update': {
-        if (!isAdmin) return fail(route, 'forbidden');
+      case "business_update": {
+        if (!isAdmin) return fail(route, "forbidden");
         const business = state.businesses.find(
-          (item) => item.id === String(body.p_business_id ?? ''),
+          (item) => item.id === String(body.p_business_id ?? ""),
         );
-        if (!business) return fail(route, 'business_not_found');
+        if (!business) return fail(route, "business_not_found");
         if (body.p_name != null) business.name = String(body.p_name);
         if (body.p_timezone != null) business.timezone = String(body.p_timezone);
         if (Array.isArray(body.p_operating_days)) {
@@ -2031,8 +1887,10 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           updated_at: now(),
         });
       }
-      case 'business_public_get': {
-        const slug = String(body.p_slug ?? '').trim().toLowerCase();
+      case "business_public_get": {
+        const slug = String(body.p_slug ?? "")
+          .trim()
+          .toLowerCase();
         const business = state.businesses.find(
           (item) => item.slug.toLowerCase() === slug && item.createdBy,
         );
@@ -2058,13 +1916,13 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           },
         ]);
       }
-      case 'business_join': {
-        if (!user) return fail(route, 'not_authenticated');
-        const slug = String(body.p_slug ?? '').trim().toLowerCase();
-        const business = state.businesses.find(
-          (item) => item.slug.toLowerCase() === slug,
-        );
-        if (!business) return fail(route, 'business_not_found');
+      case "business_join": {
+        if (!user) return fail(route, "not_authenticated");
+        const slug = String(body.p_slug ?? "")
+          .trim()
+          .toLowerCase();
+        const business = state.businesses.find((item) => item.slug.toLowerCase() === slug);
+        if (!business) return fail(route, "business_not_found");
         const existing = state.memberships.find(
           (item) => item.businessId === business.id && item.userId === user.id,
         );
@@ -2082,7 +1940,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           id: `mem-${crypto.randomUUID().slice(0, 8)}`,
           businessId: business.id,
           userId: user.id,
-          role: 'cliente',
+          role: "cliente",
           canApproveRedemptions: false,
           createdAt: now(),
         };
@@ -2092,24 +1950,24 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           business_name: business.name,
           slug: business.slug,
           membership_id: membership.id,
-          role: 'cliente',
+          role: "cliente",
           already_member: false,
         });
       }
-      case 'business_register': {
-        if (!user) return fail(route, 'not_authenticated');
-        const name = String(body.p_business_name ?? '').trim();
-        const slug = String(body.p_slug ?? '').trim();
-        if (name.length < 2) return fail(route, 'invalid_business_name');
-        if (slug.length < 2) return fail(route, 'invalid_business_slug');
+      case "business_register": {
+        if (!user) return fail(route, "not_authenticated");
+        const name = String(body.p_business_name ?? "").trim();
+        const slug = String(body.p_slug ?? "").trim();
+        if (name.length < 2) return fail(route, "invalid_business_name");
+        if (slug.length < 2) return fail(route, "invalid_business_slug");
         if (state.businesses.some((b) => b.slug === slug)) {
-          return fail(route, 'business_slug_duplicate');
+          return fail(route, "business_slug_duplicate");
         }
         const business: FakeBusiness = {
           id: `biz-${crypto.randomUUID().slice(0, 8)}`,
           name,
           slug,
-          timezone: String(body.p_timezone ?? 'America/Bogota'),
+          timezone: String(body.p_timezone ?? "America/Bogota"),
           createdBy: user.id,
           createdAt: now(),
         };
@@ -2118,23 +1976,25 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           id: `mem-${crypto.randomUUID().slice(0, 8)}`,
           businessId: business.id,
           userId: user.id,
-          role: 'admin',
+          role: "admin",
           canApproveRedemptions: false,
           createdAt: now(),
         };
         state.memberships.push(membership);
-        if (!user.roles.includes('admin')) user.roles.push('admin');
+        if (!user.roles.includes("admin")) user.roles.push("admin");
         return json(route, {
           business_id: business.id,
           membership_id: membership.id,
-          role: 'admin',
+          role: "admin",
           created_at: business.createdAt,
         });
       }
-      case 'business_search_profiles': {
-        if (!user) return fail(route, 'not_authenticated');
-        const businessId = String(body.p_business_id ?? '');
-        const query = String(body.p_query ?? '').trim().toLowerCase();
+      case "business_search_profiles": {
+        if (!user) return fail(route, "not_authenticated");
+        const businessId = String(body.p_business_id ?? "");
+        const query = String(body.p_query ?? "")
+          .trim()
+          .toLowerCase();
         return json(
           route,
           state.users
@@ -2150,18 +2010,15 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
               email: item.email,
               already_member: state.memberships.some(
                 (membership) =>
-                  membership.businessId === businessId &&
-                  membership.userId === item.id,
+                  membership.businessId === businessId && membership.userId === item.id,
               ),
             })),
         );
       }
-      case 'business_memberships_list': {
-        if (!user) return fail(route, 'not_authenticated');
-        const businessId = String(body.p_business_id ?? '');
-        const memberships = state.memberships.filter(
-          (m) => m.businessId === businessId,
-        );
+      case "business_memberships_list": {
+        if (!user) return fail(route, "not_authenticated");
+        const businessId = String(body.p_business_id ?? "");
+        const memberships = state.memberships.filter((m) => m.businessId === businessId);
         return json(
           route,
           memberships.map((m) => {
@@ -2169,8 +2026,8 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
             return {
               id: m.id,
               user_id: m.userId,
-              full_name: u?.name ?? '',
-              email: u?.email ?? '',
+              full_name: u?.name ?? "",
+              email: u?.email ?? "",
               role: m.role,
               can_approve_redemptions: m.canApproveRedemptions,
               created_at: m.createdAt || now(),
@@ -2178,11 +2035,11 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           }),
         );
       }
-      case 'business_membership_create': {
-        if (!user) return fail(route, 'not_authenticated');
-        const businessId = String(body.p_business_id ?? '');
-        const targetUserId = String(body.p_user_id ?? '');
-        const role = String(body.p_role ?? 'encargado');
+      case "business_membership_create": {
+        if (!user) return fail(route, "not_authenticated");
+        const businessId = String(body.p_business_id ?? "");
+        const targetUserId = String(body.p_user_id ?? "");
+        const role = String(body.p_role ?? "encargado");
         const canApprove = Boolean(body.p_can_approve_redemptions);
         const membership: FakeMembership = {
           id: `mem-${crypto.randomUUID().slice(0, 8)}`,
@@ -2200,15 +2057,15 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           can_approve_redemptions: canApprove,
         });
       }
-      case 'business_membership_update': {
-        if (!user) return fail(route, 'not_authenticated');
-        const businessId = String(body.p_business_id ?? '');
-        const targetUserId = String(body.p_user_id ?? '');
+      case "business_membership_update": {
+        if (!user) return fail(route, "not_authenticated");
+        const businessId = String(body.p_business_id ?? "");
+        const targetUserId = String(body.p_user_id ?? "");
         const canApprove = Boolean(body.p_can_approve_redemptions);
         const membership = state.memberships.find(
           (m) => m.businessId === businessId && m.userId === targetUserId,
         );
-        if (!membership) return fail(route, 'membership_not_found');
+        if (!membership) return fail(route, "membership_not_found");
         membership.canApproveRedemptions = canApprove;
         return json(route, {
           user_id: targetUserId,
@@ -2219,9 +2076,9 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
       // ------------------------------------------------------------------
       // Programa de loopoints
       // ------------------------------------------------------------------
-      case 'loyalty_program_get': {
-        if (!user) return fail(route, 'not_authenticated');
-        const businessId = String(body.p_business_id ?? '');
+      case "loyalty_program_get": {
+        if (!user) return fail(route, "not_authenticated");
+        const businessId = String(body.p_business_id ?? "");
         const stored = state.loyaltyPrograms[businessId];
         const prog = stored ?? {
           cop_per_point_unit: 1000,
@@ -2241,9 +2098,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
         };
         return json(route, {
           ...prog,
-          id: stored
-            ? `prog-${businessId}`
-            : '00000000-0000-0000-0000-000000000000',
+          id: stored ? `prog-${businessId}` : "00000000-0000-0000-0000-000000000000",
           business_id: businessId,
           configured_by: stored ? user.id : null,
           configured_at: stored ? now() : null,
@@ -2251,32 +2106,24 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           updated_at: now(),
         });
       }
-      case 'loyalty_program_configure': {
-        if (!user) return fail(route, 'not_authenticated');
-        const businessId = String(body.p_business_id ?? '');
-        const isActive =
-          body.p_is_active === undefined ? true : Boolean(body.p_is_active);
+      case "loyalty_program_configure": {
+        if (!user) return fail(route, "not_authenticated");
+        const businessId = String(body.p_business_id ?? "");
+        const isActive = body.p_is_active === undefined ? true : Boolean(body.p_is_active);
         state.loyaltyPrograms[businessId] = {
           cop_per_point_unit: Number(body.p_cop_per_point_unit ?? 1000),
           points_per_cop_unit: Number(body.p_points_per_cop_unit ?? 100),
           points_expiry_days: Number(body.p_points_expiry_days ?? 365),
           budget_rate: Number(body.p_budget_rate ?? 0.01),
-          first_purchase_bonus_points: Number(
-            body.p_first_purchase_bonus_points ?? 0,
-          ),
+          first_purchase_bonus_points: Number(body.p_first_purchase_bonus_points ?? 0),
           recurrence_bonus_points: Number(body.p_recurrence_bonus_points ?? 0),
           referral_bonus_points: Number(body.p_referral_bonus_points ?? 0),
           qr_expiry_hours: Number(body.p_qr_expiry_hours ?? 24),
-          frequent_min_purchases:
-            state.loyaltyPrograms[businessId]?.frequent_min_purchases ?? 3,
-          frequent_period_days:
-            state.loyaltyPrograms[businessId]?.frequent_period_days ?? 90,
-          frequent_min_spend_cop:
-            state.loyaltyPrograms[businessId]?.frequent_min_spend_cop ?? 0,
-          frequent_active_days:
-            state.loyaltyPrograms[businessId]?.frequent_active_days ?? 30,
-          recovery_inactive_days:
-            state.loyaltyPrograms[businessId]?.recovery_inactive_days ?? 60,
+          frequent_min_purchases: state.loyaltyPrograms[businessId]?.frequent_min_purchases ?? 3,
+          frequent_period_days: state.loyaltyPrograms[businessId]?.frequent_period_days ?? 90,
+          frequent_min_spend_cop: state.loyaltyPrograms[businessId]?.frequent_min_spend_cop ?? 0,
+          frequent_active_days: state.loyaltyPrograms[businessId]?.frequent_active_days ?? 30,
+          recovery_inactive_days: state.loyaltyPrograms[businessId]?.recovery_inactive_days ?? 60,
           is_active: isActive,
         };
         return json(route, {
@@ -2287,9 +2134,9 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           configured_at: now(),
         });
       }
-      case 'loyalty_program_frequent_update': {
-        if (!isAdmin) return fail(route, 'forbidden');
-        const businessId = String(body.p_business_id ?? '');
+      case "loyalty_program_frequent_update": {
+        if (!isAdmin) return fail(route, "forbidden");
+        const businessId = String(body.p_business_id ?? "");
         const current = state.loyaltyPrograms[businessId] ?? {
           cop_per_point_unit: 1000,
           points_per_cop_unit: 100,
@@ -2315,10 +2162,10 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           recovery_inactive_days: Number(body.p_recovery_days ?? 60),
         };
         if (next.frequent_min_purchases < 1 || next.frequent_min_purchases > 100) {
-          return fail(route, 'invalid_frequent_min_purchases');
+          return fail(route, "invalid_frequent_min_purchases");
         }
         if (next.recovery_inactive_days <= next.frequent_active_days) {
-          return fail(route, 'invalid_recovery_inactive_days');
+          return fail(route, "invalid_recovery_inactive_days");
         }
         state.loyaltyPrograms[businessId] = next;
         return json(route, { business_id: businessId, ...next });
@@ -2327,10 +2174,10 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
       // ------------------------------------------------------------------
       // Productos
       // ------------------------------------------------------------------
-      case 'products_list': {
-        if (!user) return fail(route, 'not_authenticated');
-        const businessId = String(body.p_business_id ?? '');
-        const onlyActive = body.p_only_active !== 'false';
+      case "products_list": {
+        if (!user) return fail(route, "not_authenticated");
+        const businessId = String(body.p_business_id ?? "");
+        const onlyActive = body.p_only_active !== "false";
         return json(
           route,
           state.products
@@ -2350,20 +2197,20 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
             })),
         );
       }
-      case 'product_upsert': {
-        if (!user) return fail(route, 'not_authenticated');
-        const businessId = String(body.p_business_id ?? '');
+      case "product_upsert": {
+        if (!user) return fail(route, "not_authenticated");
+        const businessId = String(body.p_business_id ?? "");
         const id = body.p_id ? String(body.p_id) : `prod-${crypto.randomUUID().slice(0, 8)}`;
         const existing = state.products.find((p) => p.id === id);
         const product: FakeProduct = {
           id,
           businessId,
-          name: String(body.p_name ?? ''),
+          name: String(body.p_name ?? ""),
           description: body.p_description ?? null,
           priceCop: Number(body.p_price_cop ?? 0),
           costCop: body.p_cost_cop ?? null,
           isActive: Boolean(body.p_is_active ?? true),
-          kind: (String(body.p_kind ?? 'simple') as 'simple' | 'combo'),
+          kind: String(body.p_kind ?? "simple") as "simple" | "combo",
           comboItems: existing?.comboItems ?? [],
         };
         if (existing) Object.assign(existing, product);
@@ -2382,25 +2229,23 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           updated_at: now(),
         });
       }
-      case 'product_combo_set': {
-        if (!user) return fail(route, 'not_authenticated');
-        const businessId = String(body.p_business_id ?? '');
-        const productId = String(body.p_product_id ?? '');
+      case "product_combo_set": {
+        if (!user) return fail(route, "not_authenticated");
+        const businessId = String(body.p_business_id ?? "");
+        const productId = String(body.p_product_id ?? "");
         const product = state.products.find(
           (item) => item.id === productId && item.businessId === businessId,
         );
-        if (!product) return fail(route, 'product_not_found');
-        if (product.kind !== 'combo') return fail(route, 'product_not_combo');
+        if (!product) return fail(route, "product_not_found");
+        if (product.kind !== "combo") return fail(route, "product_not_combo");
         const raw = Array.isArray(body.p_items) ? body.p_items : [];
         const comboItems: FakeComboItem[] = [];
         for (const item of raw as Array<{ product_id?: string; quantity?: number }>) {
           const component = state.products.find(
             (row) =>
-              row.id === item.product_id &&
-              row.businessId === businessId &&
-              row.kind === 'simple',
+              row.id === item.product_id && row.businessId === businessId && row.kind === "simple",
           );
-          if (!component) return fail(route, 'product_not_found');
+          if (!component) return fail(route, "product_not_found");
           comboItems.push({
             productId: component.id,
             quantity: Number(item.quantity ?? 0),
@@ -2409,7 +2254,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
         product.comboItems = comboItems;
         return json(route, {
           product_id: product.id,
-          kind: 'combo',
+          kind: "combo",
           combo_items: comboItemsFor(state, product),
         });
       }
@@ -2417,11 +2262,10 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
       // ------------------------------------------------------------------
       // Recompensas
       // ------------------------------------------------------------------
-      case 'loyalty_rewards_list': {
-        if (!user) return fail(route, 'not_authenticated');
-        const businessId = String(body.p_business_id ?? '');
-        const onlyActive =
-          body.p_only_active !== false && body.p_only_active !== 'false';
+      case "loyalty_rewards_list": {
+        if (!user) return fail(route, "not_authenticated");
+        const businessId = String(body.p_business_id ?? "");
+        const onlyActive = body.p_only_active !== false && body.p_only_active !== "false";
         return json(
           route,
           state.loyaltyRewards
@@ -2449,14 +2293,14 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
               created_at: now(),
               updated_at: now(),
               times_redeemed: state.redemptionRequests.filter(
-                (rr) => rr.rewardId === r.id && rr.status === 'delivered',
+                (rr) => rr.rewardId === r.id && rr.status === "delivered",
               ).length,
             })),
         );
       }
-      case 'loyalty_rewards_available': {
-        if (!user) return fail(route, 'not_authenticated');
-        const businessId = String(body.p_business_id ?? '');
+      case "loyalty_rewards_available": {
+        if (!user) return fail(route, "not_authenticated");
+        const businessId = String(body.p_business_id ?? "");
         // Saldo simulado para los flujos de UI; el saldo real lo valida la RPC.
         const balance = loyaltyBalance(state, user.id, businessId);
         return json(
@@ -2483,22 +2327,20 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
             })),
         );
       }
-      case 'loyalty_reward_upsert': {
-        if (!user) return fail(route, 'not_authenticated');
-        const businessId = String(body.p_business_id ?? '');
+      case "loyalty_reward_upsert": {
+        if (!user) return fail(route, "not_authenticated");
+        const businessId = String(body.p_business_id ?? "");
         const id = body.p_id ? String(body.p_id) : `rew-${crypto.randomUUID().slice(0, 8)}`;
         const existing = state.loyaltyRewards.find((r) => r.id === id);
         const productId = body.p_product_id ?? null;
-        const product = productId
-          ? state.products.find((p) => p.id === productId)
-          : null;
+        const product = productId ? state.products.find((p) => p.id === productId) : null;
         const reward: FakeLoyaltyReward = {
           id,
           businessId,
           productId,
-          type: String(body.p_type ?? 'free_product') as any,
-          name: String(body.p_name ?? ''),
-          description: String(body.p_description ?? ''),
+          type: String(body.p_type ?? "free_product") as any,
+          name: String(body.p_name ?? ""),
+          description: String(body.p_description ?? ""),
           pointsRequired: Number(body.p_points_required ?? 0),
           minPurchaseAmount: Number(body.p_min_purchase_amount ?? 0),
           maxDiscountAmount: body.p_max_discount_amount ?? null,
@@ -2521,29 +2363,29 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
       // ------------------------------------------------------------------
       // Loopoints
       // ------------------------------------------------------------------
-      case 'loyalty_account_balance': {
-        if (!user) return fail(route, 'not_authenticated');
-        const businessId = String(body.p_business_id ?? '');
-        const customerId = String(body.p_customer_id ?? '');
+      case "loyalty_account_balance": {
+        if (!user) return fail(route, "not_authenticated");
+        const businessId = String(body.p_business_id ?? "");
+        const customerId = String(body.p_customer_id ?? "");
         return json(route, {
           business_id: businessId,
           customer_id: customerId,
           balance: loyaltyBalance(state, customerId, businessId),
         });
       }
-      case 'loyalty_account_transactions': {
-        if (!user) return fail(route, 'not_authenticated');
+      case "loyalty_account_transactions": {
+        if (!user) return fail(route, "not_authenticated");
         return json(route, []);
       }
 
       // ------------------------------------------------------------------
       // Redenciones y tokens QR
       // ------------------------------------------------------------------
-      case 'reward_request_redemption': {
-        if (!user) return fail(route, 'not_authenticated');
-        const businessId = String(body.p_business_id ?? '');
-        const rewardId = String(body.p_reward_id ?? '');
-        const idempotencyKey = String(body.p_idempotency_key ?? '');
+      case "reward_request_redemption": {
+        if (!user) return fail(route, "not_authenticated");
+        const businessId = String(body.p_business_id ?? "");
+        const rewardId = String(body.p_reward_id ?? "");
+        const idempotencyKey = String(body.p_idempotency_key ?? "");
         const existing = state.redemptionRequests.find(
           (rr) => rr.idempotencyKey === idempotencyKey,
         );
@@ -2559,12 +2401,12 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           });
         }
         const reward = state.loyaltyRewards.find((r) => r.id === rewardId);
-        if (!reward || !reward.isActive) return fail(route, 'reward_unavailable');
+        if (!reward || !reward.isActive) return fail(route, "reward_unavailable");
         if (loyaltyBalance(state, user.id, businessId) < reward.pointsRequired) {
-          return fail(route, 'insufficient_points');
+          return fail(route, "insufficient_points");
         }
-        const token = `tok_${crypto.randomUUID().replace(/-/g, '')}`;
-        const tokenHash = `hash_${crypto.randomUUID().replace(/-/g, '')}`;
+        const token = `tok_${crypto.randomUUID().replace(/-/g, "")}`;
+        const tokenHash = `hash_${crypto.randomUUID().replace(/-/g, "")}`;
         const redemption: FakeRedemptionRequest = {
           id: `red-${crypto.randomUUID().slice(0, 8)}`,
           businessId,
@@ -2573,15 +2415,15 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           rewardName: reward.name,
           rewardType: reward.type,
           pointsSpent: reward.pointsRequired,
-          code: `TP${crypto.randomUUID().replace(/-/g, '').slice(0, 12).toUpperCase()}`,
-          status: 'pending',
+          code: `TP${crypto.randomUUID().replace(/-/g, "").slice(0, 12).toUpperCase()}`,
+          status: "pending",
           idempotencyKey,
           createdAt: now(),
           approvedBy: null,
           approvedAt: null,
           deliveredAt: null,
           cancelledAt: null,
-          origin: 'manual',
+          origin: "manual",
         };
         state.redemptionRequests.push(redemption);
         state.tokens.push({
@@ -2598,31 +2440,26 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           reward_name: redemption.rewardName,
           points_spent: redemption.pointsSpent,
           code: redemption.code,
-          status: 'pending',
+          status: "pending",
           token,
           expires_at: state.tokens[state.tokens.length - 1].expiresAt,
           duplicate: false,
         });
       }
-      case 'loyalty_my_redemptions': {
-        if (!user) return fail(route, 'not_authenticated');
+      case "loyalty_my_redemptions": {
+        if (!user) return fail(route, "not_authenticated");
         return json(
           route,
           state.redemptionRequests
             .filter((request) => request.accountId === user.id)
-            .sort(
-              (a, b) =>
-                new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-            )
+            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
             .map((request) => {
-              const business = state.businesses.find(
-                (item) => item.id === request.businessId,
-              );
+              const business = state.businesses.find((item) => item.id === request.businessId);
               return {
                 id: request.id,
                 business_id: request.businessId,
-                business_name: business?.name ?? 'Negocio',
-                business_slug: business?.slug ?? '',
+                business_name: business?.name ?? "Negocio",
+                business_slug: business?.slug ?? "",
                 business_logo_url: business?.logoUrl ?? null,
                 reward_name: request.rewardName,
                 reward_type: request.rewardType,
@@ -2637,18 +2474,16 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
             }),
         );
       }
-      case 'redemption_token_reissue': {
-        if (!user) return fail(route, 'not_authenticated');
-        const redemptionId = String(body.p_redemption_id ?? '');
-        const redemption = state.redemptionRequests.find(
-          (request) => request.id === redemptionId,
-        );
-        if (!redemption) return fail(route, 'redemption_not_found');
-        if (redemption.accountId !== user.id) return fail(route, 'forbidden');
-        if (redemption.status !== 'pending') {
-          return fail(route, 'redemption_not_reissuable');
+      case "redemption_token_reissue": {
+        if (!user) return fail(route, "not_authenticated");
+        const redemptionId = String(body.p_redemption_id ?? "");
+        const redemption = state.redemptionRequests.find((request) => request.id === redemptionId);
+        if (!redemption) return fail(route, "redemption_not_found");
+        if (redemption.accountId !== user.id) return fail(route, "forbidden");
+        if (redemption.status !== "pending") {
+          return fail(route, "redemption_not_reissuable");
         }
-        const token = `tok_${crypto.randomUUID().replace(/-/g, '')}`;
+        const token = `tok_${crypto.randomUUID().replace(/-/g, "")}`;
         const expiresAt = new Date(Date.now() + 24 * 3600 * 1000).toISOString();
         state.tokens = state.tokens.filter(
           (tok) => tok.redemptionId !== redemptionId || tok.consumedAt,
@@ -2658,29 +2493,27 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           token,
           businessId: redemption.businessId,
           redemptionId,
-          tokenHash: `hash_${crypto.randomUUID().replace(/-/g, '')}`,
+          tokenHash: `hash_${crypto.randomUUID().replace(/-/g, "")}`,
           expiresAt,
           consumedAt: null,
         });
         return json(route, { redemption_id: redemptionId, token, expires_at: expiresAt });
       }
-      case 'redemption_token_validate': {
-        if (!user) return fail(route, 'not_authenticated');
-        const businessId = String(body.p_business_id ?? '');
-        const tokenValue = String(body.p_token ?? '');
+      case "redemption_token_validate": {
+        if (!user) return fail(route, "not_authenticated");
+        const businessId = String(body.p_business_id ?? "");
+        const tokenValue = String(body.p_token ?? "");
         const foundToken = state.tokens.find(
           (tok) => tok.businessId === businessId && tok.token === tokenValue,
         );
-        if (!foundToken) return fail(route, 'invalid_token');
-        if (foundToken.consumedAt) return fail(route, 'token_already_consumed');
+        if (!foundToken) return fail(route, "invalid_token");
+        if (foundToken.consumedAt) return fail(route, "token_already_consumed");
         if (new Date(foundToken.expiresAt).getTime() <= Date.now()) {
-          return fail(route, 'token_expired');
+          return fail(route, "token_expired");
         }
-        const redemption = state.redemptionRequests.find(
-          (r) => r.id === foundToken.redemptionId,
-        );
-        if (!redemption) return fail(route, 'redemption_not_found');
-        if (redemption.status !== 'pending') return fail(route, 'redemption_not_pending');
+        const redemption = state.redemptionRequests.find((r) => r.id === foundToken.redemptionId);
+        if (!redemption) return fail(route, "redemption_not_found");
+        if (redemption.status !== "pending") return fail(route, "redemption_not_pending");
         return json(route, {
           redemption_id: redemption.id,
           reward_name: redemption.rewardName,
@@ -2692,49 +2525,44 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           can_approve: true,
         });
       }
-      case 'redemption_token_context': {
-        if (!user) return fail(route, 'not_authenticated');
-        const tokenValue = String(body.p_token ?? '');
+      case "redemption_token_context": {
+        if (!user) return fail(route, "not_authenticated");
+        const tokenValue = String(body.p_token ?? "");
         const foundToken = state.tokens.find((tok) => tok.token === tokenValue);
-        if (!foundToken) return fail(route, 'invalid_token');
-        const redemption = state.redemptionRequests.find(
-          (r) => r.id === foundToken.redemptionId,
-        );
-        if (!redemption) return fail(route, 'redemption_not_found');
+        if (!foundToken) return fail(route, "invalid_token");
+        const redemption = state.redemptionRequests.find((r) => r.id === foundToken.redemptionId);
+        if (!redemption) return fail(route, "redemption_not_found");
         const membership = state.memberships.find(
-          (m) =>
-            m.businessId === foundToken.businessId && m.userId === user.id,
+          (m) => m.businessId === foundToken.businessId && m.userId === user.id,
         );
-        if (!membership) return fail(route, 'business_not_found_or_no_access');
+        if (!membership) return fail(route, "business_not_found_or_no_access");
         if (
-          membership.role !== 'admin' &&
-          !(membership.role === 'encargado' && membership.canApproveRedemptions)
+          membership.role !== "admin" &&
+          !(membership.role === "encargado" && membership.canApproveRedemptions)
         ) {
-          return fail(route, 'forbidden');
+          return fail(route, "forbidden");
         }
-        const business = state.businesses.find(
-          (b) => b.id === foundToken.businessId,
-        );
+        const business = state.businesses.find((b) => b.id === foundToken.businessId);
         const customer = state.users.find((u) => u.id === redemption.accountId);
         const expired = new Date(foundToken.expiresAt).getTime() <= Date.now();
         let reason: string | null = null;
-        if (redemption.status === 'delivered') {
-          reason = 'redemption_already_delivered';
-        } else if (redemption.status === 'cancelled') {
-          reason = 'redemption_cancelled';
-        } else if (redemption.status === 'expired') {
-          reason = 'redemption_expired';
-        } else if (redemption.status !== 'pending') {
-          reason = 'redemption_not_pending';
+        if (redemption.status === "delivered") {
+          reason = "redemption_already_delivered";
+        } else if (redemption.status === "cancelled") {
+          reason = "redemption_cancelled";
+        } else if (redemption.status === "expired") {
+          reason = "redemption_expired";
+        } else if (redemption.status !== "pending") {
+          reason = "redemption_not_pending";
         } else if (foundToken.consumedAt) {
-          reason = 'token_already_consumed';
+          reason = "token_already_consumed";
         } else if (expired) {
-          reason = 'token_expired';
+          reason = "token_expired";
         }
         return json(route, {
           business_id: foundToken.businessId,
-          business_name: business?.name ?? 'Negocio',
-          business_slug: business?.slug ?? '',
+          business_name: business?.name ?? "Negocio",
+          business_slug: business?.slug ?? "",
           business_logo_url: business?.logoUrl ?? null,
           redemption_id: redemption.id,
           code: redemption.code,
@@ -2755,38 +2583,35 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           role: membership.role,
         });
       }
-      case 'redemption_redeem_by_token': {
-        if (!user) return fail(route, 'not_authenticated');
-        const tokenValue = String(body.p_token ?? '');
+      case "redemption_redeem_by_token": {
+        if (!user) return fail(route, "not_authenticated");
+        const tokenValue = String(body.p_token ?? "");
         const foundToken = state.tokens.find((tok) => tok.token === tokenValue);
-        if (!foundToken) return fail(route, 'invalid_token');
-        const redemption = state.redemptionRequests.find(
-          (r) => r.id === foundToken.redemptionId,
-        );
-        if (!redemption) return fail(route, 'redemption_not_found');
+        if (!foundToken) return fail(route, "invalid_token");
+        const redemption = state.redemptionRequests.find((r) => r.id === foundToken.redemptionId);
+        if (!redemption) return fail(route, "redemption_not_found");
         const membership = state.memberships.find(
-          (m) =>
-            m.businessId === foundToken.businessId && m.userId === user.id,
+          (m) => m.businessId === foundToken.businessId && m.userId === user.id,
         );
-        if (!membership) return fail(route, 'business_not_found_or_no_access');
+        if (!membership) return fail(route, "business_not_found_or_no_access");
         if (
-          membership.role !== 'admin' &&
-          !(membership.role === 'encargado' && membership.canApproveRedemptions)
+          membership.role !== "admin" &&
+          !(membership.role === "encargado" && membership.canApproveRedemptions)
         ) {
-          return fail(route, 'forbidden');
+          return fail(route, "forbidden");
         }
-        if (redemption.status === 'delivered') {
-          return fail(route, 'redemption_already_delivered');
+        if (redemption.status === "delivered") {
+          return fail(route, "redemption_already_delivered");
         }
-        if (redemption.status !== 'pending') {
-          return fail(route, 'redemption_not_pending');
+        if (redemption.status !== "pending") {
+          return fail(route, "redemption_not_pending");
         }
-        if (foundToken.consumedAt) return fail(route, 'token_already_consumed');
+        if (foundToken.consumedAt) return fail(route, "token_already_consumed");
         if (new Date(foundToken.expiresAt).getTime() <= Date.now()) {
-          return fail(route, 'token_expired');
+          return fail(route, "token_expired");
         }
-        redemption.status = 'delivered';
-        redemption.origin = 'qr_scan';
+        redemption.status = "delivered";
+        redemption.origin = "qr_scan";
         redemption.approvedBy = user.id;
         redemption.approvedAt = now();
         redemption.deliveredAt = now();
@@ -2796,14 +2621,14 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           id: newId(),
           businessId: foundToken.businessId,
           actorEmail: user.email,
-          operation: 'redemption.scanned',
-          entityType: 'loyalty_redemption',
+          operation: "redemption.scanned",
+          entityType: "loyalty_redemption",
           entityId: redemption.id,
           metadata: {
             code: redemption.code,
             reward_name: redemption.rewardName,
             points_spent: redemption.pointsSpent,
-            channel: 'qr_scan',
+            channel: "qr_scan",
           },
           createdAt: now(),
         });
@@ -2811,13 +2636,13 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           id: newId(),
           businessId: foundToken.businessId,
           actorEmail: user.email,
-          operation: 'redemption.delivered',
-          entityType: 'loyalty_redemption',
+          operation: "redemption.delivered",
+          entityType: "loyalty_redemption",
           entityId: redemption.id,
           metadata: {
             reward_name: redemption.rewardName,
             points_spent: redemption.pointsSpent,
-            via: 'qr_scan',
+            via: "qr_scan",
           },
           createdAt: now(),
         });
@@ -2828,24 +2653,24 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           reward_name: redemption.rewardName,
           points_spent: redemption.pointsSpent,
           customer_nickname: customer?.nickname ?? null,
-          status: 'delivered',
-          origin: 'qr_scan',
+          status: "delivered",
+          origin: "qr_scan",
           delivered_at: redemption.deliveredAt,
           role: membership.role,
         });
       }
-      case 'redemption_approve': {
-        if (!user) return fail(route, 'not_authenticated');
-        const businessId = String(body.p_business_id ?? '');
-        const redemptionId = String(body.p_redemption_id ?? '');
+      case "redemption_approve": {
+        if (!user) return fail(route, "not_authenticated");
+        const businessId = String(body.p_business_id ?? "");
+        const redemptionId = String(body.p_redemption_id ?? "");
         const approve = Boolean(body.p_approve);
         const redemption = state.redemptionRequests.find(
           (r) => r.id === redemptionId && r.businessId === businessId,
         );
-        if (!redemption) return fail(route, 'redemption_not_found');
-        if (redemption.status !== 'pending') return fail(route, 'redemption_not_pending');
+        if (!redemption) return fail(route, "redemption_not_found");
+        if (redemption.status !== "pending") return fail(route, "redemption_not_pending");
         if (approve) {
-          redemption.status = 'approved';
+          redemption.status = "approved";
           redemption.approvedBy = user.id;
           redemption.approvedAt = now();
           for (const tok of state.tokens) {
@@ -2855,63 +2680,63 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           }
           return json(route, {
             redemption_id: redemptionId,
-            status: 'approved',
+            status: "approved",
             approved_by: user.id,
             approved_at: now(),
           });
         } else {
-          redemption.status = 'cancelled';
+          redemption.status = "cancelled";
           redemption.cancelledAt = now();
           return json(route, {
             redemption_id: redemptionId,
-            status: 'cancelled',
+            status: "cancelled",
             points_refunded: redemption.pointsSpent,
           });
         }
       }
-      case 'redemption_deliver': {
-        if (!user) return fail(route, 'not_authenticated');
-        const businessId = String(body.p_business_id ?? '');
-        const redemptionId = String(body.p_redemption_id ?? '');
+      case "redemption_deliver": {
+        if (!user) return fail(route, "not_authenticated");
+        const businessId = String(body.p_business_id ?? "");
+        const redemptionId = String(body.p_redemption_id ?? "");
         const redemption = state.redemptionRequests.find(
           (r) => r.id === redemptionId && r.businessId === businessId,
         );
-        if (!redemption) return fail(route, 'redemption_not_found');
-        if (redemption.status !== 'approved') return fail(route, 'redemption_not_approved');
-        redemption.status = 'delivered';
+        if (!redemption) return fail(route, "redemption_not_found");
+        if (redemption.status !== "approved") return fail(route, "redemption_not_approved");
+        redemption.status = "delivered";
         redemption.deliveredAt = now();
         return json(route, {
           redemption_id: redemptionId,
-          status: 'delivered',
+          status: "delivered",
           delivered_at: redemption.deliveredAt,
         });
       }
-      case 'redemption_cancel': {
-        if (!user) return fail(route, 'not_authenticated');
-        const businessId = String(body.p_business_id ?? '');
-        const redemptionId = String(body.p_redemption_id ?? '');
-        const reason = String(body.p_reason ?? '').trim();
+      case "redemption_cancel": {
+        if (!user) return fail(route, "not_authenticated");
+        const businessId = String(body.p_business_id ?? "");
+        const redemptionId = String(body.p_redemption_id ?? "");
+        const reason = String(body.p_reason ?? "").trim();
         const redemption = state.redemptionRequests.find(
           (r) => r.id === redemptionId && r.businessId === businessId,
         );
-        if (!redemption) return fail(route, 'redemption_not_found');
-        if (reason.length < 3) return fail(route, 'invalid_reason');
-        if (redemption.status !== 'pending') {
-          return fail(route, 'redemption_not_pending');
+        if (!redemption) return fail(route, "redemption_not_found");
+        if (reason.length < 3) return fail(route, "invalid_reason");
+        if (redemption.status !== "pending") {
+          return fail(route, "redemption_not_pending");
         }
-        redemption.status = 'cancelled';
+        redemption.status = "cancelled";
         redemption.cancelledAt = now();
         return json(route, {
           redemption_id: redemptionId,
-          status: 'cancelled',
+          status: "cancelled",
           points_refunded: redemption.pointsSpent,
         });
       }
-      case 'loyalty_redemptions_list': {
-        if (!user) return fail(route, 'not_authenticated');
-        const businessId = String(body.p_business_id ?? '');
-        const status = body.p_status ? String(body.p_status) : '';
-        const origin = body.p_origin ? String(body.p_origin) : '';
+      case "loyalty_redemptions_list": {
+        if (!user) return fail(route, "not_authenticated");
+        const businessId = String(body.p_business_id ?? "");
+        const status = body.p_status ? String(body.p_status) : "";
+        const origin = body.p_origin ? String(body.p_origin) : "";
         return json(
           route,
           state.redemptionRequests
@@ -2932,7 +2757,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
                 delivered_at: r.deliveredAt ?? null,
                 cancelled_at: r.cancelledAt ?? null,
                 customer_id: r.accountId,
-                customer_email: u?.email ?? '',
+                customer_email: u?.email ?? "",
                 customer_nickname: u?.nickname ?? null,
                 origin: r.origin,
               };
@@ -2943,22 +2768,20 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
       // ------------------------------------------------------------------
       // Fase 4: compras desde el panel, panel económico y auditoría
       // ------------------------------------------------------------------
-      case 'loyalty_purchase_register': {
-        if (!user) return fail(route, 'not_authenticated');
-        const businessId = String(body.p_business_id ?? '');
-        const customerId = String(body.p_customer_id ?? '');
+      case "loyalty_purchase_register": {
+        if (!user) return fail(route, "not_authenticated");
+        const businessId = String(body.p_business_id ?? "");
+        const customerId = String(body.p_customer_id ?? "");
         const amountCop = Number(body.p_amount_cop ?? 0);
         const eligibleCop = Number(body.p_eligible_amount_cop ?? amountCop);
-        const idempotencyKey = `purchase:${businessId}:${String(body.p_idempotency_key ?? '')}`;
+        const idempotencyKey = `purchase:${businessId}:${String(body.p_idempotency_key ?? "")}`;
         const program = state.loyaltyPrograms[businessId];
 
-        if (!program?.is_active) return fail(route, 'program_not_active');
-        if (amountCop <= 0) return fail(route, 'invalid_amount');
+        if (!program?.is_active) return fail(route, "program_not_active");
+        if (amountCop <= 0) return fail(route, "invalid_amount");
 
         const existing = state.purchaseEvents.find(
-          (event) =>
-            event.businessId === businessId &&
-            event.idempotencyKey === idempotencyKey,
+          (event) => event.businessId === businessId && event.idempotencyKey === idempotencyKey,
         );
         if (existing) {
           return json(route, {
@@ -2967,13 +2790,11 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
             duplicate: true,
             account_id: `acc-${customerId}`,
             purchase_event_id: existing.id,
-            message: 'La compra ya fue procesada.',
+            message: "La compra ya fue procesada.",
           });
         }
 
-        const pointsEarned = Math.floor(
-          eligibleCop / Math.max(program.cop_per_point_unit, 1),
-        );
+        const pointsEarned = Math.floor(eligibleCop / Math.max(program.cop_per_point_unit, 1));
         const createdAt = now();
         const campaign = state.campaigns
           .filter(
@@ -2984,11 +2805,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
               (!item.validUntil || item.validUntil > createdAt) &&
               eligibleCop >= item.minPurchaseAmount,
           )
-          .sort(
-            (a, b) =>
-              b.multiplier - a.multiplier ||
-              b.bonusPoints - a.bonusPoints,
-          )[0];
+          .sort((a, b) => b.multiplier - a.multiplier || b.bonusPoints - a.bonusPoints)[0];
         const basePoints = pointsEarned;
         const campaignPoints = campaign
           ? Math.floor(basePoints * campaign.multiplier) + campaign.bonusPoints
@@ -3011,8 +2828,8 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           id: `audit-${crypto.randomUUID().slice(0, 8)}`,
           businessId,
           actorEmail: user.email,
-          operation: 'purchase.registered',
-          entityType: 'loyalty_purchase_event',
+          operation: "purchase.registered",
+          entityType: "loyalty_purchase_event",
           entityId: event.id,
           metadata: {
             customer_id: customerId,
@@ -3036,22 +2853,22 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           bonus_points: campaign?.bonusPoints ?? 0,
         });
       }
-      case 'loyalty_purchase_revert': {
-        if (!user) return fail(route, 'not_authenticated');
-        const businessId = String(body.p_business_id ?? '');
-        const eventId = String(body.p_event_id ?? '');
-        const reason = String(body.p_reason ?? '').trim() || 'Reverso de compra';
+      case "loyalty_purchase_revert": {
+        if (!user) return fail(route, "not_authenticated");
+        const businessId = String(body.p_business_id ?? "");
+        const eventId = String(body.p_event_id ?? "");
+        const reason = String(body.p_reason ?? "").trim() || "Reverso de compra";
         const event = state.purchaseEvents.find(
           (item) => item.id === eventId && item.businessId === businessId,
         );
-        if (!event) return fail(route, 'purchase_event_not_found');
+        if (!event) return fail(route, "purchase_event_not_found");
 
         if (event.reversed) {
           return json(route, {
             points_reversed: 0,
             balance: loyaltyBalance(state, event.customerId, event.businessId),
             duplicate: true,
-            message: 'La compra ya fue revertida.',
+            message: "La compra ya fue revertida.",
           });
         }
 
@@ -3062,8 +2879,8 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           id: `audit-${crypto.randomUUID().slice(0, 8)}`,
           businessId,
           actorEmail: user.email,
-          operation: 'purchase.reverted',
-          entityType: 'loyalty_purchase_event',
+          operation: "purchase.reverted",
+          entityType: "loyalty_purchase_event",
           entityId: event.id,
           metadata: {
             points_reversed: event.pointsEarned,
@@ -3079,23 +2896,18 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           duplicate: false,
         });
       }
-      case 'business_dashboard_summary': {
-        if (!user) return fail(route, 'not_authenticated');
-        const businessId = String(body.p_business_id ?? '');
-        const events = state.purchaseEvents.filter(
-          (event) => event.businessId === businessId,
-        );
+      case "business_dashboard_summary": {
+        if (!user) return fail(route, "not_authenticated");
+        const businessId = String(body.p_business_id ?? "");
+        const events = state.purchaseEvents.filter((event) => event.businessId === businessId);
         const pending = state.redemptionRequests.filter(
-          (request) =>
-            request.businessId === businessId && request.status === 'pending',
+          (request) => request.businessId === businessId && request.status === "pending",
         );
         const approved = state.redemptionRequests.filter(
-          (request) =>
-            request.businessId === businessId && request.status === 'approved',
+          (request) => request.businessId === businessId && request.status === "approved",
         );
         const members = state.memberships.filter(
-          (membership) =>
-            membership.businessId === businessId && membership.role === 'cliente',
+          (membership) => membership.businessId === businessId && membership.role === "cliente",
         );
         const frequencies = members.map((membership) =>
           customerFrequency(state, membership.userId, businessId),
@@ -3103,12 +2915,8 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
-        const todayEvents = events.filter(
-          (event) => new Date(event.createdAt) >= today,
-        );
-        const monthEvents = events.filter(
-          (event) => new Date(event.createdAt) >= monthStart,
-        );
+        const todayEvents = events.filter((event) => new Date(event.createdAt) >= today);
+        const monthEvents = events.filter((event) => new Date(event.createdAt) >= monthStart);
         const dates = [
           ...events.map((event) => event.createdAt),
           ...state.redemptionRequests
@@ -3120,59 +2928,42 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
         ].sort();
         return json(route, {
           business_id: businessId,
-          points_outstanding:
-            state.purchaseCredits[members[0]?.userId ?? ''] ?? 0,
-          points_issued_total: events.reduce(
-            (sum, event) => sum + event.pointsEarned,
-            0,
-          ),
+          points_outstanding: state.purchaseCredits[members[0]?.userId ?? ""] ?? 0,
+          points_issued_total: events.reduce((sum, event) => sum + event.pointsEarned, 0),
           points_redeemed_total: state.redemptionRequests
             .filter(
-              (request) =>
-                request.businessId === businessId &&
-                request.status !== 'cancelled',
+              (request) => request.businessId === businessId && request.status !== "cancelled",
             )
             .reduce((sum, request) => sum + request.pointsSpent, 0),
           pending_redemptions: pending.length,
           approved_pending_delivery: approved.length,
           frequent_customers: frequencies.filter((item) => item.is_frequent).length,
-          active_customers: frequencies.filter((item) => item.is_frequent_active)
-            .length,
+          active_customers: frequencies.filter((item) => item.is_frequent_active).length,
           customers_total: members.length,
-          sales_today_cop: todayEvents.reduce(
-            (sum, event) => sum + event.amountCop,
-            0,
-          ),
-          sales_month_cop: monthEvents.reduce(
-            (sum, event) => sum + event.amountCop,
-            0,
-          ),
+          sales_today_cop: todayEvents.reduce((sum, event) => sum + event.amountCop, 0),
+          sales_month_cop: monthEvents.reduce((sum, event) => sum + event.amountCop, 0),
           purchases_today: todayEvents.length,
           purchases_month: monthEvents.length,
           pending_qr_count: state.purchases.filter(
-            (purchase) =>
-              purchase.businessId === businessId &&
-              purchase.status === 'pending_claim',
+            (purchase) => purchase.businessId === businessId && purchase.status === "pending_claim",
           ).length,
           budget_committed_percent: 0,
           last_activity_at: dates.at(-1) ?? null,
           calculated_at: now(),
         });
       }
-      case 'business_recent_activity': {
-        if (!user) return fail(route, 'not_authenticated');
-        const businessId = String(body.p_business_id ?? '');
+      case "business_recent_activity": {
+        if (!user) return fail(route, "not_authenticated");
+        const businessId = String(body.p_business_id ?? "");
         const limit = Number(body.p_limit ?? 10);
         const rows = [
           ...state.purchaseEvents
             .filter((event) => event.businessId === businessId)
             .map((event) => ({
               id: event.id,
-              kind: 'purchase' as const,
-              title: 'Compra registrada',
-              detail:
-                state.users.find((item) => item.id === event.customerId)?.name ??
-                'Cliente',
+              kind: "purchase" as const,
+              title: "Compra registrada",
+              detail: state.users.find((item) => item.id === event.customerId)?.name ?? "Cliente",
               points: event.pointsEarned,
               amount_cop: event.amountCop,
               status: null,
@@ -3182,28 +2973,22 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
             .filter((request) => request.businessId === businessId)
             .map((request) => ({
               id: request.id,
-              kind: 'redemption' as const,
+              kind: "redemption" as const,
               title: request.rewardName,
-              detail:
-                state.users.find((item) => item.id === request.accountId)?.name ??
-                'Cliente',
+              detail: state.users.find((item) => item.id === request.accountId)?.name ?? "Cliente",
               points: -request.pointsSpent,
               amount_cop: null,
               status: request.status,
               created_at: request.createdAt,
             })),
         ]
-          .sort(
-            (a, b) =>
-              new Date(b.created_at).getTime() -
-              new Date(a.created_at).getTime(),
-          )
+          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
           .slice(0, limit);
         return json(route, rows);
       }
-      case 'business_economic_profile_get': {
-        if (!user) return fail(route, 'not_authenticated');
-        const businessId = String(body.p_business_id ?? '');
+      case "business_economic_profile_get": {
+        if (!user) return fail(route, "not_authenticated");
+        const businessId = String(body.p_business_id ?? "");
         const profile = state.economicProfiles[businessId];
         if (!profile) return json(route, null);
         return json(route, {
@@ -3220,9 +3005,9 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           updated_at: profile.updatedAt,
         });
       }
-      case 'business_economic_profile_upsert': {
-        if (!user) return fail(route, 'not_authenticated');
-        const businessId = String(body.p_business_id ?? '');
+      case "business_economic_profile_upsert": {
+        if (!user) return fail(route, "not_authenticated");
+        const businessId = String(body.p_business_id ?? "");
         const profile: FakeEconomicProfile = {
           dailyAvgSales: body.p_daily_avg_sales ?? null,
           monthlyOperationDays: body.p_monthly_operation_days ?? null,
@@ -3238,8 +3023,8 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           id: `audit-${crypto.randomUUID().slice(0, 8)}`,
           businessId,
           actorEmail: user.email,
-          operation: 'economic_profile.updated',
-          entityType: 'business_economic_profile',
+          operation: "economic_profile.updated",
+          entityType: "business_economic_profile",
           entityId: businessId,
           metadata: profile.dataStatus,
           createdAt: profile.updatedAt,
@@ -3249,9 +3034,9 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           updated_at: profile.updatedAt,
         });
       }
-      case 'business_dashboard_economic': {
-        if (!user) return fail(route, 'not_authenticated');
-        const businessId = String(body.p_business_id ?? '');
+      case "business_dashboard_economic": {
+        if (!user) return fail(route, "not_authenticated");
+        const businessId = String(body.p_business_id ?? "");
         const profile = state.economicProfiles[businessId];
         const program = state.loyaltyPrograms[businessId];
         const monthlySales =
@@ -3259,32 +3044,22 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
             ? profile.dailyAvgSales * profile.monthlyOperationDays
             : 0;
         const referenceBudget =
-          monthlySales > 0 && program
-            ? Math.floor(monthlySales * program.budget_rate)
-            : 0;
-        const maxBudget =
-          profile?.maxMonthlyRewardBudget ?? referenceBudget;
+          monthlySales > 0 && program ? Math.floor(monthlySales * program.budget_rate) : 0;
+        const maxBudget = profile?.maxMonthlyRewardBudget ?? referenceBudget;
 
         const costFor = (statuses: string[]) =>
           state.redemptionRequests
             .filter(
-              (request) =>
-                request.businessId === businessId &&
-                statuses.includes(request.status),
+              (request) => request.businessId === businessId && statuses.includes(request.status),
             )
             .reduce((sum, request) => {
-              const reward = state.loyaltyRewards.find(
-                (item) => item.id === request.rewardId,
-              );
+              const reward = state.loyaltyRewards.find((item) => item.id === request.rewardId);
               return sum + request.pointsSpent * (reward?.productPriceCop ?? 0);
             }, 0);
 
-        const redeemed = costFor(['delivered']);
-        const pending = costFor(['pending', 'approved']);
-        const committed =
-          maxBudget > 0
-            ? Math.round((redeemed / maxBudget) * 10000) / 100
-            : 0;
+        const redeemed = costFor(["delivered"]);
+        const pending = costFor(["pending", "approved"]);
+        const committed = maxBudget > 0 ? Math.round((redeemed / maxBudget) * 10000) / 100 : 0;
 
         return json(route, {
           business_id: businessId,
@@ -3302,18 +3077,22 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           calculated_at: now(),
         });
       }
-      case 'business_audit_log_page': {
-        if (!user) return fail(route, 'not_authenticated');
-        const businessId = String(body.p_business_id ?? '');
-        const operations = String(body.p_operation ?? '')
+      case "business_audit_log_page": {
+        if (!user) return fail(route, "not_authenticated");
+        const businessId = String(body.p_business_id ?? "");
+        const operations = String(body.p_operation ?? "")
           .toLowerCase()
-          .split(',')
+          .split(",")
           .map((item) => item.trim())
           .filter(Boolean);
-        const actor = String(body.p_actor ?? '').toLowerCase().trim();
-        const search = String(body.p_search ?? '').toLowerCase().trim();
+        const actor = String(body.p_actor ?? "")
+          .toLowerCase()
+          .trim();
+        const search = String(body.p_search ?? "")
+          .toLowerCase()
+          .trim();
         const parseDate = (value: unknown) =>
-          typeof value === 'string' && value ? new Date(value).getTime() : null;
+          typeof value === "string" && value ? new Date(value).getTime() : null;
         const from = parseDate(body.p_from);
         const to = parseDate(body.p_to);
         const limit = Math.max(Number(body.p_limit ?? 50), 1);
@@ -3322,9 +3101,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           .filter((entry) => entry.businessId === businessId)
           .map((entry) => ({
             entry,
-            actorUser: state.users.find(
-              (candidate) => candidate.email === entry.actorEmail,
-            ),
+            actorUser: state.users.find((candidate) => candidate.email === entry.actorEmail),
           }))
           .filter(({ entry, actorUser }) => {
             const operation = entry.operation.toLowerCase();
@@ -3335,8 +3112,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
               return false;
             }
             if (actor) {
-              const haystack = `${actorUser?.name ?? ''} ${entry.actorEmail ?? ''}`
-                .toLowerCase();
+              const haystack = `${actorUser?.name ?? ""} ${entry.actorEmail ?? ""}`.toLowerCase();
               if (!haystack.includes(actor)) return false;
             }
             const createdAt = new Date(entry.createdAt).getTime();
@@ -3346,12 +3122,12 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
               const haystack = [
                 operation,
                 entry.entityType,
-                entry.entityId ?? '',
-                entry.actorEmail ?? '',
-                actorUser?.name ?? '',
+                entry.entityId ?? "",
+                entry.actorEmail ?? "",
+                actorUser?.name ?? "",
                 JSON.stringify(entry.metadata ?? {}),
               ]
-                .join(' ')
+                .join(" ")
                 .toLowerCase();
               if (!haystack.includes(search)) return false;
             }
@@ -3381,9 +3157,9 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
       // ------------------------------------------------------------------
       // Fase 6: campañas, vencimiento y snapshots
       // ------------------------------------------------------------------
-      case 'loyalty_campaign_list': {
-        if (!user) return fail(route, 'not_authenticated');
-        const businessId = String(body.p_business_id ?? '');
+      case "loyalty_campaign_list": {
+        if (!user) return fail(route, "not_authenticated");
+        const businessId = String(body.p_business_id ?? "");
         const onlyActive = Boolean(body.p_only_active);
         const nowIso = now();
         return json(
@@ -3393,8 +3169,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
             .filter((item) => !onlyActive || item.isActive)
             .sort(
               (a, b) =>
-                Number(b.isActive) - Number(a.isActive) ||
-                b.createdAt.localeCompare(a.createdAt),
+                Number(b.isActive) - Number(a.isActive) || b.createdAt.localeCompare(a.createdAt),
             )
             .map((item) => ({
               id: item.id,
@@ -3416,21 +3191,19 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
             })),
         );
       }
-      case 'loyalty_campaign_upsert': {
-        if (!isAdmin) return fail(route, 'forbidden');
-        const businessId = String(body.p_business_id ?? '');
+      case "loyalty_campaign_upsert": {
+        if (!isAdmin) return fail(route, "forbidden");
+        const businessId = String(body.p_business_id ?? "");
         const id = body.p_id ? String(body.p_id) : null;
         const existing = id
-          ? state.campaigns.find(
-              (item) => item.id === id && item.businessId === businessId,
-            )
+          ? state.campaigns.find((item) => item.id === id && item.businessId === businessId)
           : undefined;
         const createdAt = now();
         const campaign: FakeCampaign = {
           id: id ?? `camp-${crypto.randomUUID().slice(0, 8)}`,
           businessId,
-          name: String(body.p_name ?? '').trim(),
-          description: String(body.p_description ?? ''),
+          name: String(body.p_name ?? "").trim(),
+          description: String(body.p_description ?? ""),
           multiplier: Number(body.p_multiplier ?? 2),
           bonusPoints: Number(body.p_bonus_points ?? 0),
           minPurchaseAmount: Number(body.p_min_purchase_amount ?? 0),
@@ -3462,28 +3235,28 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           updated_at: campaign.updatedAt,
         });
       }
-      case 'loyalty_campaign_delete': {
-        if (!isAdmin) return fail(route, 'forbidden');
-        const businessId = String(body.p_business_id ?? '');
-        const campaignId = String(body.p_campaign_id ?? '');
+      case "loyalty_campaign_delete": {
+        if (!isAdmin) return fail(route, "forbidden");
+        const businessId = String(body.p_business_id ?? "");
+        const campaignId = String(body.p_campaign_id ?? "");
         const existing = state.campaigns.find(
           (item) => item.id === campaignId && item.businessId === businessId,
         );
-        if (!existing) return fail(route, 'campaign_not_found');
+        if (!existing) return fail(route, "campaign_not_found");
         state.campaigns = state.campaigns.filter((item) => item.id !== campaignId);
         return json(route, { campaign_id: campaignId, deleted: true });
       }
-      case 'points_expire_due': {
-        if (!user) return fail(route, 'not_authenticated');
+      case "points_expire_due": {
+        if (!user) return fail(route, "not_authenticated");
         return json(route, {
           lots_expired: 0,
           accounts_affected: 0,
           points_expired: 0,
         });
       }
-      case 'loyalty_budget_snapshot_list': {
-        if (!user) return fail(route, 'not_authenticated');
-        const businessId = String(body.p_business_id ?? '');
+      case "loyalty_budget_snapshot_list": {
+        if (!user) return fail(route, "not_authenticated");
+        const businessId = String(body.p_business_id ?? "");
         const limit = Math.max(Number(body.p_limit ?? 12), 1);
         const offset = Math.max(Number(body.p_offset ?? 0), 0);
         const filtered = state.budgetSnapshots
@@ -3508,18 +3281,14 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           })),
         );
       }
-      case 'loyalty_budget_snapshot_create': {
-        if (!user) return fail(route, 'not_authenticated');
-        const businessId = String(body.p_business_id ?? '');
+      case "loyalty_budget_snapshot_create": {
+        if (!user) return fail(route, "not_authenticated");
+        const businessId = String(body.p_business_id ?? "");
         const profile = state.economicProfiles[businessId];
         const program = state.loyaltyPrograms[businessId];
         const base = new Date();
-        const start = new Date(
-          Date.UTC(base.getUTCFullYear(), base.getUTCMonth(), 1),
-        );
-        const end = new Date(
-          Date.UTC(base.getUTCFullYear(), base.getUTCMonth() + 1, 0),
-        );
+        const start = new Date(Date.UTC(base.getUTCFullYear(), base.getUTCMonth(), 1));
+        const end = new Date(Date.UTC(base.getUTCFullYear(), base.getUTCMonth() + 1, 0));
         const periodStart = start.toISOString().slice(0, 10);
         const periodEnd = end.toISOString().slice(0, 10);
         const monthlySales =
@@ -3527,14 +3296,10 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
             ? profile.dailyAvgSales * profile.monthlyOperationDays
             : 0;
         const referenceBudget =
-          monthlySales > 0 && program
-            ? Math.floor(monthlySales * program.budget_rate)
-            : 0;
-        const maxBudget =
-          profile?.maxMonthlyRewardBudget ?? referenceBudget;
+          monthlySales > 0 && program ? Math.floor(monthlySales * program.budget_rate) : 0;
+        const maxBudget = profile?.maxMonthlyRewardBudget ?? referenceBudget;
         const existing = state.budgetSnapshots.find(
-          (item) =>
-            item.businessId === businessId && item.periodStart === periodStart,
+          (item) => item.businessId === businessId && item.periodStart === periodStart,
         );
         const snapshot: FakeBudgetSnapshot = {
           id: existing?.id ?? `snap-${crypto.randomUUID().slice(0, 8)}`,
@@ -3555,10 +3320,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           createdAt: now(),
         };
         state.budgetSnapshots = state.budgetSnapshots.filter(
-          (item) =>
-            !(
-              item.businessId === businessId && item.periodStart === periodStart
-            ),
+          (item) => !(item.businessId === businessId && item.periodStart === periodStart),
         );
         state.budgetSnapshots.push(snapshot);
         return json(route, {

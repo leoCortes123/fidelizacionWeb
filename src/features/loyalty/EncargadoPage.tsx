@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import {
   AlertTriangle,
   Check,
@@ -10,22 +10,22 @@ import {
   Scan,
   ShieldAlert,
   X,
-} from 'lucide-react';
-import { toast } from 'sonner';
+} from "lucide-react";
+import { toast } from "sonner";
 import {
   useApproveRedemption,
   useBusinesses,
   useDeliverRedemption,
   useLoyaltyRedemptions,
   useValidateRedemptionToken,
-} from '@/features/loyalty/hooks';
-import { useBusinessContext } from '@/features/loyalty/businessContext';
-import { errorMessage } from '@/lib/errors';
-import { formatDateTimeBogota, formatPoints } from '@/lib/format';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+} from "@/features/loyalty/hooks";
+import { useBusinessContext } from "@/features/loyalty/businessContext";
+import { errorMessage } from "@/lib/errors";
+import { formatDateTimeBogota, formatPoints } from "@/lib/format";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -33,19 +33,19 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { PageHeader } from '@/components/shared/PageHeader';
-import { EmptyState, ErrorState, ListSkeleton } from '@/components/shared/States';
-import { RedemptionRequestStatusBadge } from '@/components/shared/StatusBadge';
-import { useCountdown } from '@/features/loyalty/useCountdown';
-import type { Business, LoyaltyRedemptionWithCustomer } from '@/types';
+} from "@/components/ui/dialog";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { EmptyState, ErrorState, ListSkeleton } from "@/components/shared/States";
+import { RedemptionRequestStatusBadge } from "@/components/shared/StatusBadge";
+import { useCountdown } from "@/features/loyalty/useCountdown";
+import type { Business, LoyaltyRedemptionWithCustomer } from "@/types";
 
 interface ValidatedRedemption {
   redemption_id: string;
   reward_name: string;
   points_spent: number;
   expires_at: string;
-  status: 'pending' | 'approved';
+  status: "pending" | "approved";
 }
 
 export function EncargadoPage() {
@@ -80,7 +80,7 @@ export function EncargadoPage() {
                   className="mt-4 w-full"
                   onClick={() => {
                     setSelectedBusiness(business);
-                    navigate('/encargado');
+                    navigate("/encargado");
                   }}
                 >
                   Seleccionar
@@ -114,18 +114,17 @@ function EncargadoSection({ business }: { business: Business }) {
   const { selectedRole, canApproveRedemptions } = useBusinessContext();
   const navigate = useNavigate();
   const canAct =
-    selectedRole === 'admin' || (selectedRole === 'encargado' && canApproveRedemptions);
+    selectedRole === "admin" || (selectedRole === "encargado" && canApproveRedemptions);
 
   const validateToken = useValidateRedemptionToken();
   const approveRedemption = useApproveRedemption();
   const deliverRedemption = useDeliverRedemption();
-  const pending = useLoyaltyRedemptions(business.id, 'pending');
-  const approved = useLoyaltyRedemptions(business.id, 'approved');
+  const pending = useLoyaltyRedemptions(business.id, "pending");
+  const approved = useLoyaltyRedemptions(business.id, "approved");
 
-  const [token, setToken] = useState('');
+  const [token, setToken] = useState("");
   const [validated, setValidated] = useState<ValidatedRedemption | null>(null);
-  const [deliveryTarget, setDeliveryTarget] =
-    useState<LoyaltyRedemptionWithCustomer | null>(null);
+  const [deliveryTarget, setDeliveryTarget] = useState<LoyaltyRedemptionWithCustomer | null>(null);
   const [delivering, setDelivering] = useState(false);
 
   const countdown = useCountdown(validated?.expires_at);
@@ -145,9 +144,8 @@ function EncargadoSection({ business }: { business: Business }) {
             </span>
             <h3 className="text-lg font-bold">Sin permiso de aprobación</h3>
             <p className="text-sm text-muted-foreground">
-              Tu rol en este negocio es <strong>{selectedRole ?? 'sin rol'}</strong>.
-              Pide a un administrador que active el permiso “Puede aprobar
-              redenciones” para tu cuenta.
+              Tu rol en este negocio es <strong>{selectedRole ?? "sin rol"}</strong>. Pide a un
+              administrador que active el permiso “Puede aprobar redenciones” para tu cuenta.
             </p>
           </CardContent>
         </Card>
@@ -186,9 +184,9 @@ function EncargadoSection({ business }: { business: Business }) {
         reward_name: result.reward_name,
         points_spent: result.points_spent,
         expires_at: result.expires_at,
-        status: 'pending',
+        status: "pending",
       });
-      toast.success('Token válido. Revisa la recompensa antes de aprobar.');
+      toast.success("Token válido. Revisa la recompensa antes de aprobar.");
     } catch (error) {
       setValidated(null);
       toast.error(errorMessage(error));
@@ -204,12 +202,12 @@ function EncargadoSection({ business }: { business: Business }) {
         approve,
       });
       if (approve) {
-        setValidated({ ...validated, status: 'approved' });
-        toast.success('Redención aprobada. Confirma la entrega al cliente.');
+        setValidated({ ...validated, status: "approved" });
+        toast.success("Redención aprobada. Confirma la entrega al cliente.");
       } else {
         setValidated(null);
-        setToken('');
-        toast.success('Redención rechazada. Los loopoints fueron devueltos.');
+        setToken("");
+        toast.success("Redención rechazada. Los loopoints fueron devueltos.");
       }
       void pending.refetch();
       void approved.refetch();
@@ -225,15 +223,15 @@ function EncargadoSection({ business }: { business: Business }) {
         businessId: business.id,
         redemptionId,
       });
-      toast.success('Entrega confirmada. Loopoints consumidos.', {
+      toast.success("Entrega confirmada. Loopoints consumidos.", {
         action: {
-          label: 'Registrar compra',
-          onClick: () => navigate('/encargado/venta'),
+          label: "Registrar compra",
+          onClick: () => navigate("/encargado/venta"),
         },
       });
       if (validated?.redemption_id === redemptionId) {
         setValidated(null);
-        setToken('');
+        setToken("");
       }
       setDeliveryTarget(null);
       void pending.refetch();
@@ -281,18 +279,14 @@ function EncargadoSection({ business }: { business: Business }) {
                   required
                 />
               </div>
-              <Button
-                type="submit"
-                loading={validateToken.isPending}
-                className="w-full"
-              >
+              <Button type="submit" loading={validateToken.isPending} className="w-full">
                 Validar token
               </Button>
             </form>
             <p className="mt-3 text-xs text-muted-foreground">
-              Al escanear con la cámara se abre la pantalla de confirmación del canje.
-              Si no es posible, pega aquí el código aleatorio. Nunca incluye datos
-              personales ni saldos, y deja de ser válido al confirmar la entrega.
+              Al escanear con la cámara se abre la pantalla de confirmación del canje. Si no es
+              posible, pega aquí el código aleatorio. Nunca incluye datos personales ni saldos, y
+              deja de ser válido al confirmar la entrega.
             </p>
           </CardContent>
         </Card>
@@ -318,8 +312,7 @@ function EncargadoSection({ business }: { business: Business }) {
                       <RedemptionRequestStatusBadge status={redemption.status} />
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      {redemption.customer_email} ·{' '}
-                      {formatPoints(redemption.points_spent)} ·{' '}
+                      {redemption.customer_email} · {formatPoints(redemption.points_spent)} ·{" "}
                       {formatDateTimeBogota(redemption.created_at)}
                     </p>
                   </li>
@@ -355,9 +348,8 @@ function EncargadoSection({ business }: { business: Business }) {
                   <div>
                     <p className="font-semibold">{redemption.reward_name}</p>
                     <p className="text-xs text-muted-foreground">
-                      {redemption.customer_email} ·{' '}
-                      {formatPoints(redemption.points_spent)} · aprobado{' '}
-                      {formatDateTimeBogota(redemption.approved_at)}
+                      {redemption.customer_email} · {formatPoints(redemption.points_spent)} ·
+                      aprobado {formatDateTimeBogota(redemption.approved_at)}
                     </p>
                   </div>
                   <Button size="sm" onClick={() => setDeliveryTarget(redemption)}>
@@ -376,46 +368,49 @@ function EncargadoSection({ business }: { business: Business }) {
         onOpenChange={(open) => {
           if (!open) {
             setValidated(null);
-            setToken('');
+            setToken("");
           }
         }}
       >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {validated?.status === 'approved' ? 'Redención aprobada' : 'Validar redención'}
+              {validated?.status === "approved" ? "Redención aprobada" : "Validar redención"}
             </DialogTitle>
             <DialogDescription>
-              {validated?.status === 'approved' ? (
+              {validated?.status === "approved" ? (
                 <>
-                  Entrega <strong>{validated.reward_name}</strong> al cliente y confirma
-                  para consumir {formatPoints(validated.points_spent)}.
+                  Entrega <strong>{validated.reward_name}</strong> al cliente y confirma para
+                  consumir {formatPoints(validated.points_spent)}.
                 </>
               ) : (
                 <>
-                  El cliente solicita canjear <strong>{validated?.reward_name}</strong>{' '}
-                  por {formatPoints(validated?.points_spent ?? 0)}.
+                  El cliente solicita canjear <strong>{validated?.reward_name}</strong> por{" "}
+                  {formatPoints(validated?.points_spent ?? 0)}.
                 </>
               )}
             </DialogDescription>
           </DialogHeader>
 
-          {validated?.status === 'pending' && (
+          {validated?.status === "pending" && (
             <div
               className={
                 qrExpired
-                  ? 'flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive'
-                  : 'flex items-start gap-2 rounded-lg border bg-muted/40 p-3 text-sm'
+                  ? "flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive"
+                  : "flex items-start gap-2 rounded-lg border bg-muted/40 p-3 text-sm"
               }
             >
               {qrExpired ? (
                 <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
               ) : (
-                <RefreshCw className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                <RefreshCw
+                  className="mt-0.5 size-4 shrink-0 text-muted-foreground"
+                  aria-hidden="true"
+                />
               )}
               <p>
                 {qrExpired
-                  ? 'El QR venció. Pide al cliente que lo reemita desde “Mis canjes” antes de aprobar.'
+                  ? "El QR venció. Pide al cliente que lo reemita desde “Mis canjes” antes de aprobar."
                   : `El QR vence en ${countdown.label} (${formatDateTimeBogota(
                       validated?.expires_at,
                     )}).`}
@@ -424,7 +419,7 @@ function EncargadoSection({ business }: { business: Business }) {
           )}
 
           <DialogFooter>
-            {validated?.status === 'pending' ? (
+            {validated?.status === "pending" ? (
               <>
                 <Button
                   variant="outline"
@@ -466,23 +461,16 @@ function EncargadoSection({ business }: { business: Business }) {
           <DialogHeader>
             <DialogTitle>Confirmar entrega</DialogTitle>
             <DialogDescription>
-              ¿Entregaste <strong>{deliveryTarget?.reward_name}</strong> a{' '}
-              {deliveryTarget?.customer_email}? Los{' '}
+              ¿Entregaste <strong>{deliveryTarget?.reward_name}</strong> a{" "}
+              {deliveryTarget?.customer_email}? Los{" "}
               {formatPoints(deliveryTarget?.points_spent ?? 0)} quedarán consumidos.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setDeliveryTarget(null)}
-              disabled={delivering}
-            >
+            <Button variant="outline" onClick={() => setDeliveryTarget(null)} disabled={delivering}>
               Volver
             </Button>
-            <Button
-              onClick={() => void confirmDelivery(deliveryTarget!.id)}
-              loading={delivering}
-            >
+            <Button onClick={() => void confirmDelivery(deliveryTarget!.id)} loading={delivering}>
               <PackageCheck aria-hidden="true" />
               Confirmar entrega
             </Button>
@@ -492,8 +480,8 @@ function EncargadoSection({ business }: { business: Business }) {
 
       <p className="flex items-center gap-2 text-xs text-muted-foreground">
         <RefreshCw className="size-4" aria-hidden="true" />
-        Cada paso (validar, aprobar, entregar) queda registrado en la auditoría del
-        negocio con el responsable.
+        Cada paso (validar, aprobar, entregar) queda registrado en la auditoría del negocio con el
+        responsable.
       </p>
     </div>
   );

@@ -1,21 +1,21 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Plus, Search, UserPlus, Users } from 'lucide-react';
-import { toast } from 'sonner';
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Plus, Search, UserPlus, Users } from "lucide-react";
+import { toast } from "sonner";
 import {
   useBusinessMemberships,
   useCreateBusinessMembership,
   useSearchProfiles,
   useUpdateBusinessMembership,
   useBusinesses,
-} from '@/features/loyalty/hooks';
-import { useBusinessContext } from '@/features/loyalty/businessContext';
-import { errorMessage } from '@/lib/errors';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+} from "@/features/loyalty/hooks";
+import { useBusinessContext } from "@/features/loyalty/businessContext";
+import { errorMessage } from "@/lib/errors";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -23,22 +23,22 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { PageHeader } from '@/components/shared/PageHeader';
-import { EmptyState, ErrorState, ListSkeleton, LoadingScreen } from '@/components/shared/States';
-import type { BusinessRole, ProfileLookup } from '@/types';
+} from "@/components/ui/select";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { EmptyState, ErrorState, ListSkeleton, LoadingScreen } from "@/components/shared/States";
+import type { BusinessRole, ProfileLookup } from "@/types";
 
 const roleLabels: Record<BusinessRole, string> = {
-  admin: 'Administrador',
-  encargado: 'Encargado',
-  cliente: 'Cliente',
+  admin: "Administrador",
+  encargado: "Encargado",
+  cliente: "Cliente",
 };
 
 export function MembersPage() {
@@ -46,16 +46,16 @@ export function MembersPage() {
   const { selectedBusiness, setSelectedBusiness } = useBusinessContext();
   const navigate = useNavigate();
 
-  const memberships = useBusinessMemberships(selectedBusiness?.id ?? '');
+  const memberships = useBusinessMemberships(selectedBusiness?.id ?? "");
   const updateMembership = useUpdateBusinessMembership();
   const createMembership = useCreateBusinessMembership();
 
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [selectedProfile, setSelectedProfile] = useState<ProfileLookup | null>(null);
-  const [role, setRole] = useState<'encargado' | 'cliente'>('encargado');
+  const [role, setRole] = useState<"encargado" | "cliente">("encargado");
   const [canApprove, setCanApprove] = useState(false);
-  const profiles = useSearchProfiles(selectedBusiness?.id ?? '', search);
+  const profiles = useSearchProfiles(selectedBusiness?.id ?? "", search);
 
   if (businesses.isLoading) return <ListSkeleton rows={3} />;
   if (businesses.isError) {
@@ -67,7 +67,10 @@ export function MembersPage() {
   if (list.length > 1 && !selectedBusiness) {
     return (
       <div className="space-y-6 animate-fade-in">
-        <PageHeader title="Selecciona un negocio" description="Elige el negocio para gestionar miembros." />
+        <PageHeader
+          title="Selecciona un negocio"
+          description="Elige el negocio para gestionar miembros."
+        />
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {list.map((business) => (
             <Card key={business.id} className="cursor-pointer hover:shadow-md transition-shadow">
@@ -83,7 +86,7 @@ export function MembersPage() {
                   onClick={(event) => {
                     event.stopPropagation();
                     setSelectedBusiness(business);
-                    navigate('/admin/members');
+                    navigate("/admin/members");
                   }}
                 >
                   Seleccionar
@@ -101,7 +104,11 @@ export function MembersPage() {
     return (
       <div className="space-y-6 animate-fade-in">
         <PageHeader title="Sin negocios" description="No tienes negocios asignados." />
-        <EmptyState title="Sin negocios" description="Registra un negocio para continuar." icon={Users} />
+        <EmptyState
+          title="Sin negocios"
+          description="Registra un negocio para continuar."
+          icon={Users}
+        />
       </div>
     );
   }
@@ -113,7 +120,10 @@ export function MembersPage() {
     return <ErrorState error={memberships.error} onRetry={() => void memberships.refetch()} />;
   }
 
-  async function toggleApproval(member: (typeof membershipsData)[number], canApproveValue: boolean) {
+  async function toggleApproval(
+    member: (typeof membershipsData)[number],
+    canApproveValue: boolean,
+  ) {
     try {
       await updateMembership.mutateAsync({
         businessId: current.id,
@@ -121,9 +131,7 @@ export function MembersPage() {
         canApproveRedemptions: canApproveValue,
       });
       toast.success(
-        canApproveValue
-          ? 'Permiso de aprobación activado.'
-          : 'Permiso de aprobación desactivado.',
+        canApproveValue ? "Permiso de aprobación activado." : "Permiso de aprobación desactivado.",
       );
     } catch (error) {
       toast.error(errorMessage(error));
@@ -131,9 +139,9 @@ export function MembersPage() {
   }
 
   function openDialog() {
-    setSearch('');
+    setSearch("");
     setSelectedProfile(null);
-    setRole('encargado');
+    setRole("encargado");
     setCanApprove(false);
     setDialogOpen(true);
   }
@@ -142,14 +150,14 @@ export function MembersPage() {
     if (!open) {
       setDialogOpen(false);
       setSelectedProfile(null);
-      setSearch('');
+      setSearch("");
     }
   }
 
   async function addMember(event: React.FormEvent) {
     event.preventDefault();
     if (!selectedProfile) {
-      toast.error('Busca y selecciona una persona.');
+      toast.error("Busca y selecciona una persona.");
       return;
     }
     try {
@@ -157,12 +165,12 @@ export function MembersPage() {
         businessId: current.id,
         userId: selectedProfile.user_id,
         role,
-        canApproveRedemptions: role === 'encargado' ? canApprove : false,
+        canApproveRedemptions: role === "encargado" ? canApprove : false,
       });
       toast.success(`${selectedProfile.full_name} se unió como ${roleLabels[role].toLowerCase()}.`);
       setDialogOpen(false);
       setSelectedProfile(null);
-      setSearch('');
+      setSearch("");
       void memberships.refetch();
     } catch (error) {
       toast.error(errorMessage(error));
@@ -202,7 +210,7 @@ export function MembersPage() {
             <Card key={member.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
               <div className="flex items-center gap-3">
                 <div className="grid size-10 place-items-center rounded-full bg-secondary text-secondary-foreground">
-                  {(member.full_name || member.email || '?').charAt(0).toUpperCase()}
+                  {(member.full_name || member.email || "?").charAt(0).toUpperCase()}
                 </div>
                 <div>
                   <p className="font-semibold">{member.full_name}</p>
@@ -211,22 +219,18 @@ export function MembersPage() {
               </div>
               <div className="flex items-center gap-2">
                 <Badge variant="secondary">{roleLabels[member.role]}</Badge>
-                {member.role === 'encargado' && (
+                {member.role === "encargado" && (
                   <label className="flex cursor-pointer items-center gap-2 text-sm font-medium">
                     <input
                       type="checkbox"
                       checked={member.can_approve_redemptions}
-                      onChange={() =>
-                        toggleApproval(member, !member.can_approve_redemptions)
-                      }
+                      onChange={() => toggleApproval(member, !member.can_approve_redemptions)}
                       className="size-4 rounded border-input"
                     />
                     Puede aprobar redenciones
                   </label>
                 )}
-                {member.role === 'admin' && (
-                  <Badge variant="destructive">Administrador</Badge>
-                )}
+                {member.role === "admin" && <Badge variant="destructive">Administrador</Badge>}
               </div>
             </Card>
           ))}
@@ -234,9 +238,9 @@ export function MembersPage() {
       )}
 
       <p className="text-xs text-muted-foreground">
-        El permiso <strong>Puede aprobar redenciones</strong> solo aplica a
-        encargados. Los administradores siempre pueden aprobar. El sistema impide
-        dejar un negocio sin administrador.
+        El permiso <strong>Puede aprobar redenciones</strong> solo aplica a encargados. Los
+        administradores siempre pueden aprobar. El sistema impide dejar un negocio sin
+        administrador.
       </p>
 
       <Dialog open={dialogOpen} onOpenChange={closeDialog}>
@@ -268,9 +272,7 @@ export function MembersPage() {
                   autoComplete="off"
                 />
               </div>
-              <p className="text-xs text-muted-foreground">
-                Escribe al menos 2 caracteres.
-              </p>
+              <p className="text-xs text-muted-foreground">Escribe al menos 2 caracteres.</p>
             </div>
 
             {canSubmitSearch && (
@@ -294,11 +296,9 @@ export function MembersPage() {
                       >
                         <div className="min-w-0">
                           <p className="truncate text-sm font-semibold">
-                            {profile.full_name || 'Sin nombre'}
+                            {profile.full_name || "Sin nombre"}
                           </p>
-                          <p className="truncate text-xs text-muted-foreground">
-                            {profile.email}
-                          </p>
+                          <p className="truncate text-xs text-muted-foreground">{profile.email}</p>
                         </div>
                         {profile.already_member ? (
                           <Badge variant="muted">Ya es miembro</Badge>
@@ -332,8 +332,8 @@ export function MembersPage() {
                     <Select
                       value={role}
                       onValueChange={(value) => {
-                        setRole(value as 'encargado' | 'cliente');
-                        if (value === 'cliente') setCanApprove(false);
+                        setRole(value as "encargado" | "cliente");
+                        if (value === "cliente") setCanApprove(false);
                       }}
                     >
                       <SelectTrigger id="member-role">
@@ -345,7 +345,7 @@ export function MembersPage() {
                       </SelectContent>
                     </Select>
                   </div>
-                  {role === 'encargado' && (
+                  {role === "encargado" && (
                     <label className="flex items-start gap-2 self-end text-sm font-medium">
                       <input
                         type="checkbox"
@@ -358,8 +358,8 @@ export function MembersPage() {
                   )}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Los administradores solo pueden nombrarse desde el negocio creador.
-                  Si la persona ya tiene una membresía, aparecerá como “Ya es miembro”.
+                  Los administradores solo pueden nombrarse desde el negocio creador. Si la persona
+                  ya tiene una membresía, aparecerá como “Ya es miembro”.
                 </p>
               </div>
             )}

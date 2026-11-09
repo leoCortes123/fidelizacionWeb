@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 import {
   BadgeCheck,
   Gift,
@@ -9,8 +9,8 @@ import {
   Save,
   Settings2,
   Trash2,
-} from 'lucide-react';
-import { toast } from 'sonner';
+} from "lucide-react";
+import { toast } from "sonner";
 import {
   useAdminRewards,
   useAdminSettings,
@@ -19,24 +19,24 @@ import {
   useExpirePoints,
   useUpdateSettings,
   useUpsertReward,
-} from './hooks';
-import { errorMessage } from '@/lib/errors';
-import { formatDateTimeBogota } from '@/lib/format';
-import { cn } from '@/lib/utils';
-import { useFormDraft } from '@/lib/useFormDraft';
+} from "./hooks";
+import { errorMessage } from "@/lib/errors";
+import { formatDateTimeBogota } from "@/lib/format";
+import { cn } from "@/lib/utils";
+import { useFormDraft } from "@/lib/useFormDraft";
 import {
   AUDIT_SEVERITY_STYLES,
   auditSubject,
   getAuditEntityLabel,
   getAuditLabel,
-} from './auditLabels';
-import type { AdminReward } from '@/types';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
+} from "./auditLabels";
+import type { AdminReward } from "@/types";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -44,10 +44,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { PageHeader } from '@/components/shared/PageHeader';
-import { EmptyState, ErrorState, LoadingScreen } from '@/components/shared/States';
-import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
+} from "@/components/ui/dialog";
+import { PageHeader } from "@/components/shared/PageHeader";
+import { EmptyState, ErrorState, LoadingScreen } from "@/components/shared/States";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 
 interface SettingsFormState {
   cop_per_point_unit: string;
@@ -67,10 +67,10 @@ interface RewardFormState {
 }
 
 const emptyReward: RewardFormState = {
-  name: '',
-  description: '',
-  points_cost: '',
-  image_url: '',
+  name: "",
+  description: "",
+  points_cost: "",
+  image_url: "",
   is_active: true,
 };
 
@@ -82,7 +82,7 @@ export function SettingsPage() {
   const audit = useAuditLog();
   const configHistory = useConfigHistory();
   const expirePoints = useExpirePoints();
-  const draft = useFormDraft<SettingsFormState>({ key: 'admin:settings' });
+  const draft = useFormDraft<SettingsFormState>({ key: "admin:settings" });
   const [form, setForm] = useState<SettingsFormState | null>(null);
   const [formDirty, setFormDirty] = useState(false);
   const [rewardDialogOpen, setRewardDialogOpen] = useState(false);
@@ -100,9 +100,7 @@ export function SettingsPage() {
         max_points_per_purchase: String(settings.data.max_points_per_purchase),
         qr_expiry_hours: String(settings.data.qr_expiry_hours),
         points_expiry_days:
-          settings.data.points_expiry_days === null
-            ? ''
-            : String(settings.data.points_expiry_days),
+          settings.data.points_expiry_days === null ? "" : String(settings.data.points_expiry_days),
         history_page_size: String(settings.data.history_page_size),
       },
     );
@@ -127,15 +125,13 @@ export function SettingsPage() {
       qr_expiry_hours: Number(form.qr_expiry_hours),
       history_page_size: Number(form.history_page_size),
       points_expiry_days:
-        form.points_expiry_days.trim() === ''
-          ? null
-          : Number(form.points_expiry_days),
+        form.points_expiry_days.trim() === "" ? null : Number(form.points_expiry_days),
     };
     try {
       await updateSettings.mutateAsync(payload);
       setFormDirty(false);
       draft.clear();
-      toast.success('Configuración actualizada');
+      toast.success("Configuración actualizada");
     } catch (error) {
       toast.error(errorMessage(error));
     }
@@ -154,7 +150,7 @@ export function SettingsPage() {
       name: reward.name,
       description: reward.description,
       points_cost: String(reward.points_cost),
-      image_url: reward.image_url ?? '',
+      image_url: reward.image_url ?? "",
       is_active: reward.is_active,
     });
     setRewardError(null);
@@ -166,11 +162,11 @@ export function SettingsPage() {
     setRewardError(null);
     const pointsCost = Number(rewardForm.points_cost);
     if (rewardForm.name.trim().length < 2) {
-      setRewardError('El nombre debe tener al menos 2 caracteres.');
+      setRewardError("El nombre debe tener al menos 2 caracteres.");
       return;
     }
     if (!Number.isFinite(pointsCost) || pointsCost <= 0) {
-      setRewardError('El costo en loopoints debe ser mayor que cero.');
+      setRewardError("El costo en loopoints debe ser mayor que cero.");
       return;
     }
     try {
@@ -182,7 +178,7 @@ export function SettingsPage() {
         imageUrl: rewardForm.image_url.trim() || null,
         isActive: rewardForm.is_active,
       });
-      toast.success(editingReward ? 'Recompensa actualizada' : 'Recompensa creada');
+      toast.success(editingReward ? "Recompensa actualizada" : "Recompensa creada");
       setRewardDialogOpen(false);
     } catch (error) {
       setRewardError(errorMessage(error));
@@ -199,9 +195,7 @@ export function SettingsPage() {
         imageUrl: reward.image_url,
         isActive: !reward.is_active,
       });
-      toast.success(
-        reward.is_active ? 'Recompensa desactivada' : 'Recompensa activada',
-      );
+      toast.success(reward.is_active ? "Recompensa desactivada" : "Recompensa activada");
     } catch (error) {
       toast.error(errorMessage(error));
     }
@@ -221,12 +215,7 @@ export function SettingsPage() {
 
   if (settings.isLoading) return <LoadingScreen label="Cargando configuración…" />;
   if (settings.isError) {
-    return (
-      <ErrorState
-        error={settings.error}
-        onRetry={() => void settings.refetch()}
-      />
-    );
+    return <ErrorState error={settings.error} onRetry={() => void settings.refetch()} />;
   }
 
   return (
@@ -256,9 +245,7 @@ export function SettingsPage() {
                       min={100}
                       max={1000000}
                       value={form.cop_per_point_unit}
-                      onChange={(event) =>
-                        updateField('cop_per_point_unit', event.target.value)
-                      }
+                      onChange={(event) => updateField("cop_per_point_unit", event.target.value)}
                     />
                     <p className="text-xs text-muted-foreground">
                       1000 = 1 loopoint por cada $1.000 completos.
@@ -272,15 +259,11 @@ export function SettingsPage() {
                       min={0}
                       max={50000000}
                       value={form.min_purchase_amount}
-                      onChange={(event) =>
-                        updateField('min_purchase_amount', event.target.value)
-                      }
+                      onChange={(event) => updateField("min_purchase_amount", event.target.value)}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="max_points_per_purchase">
-                      Máximo de loopoints por compra
-                    </Label>
+                    <Label htmlFor="max_points_per_purchase">Máximo de loopoints por compra</Label>
                     <Input
                       id="max_points_per_purchase"
                       type="number"
@@ -288,7 +271,7 @@ export function SettingsPage() {
                       max={1000000}
                       value={form.max_points_per_purchase}
                       onChange={(event) =>
-                        updateField('max_points_per_purchase', event.target.value)
+                        updateField("max_points_per_purchase", event.target.value)
                       }
                     />
                   </div>
@@ -300,15 +283,11 @@ export function SettingsPage() {
                       min={1}
                       max={168}
                       value={form.qr_expiry_hours}
-                      onChange={(event) =>
-                        updateField('qr_expiry_hours', event.target.value)
-                      }
+                      onChange={(event) => updateField("qr_expiry_hours", event.target.value)}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="points_expiry_days">
-                      Vencimiento de loopoints (días)
-                    </Label>
+                    <Label htmlFor="points_expiry_days">Vencimiento de loopoints (días)</Label>
                     <Input
                       id="points_expiry_days"
                       type="number"
@@ -316,34 +295,28 @@ export function SettingsPage() {
                       max={3650}
                       placeholder="Sin vencimiento"
                       value={form.points_expiry_days}
-                      onChange={(event) =>
-                        updateField('points_expiry_days', event.target.value)
-                      }
+                      onChange={(event) => updateField("points_expiry_days", event.target.value)}
                     />
                     <p className="text-xs text-muted-foreground">
                       Vacío = los loopoints no vencen automáticamente.
                     </p>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="history_page_size">
-                      Tamaño del historial del cliente
-                    </Label>
+                    <Label htmlFor="history_page_size">Tamaño del historial del cliente</Label>
                     <Input
                       id="history_page_size"
                       type="number"
                       min={1}
                       max={100}
                       value={form.history_page_size}
-                      onChange={(event) =>
-                        updateField('history_page_size', event.target.value)
-                      }
+                      onChange={(event) => updateField("history_page_size", event.target.value)}
                     />
                   </div>
                 </div>
 
                 <p className="rounded-lg bg-muted p-3 text-xs text-muted-foreground">
-                  Los cambios aplican solo a compras nuevas. Las compras ya
-                  generadas conservan las reglas con las que fueron creadas.
+                  Los cambios aplican solo a compras nuevas. Las compras ya generadas conservan las
+                  reglas con las que fueron creadas.
                 </p>
 
                 <div className="flex flex-wrap gap-2">
@@ -355,10 +328,7 @@ export function SettingsPage() {
                     type="button"
                     variant="outline"
                     onClick={() => setExpireOpen(true)}
-                    disabled={
-                      settings.data?.points_expiry_days === null ||
-                      expirePoints.isPending
-                    }
+                    disabled={settings.data?.points_expiry_days === null || expirePoints.isPending}
                   >
                     <RefreshCw aria-hidden="true" />
                     Ejecutar vencimiento
@@ -367,11 +337,8 @@ export function SettingsPage() {
 
                 {settings.data?.updated_at && (
                   <p className="text-xs text-muted-foreground">
-                    Última actualización:{' '}
-                    {formatDateTimeBogota(settings.data.updated_at)}
-                    {settings.data.updated_by_email
-                      ? ` · ${settings.data.updated_by_email}`
-                      : ''}
+                    Última actualización: {formatDateTimeBogota(settings.data.updated_at)}
+                    {settings.data.updated_by_email ? ` · ${settings.data.updated_by_email}` : ""}
                   </p>
                 )}
               </form>
@@ -412,8 +379,8 @@ export function SettingsPage() {
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-2">
                         <p className="font-semibold">{reward.name}</p>
-                        <Badge variant={reward.is_active ? 'success' : 'muted'}>
-                          {reward.is_active ? 'Activa' : 'Inactiva'}
+                        <Badge variant={reward.is_active ? "success" : "muted"}>
+                          {reward.is_active ? "Activa" : "Inactiva"}
                         </Badge>
                       </div>
                       <p className="text-xs text-muted-foreground">
@@ -434,9 +401,7 @@ export function SettingsPage() {
                         size="icon"
                         onClick={() => void toggleReward(reward)}
                         aria-label={
-                          reward.is_active
-                            ? `Desactivar ${reward.name}`
-                            : `Activar ${reward.name}`
+                          reward.is_active ? `Desactivar ${reward.name}` : `Activar ${reward.name}`
                         }
                       >
                         {reward.is_active ? (
@@ -480,7 +445,7 @@ export function SettingsPage() {
                         <p className="flex items-center gap-2 text-sm font-semibold">
                           <span
                             className={cn(
-                              'grid size-6 shrink-0 place-items-center rounded-full',
+                              "grid size-6 shrink-0 place-items-center rounded-full",
                               AUDIT_SEVERITY_STYLES[label.severity].icon,
                             )}
                           >
@@ -499,8 +464,7 @@ export function SettingsPage() {
                         })}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {entry.actor_email ?? 'Sistema'} ·{' '}
-                        {getAuditEntityLabel(entry.entity_type)}
+                        {entry.actor_email ?? "Sistema"} · {getAuditEntityLabel(entry.entity_type)}
                       </p>
                     </li>
                   );
@@ -532,9 +496,7 @@ export function SettingsPage() {
                 {configHistory.data.map((entry) => (
                   <li key={entry.id} className="border-b pb-3 last:border-0 last:pb-0">
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <p className="text-sm font-semibold">
-                        {entry.changed_by_email ?? 'Sistema'}
-                      </p>
+                      <p className="text-sm font-semibold">{entry.changed_by_email ?? "Sistema"}</p>
                       <span className="text-xs text-muted-foreground">
                         {formatDateTimeBogota(entry.created_at)}
                       </span>
@@ -556,9 +518,7 @@ export function SettingsPage() {
       <Dialog open={rewardDialogOpen} onOpenChange={setRewardDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>
-              {editingReward ? 'Editar recompensa' : 'Nueva recompensa'}
-            </DialogTitle>
+            <DialogTitle>{editingReward ? "Editar recompensa" : "Nueva recompensa"}</DialogTitle>
             <DialogDescription>
               El costo se descuenta del saldo del cliente dentro de una transacción.
             </DialogDescription>
