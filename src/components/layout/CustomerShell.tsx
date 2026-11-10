@@ -29,7 +29,7 @@ export function CustomerShell() {
       <header
         data-testid="app-header"
         className={cn(
-          "z-30 shrink-0 overflow-hidden border-b bg-background/95 backdrop-blur transition-all duration-300 ease-out no-print",
+          "z-30 shrink-0 overflow-hidden border-b border-slate-300 bg-card/95 backdrop-blur transition-all duration-300 ease-out no-print dark:border-slate-800",
           headerHidden
             ? "max-h-0 -translate-y-full border-transparent opacity-0"
             : "max-h-40 opacity-100",
@@ -37,7 +37,7 @@ export function CustomerShell() {
       >
         <div className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between gap-3 px-4">
           <Brand linkTo="/customer" />
-          <nav className="hidden items-center gap-1 md:flex" aria-label="Navegación del cliente">
+          <nav className="hidden items-center gap-1.5 md:flex" aria-label="Navegación del cliente">
             {navItems.map((item) => (
               <NavLink
                 key={item.to}
@@ -45,10 +45,10 @@ export function CustomerShell() {
                 end={item.end}
                 className={({ isActive }) =>
                   cn(
-                    "rounded-md px-3 py-2 text-sm font-semibold transition-colors",
+                    "rounded-md border px-3.5 py-2 text-sm font-bold transition-all",
                     isActive
-                      ? "bg-secondary text-secondary-foreground"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                      ? "border-slate-900 bg-primary text-primary-foreground shadow-[0_2px_0_#0f172a] dark:border-slate-200"
+                      : "border-transparent text-muted-foreground hover:border-border hover:bg-muted hover:text-foreground",
                   )
                 }
               >
@@ -69,7 +69,7 @@ export function CustomerShell() {
             <UserMenu compact />
           </div>
         </div>
-        <div className="border-t px-4 py-2 md:hidden">
+        <div className="border-t border-slate-200 px-4 py-2 md:hidden dark:border-slate-800">
           <BusinessSwitcher linkToCustomerHome />
         </div>
       </header>
@@ -85,10 +85,10 @@ export function CustomerShell() {
       </main>
 
       <nav
-        className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden no-print"
+        className="fixed inset-x-0 bottom-0 z-40 border-t-2 border-slate-900 bg-card/98 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden no-print dark:border-slate-700"
         aria-label="Navegación inferior"
       >
-        <div className="grid grid-cols-3">
+        <div className="grid grid-cols-3 p-1">
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = item.end
@@ -100,11 +100,13 @@ export function CustomerShell() {
                 to={item.to}
                 end={item.end}
                 className={cn(
-                  "flex flex-col items-center gap-1 py-2.5 text-[11px] font-semibold transition-colors",
-                  active ? "text-primary" : "text-muted-foreground hover:text-foreground",
+                  "flex min-h-12 flex-col items-center justify-center gap-1 rounded-md py-1.5 text-[11px] font-bold transition-colors",
+                  active
+                    ? "bg-primary text-primary-foreground shadow-[0_2px_0_#0f172a]"
+                    : "text-muted-foreground hover:text-foreground",
                 )}
               >
-                <Icon className="size-5" aria-hidden="true" />
+                <Icon className="size-4" aria-hidden="true" />
                 {item.label}
               </NavLink>
             );

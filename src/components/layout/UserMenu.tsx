@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { ChevronDown, LogOut, Moon, Sun, UserRound } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -27,6 +27,8 @@ export function UserMenu({ compact = false, className, align = "end" }: UserMenu
   const nickname = profile.data?.nickname ?? null;
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const profilePath = pathname.startsWith("/admin") ? "/admin/perfil" : "/perfil";
 
   async function handleSignOut() {
     await signOut();
@@ -73,7 +75,7 @@ export function UserMenu({ compact = false, className, align = "end" }: UserMenu
           </span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={() => navigate("/perfil")}>
+        <DropdownMenuItem onSelect={() => navigate(profilePath)}>
           <UserRound aria-hidden="true" />
           Mi perfil
         </DropdownMenuItem>

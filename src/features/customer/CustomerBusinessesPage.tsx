@@ -116,46 +116,48 @@ export function CustomerBusinessesPage() {
       ) : (
         <>
           <div className="grid gap-3 sm:grid-cols-3">
-            <Card className="border-0 bg-foreground text-background">
+            <Card className="border-2 border-slate-900 bg-gradient-to-br from-slate-900 via-slate-900 to-blue-950 text-white">
               <CardContent className="p-5">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-background/60">
+                <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-blue-200">
                   Loopoints totales
                 </p>
                 <p
                   data-testid="total-points-balance"
-                  className="mt-1 break-all font-display text-4xl font-extrabold text-amber-300"
+                  className="mt-2 break-all font-pixel text-2xl leading-tight text-amber-400 drop-shadow-[2px_2px_0_#020617] sm:text-3xl"
                 >
                   {total}
                 </p>
-                <p className="text-xs text-background/70">
+                <p className="mt-2 text-xs text-slate-300">
                   {formatLoopoints(total)} en {rows.length}{" "}
                   {rows.length === 1 ? "negocio" : "negocios"}
                 </p>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="border-t-4 border-t-emerald-600">
               <CardContent className="flex h-full items-center gap-3 p-5">
-                <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300">
+                <span className="grid size-11 shrink-0 place-items-center rounded-md border border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
                   <Sparkles className="size-5" aria-hidden="true" />
                 </span>
                 <div>
-                  <p className="font-display text-2xl font-extrabold">{ready}</p>
-                  <p className="text-xs text-muted-foreground">
+                  <p className="font-pixel text-lg text-emerald-700 dark:text-emerald-400">
+                    {ready}
+                  </p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
                     {ready === 1 ? "recompensa por reclamar" : "recompensas por reclamar"}
                   </p>
                 </div>
               </CardContent>
             </Card>
-            <Card>
+            <Card className="border-t-4 border-t-primary">
               <CardContent className="flex h-full items-center gap-3 p-5">
-                <span className="grid size-11 shrink-0 place-items-center rounded-xl bg-secondary text-secondary-foreground">
+                <span className="grid size-11 shrink-0 place-items-center rounded-md border border-blue-200 bg-blue-50 text-primary dark:border-blue-800 dark:bg-blue-950">
                   <TicketCheck className="size-5" aria-hidden="true" />
                 </span>
                 <div>
-                  <p className="font-display text-2xl font-extrabold">
+                  <p className="font-pixel text-lg text-primary">
                     {rows.reduce((sum, row) => sum + row.pending_redemptions, 0)}
                   </p>
-                  <p className="text-xs text-muted-foreground">canjes en curso</p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">canjes en curso</p>
                 </div>
               </CardContent>
             </Card>

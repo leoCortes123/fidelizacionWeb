@@ -4,6 +4,7 @@ import {
   AlertTriangle,
   Check,
   CreditCard,
+  LogOut,
   PackageCheck,
   ReceiptText,
   RefreshCw,
@@ -12,6 +13,7 @@ import {
   X,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/features/auth/AuthProvider";
 import {
   useApproveRedemption,
   useBusinesses,
@@ -48,6 +50,24 @@ interface ValidatedRedemption {
   status: "pending" | "approved";
 }
 
+function SignOutButton() {
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
+
+  async function handleSignOut() {
+    await signOut();
+    toast.success("Sesión cerrada");
+    navigate("/", { replace: true });
+  }
+
+  return (
+    <Button variant="outline" onClick={() => void handleSignOut()}>
+      <LogOut aria-hidden="true" />
+      Cerrar sesión
+    </Button>
+  );
+}
+
 export function EncargadoPage() {
   const businesses = useBusinesses();
   const { selectedBusiness, setSelectedBusiness } = useBusinessContext();
@@ -66,6 +86,7 @@ export function EncargadoPage() {
         <PageHeader
           title="Selecciona un negocio"
           description="Elige el negocio para atender redenciones."
+          actions={<SignOutButton />}
         />
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {list.map((business) => (
@@ -97,7 +118,11 @@ export function EncargadoPage() {
   if (!current) {
     return (
       <div className="space-y-6 animate-fade-in">
-        <PageHeader title="Sin negocios" description="No tienes negocios asignados." />
+        <PageHeader
+          title="Sin negocios"
+          description="No tienes negocios asignados."
+          actions={<SignOutButton />}
+        />
         <EmptyState
           title="Sin negocios"
           description="Regístrate en un negocio para atender sus redenciones."
@@ -136,6 +161,7 @@ function EncargadoSection({ business }: { business: Business }) {
         <PageHeader
           title={`Atención de redenciones — ${business.name}`}
           description="Valida y entrega las recompensas solicitadas por los clientes."
+          actions={<SignOutButton />}
         />
         <Card className="mx-auto max-w-lg">
           <CardContent className="space-y-3 p-6 text-center">
@@ -246,17 +272,51 @@ function EncargadoSection({ business }: { business: Business }) {
   return (
     <div className="space-y-6 animate-fade-in">
       <PageHeader
+        kicker="TERMINAL DE CAJA · ENCARGADO"
         title={`Atención de redenciones — ${business.name}`}
         description="Escanea el QR del cliente, apruébalo y confirma la entrega."
         actions={
-          <Button asChild>
-            <Link to="/encargado/venta">
-              <ReceiptText aria-hidden="true" />
-              Registrar compra
-            </Link>
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button asChild>
+              <Link to="/encargado/venta">
+                <ReceiptText aria-hidden="true" />
+                Registrar compra
+              </Link>
+            </Button>
+            <SignOutButton />
+          </div>
         }
       />
+
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        <Card className="border-t-4 border-t-primary">
+          <CardContent className="p-4">
+            <p className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+              POR APROBAR
+            </p>
+            <p className="mt-1 font-pixel text-lg text-primary">{pendingRows.length}</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">Solicitudes en espera</p>
+          </CardContent>
+        </Card>
+        <Card className="border-t-4 border-t-emerald-600">
+          <CardContent className="p-4">
+            <p className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+              POR ENTREGAR
+            </p>
+            <p className="mt-1 font-pixel text-lg text-emerald-600">{approvedRows.length}</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">Aprobadas en mostrador</p>
+          </CardContent>
+        </Card>
+        <Card className="col-span-2 border-t-4 border-t-amber-500 sm:col-span-1">
+          <CardContent className="p-4">
+            <p className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+              MODO RÁPIDO
+            </p>
+            <p className="mt-1 font-display text-base font-bold">Validación con token o cámara</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">Trazabilidad por encargado</p>
+          </CardContent>
+        </Card>
+      </div>
 
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">

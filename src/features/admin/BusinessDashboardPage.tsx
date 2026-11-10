@@ -114,19 +114,20 @@ export function BusinessDashboardPage() {
   return (
     <div className="space-y-5 animate-fade-in">
       <PageHeader
+        kicker="PANEL OPERATIVO · ADMINISTRADOR"
         title={`Inicio — ${current.name}`}
         description={`${current.slug} · ${current.timezone}`}
         actions={
           <div className="flex flex-wrap gap-2">
             {!program.data?.is_active && (
               <Button asChild size="sm">
-                <Link to="/admin/config?tab=negocio&onboarding=1">
+                <Link to="/admin/onboarding">
                   <Rocket aria-hidden="true" />
                   Completar configuración
                 </Link>
               </Button>
             )}
-            <Badge variant="secondary">
+            <Badge variant="default">
               {current.role === "admin"
                 ? "Administrador"
                 : current.role === "encargado"
@@ -139,6 +140,50 @@ export function BusinessDashboardPage() {
           </div>
         }
       />
+
+      {/* Hero Operativo Pixel-App */}
+      <Card className="overflow-hidden border-2 border-slate-900 bg-gradient-to-br from-slate-900 via-slate-900 to-blue-950 text-white shadow-sm dark:border-slate-700">
+        <CardContent className="flex flex-col justify-between gap-4 p-5 sm:flex-row sm:items-center">
+          <div className="space-y-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center rounded bg-amber-400 px-2 py-0.5 font-pixel text-[9px] text-slate-950">
+                MODO CAJA RÁPIDA
+              </span>
+              <span className="font-mono text-xs text-blue-200">
+                {programUnconfigured
+                  ? "Programa pendiente de configurar"
+                  : program.data?.is_active
+                    ? `1 PTO / ${formatCOP(program.data.cop_per_point_unit)}`
+                    : "Programa inactivo"}
+              </span>
+            </div>
+            <h2 className="font-display text-lg font-bold tracking-tight sm:text-xl">
+              Acredita loopoints en segundos o aprueba canjes en mostrador
+            </h2>
+            <p className="text-xs text-slate-300">
+              Genera un QR único por venta para que el cliente reclame sus puntos desde el celular.
+            </p>
+          </div>
+          <div className="flex shrink-0 flex-wrap gap-2">
+            <Button variant="secondary" asChild>
+              <Link to="/admin/purchases/new">
+                <QrCode aria-hidden="true" />
+                Generar QR de una venta
+              </Link>
+            </Button>
+            <Button
+              variant="outline"
+              asChild
+              className="border-slate-400 bg-slate-800/80 text-white hover:bg-slate-800 hover:text-amber-300"
+            >
+              <Link to="/admin/redemptions">
+                <TicketCheck aria-hidden="true" />
+                Ver solicitudes
+              </Link>
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {summary.isLoading ? (
         <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -362,25 +407,25 @@ export function BusinessDashboardPage() {
               </div>
               <div className="grid gap-2 sm:grid-cols-2">
                 <Button variant="outline" className="justify-start" asChild>
-                  <Link to="/admin/config?tab=programa">
+                  <Link to="/admin/perfil?tab=programa">
                     <Settings2 className="mr-2 size-4" aria-hidden="true" />
                     Programa
                   </Link>
                 </Button>
                 <Button variant="outline" className="justify-start" asChild>
-                  <Link to="/admin/config?tab=carta">
+                  <Link to="/admin/products">
                     <Package className="mr-2 size-4" aria-hidden="true" />
                     Carta
                   </Link>
                 </Button>
                 <Button variant="outline" className="justify-start" asChild>
-                  <Link to="/admin/config?tab=recompensas">
+                  <Link to="/admin/rewards">
                     <CreditCard className="mr-2 size-4" aria-hidden="true" />
                     Recompensas
                   </Link>
                 </Button>
                 <Button variant="outline" className="justify-start" asChild>
-                  <Link to="/admin/config?tab=equipo">
+                  <Link to="/admin/members">
                     <Users className="mr-2 size-4" aria-hidden="true" />
                     Equipo
                   </Link>
@@ -408,25 +453,34 @@ function StatCard({
   tone?: "default" | "warning";
 }) {
   return (
-    <Card>
-      <CardContent className="space-y-1 p-3 sm:p-4">
+    <Card
+      className={
+        tone === "warning"
+          ? "border-t-4 border-t-amber-500 bg-amber-50/30 dark:bg-amber-950/10"
+          : "border-t-4 border-t-primary"
+      }
+    >
+      <CardContent className="space-y-1.5 p-3.5 sm:p-4">
         <div className="flex items-start justify-between gap-2">
-          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+          <p className="font-mono text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
             {label}
           </p>
-          <Icon
+          <span
             className={
               tone === "warning"
-                ? "size-4 shrink-0 text-amber-600"
-                : "size-4 shrink-0 text-muted-foreground"
+                ? "grid size-7 shrink-0 place-items-center rounded border border-amber-300 bg-amber-100 text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-300"
+                : "grid size-7 shrink-0 place-items-center rounded border border-blue-200 bg-blue-50 text-primary dark:border-blue-900 dark:bg-blue-950"
             }
-            aria-hidden="true"
-          />
+          >
+            <Icon className="size-3.5" aria-hidden="true" />
+          </span>
         </div>
-        <p className="font-display text-xl font-extrabold leading-tight sm:text-2xl">{value}</p>
+        <p className="font-display text-xl font-extrabold leading-tight tracking-tight sm:text-2xl">
+          {value}
+        </p>
         {hint && <p className="truncate text-[11px] text-muted-foreground">{hint}</p>}
         {tone === "warning" && (
-          <p className="flex items-center gap-1 text-[11px] font-semibold text-amber-700">
+          <p className="flex items-center gap-1 text-[11px] font-bold text-amber-700 dark:text-amber-400">
             <AlertTriangle className="size-3" aria-hidden="true" />
             Requieren atención
           </p>

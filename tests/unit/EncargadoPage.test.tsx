@@ -8,6 +8,7 @@ import type { LoyaltyRedemptionWithCustomer } from "@/types";
 const validate = vi.hoisted(() => vi.fn());
 const approve = vi.hoisted(() => vi.fn());
 const deliver = vi.hoisted(() => vi.fn());
+const signOut = vi.hoisted(() => vi.fn());
 const ctx = vi.hoisted(() => ({
   role: "admin" as "admin" | "encargado" | "cliente",
   canApprove: false,
@@ -67,6 +68,12 @@ vi.mock("@/features/loyalty/hooks", () => ({
   useDeliverRedemption: () => ({ mutateAsync: deliver, isPending: false }),
 }));
 
+vi.mock("@/features/auth/AuthProvider", () => ({
+  useAuth: () => ({
+    signOut,
+  }),
+}));
+
 vi.mock("@/features/loyalty/businessContext", () => ({
   useBusinessContext: () => ({
     selectedBusiness: fixture.business,
@@ -90,6 +97,7 @@ describe("EncargadoPage", () => {
     vi.clearAllMocks();
     ctx.role = "admin";
     ctx.canApprove = false;
+    signOut.mockResolvedValue(undefined);
     validate.mockResolvedValue({
       redemption_id: "red-1",
       reward_name: "Taco gratis",
@@ -165,5 +173,14 @@ describe("EncargadoPage", () => {
 
     expect(screen.getByText("Sin permiso de aprobación")).toBeInTheDocument();
     expect(screen.queryByLabelText("Código manual del QR")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Cerrar sesión" })).toBeInTheDocument();
+  });
+
+  it("permite cerrar sesión desde la pantalla de encargado", async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.click(screen.getByRole("button", { name: "Cerrar sesión" }));
+    await waitFor(() => expect(signOut).toHaveBeenCalledTimes(1));
   });
 });

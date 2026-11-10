@@ -52,8 +52,16 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
-        display: ['"Bricolage Grotesque"', "Inter", "ui-sans-serif", "sans-serif"],
+        sans: ['"Space Grotesk"', "Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+        display: [
+          '"Space Grotesk"',
+          '"Bricolage Grotesque"',
+          "Inter",
+          "ui-sans-serif",
+          "sans-serif",
+        ],
+        pixel: ['"Press Start 2P"', "ui-monospace", "monospace"],
+        mono: ['"DM Mono"', "ui-monospace", "SFMono-Regular", "monospace"],
       },
       keyframes: {
         "accordion-down": {

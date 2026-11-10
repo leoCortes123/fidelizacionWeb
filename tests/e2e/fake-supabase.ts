@@ -760,6 +760,17 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           business_count: state.memberships.filter((m) => m.userId === user?.id).length,
           created_at: user?.createdAt,
         });
+      case "profile_set_account_type": {
+        if (!user) return fail(route, "not_authenticated");
+        const nextType = String(body.p_account_type ?? "").toLowerCase();
+        if (nextType !== "customer" && nextType !== "admin") {
+          return fail(route, "invalid_account_type");
+        }
+        if (nextType === "admin" && !user.roles.includes("admin")) {
+          user.roles.push("admin");
+        }
+        return json(route, nextType);
+      }
       case "profile_nickname_ensure":
         return json(route, user?.nickname ?? "cliente");
       case "profile_nickname_available": {

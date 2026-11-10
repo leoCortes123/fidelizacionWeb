@@ -1,23 +1,31 @@
 import { defaultPathForRoles } from "./config";
-import { pendingClaimPath } from "./pendingClaim";
 import { rpc } from "./supabase";
 
 interface BusinessSummary {
   id: string;
+  role?: "admin" | "encargado" | "cliente";
 }
 
 /**
- * Destino tras iniciar sesión. Si la cuenta participa en algún negocio se abre
- * el selector (que ya conoce el rol por negocio); si no, se cae al portal que
- * corresponda a sus roles globales.
+ * Destino tras iniciar sesión desde el portal web.
+ * - Un usuario cliente va siempre a su página de inicio (`/customer`).
+ * - Un administrador o encargado con varios negocios va al selector; si no,
+ *   cae al portal que corresponda a su rol.
  */
 export async function resolvePostLoginPath(roles: string[]): Promise<string> {
-  const claimPath = pendingClaimPath();
-  if (claimPath) return claimPath;
   const fallback = defaultPathForRoles(roles);
+  if (!roles.includes("admin") && !roles.includes("registrar")) {
+    return fallback;
+  }
   try {
     const businesses = await rpc<BusinessSummary[]>("businesses_list");
-    if (Array.isArray(businesses) && businesses.length > 0) {
+    const staffBusinesses = Array.isArray(businesses)
+      ? businesses.filter((b) => b.role === "admin" || b.role === "encargado")
+      : [];
+    if (Array.isArray(businesses) && staffBusinesses.length === 0 && roles.includes("admin")) {
+      return "/business/register";
+    }
+    if (staffBusinesses.length > 1) {
       return "/business/select";
     }
   } catch {

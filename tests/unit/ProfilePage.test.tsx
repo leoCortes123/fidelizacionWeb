@@ -38,9 +38,21 @@ vi.mock("@/features/auth/AuthProvider", () => ({
   useAuth: () => ({ user: { id: "user-1" } }),
 }));
 
-function renderPage() {
+vi.mock("@/features/admin/BusinessGate", () => ({
+  BusinessGate: ({
+    children,
+  }: {
+    children: (business: { id: string; name: string }) => React.ReactNode;
+  }) => <>{children({ id: "biz-1", name: "Taquería El Fogón" })}</>,
+}));
+
+vi.mock("@/features/admin/BusinessProfileForm", () => ({
+  BusinessProfileForm: () => <div data-testid="business-profile-form" />,
+}));
+
+function renderPage(initialEntry = "/") {
   return render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={[initialEntry]}>
       <ProfilePage />
     </MemoryRouter>,
   );
@@ -121,5 +133,15 @@ describe("ProfilePage", () => {
     if (descriptor) {
       Object.defineProperty(profile, "nickname_changes_left", descriptor);
     }
+  });
+
+  it("en vista de administrador muestra los campos en la pestaña Negocio con etiquetas de administrador y sin pestaña Mi cuenta", () => {
+    renderPage("/admin/perfil");
+
+    expect(screen.queryByRole("tab", { name: "Mi cuenta" })).not.toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Negocio" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByLabelText(/Nombre de administrador/)).toHaveValue("Carla Cliente");
+    expect(screen.getByLabelText(/Alias de administrador/)).toHaveValue("carlacliente");
+    expect(screen.getByTestId("business-profile-form")).toBeInTheDocument();
   });
 });

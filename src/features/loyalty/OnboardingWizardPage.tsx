@@ -34,6 +34,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { ErrorState, LoadingScreen } from "@/components/shared/States";
 import { BusinessGate } from "@/features/admin/BusinessGate";
@@ -501,17 +502,44 @@ function Wizard({
     ? TIMEZONES
     : [draft.timezone, ...TIMEZONES];
 
+  const progressPercent = Math.round(((step + 1) / STEPS.length) * 100);
+
   return (
     <div className="space-y-6 animate-fade-in">
       <PageHeader
+        kicker="ASISTENTE DE ONBOARDING"
         title={`Configuración inicial — ${business.name}`}
-        description="Cuatro pasos para dejar el programa de loopoints operativo."
+        description="Configura datos del negocio, carta, economía y reglas del programa paso a paso."
         actions={
-          <Badge variant={program?.is_active ? "success" : "warning"}>
-            {program?.is_active ? "Programa activo" : "Programa inactivo"}
-          </Badge>
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant={program?.is_active ? "success" : "warning"}>
+              {program?.is_active ? "Programa activo" : "Programa inactivo"}
+            </Badge>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => navigate("/admin/dashboard")}
+            >
+              Ir al inicio
+            </Button>
+          </div>
         }
       />
+
+      <Card className="border-slate-300 bg-slate-50/70 dark:border-slate-800 dark:bg-slate-900/50">
+        <CardContent className="space-y-2 p-4">
+          <div className="flex items-center justify-between text-xs font-bold">
+            <span className="font-mono uppercase tracking-wider text-primary">
+              PROGRESO DEL ONBOARDING · PASO {step + 1} DE {STEPS.length}
+            </span>
+            <span className="font-pixel text-[11px] text-amber-600 dark:text-amber-400">
+              {progressPercent}%
+            </span>
+          </div>
+          <Progress value={progressPercent} label="Progreso del asistente de onboarding" />
+        </CardContent>
+      </Card>
 
       {showRestored && (
         <Alert variant="info">
@@ -535,18 +563,18 @@ function Wizard({
                 type="button"
                 onClick={() => go(index)}
                 aria-current={current ? "step" : undefined}
-                className={`flex w-full items-center gap-2 rounded-lg border px-3 py-2 text-left text-sm font-semibold transition-colors ${
+                className={`flex min-h-12 w-full items-center gap-2.5 rounded-md border-2 px-3 py-2 text-left text-sm font-bold transition-all ${
                   current
-                    ? "border-primary bg-primary/5 text-primary"
+                    ? "border-slate-900 bg-primary text-primary-foreground shadow-[0_2px_0_#0f172a]"
                     : done
-                      ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-                      : "text-muted-foreground hover:bg-muted"
+                      ? "border-emerald-300 bg-emerald-50 text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200"
+                      : "border-slate-200 bg-card text-muted-foreground hover:border-slate-300 hover:bg-muted dark:border-slate-800"
                 }`}
               >
                 <span
-                  className={`grid size-6 shrink-0 place-items-center rounded-full text-xs ${
+                  className={`grid size-6 shrink-0 place-items-center rounded font-mono text-xs font-bold ${
                     current
-                      ? "bg-primary text-primary-foreground"
+                      ? "bg-white/20 text-white"
                       : done
                         ? "bg-emerald-600 text-white"
                         : "bg-muted text-muted-foreground"
@@ -554,7 +582,7 @@ function Wizard({
                 >
                   {done ? <Check className="size-3.5" aria-hidden="true" /> : index + 1}
                 </span>
-                <span className="min-w-0">{label}</span>
+                <span className="min-w-0 truncate">{label}</span>
               </button>
             </li>
           );

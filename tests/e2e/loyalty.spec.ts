@@ -194,9 +194,13 @@ test("registro de negocio como administrador", async ({ browser }) => {
   await admin.page.getByLabel("Slug (identificador en URL)").fill("mi-negocio-test");
   await admin.page.getByRole("button", { name: "Crear negocio" }).click();
 
-  // Tras el registro debería redirigir a selección de negocio
-  await expect(admin.page.getByRole("heading", { name: "Selecciona tu negocio" })).toBeVisible();
-  await expect(admin.page.getByText("Mi Negocio Test")).toBeVisible();
+  // Tras el registro redirige directamente al asistente de onboarding del nuevo negocio
+  await expect(
+    admin.page.getByRole("heading", { name: /Configuración inicial — Mi Negocio Test/ }),
+  ).toBeVisible();
+  await expect(
+    admin.page.getByRole("heading", { name: /Paso 1 · Datos del negocio/ }),
+  ).toBeVisible();
 
   await admin.context.close();
 });
@@ -245,8 +249,9 @@ test("configura programa, carta y recompensas y persiste tras recargar", async (
   await expect.poll(() => state.loyaltyPrograms["biz-test"]?.cop_per_point_unit).toBe(2000);
   expect(state.loyaltyPrograms["biz-test"].is_active).toBe(true);
 
-  // Carta: crear un producto.
-  await page.getByRole("tab", { name: "Carta" }).click();
+  // Carta (en menú lateral): crear un producto.
+  const sidebar = page.getByRole("navigation", { name: "Panel del negocio" });
+  await sidebar.getByRole("link", { name: "Carta", exact: true }).click();
   await expect(page.getByRole("heading", { name: /Carta —/ })).toBeVisible();
   await page.getByRole("button", { name: /Nuevo producto/ }).click();
   const productDialog = page.getByRole("dialog");
@@ -258,8 +263,8 @@ test("configura programa, carta y recompensas y persiste tras recargar", async (
   const createdProduct = state.products.find((p) => p.name === "Quesadilla");
   expect(createdProduct?.priceCop).toBe(3500);
 
-  // Recompensas: producto gratis vinculado al producto creado.
-  await page.getByRole("tab", { name: "Recompensas" }).click();
+  // Recompensas (en menú lateral): producto gratis vinculado al producto creado.
+  await sidebar.getByRole("link", { name: "Recompensas", exact: true }).click();
   await expect(page.getByRole("heading", { name: /Recompensas/ })).toBeVisible();
   await page.getByRole("button", { name: /Nueva recompensa/ }).click();
   const rewardDialog = page.getByRole("dialog");
@@ -278,8 +283,9 @@ test("configura programa, carta y recompensas y persiste tras recargar", async (
   // Recargar: los datos vienen del backend y siguen ahí.
   await page.reload();
   await expect(page.getByText("Quesadilla gratis")).toBeVisible();
-  await page.getByRole("tab", { name: "Carta" }).click();
+  await sidebar.getByRole("link", { name: "Carta", exact: true }).click();
   await expect(page.getByText("Quesadilla", { exact: true })).toBeVisible();
+  await sidebar.getByRole("link", { name: "Mi perfil", exact: true }).click();
   await page.getByRole("tab", { name: "Programa" }).click();
   await expect(page.getByLabel("COP por loopoint ganado")).toHaveValue("2000");
   await expect(page.getByLabel("Tasa de presupuesto (%)")).toHaveValue("2");
@@ -839,9 +845,11 @@ test("admin invita clientes con enlace y QR, y añade un encargado por correo", 
   await expect(page.getByLabel("Enlace de invitación")).toHaveValue(/\/join\/taqueria-el-fogon$/);
   await expect(page.getByLabel("QR de invitación al negocio")).toBeVisible();
 
-  // Añadir un encargado buscando por correo.
-  await page.getByRole("link", { name: "Configuración", exact: true }).click();
-  await page.getByRole("tab", { name: "Equipo" }).click();
+  // Añadir un encargado buscando por correo desde la opción Equipo en el menú lateral.
+  await page
+    .getByRole("navigation", { name: "Panel del negocio" })
+    .getByRole("link", { name: "Equipo", exact: true })
+    .click();
   await expect(page.getByRole("heading", { name: /Miembros/ })).toBeVisible();
   await page.getByRole("button", { name: /Añadir miembro/i }).click();
   const dialog = page.getByRole("dialog");
@@ -912,8 +920,8 @@ test("genera una venta con QR, el cliente la reclama y queda auditada", async ({
   expect(state.purchases[0].status).toBe("claimed");
   await customer.context.close();
 
-  // Panel económico: guardar los datos y ver el cálculo.
-  await page.getByRole("link", { name: "Configuración", exact: true }).click();
+  // Panel económico en Mi perfil: guardar los datos y ver el cálculo.
+  await page.getByRole("link", { name: "Mi perfil", exact: true }).click();
   await page.getByRole("tab", { name: "Económico" }).click();
   await expect(page.getByRole("heading", { name: /Panel económico/ })).toBeVisible();
 
@@ -1141,7 +1149,7 @@ test("dashboard enlaza a completar la configuración si el programa está inacti
   const { page, context } = await openAs(browser, state, TOKENS.admin, "/admin/dashboard");
 
   await page.getByRole("link", { name: /Completar configuración/ }).click();
-  await expect(page).toHaveURL(/onboarding=1/);
+  await expect(page).toHaveURL(/\/admin\/onboarding/);
   await expect(page.getByRole("heading", { name: /Paso 1 · Datos del negocio/ })).toBeVisible();
 
   await context.close();
@@ -1228,7 +1236,12 @@ test("shell móvil: menú fijo, cabecera fija, FAB y modo oscuro persistente", a
   });
 
   await expect(page.getByRole("navigation", { name: "Navegación del negocio" })).toBeVisible();
-  await expect(page.getByRole("link", { name: "Configuración", exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("navigation", { name: "Navegación del negocio" }).getByRole("link", {
+      name: "Carta",
+      exact: true,
+    }),
+  ).toBeVisible();
   await expect(page.getByLabel("Registrar compra")).toBeVisible();
   await expect(page.getByText("Ver portal del cliente")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Cerrar sesión" })).toHaveCount(0);
@@ -1373,27 +1386,34 @@ test("clientes: muestra alias y distintivo de frecuente activo", async ({ browse
   await admin.context.close();
 });
 
-test("configuración unificada: pestañas, borrador y redirección de rutas antiguas", async ({
+test("perfil de administrador y menú lateral: Negocio, Programa y Económico en Perfil; Carta, Recompensas y Equipo en menú", async ({
   browser,
 }) => {
   const state = createFakeState();
   seedBusiness(state);
   const admin = await openAs(browser, state, TOKENS.admin, "/admin/config");
 
-  await expect(
-    admin.page.getByRole("heading", { name: "Configuración", exact: true }),
-  ).toBeVisible();
+  // /admin/config redirige a /admin/perfil?tab=negocio
+  await expect(admin.page.getByRole("heading", { name: "Mi perfil", exact: true })).toBeVisible();
   await expect(admin.page.getByRole("tab", { name: "Negocio" })).toHaveAttribute(
     "aria-selected",
     "true",
   );
+  await expect(admin.page.getByRole("tab", { name: "Avanzado" })).toHaveCount(0);
 
-  // Rutas antiguas redirigen a su pestaña.
-  await admin.page.goto("/admin/products");
-  await expect(admin.page).toHaveURL(/tab=carta/);
+  // Carta, Recompensas y Equipo están como enlaces directos en el menú lateral.
+  await admin.page
+    .getByRole("navigation", { name: "Panel del negocio" })
+    .getByRole("link", { name: "Carta", exact: true })
+    .click();
+  await expect(admin.page).toHaveURL(/\/admin\/products$/);
   await expect(admin.page.getByRole("heading", { name: /Carta —/i }).first()).toBeVisible();
 
-  // Cambio de pestaña y persistencia en la URL tras recargar.
+  // Volver a Mi perfil y cambiar entre Programa y Económico conservando el borrador.
+  await admin.page
+    .getByRole("navigation", { name: "Panel del negocio" })
+    .getByRole("link", { name: "Mi perfil", exact: true })
+    .click();
   await admin.page.getByRole("tab", { name: "Programa" }).click();
   await expect(admin.page).toHaveURL(/tab=programa/);
   await expect(admin.page.getByRole("heading", { name: /Programa de loopoints/i })).toBeVisible();
@@ -1403,31 +1423,31 @@ test("configuración unificada: pestañas, borrador y redirección de rutas anti
     "true",
   );
 
-  // El borrador sobrevive al cambiar de pestaña.
+  // El borrador sobrevive al cambiar de pestaña en Mi perfil.
   const cop = admin.page.getByLabel(/COP por loopoint ganado/);
   await cop.fill("1250");
-  await admin.page.getByRole("tab", { name: "Carta" }).click();
+  await admin.page.getByRole("tab", { name: "Económico" }).click();
   await admin.page.getByRole("tab", { name: "Programa" }).click();
   await expect(admin.page.getByLabel(/COP por loopoint ganado/)).toHaveValue("1250");
 
   await admin.context.close();
 });
 
-test("configuración móvil: sin scroll horizontal y pestañas utilizables a 360 px", async ({
+test("perfil móvil de administrador: sin scroll horizontal y pestañas utilizables a 360 px", async ({
   browser,
 }) => {
   const state = createFakeState();
   seedBusiness(state);
-  const admin = await openAs(browser, state, TOKENS.admin, "/admin/config?tab=negocio", {
+  const admin = await openAs(browser, state, TOKENS.admin, "/admin/perfil?tab=negocio", {
     width: 360,
     height: 640,
   });
 
+  await expect(admin.page.getByRole("heading", { name: "Mi perfil", exact: true })).toBeVisible();
+  await admin.page.getByRole("tab", { name: "Programa" }).click();
   await expect(
-    admin.page.getByRole("heading", { name: "Configuración", exact: true }),
+    admin.page.getByRole("heading", { name: /Programa de loopoints/i }).first(),
   ).toBeVisible();
-  await admin.page.getByRole("tab", { name: "Recompensas" }).click();
-  await expect(admin.page.getByRole("heading", { name: /Recompensas/i }).first()).toBeVisible();
 
   const overflow = await admin.page.evaluate(() => {
     const main = document.querySelector("#contenido-principal");

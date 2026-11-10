@@ -165,7 +165,10 @@ export function CustomerBusinessHomePage() {
   return (
     <div className="space-y-6 animate-fade-in">
       {businesses.length > 1 && (
-        <nav aria-label="Mis negocios" className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+        <nav
+          aria-label="Mis negocios"
+          className="-mx-1 flex snap-x gap-2 overflow-x-auto px-1 pb-1.5"
+        >
           {businesses.map((item) => {
             const active = item.id === business.id;
             const logoUrl = summary.data?.find((row) => row.business_id === item.id)?.logo_url;
@@ -175,10 +178,10 @@ export function CustomerBusinessHomePage() {
                 to={`/customer/business/${item.id}`}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex shrink-0 items-center gap-2 rounded-full border px-3 py-2 text-sm font-semibold transition-colors",
+                  "flex min-h-11 shrink-0 snap-start items-center gap-2 rounded-md border-2 px-3.5 py-2 text-sm font-bold transition-all",
                   active
-                    ? "border-primary bg-primary text-primary-foreground"
-                    : "bg-background text-muted-foreground hover:bg-muted hover:text-foreground",
+                    ? "border-slate-900 bg-primary text-primary-foreground shadow-[0_2px_0_#0f172a]"
+                    : "border-slate-300 bg-card text-muted-foreground hover:border-slate-400 hover:bg-muted hover:text-foreground dark:border-slate-700",
                 )}
               >
                 <span
@@ -247,7 +250,7 @@ export function CustomerBusinessHomePage() {
         </div>
       )}
 
-      <Card className="overflow-hidden border-0 bg-foreground text-background shadow-lg">
+      <Card className="overflow-hidden border-2 border-slate-900 bg-gradient-to-br from-slate-900 via-slate-900 to-blue-950 text-white shadow-sm dark:border-slate-700">
         <CardContent className="relative space-y-6 p-6 sm:p-8">
           <div
             aria-hidden="true"
@@ -255,32 +258,37 @@ export function CustomerBusinessHomePage() {
           />
           <div className="relative flex items-start justify-between gap-4">
             <div className="min-w-0">
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-background/60">
-                Tus loopoints aquí
-              </p>
+              <div className="mb-2 flex flex-wrap items-center gap-2">
+                <span className="inline-flex items-center rounded bg-cyan-400 px-2 py-0.5 font-pixel text-[9px] text-slate-950">
+                  {summaryRow?.is_frequent ? "NIVEL FRECUENTE" : "JUGADOR ACTIVO"}
+                </span>
+                <span className="font-mono text-xs uppercase tracking-[0.16em] text-blue-200">
+                  TUS LOOPOINTS AQUÍ
+                </span>
+              </div>
               <p
                 data-testid="points-balance"
-                className="mt-1 break-all font-display text-7xl font-extrabold leading-none text-amber-300 sm:text-8xl"
+                className="mt-1 break-all font-pixel text-4xl leading-none text-amber-400 drop-shadow-[3px_3px_0_#020617] sm:text-5xl"
               >
                 {balance}
               </p>
-              <p className="mt-2 text-sm text-background/70">
-                {formatLoopoints(balance)} disponibles
-              </p>
+              <p className="mt-3 text-sm text-slate-300">{formatLoopoints(balance)} disponibles</p>
             </div>
-            <Star className="size-12 shrink-0 text-amber-300" aria-hidden="true" />
+            <div className="grid size-14 shrink-0 place-items-center rounded-lg border-2 border-amber-400/60 bg-slate-800/80">
+              <Star className="size-8 text-amber-400" aria-hidden="true" />
+            </div>
           </div>
 
-          <div className="relative grid grid-cols-2 gap-3 border-t border-background/10 pt-4">
+          <div className="relative grid grid-cols-2 gap-3 border-t border-white/15 pt-4">
             <div>
-              <p className="font-display text-2xl font-extrabold">{readyRewards}</p>
-              <p className="text-xs text-background/70">recompensas disponibles</p>
+              <p className="font-pixel text-lg text-emerald-400">{readyRewards}</p>
+              <p className="mt-1 text-xs text-slate-300">recompensas disponibles</p>
             </div>
             <div>
-              <p className="font-display text-2xl font-extrabold">
+              <p className="font-pixel text-lg text-cyan-300">
                 {summaryRow?.pending_redemptions ?? 0}
               </p>
-              <p className="text-xs text-background/70">canjes en curso</p>
+              <p className="mt-1 text-xs text-slate-300">canjes en curso</p>
             </div>
           </div>
         </CardContent>

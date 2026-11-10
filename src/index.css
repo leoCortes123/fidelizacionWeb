@@ -4,94 +4,95 @@
 
 @layer base {
   :root {
-    --background: 42 40% 98%;
-    --foreground: 20 15% 12%;
+    /* Paleta Pixel-App: Superficies Slate limpias + Azul Cobalto + Cian + Oro */
+    --background: 214 38% 97%;
+    --foreground: 222 47% 11%;
     --card: 0 0% 100%;
-    --card-foreground: 20 15% 12%;
+    --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 20 15% 12%;
-    --primary: 3 74% 44%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 221 83% 53%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 42 92% 90%;
-    --secondary-foreground: 24 60% 20%;
-    --muted: 40 20% 94%;
-    --muted-foreground: 25 10% 40%;
-    --accent: 36 90% 85%;
-    --accent-foreground: 24 40% 18%;
-    --destructive: 0 72% 45%;
+    --secondary: 214 32% 91%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 38 92% 50%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: 35 20% 86%;
-    --input: 35 20% 86%;
-    --ring: 3 74% 44%;
-    --radius: 0.9rem;
+    --border: 214 32% 84%;
+    --input: 222 47% 11%;
+    --ring: 221 83% 53%;
+    --radius: 0.5rem;
   }
 
-  /* Paleta del cliente en modo oscuro (conserva los acentos cálidos). */
+  /* Modo oscuro Pixel-App: Slate profundo con acentos cobalto y oro brillante */
   .dark {
-    --background: 20 20% 8%;
-    --foreground: 40 20% 95%;
-    --card: 20 18% 11%;
-    --card-foreground: 40 20% 95%;
-    --popover: 20 18% 11%;
-    --popover-foreground: 40 20% 95%;
-    --primary: 3 80% 55%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 20 25% 18%;
-    --secondary-foreground: 40 30% 90%;
-    --muted: 20 20% 15%;
-    --muted-foreground: 30 12% 65%;
-    --accent: 36 60% 24%;
-    --accent-foreground: 40 30% 92%;
-    --destructive: 0 65% 50%;
+    --background: 222 47% 7%;
+    --foreground: 210 40% 96%;
+    --card: 222 47% 11%;
+    --card-foreground: 210 40% 96%;
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 96%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 222 47% 11%;
+    --secondary: 217 33% 18%;
+    --secondary-foreground: 210 40% 96%;
+    --muted: 217 33% 15%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 38 92% 50%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 100%;
-    --border: 20 18% 20%;
-    --input: 20 18% 20%;
-    --ring: 3 80% 55%;
+    --border: 217 33% 22%;
+    --input: 215 20% 65%;
+    --ring: 217 91% 60%;
   }
 
-  /* Paleta del negocio: turquesa/cian profundo + azul noche + dorado. */
+  /* Portal admin comparte la identidad Pixel-App unificada */
   :root[data-portal="admin"] {
-    --background: 195 40% 97%;
-    --foreground: 200 35% 12%;
+    --background: 214 38% 97%;
+    --foreground: 222 47% 11%;
     --card: 0 0% 100%;
-    --card-foreground: 200 35% 12%;
+    --card-foreground: 222 47% 11%;
     --popover: 0 0% 100%;
-    --popover-foreground: 200 35% 12%;
-    --primary: 187 85% 30%;
+    --popover-foreground: 222 47% 11%;
+    --primary: 221 83% 53%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 190 55% 90%;
-    --secondary-foreground: 195 60% 18%;
-    --muted: 195 25% 93%;
-    --muted-foreground: 200 12% 40%;
-    --accent: 43 95% 55%;
-    --accent-foreground: 200 40% 15%;
-    --destructive: 0 72% 45%;
+    --secondary: 214 32% 91%;
+    --secondary-foreground: 222 47% 11%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 38 92% 50%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
-    --border: 195 25% 85%;
-    --input: 195 25% 85%;
-    --ring: 187 85% 30%;
+    --border: 214 32% 84%;
+    --input: 222 47% 11%;
+    --ring: 221 83% 53%;
   }
 
   :root.dark[data-portal="admin"] {
-    --background: 200 35% 9%;
-    --foreground: 190 20% 94%;
-    --card: 200 30% 12%;
-    --card-foreground: 190 20% 94%;
-    --popover: 200 30% 12%;
-    --popover-foreground: 190 20% 94%;
-    --primary: 187 75% 45%;
-    --primary-foreground: 200 40% 10%;
-    --secondary: 195 30% 18%;
-    --secondary-foreground: 190 20% 94%;
-    --muted: 200 25% 16%;
-    --muted-foreground: 195 12% 66%;
-    --accent: 43 90% 55%;
-    --accent-foreground: 200 40% 12%;
-    --destructive: 0 65% 50%;
+    --background: 222 47% 7%;
+    --foreground: 210 40% 96%;
+    --card: 222 47% 11%;
+    --card-foreground: 210 40% 96%;
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 96%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 222 47% 11%;
+    --secondary: 217 33% 18%;
+    --secondary-foreground: 210 40% 96%;
+    --muted: 217 33% 15%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 38 92% 50%;
+    --accent-foreground: 222 47% 11%;
+    --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 100%;
-    --border: 195 20% 22%;
-    --input: 195 20% 22%;
-    --ring: 187 75% 45%;
+    --border: 217 33% 22%;
+    --input: 215 20% 65%;
+    --ring: 217 91% 60%;
   }
 
   * {
@@ -105,15 +106,21 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
+    font-family: "Space Grotesk", "Inter", ui-sans-serif, system-ui, sans-serif;
     min-height: 100vh;
+    background-image: radial-gradient(hsl(214 32% 84% / 0.55) 1px, transparent 1px);
+    background-size: 20px 20px;
+  }
+
+  .dark body {
+    background-image: radial-gradient(hsl(217 33% 20% / 0.6) 1px, transparent 1px);
   }
 
   h1,
   h2,
   h3,
   h4 {
-    font-family: "Bricolage Grotesque", "Inter", ui-sans-serif, sans-serif;
+    font-family: "Space Grotesk", "Bricolage Grotesque", "Inter", ui-sans-serif, sans-serif;
     letter-spacing: -0.02em;
   }
 
@@ -129,48 +136,65 @@
 @layer components {
   .hero-glow {
     background:
-      radial-gradient(60% 80% at 15% 10%, hsl(42 95% 82% / 0.9), transparent 60%),
-      radial-gradient(50% 70% at 90% 20%, hsl(3 80% 82% / 0.7), transparent 65%),
-      linear-gradient(180deg, hsl(42 50% 98%), hsl(40 40% 96%));
+      radial-gradient(60% 80% at 15% 10%, hsl(221 83% 53% / 0.12), transparent 60%),
+      radial-gradient(50% 70% at 90% 20%, hsl(38 92% 50% / 0.14), transparent 65%),
+      linear-gradient(180deg, hsl(214 38% 98%), hsl(214 38% 96%));
   }
 
   .paper-grid {
     background-image:
-      linear-gradient(hsl(35 20% 88% / 0.5) 1px, transparent 1px),
-      linear-gradient(90deg, hsl(35 20% 88% / 0.5) 1px, transparent 1px);
-    background-size: 28px 28px;
+      linear-gradient(hsl(214 32% 86% / 0.45) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(214 32% 86% / 0.45) 1px, transparent 1px);
+    background-size: 24px 24px;
   }
 
   .dark .hero-glow {
     background:
-      radial-gradient(60% 80% at 15% 10%, hsl(3 45% 20% / 0.9), transparent 60%),
-      radial-gradient(50% 70% at 90% 20%, hsl(36 60% 18% / 0.8), transparent 65%),
-      linear-gradient(180deg, hsl(20 20% 9%), hsl(20 18% 8%));
+      radial-gradient(60% 80% at 15% 10%, hsl(217 91% 60% / 0.16), transparent 60%),
+      radial-gradient(50% 70% at 90% 20%, hsl(38 92% 50% / 0.12), transparent 65%),
+      linear-gradient(180deg, hsl(222 47% 9%), hsl(222 47% 7%));
   }
 
   .dark .paper-grid {
     background-image:
-      linear-gradient(hsl(20 18% 22% / 0.6) 1px, transparent 1px),
-      linear-gradient(90deg, hsl(20 18% 22% / 0.6) 1px, transparent 1px);
-  }
-
-  :root[data-portal="admin"] .hero-glow {
-    background:
-      radial-gradient(60% 80% at 15% 10%, hsl(187 70% 88% / 0.9), transparent 60%),
-      radial-gradient(50% 70% at 90% 20%, hsl(43 95% 75% / 0.55), transparent 65%),
-      linear-gradient(180deg, hsl(195 40% 98%), hsl(195 35% 95%));
-  }
-
-  :root.dark[data-portal="admin"] .hero-glow {
-    background:
-      radial-gradient(60% 80% at 15% 10%, hsl(187 60% 18% / 0.9), transparent 60%),
-      radial-gradient(50% 70% at 90% 20%, hsl(43 60% 20% / 0.6), transparent 65%),
-      linear-gradient(180deg, hsl(200 35% 10%), hsl(200 35% 8%));
+      linear-gradient(hsl(217 33% 18% / 0.6) 1px, transparent 1px),
+      linear-gradient(90deg, hsl(217 33% 18% / 0.6) 1px, transparent 1px);
   }
 
   .code-display {
-    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    font-family: "DM Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
     letter-spacing: 0.14em;
+  }
+
+  .lp-section-kicker {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: hsl(var(--primary));
+  }
+
+  .lp-section-kicker::before {
+    content: "";
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background: hsl(var(--primary));
+    box-shadow: 2px 2px 0 hsl(var(--accent));
+  }
+
+  .lp-progress-ticks {
+    background-image: repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent calc(10% - 2px),
+      rgba(15, 23, 42, 0.16) calc(10% - 2px),
+      rgba(15, 23, 42, 0.16) 10%
+    );
   }
 }
 

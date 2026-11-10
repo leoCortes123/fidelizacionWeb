@@ -6,6 +6,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { FullPageLoader } from "@/components/shared/States";
 import { useAuth } from "./AuthProvider";
 import { safeNextPath } from "@/lib/config";
+import { clearPendingClaim } from "@/lib/pendingClaim";
 import { resolvePostLoginPath } from "@/lib/postLogin";
 
 export function AuthCallbackPage() {
@@ -23,6 +24,7 @@ export function AuthCallbackPage() {
       navigate(next, { replace: true });
       return;
     }
+    clearPendingClaim();
     if (rolesLoading) return;
     let active = true;
     void resolvePostLoginPath(roles).then((destination) => {

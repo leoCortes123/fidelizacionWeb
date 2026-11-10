@@ -3,6 +3,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { ClaimPage } from "@/features/purchases/ClaimPage";
+import { clearPendingClaim, pendingClaimPath, rememberPendingClaim } from "@/lib/pendingClaim";
 import type { ClaimResult, PurchaseQrPreview } from "@/types";
 
 const TOKEN = "tok_123456789012345678901234567890";
@@ -82,6 +83,7 @@ function renderClaim(path = `/claim/${TOKEN}`) {
 describe("ClaimPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    clearPendingClaim();
     auth.state.session = { user: { id: "customer-1" } };
     preview.data = pendingPreview;
     preview.isLoading = false;
@@ -150,5 +152,18 @@ describe("ClaimPage", () => {
 
     expect(screen.getByText(/enlace de compra inválido/i)).toBeInTheDocument();
     expect(claim.mutate).not.toHaveBeenCalled();
+  });
+
+  it("limpia el QR pendiente cuando el código QR no es válido en el servidor", () => {
+    rememberPendingClaim(TOKEN);
+    auth.state.session = null;
+    preview.data = null;
+    preview.isError = true;
+    preview.error = new Error("invalid_token");
+
+    renderClaim();
+
+    expect(screen.getByText(/No pudimos abrir este QR/i)).toBeInTheDocument();
+    expect(pendingClaimPath()).toBeNull();
   });
 });

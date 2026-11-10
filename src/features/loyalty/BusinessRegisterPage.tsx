@@ -1,18 +1,21 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Building2, CheckCircle } from "lucide-react";
+import { useAuth } from "@/features/auth/AuthProvider";
 import { useRegisterBusiness } from "./hooks";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { SignOutButton } from "@/components/shared/SignOutButton";
 import { LoadingScreen } from "@/components/shared/States";
 
 export function BusinessRegisterPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const registerBusiness = useRegisterBusiness();
+  const { refreshRoles } = useAuth();
   const [name, setName] = useState(searchParams.get("name") ?? "");
   const [slug, setSlug] = useState(searchParams.get("slug") ?? "");
   const [timezone, setTimezone] = useState("America/Bogota");
@@ -22,7 +25,8 @@ export function BusinessRegisterPage() {
     if (!name.trim() || !slug.trim()) return;
     try {
       await registerBusiness.mutateAsync({ name: name.trim(), slug: slug.trim(), timezone });
-      navigate("/business/select");
+      await refreshRoles?.();
+      navigate("/admin/onboarding");
     } catch {
       // El error se muestra mediante el mutation error
     }
@@ -31,10 +35,11 @@ export function BusinessRegisterPage() {
   if (registerBusiness.isPending) return <LoadingScreen label="Creando negocio…" />;
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="mx-auto max-w-3xl space-y-6 px-4 py-8 animate-fade-in">
       <PageHeader
         title="Registrar negocio"
         description="Crea tu negocio y conviértete en su administrador."
+        actions={<SignOutButton variant="outline" size="sm" />}
       />
 
       <Card className="max-w-md mx-auto">

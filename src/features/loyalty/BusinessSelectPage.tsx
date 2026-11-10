@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { SignOutButton } from "@/components/shared/SignOutButton";
 import { EmptyState, ErrorState, ListSkeleton } from "@/components/shared/States";
 
 export function BusinessSelectPage() {
@@ -26,10 +27,11 @@ export function BusinessSelectPage() {
 
   if (registering) {
     return (
-      <div className="space-y-6 animate-fade-in">
+      <div className="mx-auto max-w-4xl space-y-6 px-4 py-8 animate-fade-in">
         <PageHeader
           title="Registrar negocio"
           description="Crea tu negocio y conviértete en su administrador."
+          actions={<SignOutButton variant="outline" size="sm" />}
         />
         <Card className="max-w-md mx-auto">
           <CardHeader>
@@ -79,10 +81,11 @@ export function BusinessSelectPage() {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="mx-auto max-w-4xl space-y-6 px-4 py-8 animate-fade-in">
       <PageHeader
         title="Selecciona tu negocio"
         description="Elige el negocio con el que deseas trabajar."
+        actions={<SignOutButton variant="outline" size="sm" />}
       />
 
       {list.length === 0 ? (

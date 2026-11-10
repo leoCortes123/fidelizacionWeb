@@ -5,7 +5,11 @@ import { AdminShell } from "@/components/layout/AdminShell";
 import { RequireAdmin, RequireAuth, RequireBusinessRole } from "@/components/layout/RequireAuth";
 import { FullPageLoader } from "@/components/shared/States";
 import { BusinessProvider } from "@/features/loyalty/businessContext";
-import { RootRedirect } from "@/features/auth/RootRedirect";
+const LandingPage = lazy(() =>
+  import("@/features/auth/LandingPage").then((module) => ({
+    default: module.LandingPage,
+  })),
+);
 import { useAuth } from "@/features/auth/AuthProvider";
 import { useBusinesses } from "@/features/loyalty/hooks";
 
@@ -107,6 +111,26 @@ const ConfigPage = lazy(() =>
     default: module.ConfigPage,
   })),
 );
+const ProductsPage = lazy(() =>
+  import("@/features/admin/ProductsPage").then((module) => ({
+    default: module.ProductsPage,
+  })),
+);
+const RewardsPage = lazy(() =>
+  import("@/features/admin/RewardsPage").then((module) => ({
+    default: module.RewardsPage,
+  })),
+);
+const MembersPage = lazy(() =>
+  import("@/features/admin/MembersPage").then((module) => ({
+    default: module.MembersPage,
+  })),
+);
+const OnboardingWizardPage = lazy(() =>
+  import("@/features/loyalty/OnboardingWizardPage").then((module) => ({
+    default: module.OnboardingWizardPage,
+  })),
+);
 const ProfilePage = lazy(() =>
   import("@/features/profile/ProfilePage").then((module) => ({
     default: module.ProfilePage,
@@ -147,7 +171,7 @@ export function AppRoutes() {
   return (
     <Suspense fallback={<FullPageLoader label="Cargando la página…" />}>
       <Routes>
-        <Route path="/" element={<RootRedirect />} />
+        <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/auth/callback" element={<AuthCallbackPage />} />
         <Route path="/claim/:token" element={<ClaimPage />} />
@@ -165,7 +189,9 @@ export function AppRoutes() {
           path="/perfil"
           element={
             <RequireAuth>
-              <ProfilePage />
+              <BusinessLayout>
+                <ProfilePage />
+              </BusinessLayout>
             </RequireAuth>
           }
         />
@@ -249,25 +275,24 @@ export function AppRoutes() {
         >
           <Route index element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="dashboard" element={<BusinessDashboardPage />} />
-          <Route path="config" element={<ConfigPage />} />
-          <Route path="business" element={<Navigate to="/admin/config?tab=negocio" replace />} />
-          <Route path="program" element={<Navigate to="/admin/config?tab=programa" replace />} />
-          <Route path="products" element={<Navigate to="/admin/config?tab=carta" replace />} />
-          <Route path="rewards" element={<Navigate to="/admin/config?tab=recompensas" replace />} />
+          <Route path="perfil" element={<ProfilePage />} />
+          <Route path="products" element={<ProductsPage />} />
+          <Route path="rewards" element={<RewardsPage />} />
+          <Route path="members" element={<MembersPage />} />
+          <Route path="onboarding" element={<OnboardingWizardPage />} />
           <Route path="redemptions" element={<AdminRedemptionsPage />} />
-          <Route path="members" element={<Navigate to="/admin/config?tab=equipo" replace />} />
           <Route path="customers" element={<AdminCustomersPage />} />
           <Route path="customers/:id" element={<AdminCustomerDetailPage />} />
           <Route path="purchases" element={<AdminPurchasesPage />} />
           <Route path="purchases/new" element={<PurchaseRegistrationPage />} />
-          <Route path="economic" element={<Navigate to="/admin/config?tab=economico" replace />} />
           <Route path="audit" element={<AuditPage />} />
-          <Route
-            path="onboarding"
-            element={<Navigate to="/admin/config?tab=negocio&onboarding=1" replace />}
-          />
           <Route path="campaigns" element={<CampaignsPage />} />
-          <Route path="settings" element={<Navigate to="/admin/config?tab=avanzado" replace />} />
+          {/* Redirecciones a Perfil y páginas directas */}
+          <Route path="config" element={<ConfigPage />} />
+          <Route path="business" element={<Navigate to="/admin/perfil?tab=negocio" replace />} />
+          <Route path="program" element={<Navigate to="/admin/perfil?tab=programa" replace />} />
+          <Route path="economic" element={<Navigate to="/admin/perfil?tab=economico" replace />} />
+          <Route path="settings" element={<Navigate to="/admin/perfil" replace />} />
         </Route>
 
         {/* Rutas heredadas */}

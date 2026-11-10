@@ -2,15 +2,17 @@ import { useRef, useState } from "react";
 import { Link, NavLink, Outlet, useLocation, type NavLinkRenderProps } from "react-router-dom";
 import {
   ClipboardList,
+  Gift,
   Home,
   LayoutGrid,
   Megaphone,
+  Package,
   QrCode,
   ReceiptText,
   Settings2,
   TicketCheck,
+  UserRound,
   Users,
-  Wrench,
 } from "lucide-react";
 import { Brand } from "@/components/shared/Brand";
 import { Button } from "@/components/ui/button";
@@ -35,59 +37,48 @@ type AdminNavItem = {
   shortLabel?: string;
   icon: typeof Home;
   end?: boolean;
-  config?: boolean;
 };
 
 const mainNav: AdminNavItem[] = [
   { to: "/admin/dashboard", label: "Inicio", icon: Home, end: true },
-  { to: "/admin/config", label: "Configuración", icon: Settings2, config: true },
-  { to: "/admin/campaigns", label: "Campañas", icon: Megaphone },
+  { to: "/admin/products", label: "Carta", icon: Package },
+  { to: "/admin/rewards", label: "Recompensas", icon: Gift },
+  { to: "/admin/members", label: "Equipo", icon: UserRound },
   { to: "/admin/redemptions", label: "Solicitudes", icon: TicketCheck },
-  { to: "/admin/audit", label: "Auditoría", icon: ClipboardList },
-  { to: "/admin/customers", label: "Clientes", icon: Users },
   { to: "/admin/purchases", label: "Compras", icon: ReceiptText, end: true },
-];
-
-const configPaths = [
-  "/admin/config",
-  "/admin/business",
-  "/admin/program",
-  "/admin/products",
-  "/admin/rewards",
-  "/admin/economic",
-  "/admin/members",
-  "/admin/onboarding",
-  "/admin/settings",
+  { to: "/admin/customers", label: "Clientes", icon: Users },
+  { to: "/admin/campaigns", label: "Campañas", icon: Megaphone },
+  { to: "/admin/audit", label: "Auditoría", icon: ClipboardList },
+  { to: "/admin/perfil", label: "Mi perfil", icon: Settings2 },
 ];
 
 const moreNav: AdminNavItem[] = [
+  { to: "/admin/members", label: "Equipo", icon: UserRound },
+  { to: "/admin/purchases", label: "Compras", icon: ReceiptText, end: true },
+  { to: "/admin/customers", label: "Clientes", icon: Users },
   { to: "/admin/campaigns", label: "Campañas", icon: Megaphone },
   { to: "/admin/audit", label: "Auditoría", icon: ClipboardList },
-  { to: "/admin/customers", label: "Clientes", icon: Users },
-  { to: "/admin/settings", label: "Ajustes anteriores", icon: Wrench },
+  { to: "/admin/perfil", label: "Mi perfil", icon: Settings2 },
 ];
 
 const bottomNav: AdminNavItem[] = [
   { to: "/admin/dashboard", label: "Inicio", icon: Home, end: true },
-  { to: "/admin/config", label: "Configuración", icon: Settings2, config: true },
+  { to: "/admin/products", label: "Carta", icon: Package },
+  { to: "/admin/rewards", label: "Recompensas", shortLabel: "Premios", icon: Gift },
   { to: "/admin/redemptions", label: "Solicitudes", shortLabel: "Solicitudes", icon: TicketCheck },
-  { to: "/admin/purchases", label: "Compras", icon: ReceiptText, end: true },
 ];
 
 function isItemActive(item: AdminNavItem, pathname: string) {
-  if (item.to === "/admin/config") {
-    return configPaths.some((path) => pathname === path || pathname.startsWith(`${path}/`));
-  }
   if (item.end) return pathname === item.to;
   return pathname === item.to || pathname.startsWith(`${item.to}/`);
 }
 
 function navClass(isActive: boolean) {
   return cn(
-    "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors",
+    "flex min-h-11 items-center gap-3 rounded-md border px-3 py-2 text-sm font-bold transition-all",
     isActive
-      ? "bg-primary text-primary-foreground shadow-sm"
-      : "text-muted-foreground hover:bg-muted hover:text-foreground",
+      ? "border-slate-900 bg-primary text-primary-foreground shadow-[0_2px_0_#0f172a] dark:border-slate-200"
+      : "border-transparent text-muted-foreground hover:border-border hover:bg-muted/80 hover:text-foreground",
   );
 }
 
@@ -107,12 +98,12 @@ export function AdminShell() {
 
   return (
     <div className="flex h-dvh overflow-hidden bg-background">
-      <aside className="hidden h-dvh w-64 shrink-0 flex-col border-r bg-card md:flex">
-        <div className="border-b p-4">
+      <aside className="hidden h-dvh w-64 shrink-0 flex-col border-r-2 border-slate-300 bg-card md:flex dark:border-slate-800">
+        <div className="border-b border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-900/50">
           <Brand />
-          <Badge variant="secondary" className="mt-2">
-            Negocio
-          </Badge>
+          <div className="mt-2 flex items-center gap-2">
+            <Badge variant="default">ADMIN · NEGOCIO</Badge>
+          </div>
         </div>
 
         <div className="p-3">
@@ -132,9 +123,7 @@ export function AdminShell() {
                 key={item.to}
                 to={item.to}
                 end={item.end}
-                className={({ isActive }: NavLinkRenderProps) =>
-                  navClass(item.config ? isItemActive(item, pathname) : isActive)
-                }
+                className={({ isActive }: NavLinkRenderProps) => navClass(isActive)}
               >
                 <Icon className="size-4" aria-hidden="true" />
                 {item.label}
@@ -143,7 +132,7 @@ export function AdminShell() {
           })}
         </nav>
 
-        <div className="border-t p-3">
+        <div className="border-t border-slate-200 p-3 dark:border-slate-800">
           <UserMenu />
         </div>
       </aside>
@@ -152,7 +141,7 @@ export function AdminShell() {
         <header
           data-testid="app-header"
           className={cn(
-            "z-30 shrink-0 overflow-hidden border-b bg-background/95 backdrop-blur transition-all duration-300 ease-out no-print",
+            "z-30 shrink-0 overflow-hidden border-b border-slate-300 bg-card/95 backdrop-blur transition-all duration-300 ease-out no-print dark:border-slate-800",
             headerHidden
               ? "max-h-0 -translate-y-full border-transparent opacity-0"
               : "max-h-40 opacity-100",
@@ -162,13 +151,15 @@ export function AdminShell() {
             <div className="md:hidden">
               <Brand compact linkTo="/admin/dashboard" />
             </div>
-            <p className="hidden text-sm text-muted-foreground md:block">Caja · {dateLabel}</p>
+            <p className="hidden font-mono text-xs font-medium text-muted-foreground md:block">
+              CAJA ACTIVA · {dateLabel}
+            </p>
             <div className="flex items-center gap-2">
               <BusinessSwitcher className="hidden sm:flex" />
               <UserMenu compact />
             </div>
           </div>
-          <div className="border-t px-4 py-2 sm:hidden">
+          <div className="border-t border-slate-200 px-4 py-2 sm:hidden dark:border-slate-800">
             <BusinessSwitcher />
           </div>
         </header>
@@ -187,10 +178,10 @@ export function AdminShell() {
       <PurchaseFab />
 
       <nav
-        className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden no-print"
+        className="fixed inset-x-0 bottom-0 z-40 border-t-2 border-slate-900 bg-card/98 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden no-print dark:border-slate-700"
         aria-label="Navegación del negocio"
       >
-        <div className="grid grid-cols-5">
+        <div className="grid grid-cols-5 p-1">
           {bottomNav.map((item) => {
             const Icon = item.icon;
             const active = isItemActive(item, pathname);
@@ -200,11 +191,13 @@ export function AdminShell() {
                 to={item.to}
                 end={item.end}
                 className={cn(
-                  "flex flex-col items-center gap-1 py-2.5 text-[10px] font-semibold transition-colors",
-                  active ? "text-primary" : "text-muted-foreground hover:text-foreground",
+                  "flex min-h-12 flex-col items-center justify-center gap-1 rounded-md px-1 py-1.5 text-[10px] font-bold transition-colors",
+                  active
+                    ? "bg-primary text-primary-foreground shadow-[0_2px_0_#0f172a]"
+                    : "text-muted-foreground hover:text-foreground",
                 )}
               >
-                <Icon className="size-5" aria-hidden="true" />
+                <Icon className="size-4" aria-hidden="true" />
                 {item.shortLabel ?? item.label}
               </NavLink>
             );
@@ -212,10 +205,10 @@ export function AdminShell() {
           <button
             type="button"
             onClick={() => setMoreOpen(true)}
-            className="flex flex-col items-center gap-1 py-2.5 text-[10px] font-semibold text-muted-foreground transition-colors hover:text-foreground"
+            className="flex min-h-12 flex-col items-center justify-center gap-1 rounded-md px-1 py-1.5 text-[10px] font-bold text-muted-foreground transition-colors hover:text-foreground"
             aria-label="Más opciones"
           >
-            <LayoutGrid className="size-5" aria-hidden="true" />
+            <LayoutGrid className="size-4" aria-hidden="true" />
             Más
           </button>
         </div>

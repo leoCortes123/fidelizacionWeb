@@ -240,12 +240,12 @@ function PurchaseQrSection({ business }: { business: Business }) {
         <Alert variant="warning">
           <AlertTitle>El programa de loopoints está inactivo</AlertTitle>
           <AlertDescription>
-            Actívalo en Configuración → Programa antes de generar ventas con QR.
+            Actívalo en Mi perfil → Programa antes de generar ventas con QR.
           </AlertDescription>
         </Alert>
       )}
 
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
@@ -255,11 +255,13 @@ function PurchaseQrSection({ business }: { business: Business }) {
           </CardHeader>
           <CardContent>
             <Tabs value={mode} onValueChange={changeMode}>
-              <TabsList>
-                <TabsTrigger value="manual">Valor manual</TabsTrigger>
-                <TabsTrigger value="catalog">
-                  <ListOrdered className="mr-1.5 size-4" aria-hidden="true" />
-                  Elegir de la carta
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="manual" className="min-w-0 truncate px-2 sm:px-3.5">
+                  Valor manual
+                </TabsTrigger>
+                <TabsTrigger value="catalog" className="min-w-0 truncate px-2 sm:px-3.5">
+                  <ListOrdered className="mr-1.5 size-4 shrink-0" aria-hidden="true" />
+                  <span className="truncate">Elegir de la carta</span>
                 </TabsTrigger>
               </TabsList>
 
@@ -302,12 +304,12 @@ function PurchaseQrSection({ business }: { business: Business }) {
                   ) : (products.data ?? []).length === 0 ? (
                     <EmptyState
                       title="La carta está vacía"
-                      description="Añade productos o combos en Configuración → Carta para vender con detalle."
+                      description="Añade productos o combos en Carta para vender con detalle."
                       icon={ListOrdered}
                       className="border-0 bg-transparent py-6"
                       action={
                         <Button variant="outline" size="sm" asChild>
-                          <Link to="/admin/config?tab=carta">Ir a la carta</Link>
+                          <Link to="/admin/products">Ir a la carta</Link>
                         </Button>
                       }
                     />
@@ -568,48 +570,56 @@ function ProductPickerRow({
 }) {
   return (
     <li className="rounded-xl border p-3">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <p className="flex items-center gap-2 font-semibold">
-            <span className="truncate">{product.name}</span>
-            {product.kind === "combo" && <Badge variant="secondary">Combo</Badge>}
+      <div className="flex flex-col gap-2.5 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="flex flex-wrap items-center gap-1.5 font-semibold">
+            <span className="min-w-0 break-words">{product.name}</span>
+            {product.kind === "combo" && (
+              <Badge variant="secondary" className="shrink-0">
+                Combo
+              </Badge>
+            )}
           </p>
           {product.kind === "combo" && product.combo_items.length > 0 && (
-            <p className="text-xs text-muted-foreground">
+            <p className="mt-0.5 break-words text-xs text-muted-foreground">
               {product.combo_items.map((item) => `${item.quantity} × ${item.name}`).join(" · ")}
             </p>
           )}
           {product.description && (
-            <p className="truncate text-xs text-muted-foreground">{product.description}</p>
+            <p className="mt-0.5 line-clamp-2 break-words text-xs text-muted-foreground">
+              {product.description}
+            </p>
           )}
-          <p className="mt-1 text-sm font-semibold tabular-nums">{formatCOP(product.price_cop)}</p>
         </div>
-        <div className="flex shrink-0 items-center gap-1">
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            aria-label={`Quitar ${product.name}`}
-            disabled={quantity === 0}
-            onClick={() => onQuantity(quantity - 1)}
-          >
-            <Minus aria-hidden="true" />
-          </Button>
-          <span
-            className="w-6 text-center text-sm font-bold tabular-nums"
-            aria-label={`Cantidad de ${product.name}`}
-          >
-            {quantity}
-          </span>
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            aria-label={`Añadir ${product.name}`}
-            onClick={() => onQuantity(quantity + 1)}
-          >
-            <Plus aria-hidden="true" />
-          </Button>
+        <div className="flex items-center justify-between gap-3 border-t pt-2 sm:shrink-0 sm:border-t-0 sm:pt-0">
+          <p className="text-sm font-semibold tabular-nums">{formatCOP(product.price_cop)}</p>
+          <div className="flex shrink-0 items-center gap-1">
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              aria-label={`Quitar ${product.name}`}
+              disabled={quantity === 0}
+              onClick={() => onQuantity(quantity - 1)}
+            >
+              <Minus aria-hidden="true" />
+            </Button>
+            <span
+              className="w-6 text-center text-sm font-bold tabular-nums"
+              aria-label={`Cantidad de ${product.name}`}
+            >
+              {quantity}
+            </span>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              aria-label={`Añadir ${product.name}`}
+              onClick={() => onQuantity(quantity + 1)}
+            >
+              <Plus aria-hidden="true" />
+            </Button>
+          </div>
         </div>
       </div>
     </li>

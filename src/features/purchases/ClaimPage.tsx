@@ -40,16 +40,20 @@ export function ClaimPage() {
   const claimPath = `/claim/${token}`;
   const loginNext = encodeURIComponent(claimPath);
 
-  // Respaldo para volver al QR tras crear la cuenta o confirmar el correo.
+  // Solo recordamos el QR mientras esté pendiente y el usuario aún no haya iniciado sesión.
+  // Si el QR es inválido, falló la consulta, ya no está pendiente o ya hay sesión, se limpia.
   useEffect(() => {
-    if (tokenLooksValid) rememberPendingClaim(token);
-  }, [token, tokenLooksValid]);
-
-  useEffect(() => {
-    if (preview.data && preview.data.status !== "pending_claim") {
+    if (!tokenLooksValid || preview.isError || Boolean(session)) {
+      clearPendingClaim();
+      return;
+    }
+    if (!preview.data) return;
+    if (preview.data.status === "pending_claim") {
+      rememberPendingClaim(token);
+    } else {
       clearPendingClaim();
     }
-  }, [preview.data]);
+  }, [token, tokenLooksValid, preview.data, preview.isError, session]);
 
   async function handleGoogle() {
     setSigningIn(true);
