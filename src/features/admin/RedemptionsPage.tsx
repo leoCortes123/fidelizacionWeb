@@ -237,7 +237,7 @@ function RedemptionsSection({ business }: { business: Business }) {
   return (
     <div className="space-y-4 sm:space-y-5 animate-fade-in">
       <PageHeader
-        title={`Solicitudes — ${business.name}`}
+        title="Solicitudes"
         description="Valida, aprueba, entrega o cancela los canjes solicitados por tus clientes."
         actions={
           <div className="flex flex-wrap items-center gap-2">

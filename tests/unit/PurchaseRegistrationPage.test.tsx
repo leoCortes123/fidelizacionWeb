@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { PurchaseRegistrationPage } from "@/features/admin/PurchaseRegistrationPage";
@@ -134,14 +134,16 @@ describe("PurchaseRegistrationPage (venta con QR)", () => {
     programState.active = true;
   });
 
-  it("valida el importe, previsualiza loopoints y genera el QR de la venta", async () => {
+  it("valida el importe, previsualiza loopoints y genera el QR de la venta en modal", async () => {
     createMutate.mockImplementation((_amount, options) => {
       options?.onSuccess?.(result);
     });
     const user = userEvent.setup();
     renderPage();
 
-    expect(screen.getByRole("heading", { name: /Registrar compra/ })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /^Registrar venta$/ })).toBeInTheDocument();
+    expect(screen.queryByText("QR para el cliente")).not.toBeInTheDocument();
+
     const input = screen.getByRole("textbox", { name: /importe de la compra/i });
     await user.type(input, "15500");
     expect(await screen.findByText(/\+15 loopoints/i)).toBeInTheDocument();
@@ -149,18 +151,20 @@ describe("PurchaseRegistrationPage (venta con QR)", () => {
     await user.click(screen.getByRole("button", { name: /generar qr de la venta/i }));
     expect(createMutate).toHaveBeenCalledWith({ amountCop: 15500, items: [] }, expect.any(Object));
 
-    expect(await screen.findByText(/escanéalo para sumar loopoints/i)).toBeInTheDocument();
-    expect(screen.getByTestId("qr")).toHaveAttribute(
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByRole("heading", { name: /qr de la venta/i })).toBeInTheDocument();
+    expect(within(dialog).getByText(/escanéalo para sumar loopoints/i)).toBeInTheDocument();
+    expect(within(dialog).getByTestId("qr")).toHaveAttribute(
       "data-value",
       "https://fidelizacion01.vercel.app/claim/tok_123456789012345678901234567890",
     );
-    expect(screen.getByTestId("claim-url").textContent).toContain(
+    expect(within(dialog).getByTestId("claim-url").textContent).toContain(
       "/claim/tok_123456789012345678901234567890",
     );
-    expect(screen.getByText(/15 loopoints estimados/i)).toBeInTheDocument();
+    expect(within(dialog).getByText(/15 loopoints estimados/i)).toBeInTheDocument();
   });
 
-  it("suma productos de la carta y envía las líneas", async () => {
+  it("abre el modal de carta al elegir productos y muestra la tabla con total al aceptar", async () => {
     createMutate.mockImplementation((_input, options) => {
       options?.onSuccess?.(result);
     });
@@ -168,9 +172,19 @@ describe("PurchaseRegistrationPage (venta con QR)", () => {
     renderPage();
 
     await user.click(screen.getByRole("tab", { name: /elegir de la carta/i }));
-    await user.click(screen.getByRole("button", { name: /añadir taco de guisado/i }));
-    await user.click(screen.getByRole("button", { name: /añadir taco de guisado/i }));
-    expect(await screen.findByTestId("catalog-total")).toHaveTextContent("5.000");
+
+    const dialog = await screen.findByRole("dialog");
+    expect(
+      within(dialog).getByRole("heading", { name: /elegir de la carta/i }),
+    ).toBeInTheDocument();
+    await user.click(within(dialog).getByRole("button", { name: /añadir taco de guisado/i }));
+    await user.click(within(dialog).getByRole("button", { name: /añadir taco de guisado/i }));
+    await user.click(within(dialog).getByRole("button", { name: /aceptar/i }));
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    const table = await screen.findByRole("table");
+    expect(within(table).getByText("Taco de guisado")).toBeInTheDocument();
+    expect(within(table).getByTestId("catalog-total")).toHaveTextContent("5.000");
 
     await user.click(screen.getByRole("button", { name: /generar qr de la venta/i }));
     expect(createMutate).toHaveBeenCalledWith(
@@ -180,6 +194,21 @@ describe("PurchaseRegistrationPage (venta con QR)", () => {
       },
       expect.any(Object),
     );
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
+  });
+
+  it("descarta cambios en la carta si se cancela el modal", async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.click(screen.getByRole("tab", { name: /elegir de la carta/i }));
+    const dialog = await screen.findByRole("dialog");
+    await user.click(within(dialog).getByRole("button", { name: /añadir taco de guisado/i }));
+    await user.click(within(dialog).getByRole("button", { name: /cancelar/i }));
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.queryByRole("table")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /abrir carta/i })).toBeInTheDocument();
   });
 
   it("no envía importes en cero", async () => {

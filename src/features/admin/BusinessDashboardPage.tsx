@@ -187,7 +187,7 @@ export function BusinessDashboardPage() {
     <div className="space-y-4 sm:space-y-5 animate-fade-in">
       <PageHeader
         kicker="PANEL OPERATIVO · ADMINISTRADOR"
-        title={`Inicio — ${current.name}`}
+        title="Inicio"
         description={`@${current.slug} · ${current.timezone}`}
         actionsClassName={showCompleteConfig ? undefined : "hidden sm:flex"}
         actions={
@@ -441,7 +441,7 @@ export function BusinessDashboardPage() {
                   </CardTitle>
                   <Button variant="ghost" size="sm" asChild>
                     <Link to="/admin/purchases">
-                      Ver compras
+                      Ver ventas
                       <ArrowRight aria-hidden="true" />
                     </Link>
                   </Button>
@@ -627,12 +627,12 @@ export function BusinessDashboardPage() {
                       to="/admin/rewards"
                       icon={CreditCard}
                       label="Recompensas"
-                      hint="Premios activos"
+                      hint="Recompensas activas"
                     />
                     <QuickTile
                       to="/admin/members"
                       icon={Users}
-                      label="Equipo"
+                      label="Miembros"
                       hint="Encargados y roles"
                     />
                   </div>

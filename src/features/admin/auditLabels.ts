@@ -106,6 +106,7 @@ const CATEGORY_BY_PREFIX: Array<{ prefix: string; id: AuditCategoryId }> = [
 const ENTITY_LABELS: Record<string, string> = {
   business: "Negocio",
   business_economic_profile: "Datos económicos",
+  business_member_invite: "Invitación de miembro",
   business_membership: "Miembro del equipo",
   loyalty_budget_snapshot: "Presupuesto",
   loyalty_campaign: "Campaña",
@@ -154,6 +155,8 @@ const FIELD_LABELS: Record<string, string> = {
   frequent_period_days: "Ventana de evaluación (días)",
   gross_margin: "Margen bruto",
   instagram: "Instagram",
+  invite_id: "Invitación",
+  invited_by: "Invitado por",
   is_active: "Activa",
   items: "Componentes del combo",
   items_count: "Productos",
@@ -181,6 +184,7 @@ const FIELD_LABELS: Record<string, string> = {
   points_reversed: "Loopoints descontados",
   points_spent: "Loopoints canjeados",
   points_expiry_days: "Días de vencimiento",
+  previous_role: "Rol anterior",
   previous_status: "Estado anterior",
   previous_logo_url: "Logo anterior",
   product_price_cop: "Precio del producto",
@@ -220,6 +224,7 @@ const CHANNEL_LABELS: Record<string, string> = {
   qr_scan: "Escaneo de QR",
   manual: "Manual",
   purchase_qr: "Compra con QR",
+  invite_qr: "QR de invitación",
   admin: "Administración",
 };
 
@@ -514,6 +519,38 @@ export const AUDIT_LABELS: Record<string, AuditLabel> = {
     "team",
     "Miembro del equipo",
   ),
+  "membership.invite_created": op(
+    "Invitación QR generada",
+    "Se generó un código QR de invitación para añadir un miembro.",
+    UserPlus,
+    "info",
+    "team",
+    "Invitación",
+  ),
+  "membership.invite_revoked": op(
+    "Invitación QR anulada",
+    "Se anuló una invitación QR pendiente de un miembro.",
+    ShieldCheck,
+    "warning",
+    "team",
+    "Invitación",
+  ),
+  "membership.invite_accepted": op(
+    "Invitación QR aceptada",
+    "Un miembro existente aceptó una invitación QR sin cambio de rol.",
+    UserPlus,
+    "info",
+    "team",
+    "Miembro del equipo",
+  ),
+  "membership.role_updated": op(
+    "Rol de miembro actualizado",
+    "Se actualizó el rol de un miembro del negocio mediante invitación.",
+    ShieldCheck,
+    "warning",
+    "team",
+    "Miembro del equipo",
+  ),
   "campaign.created": op(
     "Campaña creada",
     "Se añadió una campaña con multiplicador o bono de loopoints.",
@@ -743,6 +780,10 @@ export function auditSubject(entry: Pick<BusinessAuditLog, "operation" | "metada
     case "membership.created":
     case "membership.joined":
     case "membership.permission_updated":
+    case "membership.invite_created":
+    case "membership.invite_revoked":
+    case "membership.invite_accepted":
+    case "membership.role_updated":
       return role ? (ROLE_LABELS[role] ?? humanize(role)) : "Miembro del equipo";
     case "points.expired": {
       const accounts = asNumber(metadata.accounts_affected);
@@ -911,7 +952,9 @@ function formatAuditValue(key: string, value: unknown): string | null {
   if (typeof value === "string") {
     if (UUID_RE.test(value)) return null;
     if (DATE_KEYS.has(key)) return formatDateTimeBogota(value);
-    if (key === "role") return ROLE_LABELS[value] ?? humanize(value);
+    if (key === "role" || key === "previous_role") {
+      return ROLE_LABELS[value] ?? humanize(value);
+    }
     if (key === "type") return REWARD_TYPE_LABELS[value] ?? humanize(value);
     if (key === "channel" || key === "via" || key === "source") {
       return CHANNEL_LABELS[value] ?? humanize(value);

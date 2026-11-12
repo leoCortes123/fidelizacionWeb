@@ -150,7 +150,8 @@ describe("BusinessDashboardPage", () => {
     expect(spies.useLoyaltyProgram).toHaveBeenCalledWith("biz-admin");
     expect(spies.useBusinessDashboardSummary).toHaveBeenCalledWith("biz-admin");
     expect(spies.useBusinessRecentActivity).toHaveBeenCalledWith("biz-admin", 8);
-    expect(screen.getByRole("heading", { name: /Inicio — Negocio biz-admin/ })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /^Inicio$/ })).toBeInTheDocument();
+    expect(screen.getByText(/@negocio-biz-admin/i)).toBeInTheDocument();
   });
 
   it("oculta Administrador y Cambiar negocio solo en móvil y organiza los KPI principales en filas de 2 en responsive", () => {

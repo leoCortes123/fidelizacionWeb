@@ -14,17 +14,31 @@ import {
   TrendingUp,
   UserRound,
 } from "lucide-react";
+import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Brand } from "@/components/shared/Brand";
+import { FullPageLoader } from "@/components/shared/States";
+import { queryClient } from "@/app/queryClient";
 import { useAuth } from "./AuthProvider";
-import { brandName, brandTagline, isSupabaseConfigured, safeNextPath } from "@/lib/config";
+import { persistBusinessSelection } from "@/features/loyalty/businessContext";
+import {
+  brandName,
+  brandTagline,
+  businessHomePath,
+  isSupabaseConfigured,
+  safeNextPath,
+} from "@/lib/config";
 import { clearPendingClaim } from "@/lib/pendingClaim";
 import { resolvePostLoginPath } from "@/lib/postLogin";
 import { errorMessage } from "@/lib/errors";
+import { queryKeys } from "@/lib/queryKeys";
+import { rpc } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
+import type { BusinessRole, MemberInviteAcceptResult, MemberInvitePreview } from "@/types";
 
 export type AccountType = "customer" | "admin";
 
@@ -57,10 +71,33 @@ function GoogleIcon() {
   );
 }
 
+const INVITE_TOKEN_PATTERN = /^[A-Za-z0-9_-]{20,100}$/;
+
+function inviteRoleLabel(role: BusinessRole): string {
+  if (role === "admin") return "Administrador";
+  if (role === "encargado") return "Encargado";
+  return "Cliente";
+}
+
+function inviteStatusMessage(status: MemberInvitePreview["status"] | undefined): string | null {
+  if (status === "accepted") {
+    return "Este código QR de invitación ya fue utilizado por otra cuenta.";
+  }
+  if (status === "expired") {
+    return "Este código QR de invitación venció. Pide al administrador uno nuevo.";
+  }
+  if (status === "revoked") {
+    return "Esta invitación fue anulada. Pide al administrador un código nuevo.";
+  }
+  return null;
+}
+
 export function LoginPage() {
   const [params] = useSearchParams();
   const next = safeNextPath(params.get("next"));
   const hasNextParam = Boolean(params.get("next"));
+  const inviteToken = params.get("invite")?.trim() || null;
+  const hasInvite = Boolean(inviteToken);
   const navigate = useNavigate();
   const {
     session,
@@ -71,6 +108,7 @@ export function LoginPage() {
     signInWithGoogle,
     signInWithPassword,
     signUpWithPassword,
+    refreshRoles,
   } = useAuth();
 
   const modeParam = params.get("mode");
@@ -80,6 +118,7 @@ export function LoginPage() {
     modeParam === "register" ? "register" : "login",
   );
   const [accountType, setAccountType] = useState<AccountType>(() => {
+    if (hasInvite) return "customer";
     if (
       roleParam === "admin" ||
       next.startsWith("/business/register") ||
@@ -97,6 +136,10 @@ export function LoginPage() {
   }, [modeParam]);
 
   useEffect(() => {
+    if (hasInvite) {
+      setAccountType("customer");
+      return;
+    }
     if (
       roleParam === "admin" ||
       next.startsWith("/business/register") ||
@@ -106,7 +149,7 @@ export function LoginPage() {
     } else if (roleParam === "customer") {
       setAccountType("customer");
     }
-  }, [roleParam, next]);
+  }, [hasInvite, roleParam, next]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
@@ -116,15 +159,33 @@ export function LoginPage() {
   const [fullName, setFullName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
+  const [invitePreview, setInvitePreview] = useState<MemberInvitePreview | null>(null);
+  const [invitePreviewLoading, setInvitePreviewLoading] = useState(false);
+  const [invitePreviewError, setInvitePreviewError] = useState<string | null>(null);
+  const [inviteAcceptError, setInviteAcceptError] = useState<string | null>(null);
+  const inviteAcceptAttemptRef = useRef<string | null>(null);
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
   const errorBannerRef = useRef<HTMLDivElement>(null);
   const loginTabRef = useRef<HTMLButtonElement>(null);
   const registerTabRef = useRef<HTMLButtonElement>(null);
   const customerRadioRef = useRef<HTMLButtonElement>(null);
   const adminRadioRef = useRef<HTMLButtonElement>(null);
 
+  const inviteCallbackPath = inviteToken
+    ? `/login?invite=${encodeURIComponent(inviteToken)}`
+    : null;
   const isGenericAdminHome = next === "/admin" || next === "/admin/dashboard";
-  const effectiveNext =
-    mode === "register"
+  const effectiveNext = inviteCallbackPath
+    ? inviteCallbackPath
+    : mode === "register"
       ? accountType === "admin"
         ? next.startsWith("/admin/onboarding") || next.startsWith("/business")
           ? next
@@ -141,7 +202,93 @@ export function LoginPage() {
   }, [hasNextParam, next]);
 
   useEffect(() => {
+    if (!inviteToken) {
+      setInvitePreview(null);
+      setInvitePreviewError(null);
+      setInvitePreviewLoading(false);
+      return;
+    }
+    if (!INVITE_TOKEN_PATTERN.test(inviteToken)) {
+      setInvitePreview(null);
+      setInvitePreviewError("Este código QR de invitación no es válido.");
+      setInvitePreviewLoading(false);
+      return;
+    }
+    let active = true;
+    setInvitePreviewLoading(true);
+    setInvitePreviewError(null);
+    void rpc<MemberInvitePreview>("business_member_invite_preview", {
+      p_token: inviteToken,
+    })
+      .then((data) => {
+        if (!active) return;
+        setInvitePreview(data);
+      })
+      .catch((previewError) => {
+        if (!active) return;
+        setInvitePreview(null);
+        setInvitePreviewError(errorMessage(previewError));
+      })
+      .finally(() => {
+        if (active) setInvitePreviewLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [inviteToken]);
+
+  const sessionUserId = session?.user.id ?? null;
+
+  useEffect(() => {
+    if (loading) return;
+    if (!sessionUserId) {
+      inviteAcceptAttemptRef.current = null;
+      return;
+    }
+    if (!inviteToken) return;
+    if (!INVITE_TOKEN_PATTERN.test(inviteToken)) {
+      setInviteAcceptError("Este código QR de invitación no es válido.");
+      return;
+    }
+    const attemptKey = `${sessionUserId}:${inviteToken}`;
+    if (inviteAcceptAttemptRef.current === attemptKey) return;
+    inviteAcceptAttemptRef.current = attemptKey;
+
+    setInviteAcceptError(null);
+    void rpc<MemberInviteAcceptResult>("business_member_invite_accept", {
+      p_token: inviteToken,
+    })
+      .then(async (result) => {
+        if (!mountedRef.current || inviteAcceptAttemptRef.current !== attemptKey) return;
+        persistBusinessSelection(sessionUserId, result.business_id);
+        queryClient.removeQueries({ queryKey: queryKeys.businesses });
+        queryClient.removeQueries({ queryKey: queryKeys.customerBusinessesSummary });
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: queryKeys.roles }),
+          queryClient.invalidateQueries({
+            queryKey: queryKeys.businessMemberships(result.business_id),
+          }),
+        ]);
+        await refreshRoles?.();
+        if (!mountedRef.current || inviteAcceptAttemptRef.current !== attemptKey) return;
+        const label = inviteRoleLabel(result.role).toLowerCase();
+        toast.success(
+          result.role_changed
+            ? `Tu rol en ${result.business_name} cambió a ${label}.`
+            : `Te uniste a ${result.business_name} como ${label}.`,
+        );
+        navigate(businessHomePath(result.role, result.business_id), { replace: true });
+      })
+      .catch((acceptError) => {
+        if (!mountedRef.current || inviteAcceptAttemptRef.current !== attemptKey) return;
+        setInviteAcceptError(errorMessage(acceptError));
+      });
+  }, [loading, sessionUserId, inviteToken, refreshRoles, navigate]);
+
+  useEffect(() => {
     if (loading || !session || rolesLoading || !rolesLoaded) return;
+    if (inviteToken) return;
+
     if (mode === "register") {
       navigate(effectiveNext, { replace: true });
       return;
@@ -163,6 +310,8 @@ export function LoginPage() {
     rolesLoading,
     rolesLoaded,
     roles,
+    inviteToken,
+    refreshRoles,
     next,
     effectiveNext,
     hasNextParam,
@@ -197,7 +346,9 @@ export function LoginPage() {
     setError(null);
     setFieldErrors({});
     try {
-      if (mode === "register") {
+      if (inviteCallbackPath) {
+        await signInWithGoogle(inviteCallbackPath, mode === "register" ? "customer" : undefined);
+      } else if (mode === "register") {
         await signInWithGoogle(effectiveNext, accountType);
       } else {
         await signInWithGoogle(hasNextParam ? effectiveNext : undefined);
@@ -247,7 +398,7 @@ export function LoginPage() {
           email,
           password,
           fullName,
-          accountType,
+          accountType: hasInvite ? "customer" : accountType,
           nextPath: effectiveNext,
         });
         if (needsConfirmation) {
@@ -293,7 +444,42 @@ export function LoginPage() {
   }
 
   const brand = brandName || "Loopoint";
-  const isBusinessRegister = mode === "register" && accountType === "admin";
+  const isBusinessRegister = !hasInvite && mode === "register" && accountType === "admin";
+  const inviteUnavailableReason =
+    invitePreviewError ?? inviteStatusMessage(invitePreview?.status) ?? null;
+  const inviteBlocked = hasInvite && Boolean(inviteUnavailableReason);
+  const inviteRoleText = invitePreview ? inviteRoleLabel(invitePreview.role) : null;
+
+  if (session && inviteToken) {
+    if (inviteAcceptError) {
+      return (
+        <div className="hero-glow grid min-h-screen place-items-center px-4">
+          <div className="w-full max-w-md space-y-4">
+            <div className="flex justify-center">
+              <Brand />
+            </div>
+            <Alert variant="destructive">
+              <AlertTitle>No se pudo aplicar la invitación</AlertTitle>
+              <AlertDescription>{inviteAcceptError}</AlertDescription>
+            </Alert>
+            <Button
+              type="button"
+              className="w-full"
+              disabled={rolesLoading || !rolesLoaded}
+              onClick={() => {
+                void resolvePostLoginPath(roles).then((destination) => {
+                  navigate(destination, { replace: true });
+                });
+              }}
+            >
+              {rolesLoading || !rolesLoaded ? "Cargando tu portal…" : "Ir a mi portal"}
+            </Button>
+          </div>
+        </div>
+      );
+    }
+    return <FullPageLoader label="Aplicando invitación…" />;
+  }
 
   return (
     <div className="flex min-h-dvh flex-col bg-background text-foreground">
@@ -487,25 +673,78 @@ export function LoginPage() {
               >
                 <div className="mb-6 space-y-1.5">
                   <span className="lp-section-kicker">
-                    {mode === "login"
-                      ? "Acceso a tu cuenta"
-                      : accountType === "admin"
-                        ? "Registro de administrador"
-                        : "Registro de cliente"}
+                    {hasInvite
+                      ? "Invitación por código QR"
+                      : mode === "login"
+                        ? "Acceso a tu cuenta"
+                        : accountType === "admin"
+                          ? "Registro de administrador"
+                          : "Registro de cliente"}
                   </span>
                   <h1 className="font-display text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
-                    {mode === "login" ? "Entra a tus loopoints" : "Crea tu cuenta"}
+                    {hasInvite
+                      ? mode === "login"
+                        ? "Inicia sesión para unirte"
+                        : "Crea tu cuenta para unirte"
+                      : mode === "login"
+                        ? "Entra a tus loopoints"
+                        : "Crea tu cuenta"}
                   </h1>
                   <p className="text-sm leading-relaxed text-muted-foreground">
-                    {mode === "login"
-                      ? "Revisa tu saldo y tus recompensas desde el teléfono."
-                      : accountType === "admin"
-                        ? "Crea tu cuenta de administrador para registrar y gestionar tu negocio."
-                        : "Regístrate en segundos para empezar a acumular."}
+                    {hasInvite
+                      ? invitePreview && !inviteUnavailableReason
+                        ? `Te unirás a ${invitePreview.business_name} como ${inviteRoleText?.toLowerCase()}. Si ya tienes cuenta como cliente, tu rol se actualizará automáticamente.`
+                        : "Completa el acceso para aplicar tu rol en el negocio."
+                      : mode === "login"
+                        ? "Revisa tu saldo y tus recompensas desde el teléfono."
+                        : accountType === "admin"
+                          ? "Crea tu cuenta de administrador para registrar y gestionar tu negocio."
+                          : "Regístrate en segundos para empezar a acumular."}
                   </p>
                 </div>
 
                 <div className="space-y-5">
+                  {hasInvite && (
+                    <>
+                      {invitePreviewLoading ? (
+                        <Alert>
+                          <AlertTitle>Verificando invitación…</AlertTitle>
+                          <AlertDescription>
+                            Estamos consultando los datos del negocio y tu rol asignado.
+                          </AlertDescription>
+                        </Alert>
+                      ) : inviteUnavailableReason ? (
+                        <Alert variant="destructive">
+                          <AlertTitle>Invitación no disponible</AlertTitle>
+                          <AlertDescription className="space-y-2">
+                            <p>{inviteUnavailableReason}</p>
+                            <Link
+                              to="/login?mode=login"
+                              className="inline-block font-semibold underline underline-offset-4"
+                            >
+                              Ir al acceso normal
+                            </Link>
+                          </AlertDescription>
+                        </Alert>
+                      ) : invitePreview ? (
+                        <div className="space-y-2 rounded-none border border-primary/30 bg-primary/5 p-3.5 text-sm">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <span className="font-semibold text-foreground">
+                              {invitePreview.business_name}
+                            </span>
+                            <Badge variant="secondary">Rol: {inviteRoleText}</Badge>
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            {invitePreview.role === "encargado" &&
+                            invitePreview.can_approve_redemptions
+                              ? "Incluye permiso para aprobar redenciones en caja."
+                              : "El rol se asignará automáticamente al completar este paso."}
+                          </p>
+                        </div>
+                      ) : null}
+                    </>
+                  )}
+
                   {!isSupabaseConfigured && (
                     <Alert variant="warning">
                       <AlertTitle>Configuración pendiente</AlertTitle>
@@ -536,7 +775,7 @@ export function LoginPage() {
                     </Alert>
                   )}
 
-                  {mode === "register" && (
+                  {mode === "register" && !hasInvite && (
                     <div className="space-y-2" role="radiogroup" aria-label="Tipo de cuenta">
                       <span className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                         Tipo de cuenta
@@ -626,7 +865,7 @@ export function LoginPage() {
                     variant="outline"
                     className="w-full"
                     onClick={handleGoogle}
-                    disabled={submitting || loading}
+                    disabled={submitting || loading || inviteBlocked || invitePreviewLoading}
                   >
                     {submitting ? (
                       <Loader2 className="size-4 animate-spin" aria-hidden="true" />
@@ -768,10 +1007,16 @@ export function LoginPage() {
                       )}
                     </div>
 
-                    <Button type="submit" className="w-full" size="lg" loading={submitting}>
+                    <Button
+                      type="submit"
+                      className="w-full"
+                      size="lg"
+                      loading={submitting}
+                      disabled={inviteBlocked || invitePreviewLoading}
+                    >
                       {mode === "login"
                         ? "Entrar con correo"
-                        : accountType === "admin"
+                        : !hasInvite && accountType === "admin"
                           ? "Crear cuenta de administrador"
                           : "Crear cuenta"}
                     </Button>

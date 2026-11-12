@@ -111,15 +111,31 @@ describe("RewardsPage", () => {
     upsert.mockResolvedValue({});
   });
 
-  it("muestra los detalles completos de una recompensa", () => {
+  it("muestra los detalles completos de una recompensa en lista y tarjeta móvil clicable", async () => {
+    const user = userEvent.setup();
     renderPage();
 
-    expect(screen.getByText("Taco gratis")).toBeInTheDocument();
-    expect(screen.getByText("Producto gratuito", { exact: false })).toBeInTheDocument();
-    expect(screen.getByText(/producto: taco de guisado/i)).toBeInTheDocument();
-    expect(screen.getByText(/compra mínima/i)).toBeInTheDocument();
-    expect(screen.getByText(/máx\. 2 por cliente/i)).toBeInTheDocument();
-    expect(screen.getByText(/canjeadas: 1/i)).toBeInTheDocument();
+    const list = within(screen.getByRole("list"));
+    expect(list.getByText("Taco gratis")).toBeInTheDocument();
+    expect(list.getByText("Producto gratuito", { exact: false })).toBeInTheDocument();
+    expect(list.getByText(/producto: taco de guisado/i)).toBeInTheDocument();
+    expect(list.getByText(/compra mínima/i)).toBeInTheDocument();
+    expect(list.getByText(/máx\. 2 por cliente/i)).toBeInTheDocument();
+    expect(list.getByText(/canjeadas: 1/i)).toBeInTheDocument();
+
+    const cards = within(screen.getByTestId("rewards-cards"));
+    expect(cards.getByText("Taco gratis")).toBeInTheDocument();
+    expect(cards.queryByRole("button", { name: /Desactivar/i })).not.toBeInTheDocument();
+
+    await user.click(cards.getByRole("button", { name: "Ver detalle de Taco gratis" }));
+    const dialog = within(screen.getByRole("dialog"));
+    expect(dialog.getByText("Detalle de la recompensa")).toBeInTheDocument();
+    await user.click(dialog.getByRole("button", { name: "Desactivar" }));
+
+    await waitFor(() => expect(upsert).toHaveBeenCalledTimes(1));
+    expect(upsert).toHaveBeenCalledWith(
+      expect.objectContaining({ id: "rew-taco", isActive: false }),
+    );
   });
 
   it("crea una recompensa de producto gratis vinculada a la carta", async () => {

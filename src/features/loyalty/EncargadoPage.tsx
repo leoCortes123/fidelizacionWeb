@@ -159,7 +159,7 @@ function EncargadoSection({ business }: { business: Business }) {
     return (
       <div className="space-y-4 sm:space-y-5 animate-fade-in">
         <PageHeader
-          title={`Atención de redenciones — ${business.name}`}
+          title="Atención de redenciones"
           description="Valida y entrega las recompensas solicitadas por los clientes."
           actions={<SignOutButton />}
         />
@@ -273,7 +273,7 @@ function EncargadoSection({ business }: { business: Business }) {
     <div className="space-y-4 sm:space-y-5 animate-fade-in">
       <PageHeader
         kicker="TERMINAL DE CAJA · ENCARGADO"
-        title={`Atención de redenciones — ${business.name}`}
+        title="Atención de redenciones"
         description="Escanea el QR del cliente, apruébalo y confirma la entrega."
         actions={
           <div className="flex flex-wrap items-center gap-2">

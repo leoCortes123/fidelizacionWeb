@@ -1,20 +1,21 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, Search, UserPlus, Users } from "lucide-react";
+import { QRCodeCanvas } from "qrcode.react";
+import { Check, Clock, Copy, Plus, QrCode, RefreshCw, ShieldCheck, Users } from "lucide-react";
 import { toast } from "sonner";
 import {
   useBusinessMemberships,
-  useCreateBusinessMembership,
-  useSearchProfiles,
+  useCreateMemberInvite,
   useUpdateBusinessMembership,
   useBusinesses,
 } from "@/features/loyalty/hooks";
 import { useBusinessContext } from "@/features/loyalty/businessContext";
+import { memberInviteUrl } from "@/lib/config";
 import { errorMessage } from "@/lib/errors";
+import { formatDateTimeBogota } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Dialog,
@@ -33,7 +34,7 @@ import {
 } from "@/components/ui/select";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { EmptyState, ErrorState, ListSkeleton, LoadingScreen } from "@/components/shared/States";
-import type { BusinessRole, ProfileLookup } from "@/types";
+import type { BusinessRole, MemberInviteCreateResult } from "@/types";
 
 const roleLabels: Record<BusinessRole, string> = {
   admin: "Administrador",
@@ -48,14 +49,13 @@ export function MembersPage() {
 
   const memberships = useBusinessMemberships(selectedBusiness?.id ?? "");
   const updateMembership = useUpdateBusinessMembership();
-  const createMembership = useCreateBusinessMembership();
+  const createInvite = useCreateMemberInvite();
 
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [search, setSearch] = useState("");
-  const [selectedProfile, setSelectedProfile] = useState<ProfileLookup | null>(null);
   const [role, setRole] = useState<"encargado" | "cliente">("encargado");
   const [canApprove, setCanApprove] = useState(false);
-  const profiles = useSearchProfiles(selectedBusiness?.id ?? "", search);
+  const [invite, setInvite] = useState<MemberInviteCreateResult | null>(null);
+  const [copiedUrl, setCopiedUrl] = useState(false);
 
   if (businesses.isLoading) return <ListSkeleton rows={3} />;
   if (businesses.isError) {
@@ -139,51 +139,54 @@ export function MembersPage() {
   }
 
   function openDialog() {
-    setSearch("");
-    setSelectedProfile(null);
     setRole("encargado");
     setCanApprove(false);
+    setInvite(null);
+    setCopiedUrl(false);
     setDialogOpen(true);
   }
 
   function closeDialog(open: boolean) {
     if (!open) {
       setDialogOpen(false);
-      setSelectedProfile(null);
-      setSearch("");
+      setInvite(null);
+      setCopiedUrl(false);
     }
   }
 
-  async function addMember(event: React.FormEvent) {
+  async function generateInviteQr(event: React.FormEvent) {
     event.preventDefault();
-    if (!selectedProfile) {
-      toast.error("Busca y selecciona una persona.");
-      return;
-    }
     try {
-      await createMembership.mutateAsync({
+      const result = await createInvite.mutateAsync({
         businessId: current.id,
-        userId: selectedProfile.user_id,
         role,
         canApproveRedemptions: role === "encargado" ? canApprove : false,
       });
-      toast.success(`${selectedProfile.full_name} se unió como ${roleLabels[role].toLowerCase()}.`);
-      setDialogOpen(false);
-      setSelectedProfile(null);
-      setSearch("");
-      void memberships.refetch();
+      setInvite(result);
+      setCopiedUrl(false);
+      toast.success(`QR de invitación para ${roleLabels[role].toLowerCase()} generado.`);
     } catch (error) {
       toast.error(errorMessage(error));
     }
   }
 
-  const searchResults = profiles.data ?? [];
-  const canSubmitSearch = search.trim().length >= 2;
+  const inviteUrl = invite ? memberInviteUrl(invite.token) : "";
+
+  async function copyInviteUrl() {
+    if (!inviteUrl) return;
+    try {
+      await navigator.clipboard.writeText(inviteUrl);
+      setCopiedUrl(true);
+      toast.success("Enlace de invitación copiado.");
+    } catch {
+      toast.error("No se pudo copiar el enlace.");
+    }
+  }
 
   return (
     <div className="space-y-4 sm:space-y-5 animate-fade-in">
       <PageHeader
-        title={`Miembros — ${current.name}`}
+        title="Miembros"
         description="Administra encargados, clientes y sus permisos de redención."
         actions={
           <Button onClick={openDialog}>
@@ -246,142 +249,152 @@ export function MembersPage() {
       <Dialog open={dialogOpen} onOpenChange={closeDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Añadir miembro</DialogTitle>
+            <DialogTitle>
+              {invite ? "QR de invitación generado" : "Añadir miembro por QR"}
+            </DialogTitle>
             <DialogDescription>
-              Busca por nombre o correo. La persona debe tener una cuenta creada.
+              {invite
+                ? "Pide a la persona que escanee este código para registrarse o actualizar su rol automáticamente."
+                : "Elige el rol que recibirá la persona al escanear el código QR de invitación."}
             </DialogDescription>
           </DialogHeader>
 
-          <form onSubmit={addMember} className="space-y-4" noValidate>
-            <div className="space-y-2">
-              <Label htmlFor="member-search">Buscar persona</Label>
-              <div className="relative">
-                <Search
-                  className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-                  aria-hidden="true"
-                />
-                <Input
-                  id="member-search"
-                  value={search}
-                  onChange={(event) => {
-                    setSearch(event.target.value);
-                    setSelectedProfile(null);
-                  }}
-                  placeholder="correo@ejemplo.com o nombre"
-                  className="pl-8"
-                  autoComplete="off"
-                />
-              </div>
-              <p className="text-xs text-muted-foreground">Escribe al menos 2 caracteres.</p>
-            </div>
+          {!invite ? (
+            <form onSubmit={generateInviteQr} className="space-y-4" noValidate>
+              <div className="space-y-4 rounded-none border border-border bg-muted/20 p-4">
+                <div className="space-y-2">
+                  <Label htmlFor="member-role">Rol en el negocio</Label>
+                  <Select
+                    value={role}
+                    onValueChange={(value) => {
+                      const nextRole = value as "encargado" | "cliente";
+                      setRole(nextRole);
+                      if (nextRole === "cliente") setCanApprove(false);
+                    }}
+                  >
+                    <SelectTrigger id="member-role">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="encargado">Encargado</SelectItem>
+                      <SelectItem value="cliente">Cliente</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            {canSubmitSearch && (
-              <div className="max-h-56 overflow-y-auto rounded-none border">
-                {profiles.isLoading ? (
-                  <p className="p-3 text-sm text-muted-foreground">Buscando…</p>
-                ) : profiles.isError ? (
-                  <p className="p-3 text-sm text-destructive" role="alert">
-                    {errorMessage(profiles.error)}
-                  </p>
-                ) : searchResults.length === 0 ? (
-                  <p className="p-3 text-sm text-muted-foreground">
-                    No encontramos cuentas con “{search.trim()}”.
-                  </p>
-                ) : (
-                  <ul className="divide-y">
-                    {searchResults.map((profile) => (
-                      <li
-                        key={profile.user_id}
-                        className="flex items-center justify-between gap-3 p-3"
-                      >
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-semibold">
-                            {profile.full_name || "Sin nombre"}
-                          </p>
-                          <p className="truncate text-xs text-muted-foreground">{profile.email}</p>
-                        </div>
-                        {profile.already_member ? (
-                          <Badge variant="muted">Ya es miembro</Badge>
-                        ) : (
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setSelectedProfile(profile)}
-                          >
-                            <UserPlus aria-hidden="true" />
-                            Elegir
-                          </Button>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
+                {role === "encargado" && (
+                  <label className="flex cursor-pointer items-start gap-2 text-sm font-medium">
+                    <input
+                      type="checkbox"
+                      checked={canApprove}
+                      onChange={(event) => setCanApprove(event.target.checked)}
+                      className="mt-0.5 size-4 cursor-pointer rounded-none border-input accent-primary"
+                    />
+                    <span>Puede aprobar redenciones</span>
+                  </label>
                 )}
-              </div>
-            )}
 
-            {selectedProfile && (
-              <div className="space-y-4 rounded-none border border-primary/30 bg-primary/5 p-4">
-                <div>
-                  <p className="text-sm font-semibold">{selectedProfile.full_name}</p>
-                  <p className="text-xs text-muted-foreground">{selectedProfile.email}</p>
-                </div>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label htmlFor="member-role">Rol en el negocio</Label>
-                    <Select
-                      value={role}
-                      onValueChange={(value) => {
-                        setRole(value as "encargado" | "cliente");
-                        if (value === "cliente") setCanApprove(false);
-                      }}
-                    >
-                      <SelectTrigger id="member-role">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="encargado">Encargado</SelectItem>
-                        <SelectItem value="cliente">Cliente</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  {role === "encargado" && (
-                    <label className="flex items-start gap-2 self-end text-sm font-medium">
-                      <input
-                        type="checkbox"
-                        checked={canApprove}
-                        onChange={(event) => setCanApprove(event.target.checked)}
-                        className="mt-0.5 size-4 cursor-pointer rounded-none border-input accent-primary"
-                      />
-                      Puede aprobar redenciones
-                    </label>
-                  )}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Los administradores solo pueden nombrarse desde el negocio creador. Si la persona
-                  ya tiene una membresía, aparecerá como “Ya es miembro”.
+                <p className="text-xs leading-relaxed text-muted-foreground">
+                  El código QR abre el registro ocultando la selección de cliente o administrador y
+                  asigna automáticamente el rol de <strong>{roleLabels[role].toLowerCase()}</strong>
+                  . Si la persona ya tiene cuenta como cliente, su rol cambiará al aceptar la
+                  invitación.
                 </p>
               </div>
-            )}
 
-            <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => closeDialog(false)}
-                disabled={createMembership.isPending}
-              >
-                Cancelar
-              </Button>
-              <Button
-                type="submit"
-                loading={createMembership.isPending}
-                disabled={!selectedProfile}
-              >
-                Añadir miembro
-              </Button>
-            </DialogFooter>
-          </form>
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => closeDialog(false)}
+                  disabled={createInvite.isPending}
+                >
+                  Cancelar
+                </Button>
+                <Button type="submit" loading={createInvite.isPending}>
+                  <QrCode aria-hidden="true" />
+                  Generar QR
+                </Button>
+              </DialogFooter>
+            </form>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                <Badge variant="secondary">Rol: {roleLabels[invite.role]}</Badge>
+                {invite.role === "encargado" && invite.can_approve_redemptions && (
+                  <Badge variant="success">Puede aprobar canjes</Badge>
+                )}
+              </div>
+
+              <div className="flex flex-col items-center gap-3">
+                <div className="rounded-none border border-border bg-white p-4 shadow-sm">
+                  <QRCodeCanvas
+                    value={inviteUrl}
+                    size={220}
+                    marginSize={2}
+                    level="M"
+                    aria-label="Código QR de invitación para miembro"
+                  />
+                </div>
+                <p className="flex items-center gap-1.5 text-center text-xs text-muted-foreground">
+                  <Clock className="size-3.5 shrink-0" aria-hidden="true" />
+                  Un solo uso · vence el {formatDateTimeBogota(invite.expires_at)}
+                </p>
+              </div>
+
+              <div className="space-y-2 rounded-none border bg-muted/30 p-3">
+                <Label htmlFor="member-invite-url" className="text-xs uppercase tracking-wide">
+                  Enlace de invitación
+                </Label>
+                <div className="flex gap-2">
+                  <input
+                    id="member-invite-url"
+                    readOnly
+                    value={inviteUrl}
+                    aria-label="Enlace de invitación de miembro"
+                    onFocus={(event) => event.currentTarget.select()}
+                    className="h-9 min-w-0 flex-1 rounded-none border border-input bg-background px-2 py-1 font-mono text-xs text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => void copyInviteUrl()}
+                  >
+                    {copiedUrl ? (
+                      <Check className="text-emerald-600" aria-hidden="true" />
+                    ) : (
+                      <Copy aria-hidden="true" />
+                    )}
+                    {copiedUrl ? "Copiado" : "Copiar"}
+                  </Button>
+                </div>
+              </div>
+
+              <p className="flex items-start gap-2 text-xs text-muted-foreground">
+                <ShieldCheck className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+                Cuando la persona complete su registro o inicie sesión desde este QR, se integrará
+                como {roleLabels[invite.role].toLowerCase()} de {invite.business_name}.
+              </p>
+
+              <DialogFooter>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setInvite(null);
+                    setCopiedUrl(false);
+                  }}
+                >
+                  <RefreshCw aria-hidden="true" />
+                  Generar otro QR
+                </Button>
+                <Button type="button" onClick={() => closeDialog(false)}>
+                  Cerrar
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>

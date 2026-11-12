@@ -5,10 +5,13 @@ import { Link, MemoryRouter, Route, Routes } from "react-router-dom";
 import { LoginPage } from "@/features/auth/LoginPage";
 import { clearPendingClaim, pendingClaimPath, rememberPendingClaim } from "@/lib/pendingClaim";
 
+const rpcMock = vi.hoisted(() => vi.fn());
+
 const auth = vi.hoisted(() => ({
   signInWithGoogle: vi.fn(),
   signInWithPassword: vi.fn(),
   signUpWithPassword: vi.fn(),
+  refreshRoles: vi.fn(),
   state: {
     session: null as null | { user: { id: string } },
     user: null as null | { id: string },
@@ -26,7 +29,13 @@ vi.mock("@/features/auth/AuthProvider", () => ({
     signInWithGoogle: auth.signInWithGoogle,
     signInWithPassword: auth.signInWithPassword,
     signUpWithPassword: auth.signUpWithPassword,
+    refreshRoles: auth.refreshRoles,
   }),
+}));
+
+vi.mock("@/lib/supabase", () => ({
+  rpc: rpcMock,
+  supabase: {},
 }));
 
 describe("LoginPage", () => {
@@ -307,5 +316,155 @@ describe("LoginPage", () => {
 
     expect(screen.getByLabelText(/^nombre$/i)).toBeInTheDocument();
     expect(screen.getByRole("radio", { name: /administrador/i })).toBeChecked();
+  });
+
+  it("oculta las opciones de cliente y administrador en registro con ?invite= y aplica el rol automáticamente", async () => {
+    const inviteToken = "inv_token_12345678901234567890";
+    rpcMock.mockImplementation((fn: string) => {
+      if (fn === "business_member_invite_preview") {
+        return Promise.resolve({
+          invite_id: "inv-1",
+          business_id: "biz-1",
+          business_name: "Taquería El Fogón",
+          business_slug: "taqueria-el-fogon",
+          role: "encargado",
+          can_approve_redemptions: true,
+          status: "pending",
+          expires_at: "2026-11-13T12:00:00.000Z",
+        });
+      }
+      if (fn === "business_member_invite_accept") {
+        return Promise.resolve({
+          invite_id: "inv-1",
+          business_id: "biz-1",
+          business_name: "Taquería El Fogón",
+          business_slug: "taqueria-el-fogon",
+          membership_id: "mem-new",
+          role: "encargado",
+          can_approve_redemptions: true,
+          previous_role: null,
+          role_changed: false,
+          already_accepted: false,
+        });
+      }
+      return Promise.resolve([]);
+    });
+    auth.signUpWithPassword.mockResolvedValue({ needsConfirmation: false });
+    auth.refreshRoles.mockResolvedValue(undefined);
+    const user = userEvent.setup();
+    const previousState = { ...auth.state };
+
+    try {
+      const renderUi = () => (
+        <MemoryRouter initialEntries={[`/login?mode=register&invite=${inviteToken}`]}>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/encargado" element={<div>Portal encargado</div>} />
+          </Routes>
+        </MemoryRouter>
+      );
+      const { rerender } = render(renderUi());
+
+      expect(await screen.findByText("Taquería El Fogón")).toBeInTheDocument();
+      expect(screen.getByText(/Rol: Encargado/i)).toBeInTheDocument();
+      expect(screen.queryByRole("radiogroup", { name: /tipo de cuenta/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole("radio", { name: /cliente/i })).not.toBeInTheDocument();
+      expect(screen.queryByRole("radio", { name: /administrador/i })).not.toBeInTheDocument();
+
+      await user.type(screen.getByLabelText(/^nombre$/i), "Mateo Encargado");
+      await user.type(screen.getByLabelText(/^correo$/i), "mateo@example.test");
+      await user.type(screen.getByLabelText(/^contraseña$/i), "secreto123");
+      await user.click(screen.getByRole("button", { name: /crear cuenta/i }));
+
+      expect(auth.signUpWithPassword).toHaveBeenCalledWith({
+        email: "mateo@example.test",
+        password: "secreto123",
+        fullName: "Mateo Encargado",
+        accountType: "customer",
+        nextPath: `/login?invite=${inviteToken}`,
+      });
+
+      auth.state.session = { user: { id: "user-mateo" } };
+      auth.state.user = { id: "user-mateo" };
+      auth.state.roles = ["customer"];
+      rerender(renderUi());
+
+      expect(await screen.findByText("Portal encargado")).toBeInTheDocument();
+      expect(rpcMock).toHaveBeenCalledWith("business_member_invite_accept", {
+        p_token: inviteToken,
+      });
+      expect(auth.refreshRoles).toHaveBeenCalled();
+    } finally {
+      Object.assign(auth.state, previousState);
+    }
+  });
+
+  it("cambia el rol automáticamente cuando un usuario ya registrado como cliente abre el QR", async () => {
+    const inviteToken = "inv_upgrade_12345678901234567890";
+    rpcMock.mockImplementation((fn: string) => {
+      if (fn === "business_member_invite_accept") {
+        return Promise.resolve({
+          invite_id: "inv-2",
+          business_id: "biz-1",
+          business_name: "Taquería El Fogón",
+          business_slug: "taqueria-el-fogon",
+          membership_id: "mem-up",
+          role: "encargado",
+          can_approve_redemptions: false,
+          previous_role: "cliente",
+          role_changed: true,
+          already_accepted: false,
+        });
+      }
+      return Promise.resolve([]);
+    });
+    auth.refreshRoles.mockResolvedValue(undefined);
+    const previousState = { ...auth.state };
+
+    try {
+      auth.state.session = { user: { id: "user-cliente" } };
+      auth.state.user = { id: "user-cliente" };
+      auth.state.roles = ["customer"];
+
+      render(
+        <MemoryRouter initialEntries={[`/login?mode=register&invite=${inviteToken}`]}>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/encargado" element={<div>Portal encargado</div>} />
+          </Routes>
+        </MemoryRouter>,
+      );
+
+      expect(await screen.findByText("Portal encargado")).toBeInTheDocument();
+      expect(rpcMock).toHaveBeenCalledWith("business_member_invite_accept", {
+        p_token: inviteToken,
+      });
+    } finally {
+      Object.assign(auth.state, previousState);
+    }
+  });
+
+  it("bloquea el registro si la invitación QR ya expiró o fue usada", async () => {
+    const inviteToken = "inv_expired_12345678901234567890";
+    rpcMock.mockResolvedValue({
+      invite_id: "inv-3",
+      business_id: "biz-1",
+      business_name: "Taquería El Fogón",
+      business_slug: "taqueria-el-fogon",
+      role: "encargado",
+      can_approve_redemptions: false,
+      status: "expired",
+      expires_at: "2026-11-10T12:00:00.000Z",
+    });
+
+    render(
+      <MemoryRouter initialEntries={[`/login?mode=register&invite=${inviteToken}`]}>
+        <LoginPage />
+      </MemoryRouter>,
+    );
+
+    expect(await screen.findByText(/invitación no disponible/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /crear cuenta/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /continuar con google/i })).toBeDisabled();
   });
 });

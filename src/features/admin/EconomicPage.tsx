@@ -69,7 +69,7 @@ function EconomicSection({ business, headingAs }: { business: Business; headingA
     <div className="space-y-4 sm:space-y-5 animate-fade-in">
       <PageHeader
         as={headingAs}
-        title={`Panel económico — ${business.name}`}
+        title="Panel económico"
         description="Todos estos datos son opcionales: registrarlos nos ayuda a hacer el análisis financiero de tu negocio y calcular el presupuesto ideal y recompensas rentables. Es una estimación comercial, no un costo contable."
       />
 

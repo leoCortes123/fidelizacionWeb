@@ -53,6 +53,18 @@ describe("Brand", () => {
     expect(img?.getAttribute("aria-hidden")).toBe("true");
   });
 
+  it("permite reemplazar el nombre de marca por el nombre del negocio", () => {
+    render(
+      <MemoryRouter>
+        <Brand name="Taquería El Fogón" tagline={null} />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByText("Taquería El Fogón")).toBeInTheDocument();
+    expect(screen.queryByText(brandName)).not.toBeInTheDocument();
+    expect(screen.queryByText(brandTagline)).not.toBeInTheDocument();
+  });
+
   it("oculta el lema en modo compacto", () => {
     render(
       <MemoryRouter>

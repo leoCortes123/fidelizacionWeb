@@ -17,6 +17,7 @@ import type {
   LoyaltyRedemptionWithCustomer,
   LoyaltyPointAccount,
   LoyaltyPointTransaction,
+  MemberInviteCreateResult,
   MyLoyaltyRedemption,
   Product,
   ProductKind,
@@ -309,6 +310,34 @@ export function useSearchProfiles(businessId: string, query: string) {
         p_query: trimmed,
       }),
     enabled: Boolean(businessId) && trimmed.length >= 2,
+  });
+}
+
+export function useCreateMemberInvite() {
+  const queryClient = useQueryClient();
+  return useMutation<
+    MemberInviteCreateResult,
+    Error,
+    {
+      businessId: string;
+      role: "encargado" | "cliente";
+      canApproveRedemptions: boolean;
+      expiresHours?: number;
+    }
+  >({
+    mutationFn: (params) =>
+      rpc<MemberInviteCreateResult>("business_member_invite_create", {
+        p_business_id: params.businessId,
+        p_role: params.role,
+        p_can_approve_redemptions:
+          params.role === "encargado" ? params.canApproveRedemptions : false,
+        p_expires_hours: params.expiresHours ?? 24,
+      }),
+    onSuccess: (_data, vars) => {
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.businessAuditLogPrefix(vars.businessId),
+      });
+    },
   });
 }
 

@@ -94,7 +94,7 @@ function PurchasesSection({ business }: { business: Business }) {
   return (
     <div className="space-y-4 sm:space-y-5 animate-fade-in">
       <PageHeader
-        title={`Ventas — ${business.name}`}
+        title="Ventas"
         description="Cada venta genera un QR que el cliente confirma desde su teléfono. Aquí ves quién lo reclamó y puedes anular los pendientes."
         actions={
           <div className="flex flex-wrap items-center gap-2">

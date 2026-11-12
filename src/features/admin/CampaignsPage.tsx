@@ -251,7 +251,7 @@ function CampaignsSection({ business }: { business: Business }) {
   return (
     <div className="space-y-4 sm:space-y-5 animate-fade-in">
       <PageHeader
-        title={`Campañas — ${business.name}`}
+        title="Campañas"
         description="Multiplica los loopoints de compra o añade un bono durante una vigencia."
         actions={
           <Button onClick={openCreate}>
@@ -261,7 +261,7 @@ function CampaignsSection({ business }: { business: Business }) {
         }
       />
 
-      <Card>
+      <Card className="mx-4 sm:mx-0">
         <CardContent className="flex items-start gap-3 p-4 text-sm text-muted-foreground">
           <Sparkles className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
           <p>
@@ -285,98 +285,113 @@ function CampaignsSection({ business }: { business: Business }) {
           }
         />
       ) : (
-        <div className="overflow-x-auto rounded-none border">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/50 text-left text-xs uppercase tracking-wide text-muted-foreground">
-              <tr>
-                <th scope="col" className="px-4 py-3">
-                  Campaña
-                </th>
-                <th scope="col" className="px-4 py-3">
-                  Beneficio
-                </th>
-                <th scope="col" className="px-4 py-3 text-right">
-                  Compra mínima
-                </th>
-                <th scope="col" className="px-4 py-3">
-                  Vigencia
-                </th>
-                <th scope="col" className="px-4 py-3">
-                  Estado
-                </th>
-                <th scope="col" className="px-4 py-3 text-right">
-                  Acciones
-                </th>
-              </tr>
-            </thead>
-            <tbody className="divide-y">
-              {rows.map((campaign) => (
-                <tr key={campaign.id}>
-                  <td className="px-4 py-3">
-                    <p className="font-semibold">{campaign.name}</p>
-                    {campaign.description && (
-                      <p className="text-xs text-muted-foreground">{campaign.description}</p>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <p className="font-medium">x{campaign.multiplier}</p>
-                    {campaign.bonus_points > 0 && (
-                      <p className="text-xs text-muted-foreground">
-                        +{formatNumber(campaign.bonus_points)} loopoints
-                      </p>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-right tabular-nums">
-                    {campaign.min_purchase_amount > 0
-                      ? formatCOP(campaign.min_purchase_amount)
-                      : "—"}
-                  </td>
-                  <td className="px-4 py-3 text-xs text-muted-foreground">
-                    <p>Desde {formatDateTimeBogota(campaign.valid_from)}</p>
-                    <p>
-                      {campaign.valid_until
-                        ? `Hasta ${formatDateTimeBogota(campaign.valid_until)}`
-                        : "Sin fecha de fin"}
-                    </p>
-                  </td>
-                  <td className="px-4 py-3">{statusBadge(campaign)}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => openEdit(campaign)}
-                        aria-label={`Editar ${campaign.name}`}
-                      >
-                        <Pencil aria-hidden="true" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => void toggle(campaign)}
-                        aria-label={
-                          campaign.is_active
-                            ? `Desactivar ${campaign.name}`
-                            : `Activar ${campaign.name}`
-                        }
-                      >
-                        <Power aria-hidden="true" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => setDeleteTarget(campaign)}
-                        aria-label={`Eliminar ${campaign.name}`}
-                      >
-                        <Trash2 aria-hidden="true" />
-                      </Button>
-                    </div>
-                  </td>
+        <>
+          <div className="space-y-3 px-4 sm:px-0 md:hidden" data-testid="campaigns-cards">
+            {rows.map((campaign) => (
+              <CampaignCard
+                key={campaign.id}
+                campaign={campaign}
+                statusBadge={statusBadge(campaign)}
+                onSelect={() => openEdit(campaign)}
+                onToggle={() => void toggle(campaign)}
+                onDelete={() => setDeleteTarget(campaign)}
+              />
+            ))}
+          </div>
+
+          <div className="hidden overflow-x-auto rounded-none border md:block">
+            <table className="w-full text-sm">
+              <thead className="bg-muted/50 text-left text-xs uppercase tracking-wide text-muted-foreground">
+                <tr>
+                  <th scope="col" className="px-4 py-3">
+                    Campaña
+                  </th>
+                  <th scope="col" className="px-4 py-3">
+                    Beneficio
+                  </th>
+                  <th scope="col" className="px-4 py-3 text-right">
+                    Compra mínima
+                  </th>
+                  <th scope="col" className="px-4 py-3">
+                    Vigencia
+                  </th>
+                  <th scope="col" className="px-4 py-3">
+                    Estado
+                  </th>
+                  <th scope="col" className="px-4 py-3 text-right">
+                    Acciones
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y">
+                {rows.map((campaign) => (
+                  <tr key={campaign.id}>
+                    <td className="px-4 py-3">
+                      <p className="font-semibold">{campaign.name}</p>
+                      {campaign.description && (
+                        <p className="text-xs text-muted-foreground">{campaign.description}</p>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <p className="font-medium">x{campaign.multiplier}</p>
+                      {campaign.bonus_points > 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          +{formatNumber(campaign.bonus_points)} loopoints
+                        </p>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-right tabular-nums">
+                      {campaign.min_purchase_amount > 0
+                        ? formatCOP(campaign.min_purchase_amount)
+                        : "—"}
+                    </td>
+                    <td className="px-4 py-3 text-xs text-muted-foreground">
+                      <p>Desde {formatDateTimeBogota(campaign.valid_from)}</p>
+                      <p>
+                        {campaign.valid_until
+                          ? `Hasta ${formatDateTimeBogota(campaign.valid_until)}`
+                          : "Sin fecha de fin"}
+                      </p>
+                    </td>
+                    <td className="px-4 py-3">{statusBadge(campaign)}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => openEdit(campaign)}
+                          aria-label={`Editar ${campaign.name}`}
+                        >
+                          <Pencil aria-hidden="true" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => void toggle(campaign)}
+                          aria-label={
+                            campaign.is_active
+                              ? `Desactivar ${campaign.name}`
+                              : `Activar ${campaign.name}`
+                          }
+                        >
+                          <Power aria-hidden="true" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setDeleteTarget(campaign)}
+                          aria-label={`Eliminar ${campaign.name}`}
+                        >
+                          <Trash2 aria-hidden="true" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
 
       <p className="flex items-center gap-2 px-4 text-xs text-muted-foreground sm:px-0">
@@ -387,15 +402,15 @@ function CampaignsSection({ business }: { business: Business }) {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editing ? "Editar campaña" : "Nueva campaña"}</DialogTitle>
+            <DialogTitle>{editing ? "Detalle de la campaña" : "Nueva campaña"}</DialogTitle>
             <DialogDescription>
               El multiplicador se aplica a los loopoints base de la compra y el bono se suma al
               final. Solo aplica dentro de la vigencia.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={save} className="space-y-4" noValidate>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2 sm:col-span-2">
+          <form onSubmit={save} className="min-w-0 space-y-4" noValidate>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="min-w-0 space-y-2 sm:col-span-2">
                 <Label htmlFor="campaign-name">Nombre</Label>
                 <Input
                   id="campaign-name"
@@ -473,7 +488,7 @@ function CampaignsSection({ business }: { business: Business }) {
                   </p>
                 )}
               </div>
-              <div className="space-y-2">
+              <div className="min-w-0 space-y-2">
                 <Label htmlFor="campaign-from">Inicio</Label>
                 <Input
                   id="campaign-from"
@@ -488,7 +503,7 @@ function CampaignsSection({ business }: { business: Business }) {
                   </p>
                 )}
               </div>
-              <div className="space-y-2">
+              <div className="min-w-0 space-y-2">
                 <Label htmlFor="campaign-until">Fin (opcional)</Label>
                 <Input
                   id="campaign-until"
@@ -547,5 +562,99 @@ function CampaignsSection({ business }: { business: Business }) {
         onConfirm={remove}
       />
     </div>
+  );
+}
+
+/**
+ * Tarjeta móvil de campaña inspirada en la carta: destaca multiplicador, bono,
+ * compra mínima, vigencia y estado con acceso directo al detalle y acciones.
+ */
+function CampaignCard({
+  campaign,
+  statusBadge,
+  onSelect,
+  onToggle,
+  onDelete,
+}: {
+  campaign: LoyaltyCampaign;
+  statusBadge: React.ReactNode;
+  onSelect: () => void;
+  onToggle: () => void;
+  onDelete: () => void;
+}) {
+  return (
+    <Card variant="tinted" className="overflow-hidden">
+      <CardContent className="p-0">
+        <button
+          type="button"
+          onClick={onSelect}
+          aria-label={`Ver detalle de ${campaign.name}`}
+          className="flex w-full min-w-0 items-start gap-3 p-4 text-left transition-colors hover:bg-primary/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring dark:hover:bg-primary/[0.14]"
+        >
+          <div className="flex size-14 shrink-0 items-center justify-center border border-primary/20 bg-background/80 text-primary dark:border-primary/30 dark:bg-card/80">
+            <Megaphone className="size-5" aria-hidden="true" />
+          </div>
+          <div className="min-w-0 flex-1 space-y-1.5">
+            <div className="flex items-start justify-between gap-2">
+              <p className="min-w-0 break-words font-semibold leading-snug">{campaign.name}</p>
+              <span className="shrink-0 whitespace-nowrap font-semibold tabular-nums text-primary">
+                x{campaign.multiplier}
+              </span>
+            </div>
+            <p className="line-clamp-2 break-words text-xs text-muted-foreground">
+              {campaign.description?.trim() ? campaign.description : "Sin descripción"}
+            </p>
+            <div className="space-y-0.5 text-xs text-muted-foreground">
+              <p>
+                Compra mínima:{" "}
+                <span className="font-medium text-foreground">
+                  {campaign.min_purchase_amount > 0
+                    ? formatCOP(campaign.min_purchase_amount)
+                    : "Sin mínimo"}
+                </span>
+              </p>
+              <p>Desde {formatDateTimeBogota(campaign.valid_from)}</p>
+              <p>
+                {campaign.valid_until
+                  ? `Hasta ${formatDateTimeBogota(campaign.valid_until)}`
+                  : "Sin fecha de fin"}
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+              {statusBadge}
+              {campaign.bonus_points > 0 && (
+                <Badge variant="secondary">+{formatNumber(campaign.bonus_points)} loopoints</Badge>
+              )}
+            </div>
+          </div>
+        </button>
+
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-primary/15 bg-primary/[0.06] px-4 py-2.5 dark:border-primary/25 dark:bg-primary/[0.14]">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={onToggle}
+            aria-label={
+              campaign.is_active ? `Desactivar ${campaign.name}` : `Activar ${campaign.name}`
+            }
+          >
+            <Power aria-hidden="true" />
+            {campaign.is_active ? "Desactivar" : "Activar"}
+          </Button>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={onDelete}
+            className="text-destructive hover:bg-destructive/10 hover:text-destructive"
+            aria-label={`Eliminar ${campaign.name}`}
+          >
+            <Trash2 aria-hidden="true" />
+            Eliminar
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

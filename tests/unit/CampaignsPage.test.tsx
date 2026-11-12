@@ -100,15 +100,27 @@ describe("CampaignsPage", () => {
     remove.mockResolvedValue({});
   });
 
-  it("lista las campañas con beneficio y estado", () => {
+  it("lista las campañas con beneficio y estado en tabla y tarjetas móviles", async () => {
+    const user = userEvent.setup();
     renderPage();
 
-    expect(screen.getByText("Doble loopoints")).toBeInTheDocument();
-    expect(screen.getByText("x2")).toBeInTheDocument();
-    expect(screen.getByText("En vigencia")).toBeInTheDocument();
-    expect(screen.getByText("Bono de bienvenida")).toBeInTheDocument();
-    expect(screen.getByText("+10 loopoints")).toBeInTheDocument();
-    expect(screen.getByText("Inactiva")).toBeInTheDocument();
+    const table = within(screen.getByRole("table"));
+    expect(table.getByText("Doble loopoints")).toBeInTheDocument();
+    expect(table.getByText("x2")).toBeInTheDocument();
+    expect(table.getByText("En vigencia")).toBeInTheDocument();
+    expect(table.getByText("Bono de bienvenida")).toBeInTheDocument();
+    expect(table.getByText("+10 loopoints")).toBeInTheDocument();
+    expect(table.getByText("Inactiva")).toBeInTheDocument();
+
+    const cards = within(screen.getByTestId("campaigns-cards"));
+    expect(cards.getByText("Doble loopoints")).toBeInTheDocument();
+    expect(cards.getByText("x2")).toBeInTheDocument();
+    expect(cards.getByText("Sin mínimo")).toBeInTheDocument();
+    expect(cards.getByText("+10 loopoints")).toBeInTheDocument();
+
+    await user.click(cards.getByRole("button", { name: "Ver detalle de Doble loopoints" }));
+    const dialog = within(screen.getByRole("dialog"));
+    expect(dialog.getByText("Detalle de la campaña")).toBeInTheDocument();
   });
 
   it("crea una campaña con los valores por defecto", async () => {
@@ -154,7 +166,8 @@ describe("CampaignsPage", () => {
     const user = userEvent.setup();
     renderPage();
 
-    await user.click(screen.getByRole("button", { name: "Desactivar Doble loopoints" }));
+    const table = within(screen.getByRole("table"));
+    await user.click(table.getByRole("button", { name: "Desactivar Doble loopoints" }));
 
     await waitFor(() => expect(upsert).toHaveBeenCalledTimes(1));
     expect(upsert).toHaveBeenCalledWith(
@@ -171,7 +184,8 @@ describe("CampaignsPage", () => {
     const user = userEvent.setup();
     renderPage();
 
-    await user.click(screen.getByRole("button", { name: "Eliminar Doble loopoints" }));
+    const table = within(screen.getByRole("table"));
+    await user.click(table.getByRole("button", { name: "Eliminar Doble loopoints" }));
     const dialog = within(screen.getByRole("dialog"));
     await user.click(dialog.getByRole("button", { name: "Eliminar" }));
 

@@ -1,10 +1,10 @@
 import { Link, useLocation } from "react-router-dom";
-import { Plus } from "lucide-react";
+import { QrCode } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
- * Acceso rápido móvil a registrar compra. Se oculta en la propia pantalla de
- * compra para no duplicar la acción.
+ * Acceso rápido móvil a registrar venta. Se oculta en la propia pantalla de
+ * venta para no duplicar la acción.
  */
 export function PurchaseFab({ className }: { className?: string }) {
   const { pathname } = useLocation();
@@ -15,12 +15,12 @@ export function PurchaseFab({ className }: { className?: string }) {
       to="/admin/purchases/new"
       aria-label="Registrar compra"
       className={cn(
-        "fixed right-4 z-40 inline-flex size-14 items-center justify-center rounded-none bg-primary text-primary-foreground shadow-lg shadow-primary/25 transition-transform hover:scale-105 active:scale-95 md:hidden",
+        "fixed right-4 z-40 inline-flex size-14 items-center justify-center rounded-full border-2 border-black bg-amber-400 text-black shadow-lg transition-transform hover:scale-105 hover:bg-amber-300 active:scale-95 md:hidden dark:bg-amber-400 dark:hover:bg-amber-300",
         "bottom-[calc(4.75rem+env(safe-area-inset-bottom))]",
         className,
       )}
     >
-      <Plus className="size-6" aria-hidden="true" />
+      <QrCode className="size-6 text-black" aria-hidden="true" />
     </Link>
   );
 }

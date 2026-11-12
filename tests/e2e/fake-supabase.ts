@@ -240,6 +240,19 @@ export interface FakeRedemption {
   idempotencyKey: string;
 }
 
+export interface FakeMemberInvite {
+  id: string;
+  businessId: string;
+  role: "encargado" | "cliente";
+  canApproveRedemptions: boolean;
+  token: string;
+  createdBy: string;
+  expiresAt: string;
+  acceptedBy: string | null;
+  acceptedAt: string | null;
+  revokedAt: string | null;
+}
+
 export interface FakeState {
   users: FakeUser[];
   rewards: FakeReward[];
@@ -247,6 +260,7 @@ export interface FakeState {
   redemptions: FakeRedemption[];
   businesses: FakeBusiness[];
   memberships: FakeMembership[];
+  memberInvites: FakeMemberInvite[];
   products: FakeProduct[];
   loyaltyRewards: FakeLoyaltyReward[];
   redemptionRequests: FakeRedemptionRequest[];
@@ -376,6 +390,7 @@ export function createFakeState(): FakeState {
     redemptions: [],
     businesses: [],
     memberships: [],
+    memberInvites: [],
     products: [],
     loyaltyRewards: [],
     redemptionRequests: [],
@@ -745,8 +760,16 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
     if (request.url().includes("/logout")) {
       return json(route, {});
     }
-    if (request.url().includes("/token") && user) {
-      return json(route, sessionFor(user));
+    if (request.url().includes("/token")) {
+      const tokenBody = (request.method() === "POST" ? request.postDataJSON() : null) as {
+        email?: string;
+      } | null;
+      const loginUser = tokenBody?.email
+        ? state.users.find((u) => u.email.toLowerCase() === tokenBody.email?.trim().toLowerCase())
+        : user;
+      if (loginUser) {
+        return json(route, sessionFor(loginUser));
+      }
     }
     return json(route, {});
   });
@@ -2141,6 +2164,146 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
         return json(route, {
           user_id: targetUserId,
           can_approve_redemptions: canApprove,
+        });
+      }
+      case "business_member_invite_create": {
+        if (!user) return fail(route, "not_authenticated");
+        const businessId = String(body.p_business_id ?? "");
+        const business = state.businesses.find((b) => b.id === businessId);
+        if (!business) return fail(route, "business_not_found");
+        const caller = state.memberships.find(
+          (m) => m.businessId === businessId && m.userId === user.id,
+        );
+        if (!caller || caller.role !== "admin") return fail(route, "forbidden");
+        const role = String(body.p_role ?? "encargado");
+        if (role !== "encargado" && role !== "cliente") return fail(route, "invalid_role");
+        const canApprove = Boolean(body.p_can_approve_redemptions);
+        if (role !== "encargado" && canApprove) return fail(route, "invalid_approval_permission");
+        const expiresHours = Number(body.p_expires_hours ?? 24);
+        const token = `inv_${crypto.randomUUID().replace(/-/g, "")}`;
+        const invite: FakeMemberInvite = {
+          id: `inv-${crypto.randomUUID().slice(0, 8)}`,
+          businessId,
+          role: role as "encargado" | "cliente",
+          canApproveRedemptions: canApprove,
+          token,
+          createdBy: user.id,
+          expiresAt: new Date(Date.now() + expiresHours * 3600_000).toISOString(),
+          acceptedBy: null,
+          acceptedAt: null,
+          revokedAt: null,
+        };
+        state.memberInvites.push(invite);
+        return json(route, {
+          invite_id: invite.id,
+          token: invite.token,
+          business_id: business.id,
+          business_name: business.name,
+          business_slug: business.slug,
+          role: invite.role,
+          can_approve_redemptions: invite.canApproveRedemptions,
+          expires_at: invite.expiresAt,
+        });
+      }
+      case "business_member_invite_preview": {
+        const token = String(body.p_token ?? "");
+        const invite = state.memberInvites.find((item) => item.token === token);
+        if (!invite) return fail(route, "invalid_token");
+        const business = state.businesses.find((b) => b.id === invite.businessId);
+        if (!business) return fail(route, "business_not_found");
+        const status = invite.revokedAt
+          ? "revoked"
+          : invite.acceptedAt
+            ? "accepted"
+            : new Date(invite.expiresAt).getTime() <= Date.now()
+              ? "expired"
+              : "pending";
+        return json(route, {
+          invite_id: invite.id,
+          business_id: business.id,
+          business_name: business.name,
+          business_slug: business.slug,
+          role: invite.role,
+          can_approve_redemptions: invite.canApproveRedemptions,
+          status,
+          expires_at: invite.expiresAt,
+        });
+      }
+      case "business_member_invite_accept": {
+        if (!user) return fail(route, "not_authenticated");
+        const token = String(body.p_token ?? "");
+        const invite = state.memberInvites.find((item) => item.token === token);
+        if (!invite) return fail(route, "invalid_token");
+        if (invite.revokedAt) return fail(route, "invite_revoked");
+        const business = state.businesses.find((b) => b.id === invite.businessId);
+        if (!business) return fail(route, "business_not_found");
+        if (invite.acceptedAt) {
+          if (invite.acceptedBy === user.id) {
+            const current = state.memberships.find(
+              (m) => m.businessId === invite.businessId && m.userId === user.id,
+            );
+            return json(route, {
+              invite_id: invite.id,
+              business_id: business.id,
+              business_name: business.name,
+              business_slug: business.slug,
+              membership_id: current?.id ?? "",
+              role: current?.role ?? invite.role,
+              can_approve_redemptions:
+                current?.canApproveRedemptions ?? invite.canApproveRedemptions,
+              previous_role: current?.role ?? invite.role,
+              role_changed: false,
+              already_accepted: true,
+            });
+          }
+          return fail(route, "invite_already_used");
+        }
+        if (new Date(invite.expiresAt).getTime() <= Date.now()) {
+          return fail(route, "invite_expired");
+        }
+        const existing = state.memberships.find(
+          (m) => m.businessId === invite.businessId && m.userId === user.id,
+        );
+        if (existing?.role === "admin") {
+          return fail(route, "invite_already_admin");
+        }
+        if (existing?.role === "encargado" && invite.role === "cliente") {
+          return fail(route, "invite_role_downgrade");
+        }
+        const previousRole = existing?.role ?? null;
+        const effectiveCanApprove =
+          invite.role === "encargado"
+            ? Boolean(existing?.canApproveRedemptions) || invite.canApproveRedemptions
+            : false;
+        let membershipId = existing?.id ?? "";
+        if (existing) {
+          existing.role = invite.role;
+          existing.canApproveRedemptions = effectiveCanApprove;
+        } else {
+          const createdMembership: FakeMembership = {
+            id: `mem-${crypto.randomUUID().slice(0, 8)}`,
+            businessId: invite.businessId,
+            userId: user.id,
+            role: invite.role,
+            canApproveRedemptions: effectiveCanApprove,
+            createdAt: now(),
+          };
+          state.memberships.push(createdMembership);
+          membershipId = createdMembership.id;
+        }
+        invite.acceptedBy = user.id;
+        invite.acceptedAt = now();
+        return json(route, {
+          invite_id: invite.id,
+          business_id: business.id,
+          business_name: business.name,
+          business_slug: business.slug,
+          membership_id: membershipId,
+          role: invite.role,
+          can_approve_redemptions: effectiveCanApprove,
+          previous_role: previousRole,
+          role_changed: previousRole !== null && previousRole !== invite.role,
+          already_accepted: false,
         });
       }
 

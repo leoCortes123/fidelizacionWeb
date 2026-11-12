@@ -128,7 +128,7 @@ function AuditSection({ business }: { business: Business }) {
   return (
     <div className="space-y-4 sm:space-y-5 animate-fade-in">
       <PageHeader
-        title={`Auditoría — ${business.name}`}
+        title="Auditoría"
         description="Compras, canjes, campañas y cambios de configuración explicados en lenguaje claro."
       />
 

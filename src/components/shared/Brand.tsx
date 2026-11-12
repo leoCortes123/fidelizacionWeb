@@ -6,9 +6,14 @@ interface BrandProps {
   className?: string;
   compact?: boolean;
   linkTo?: string;
+  name?: string;
+  tagline?: string | null;
 }
 
-export function Brand({ className, compact = false, linkTo = "/" }: BrandProps) {
+export function Brand({ className, compact = false, linkTo = "/", name, tagline }: BrandProps) {
+  const displayName = name?.trim() || brandName;
+  const displayTagline = tagline === null ? null : (tagline ?? brandTagline);
+
   const content = (
     <span className={cn("flex min-w-0 items-center gap-2.5", className)}>
       <img
@@ -29,11 +34,11 @@ export function Brand({ className, compact = false, linkTo = "/" }: BrandProps) 
             compact ? "text-base" : "text-base sm:text-lg",
           )}
         >
-          {brandName}
+          {displayName}
         </span>
-        {!compact && (
+        {!compact && displayTagline && (
           <span className="hidden truncate text-[11px] font-medium text-muted-foreground sm:block">
-            {brandTagline}
+            {displayTagline}
           </span>
         )}
       </span>
@@ -42,7 +47,7 @@ export function Brand({ className, compact = false, linkTo = "/" }: BrandProps) 
 
   if (!linkTo) return content;
   return (
-    <Link to={linkTo} className="min-w-0 rounded-none" aria-label={`${brandName}, ir al inicio`}>
+    <Link to={linkTo} className="min-w-0 rounded-none" aria-label={`${displayName}, ir al inicio`}>
       {content}
     </Link>
   );

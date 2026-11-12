@@ -29,8 +29,12 @@ const BUSINESS_OPERATIONS = [
   "loyalty_program.frequent_updated",
   "membership.admin",
   "membership.created",
+  "membership.invite_accepted",
+  "membership.invite_created",
+  "membership.invite_revoked",
   "membership.joined",
   "membership.permission_updated",
+  "membership.role_updated",
   "points.expired",
   "product.combo_updated",
   "purchase.qr_cancelled",
@@ -236,5 +240,24 @@ describe("auditLabels", () => {
         metadata: { reward_name: "Taco individual", points_refunded: 40 },
       }),
     ).toBe("Taco individual · 40 loopoints");
+  });
+
+  it("traduce entidad, rol anterior y canal de invitaciones QR", () => {
+    expect(getAuditEntityLabel("business_member_invite")).toBe("Invitación de miembro");
+
+    const description = describeAudit({
+      operation: "membership.role_updated",
+      metadata: {
+        role: "encargado",
+        previous_role: "cliente",
+        source: "invite_qr",
+      },
+    });
+
+    expect(description.fields).toEqual([
+      { label: "Rol", value: "Encargado" },
+      { label: "Rol anterior", value: "Cliente" },
+      { label: "Origen", value: "QR de invitación" },
+    ]);
   });
 });

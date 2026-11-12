@@ -328,6 +328,41 @@ export interface BusinessMembershipWithProfile extends BusinessMembership {
   email: string;
 }
 
+export interface MemberInviteCreateResult {
+  invite_id: string;
+  token: string;
+  business_id: string;
+  business_name: string;
+  business_slug: string;
+  role: "encargado" | "cliente";
+  can_approve_redemptions: boolean;
+  expires_at: string;
+}
+
+export interface MemberInvitePreview {
+  invite_id: string;
+  business_id: string;
+  business_name: string;
+  business_slug: string;
+  role: "encargado" | "cliente";
+  can_approve_redemptions: boolean;
+  status: "pending" | "accepted" | "expired" | "revoked";
+  expires_at: string;
+}
+
+export interface MemberInviteAcceptResult {
+  invite_id: string;
+  business_id: string;
+  business_name: string;
+  business_slug: string;
+  membership_id: string;
+  role: BusinessRole;
+  can_approve_redemptions: boolean;
+  previous_role: BusinessRole | null;
+  role_changed: boolean;
+  already_accepted: boolean;
+}
+
 export interface BusinessRegisterResult {
   business_id: string;
   membership_id: string;

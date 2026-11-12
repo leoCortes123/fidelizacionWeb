@@ -403,10 +403,10 @@ function RewardsSection({ business }: { business: Business }) {
     }
   }
 
-  function toggleReward(reward: LoyaltyReward) {
+  async function toggleReward(reward: LoyaltyReward): Promise<boolean> {
     // Se envían todos los campos para no borrar la configuración existente.
-    void upsertReward
-      .mutateAsync({
+    try {
+      await upsertReward.mutateAsync({
         businessId: business.id,
         id: reward.id,
         type: reward.type,
@@ -424,11 +424,22 @@ function RewardsSection({ business }: { business: Business }) {
         redemptionPeriodDays: reward.redemption_period_days,
         totalRedemptionLimit: reward.total_redemption_limit,
         isActive: !reward.is_active,
-      })
-      .then(() =>
-        toast.success(reward.is_active ? "Recompensa desactivada" : "Recompensa activada"),
-      )
-      .catch((error) => toast.error(errorMessage(error)));
+      });
+      toast.success(reward.is_active ? "Recompensa desactivada" : "Recompensa activada");
+      return true;
+    } catch (error) {
+      toast.error(errorMessage(error));
+      return false;
+    }
+  }
+
+  async function toggleFromDetail() {
+    if (!editing) return;
+    const ok = await toggleReward(editing);
+    if (ok) {
+      setDialogOpen(false);
+      setEditing(null);
+    }
   }
 
   const showProduct = form.type === "free_product";
@@ -441,7 +452,7 @@ function RewardsSection({ business }: { business: Business }) {
   return (
     <div className="space-y-4 sm:space-y-5 animate-fade-in">
       <PageHeader
-        title={`Recompensas — ${business.name}`}
+        title="Recompensas"
         description="Catálogo de recompensas del programa de fidelización."
         actions={
           <Button onClick={openCreate}>
@@ -463,97 +474,114 @@ function RewardsSection({ business }: { business: Business }) {
           }
         />
       ) : (
-        <ul className="divide-y rounded-none border px-4">
-          {rewardsData.map((reward) => (
-            <li
-              key={reward.id}
-              className="py-3 sm:flex sm:items-center sm:justify-between sm:gap-4"
-            >
-              <div className="min-w-0">
-                <div className="mb-1 flex flex-wrap items-center gap-2">
-                  <p className="font-semibold">{reward.name}</p>
-                  <Badge variant={reward.is_active ? "success" : "muted"}>
-                    {reward.is_active ? "Activa" : "Inactiva"}
-                  </Badge>
-                  <Badge variant="secondary" className="text-xs">
-                    {rewardTypeLabels[reward.type]}
-                  </Badge>
+        <>
+          <div className="space-y-3 px-4 sm:px-0 md:hidden" data-testid="rewards-cards">
+            {rewardsData.map((reward) => (
+              <RewardCard
+                key={reward.id}
+                reward={reward}
+                linkedProductName={
+                  reward.type === "free_product" && reward.product_id
+                    ? (productById.get(reward.product_id)?.name ?? "No encontrado")
+                    : null
+                }
+                onSelect={() => openEdit(reward)}
+              />
+            ))}
+          </div>
+
+          <ul className="hidden divide-y rounded-none border px-4 md:block">
+            {rewardsData.map((reward) => (
+              <li
+                key={reward.id}
+                className="py-3 sm:flex sm:items-center sm:justify-between sm:gap-4"
+              >
+                <div className="min-w-0">
+                  <div className="mb-1 flex flex-wrap items-center gap-2">
+                    <p className="font-semibold">{reward.name}</p>
+                    <Badge variant={reward.is_active ? "success" : "muted"}>
+                      {reward.is_active ? "Activa" : "Inactiva"}
+                    </Badge>
+                    <Badge variant="secondary" className="text-xs">
+                      {rewardTypeLabels[reward.type]}
+                    </Badge>
+                  </div>
+                  {reward.description && (
+                    <p className="text-xs text-muted-foreground">{reward.description}</p>
+                  )}
+                  <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                    <span className="font-semibold text-foreground">
+                      {formatPoints(reward.points_required)}
+                    </span>
+                    {reward.type === "free_product" && reward.product_id && (
+                      <span>
+                        Producto: {productById.get(reward.product_id)?.name ?? "No encontrado"}
+                      </span>
+                    )}
+                    {reward.min_purchase_amount > 0 && (
+                      <span>Compra mínima: {formatCOP(reward.min_purchase_amount)}</span>
+                    )}
+                    {reward.max_discount_amount !== null && reward.max_discount_amount > 0 && (
+                      <span>Tope: {formatCOP(reward.max_discount_amount)}</span>
+                    )}
+                    {reward.discount_percentage !== null && (
+                      <span>{reward.discount_percentage} % de descuento</span>
+                    )}
+                    {(reward.valid_from || reward.valid_until) && (
+                      <span>
+                        Vigencia: {formatDateBogota(reward.valid_from)} —{" "}
+                        {formatDateBogota(reward.valid_until)}
+                      </span>
+                    )}
+                    {reward.max_redemptions_per_customer !== null && (
+                      <span>Máx. {reward.max_redemptions_per_customer} por cliente</span>
+                    )}
+                    {reward.max_redemptions_per_period !== null && (
+                      <span>
+                        Máx. {reward.max_redemptions_per_period} cada{" "}
+                        {reward.redemption_period_days ?? "—"} días
+                      </span>
+                    )}
+                    {reward.total_redemption_limit !== null && (
+                      <span>Límite total: {reward.total_redemption_limit}</span>
+                    )}
+                    {reward.times_redeemed > 0 && <span>Canjeadas: {reward.times_redeemed}</span>}
+                  </div>
                 </div>
-                {reward.description && (
-                  <p className="text-xs text-muted-foreground">{reward.description}</p>
-                )}
-                <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                  <span className="font-semibold text-foreground">
-                    {formatPoints(reward.points_required)}
-                  </span>
-                  {reward.type === "free_product" && reward.product_id && (
-                    <span>
-                      Producto: {productById.get(reward.product_id)?.name ?? "No encontrado"}
-                    </span>
-                  )}
-                  {reward.min_purchase_amount > 0 && (
-                    <span>Compra mínima: {formatCOP(reward.min_purchase_amount)}</span>
-                  )}
-                  {reward.max_discount_amount !== null && reward.max_discount_amount > 0 && (
-                    <span>Tope: {formatCOP(reward.max_discount_amount)}</span>
-                  )}
-                  {reward.discount_percentage !== null && (
-                    <span>{reward.discount_percentage} % de descuento</span>
-                  )}
-                  {(reward.valid_from || reward.valid_until) && (
-                    <span>
-                      Vigencia: {formatDateBogota(reward.valid_from)} —{" "}
-                      {formatDateBogota(reward.valid_until)}
-                    </span>
-                  )}
-                  {reward.max_redemptions_per_customer !== null && (
-                    <span>Máx. {reward.max_redemptions_per_customer} por cliente</span>
-                  )}
-                  {reward.max_redemptions_per_period !== null && (
-                    <span>
-                      Máx. {reward.max_redemptions_per_period} cada{" "}
-                      {reward.redemption_period_days ?? "—"} días
-                    </span>
-                  )}
-                  {reward.total_redemption_limit !== null && (
-                    <span>Límite total: {reward.total_redemption_limit}</span>
-                  )}
-                  {reward.times_redeemed > 0 && <span>Canjeadas: {reward.times_redeemed}</span>}
+                <div className="mt-2 flex gap-2 sm:mt-0">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => openEdit(reward)}
+                    aria-label={`Editar ${reward.name}`}
+                  >
+                    <Pencil aria-hidden="true" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => void toggleReward(reward)}
+                    aria-label={
+                      reward.is_active ? `Desactivar ${reward.name}` : `Activar ${reward.name}`
+                    }
+                  >
+                    {reward.is_active ? (
+                      <Trash2 aria-hidden="true" />
+                    ) : (
+                      <BadgeCheck aria-hidden="true" />
+                    )}
+                  </Button>
                 </div>
-              </div>
-              <div className="mt-2 flex gap-2 sm:mt-0">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => openEdit(reward)}
-                  aria-label={`Editar ${reward.name}`}
-                >
-                  <Pencil aria-hidden="true" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => toggleReward(reward)}
-                  aria-label={
-                    reward.is_active ? `Desactivar ${reward.name}` : `Activar ${reward.name}`
-                  }
-                >
-                  {reward.is_active ? (
-                    <Trash2 aria-hidden="true" />
-                  ) : (
-                    <BadgeCheck aria-hidden="true" />
-                  )}
-                </Button>
-              </div>
-            </li>
-          ))}
-        </ul>
+              </li>
+            ))}
+          </ul>
+        </>
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editing ? "Editar recompensa" : "Nueva recompensa"}</DialogTitle>
+            <DialogTitle>{editing ? "Detalle de la recompensa" : "Nueva recompensa"}</DialogTitle>
             <DialogDescription>
               Configura el beneficio, los loopoints requeridos y sus límites de uso.
             </DialogDescription>
@@ -723,8 +751,8 @@ function RewardsSection({ business }: { business: Business }) {
               )}
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="min-w-0 space-y-2">
                 <Label htmlFor="reward-valid-from">Vigente desde (opcional)</Label>
                 <Input
                   id="reward-valid-from"
@@ -733,7 +761,7 @@ function RewardsSection({ business }: { business: Business }) {
                   onChange={(event) => update("validFrom", event.target.value)}
                 />
               </div>
-              <div className="space-y-2">
+              <div className="min-w-0 space-y-2">
                 <Label htmlFor="reward-valid-until">Vigente hasta (opcional)</Label>
                 <Input
                   id="reward-valid-until"
@@ -830,6 +858,26 @@ function RewardsSection({ business }: { business: Business }) {
             </label>
 
             <DialogFooter>
+              {editing && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => void toggleFromDetail()}
+                  disabled={upsertReward.isPending}
+                  className={
+                    editing.is_active
+                      ? "border-destructive/40 text-destructive hover:bg-destructive/10 sm:mr-auto"
+                      : "sm:mr-auto"
+                  }
+                >
+                  {editing.is_active ? (
+                    <Trash2 aria-hidden="true" />
+                  ) : (
+                    <BadgeCheck aria-hidden="true" />
+                  )}
+                  {editing.is_active ? "Desactivar" : "Activar"}
+                </Button>
+              )}
               <Button
                 type="button"
                 variant="outline"
@@ -846,5 +894,84 @@ function RewardsSection({ business }: { business: Business }) {
         </DialogContent>
       </Dialog>
     </div>
+  );
+}
+
+/**
+ * Tarjeta móvil de recompensa inspirada en la carta: clicable para ver y editar
+ * el detalle completo sin saturar con botones de eliminación en la lista.
+ */
+function RewardCard({
+  reward,
+  linkedProductName,
+  onSelect,
+}: {
+  reward: LoyaltyReward;
+  linkedProductName: string | null;
+  onSelect: () => void;
+}) {
+  return (
+    <Card variant="tinted" className="overflow-hidden">
+      <CardContent className="p-0">
+        <button
+          type="button"
+          onClick={onSelect}
+          aria-label={`Ver detalle de ${reward.name}`}
+          className="flex w-full min-w-0 items-start gap-3 p-4 text-left transition-colors hover:bg-primary/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring dark:hover:bg-primary/[0.14]"
+        >
+          <div className="flex size-14 shrink-0 items-center justify-center border border-primary/20 bg-background/80 text-primary dark:border-primary/30 dark:bg-card/80">
+            <Gift className="size-5" aria-hidden="true" />
+          </div>
+          <div className="min-w-0 flex-1 space-y-1.5">
+            <div className="flex items-start justify-between gap-2">
+              <p className="min-w-0 break-words font-semibold leading-snug">{reward.name}</p>
+              <span className="shrink-0 whitespace-nowrap font-semibold tabular-nums text-primary">
+                {formatPoints(reward.points_required)}
+              </span>
+            </div>
+            <p className="line-clamp-2 break-words text-xs text-muted-foreground">
+              {reward.description?.trim() ? reward.description : "Sin descripción"}
+            </p>
+            <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+              {linkedProductName && <span>Producto: {linkedProductName}</span>}
+              {reward.min_purchase_amount > 0 && (
+                <span>Compra mínima: {formatCOP(reward.min_purchase_amount)}</span>
+              )}
+              {reward.max_discount_amount !== null && reward.max_discount_amount > 0 && (
+                <span>Tope: {formatCOP(reward.max_discount_amount)}</span>
+              )}
+              {reward.discount_percentage !== null && (
+                <span>{reward.discount_percentage} % de descuento</span>
+              )}
+              {(reward.valid_from || reward.valid_until) && (
+                <span>
+                  Vigencia: {formatDateBogota(reward.valid_from)} —{" "}
+                  {formatDateBogota(reward.valid_until)}
+                </span>
+              )}
+              {reward.max_redemptions_per_customer !== null && (
+                <span>Máx. {reward.max_redemptions_per_customer} por cliente</span>
+              )}
+              {reward.max_redemptions_per_period !== null && (
+                <span>
+                  Máx. {reward.max_redemptions_per_period} cada{" "}
+                  {reward.redemption_period_days ?? "—"} días
+                </span>
+              )}
+              {reward.total_redemption_limit !== null && (
+                <span>Límite total: {reward.total_redemption_limit}</span>
+              )}
+              {reward.times_redeemed > 0 && <span>Canjeadas: {reward.times_redeemed}</span>}
+            </div>
+            <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+              <Badge variant={reward.is_active ? "success" : "muted"}>
+                {reward.is_active ? "Activa" : "Inactiva"}
+              </Badge>
+              <Badge variant="secondary">{rewardTypeLabels[reward.type]}</Badge>
+            </div>
+          </div>
+        </button>
+      </CardContent>
+    </Card>
   );
 }

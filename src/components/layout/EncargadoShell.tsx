@@ -6,6 +6,7 @@ import { Brand } from "@/components/shared/Brand";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { BusinessSwitcher } from "@/features/loyalty/BusinessSwitcher";
+import { useOptionalBusinessContext } from "@/features/loyalty/businessContext";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { usePortalTheme } from "@/components/theme/ThemeProvider";
 import { cn } from "@/lib/utils";
@@ -20,6 +21,9 @@ const navItems = [
 export function EncargadoShell() {
   usePortalTheme("admin");
   const { roles, signOut } = useAuth();
+  const businessContext = useOptionalBusinessContext();
+  const headerBusinessName =
+    businessContext?.selectedBusiness?.name ?? businessContext?.businesses[0]?.name;
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const scrollRef = useRef<HTMLElement | null>(null);
@@ -36,16 +40,30 @@ export function EncargadoShell() {
     <div className="flex h-dvh flex-col overflow-hidden bg-background">
       <header
         data-testid="app-header"
+        inert={headerHidden || undefined}
+        aria-hidden={headerHidden || undefined}
         className={cn(
           "z-30 shrink-0 overflow-hidden border-b bg-background/95 backdrop-blur transition-all duration-300 ease-out no-print",
           headerHidden
-            ? "max-h-0 -translate-y-full border-transparent opacity-0"
+            ? "invisible pointer-events-none max-h-0 -translate-y-full border-transparent opacity-0"
             : "max-h-40 opacity-100",
         )}
       >
         <div className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between gap-3 px-4">
-          <div className="flex items-center gap-2">
-            <Brand linkTo="/encargado" />
+          <div className="flex min-w-0 items-center gap-2">
+            <Brand
+              compact
+              className="sm:hidden"
+              linkTo="/encargado"
+              name={headerBusinessName}
+              tagline={headerBusinessName ? null : undefined}
+            />
+            <Brand
+              className="hidden sm:flex"
+              linkTo="/encargado"
+              name={headerBusinessName}
+              tagline={headerBusinessName ? null : undefined}
+            />
             <Badge variant="secondary" className="hidden sm:inline-flex text-[11px]">
               Colaborador
             </Badge>
@@ -93,7 +111,7 @@ export function EncargadoShell() {
               aria-label="Cerrar sesión"
             >
               <LogOut className="size-4 text-destructive" aria-hidden="true" />
-              <span>Cerrar sesión</span>
+              <span className="hidden sm:inline">Cerrar sesión</span>
             </Button>
             <UserMenu compact />
           </div>

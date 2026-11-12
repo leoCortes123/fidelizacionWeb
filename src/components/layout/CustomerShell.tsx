@@ -1,9 +1,10 @@
 import { useRef } from "react";
-import { Link, NavLink, Outlet, useLocation } from "react-router-dom";
+import { Link, NavLink, Outlet, useLocation, useParams } from "react-router-dom";
 import { Home, ReceiptText, TicketCheck, Wrench } from "lucide-react";
 import { Brand } from "@/components/shared/Brand";
 import { Button } from "@/components/ui/button";
 import { BusinessSwitcher } from "@/features/loyalty/BusinessSwitcher";
+import { useOptionalBusinessContext } from "@/features/loyalty/businessContext";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { usePortalTheme } from "@/components/theme/ThemeProvider";
 import { cn } from "@/lib/utils";
@@ -20,6 +21,15 @@ export function CustomerShell() {
   usePortalTheme("customer");
   const { roles } = useAuth();
   const { pathname } = useLocation();
+  const { businessId } = useParams();
+  const businessContext = useOptionalBusinessContext();
+  const routeBusinessName = businessId
+    ? businessContext?.businesses.find((business) => business.id === businessId)?.name
+    : undefined;
+  const headerBusinessName =
+    routeBusinessName ??
+    businessContext?.selectedBusiness?.name ??
+    businessContext?.businesses[0]?.name;
   const scrollRef = useRef<HTMLElement | null>(null);
   const headerHidden = useHideOnScroll(scrollRef);
   const isAdmin = roles.includes("admin");
@@ -38,7 +48,11 @@ export function CustomerShell() {
         )}
       >
         <div className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between gap-3 px-4">
-          <Brand linkTo="/customer" />
+          <Brand
+            linkTo="/customer"
+            name={headerBusinessName}
+            tagline={headerBusinessName ? null : undefined}
+          />
           <nav className="hidden items-center gap-1.5 md:flex" aria-label="Navegación del cliente">
             {navItems.map((item) => (
               <NavLink

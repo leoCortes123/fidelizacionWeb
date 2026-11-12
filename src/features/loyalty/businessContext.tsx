@@ -109,6 +109,10 @@ export function BusinessProvider({
   );
 }
 
+export function useOptionalBusinessContext() {
+  return useContext(BusinessContext) ?? null;
+}
+
 export function useBusinessContext() {
   const context = useContext(BusinessContext);
   if (!context) {

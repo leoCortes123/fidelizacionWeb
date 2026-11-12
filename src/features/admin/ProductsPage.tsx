@@ -409,7 +409,7 @@ function ProductsSection({ business }: { business: Business }) {
   return (
     <div className="min-w-0 space-y-4 sm:space-y-5 animate-fade-in">
       <PageHeader
-        title={`Carta — ${business.name}`}
+        title="Carta"
         description="Productos que puedes vincular a recompensas y usar para estimar el costo de los canjes."
         actions={
           <Button onClick={openCreate}>
@@ -872,15 +872,15 @@ function ProductCard({
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   return (
-    <Card className="overflow-hidden">
+    <Card variant="tinted" className="overflow-hidden">
       <CardContent className="p-0">
         <button
           type="button"
           onClick={onSelect}
           aria-label={`Ver detalle de ${product.name}`}
-          className="flex w-full min-w-0 items-start gap-3 p-4 text-left transition-colors hover:bg-muted/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+          className="flex w-full min-w-0 items-start gap-3 p-4 text-left transition-colors hover:bg-primary/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring dark:hover:bg-primary/[0.14]"
         >
-          <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden border bg-muted/40">
+          <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden border border-primary/20 bg-background/80 dark:border-primary/30 dark:bg-card/80">
             {product.image_url ? (
               <img src={product.image_url} alt={product.name} className="size-full object-cover" />
             ) : (
@@ -911,7 +911,7 @@ function ProductCard({
           </div>
         </button>
 
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t bg-muted/20 px-4 py-2.5">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-primary/15 bg-primary/[0.06] px-4 py-2.5 dark:border-primary/25 dark:bg-primary/[0.14]">
           <div className="min-w-0">
             <input
               ref={fileInputRef}

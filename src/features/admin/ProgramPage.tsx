@@ -329,7 +329,7 @@ function ProgramForm({
     <div className="space-y-4 sm:space-y-5 animate-fade-in">
       <PageHeader
         as={headingAs}
-        title={`Programa de loopoints — ${business.name}`}
+        title="Programa de loopoints"
         description="Configura cuántos loopoints acumulan tus clientes por cada compra, cuánto valen al canjearlos y qué parte de tus ventas destinas a premios."
         actions={
           <div className="flex flex-wrap items-center gap-2">

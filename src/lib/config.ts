@@ -36,6 +36,14 @@ export function redemptionScanUrl(token: string): string {
   return `${publicAppUrl()}/scan/${encodeURIComponent(token)}`;
 }
 
+/**
+ * URL que se codifica dentro del QR de invitación de miembros. Abre el
+ * registro sin selector de tipo de cuenta y aplica el rol configurado.
+ */
+export function memberInviteUrl(token: string): string {
+  return `${publicAppUrl()}/login?mode=register&invite=${encodeURIComponent(token)}`;
+}
+
 export function oauthRedirectUrl(nextPath?: string): string {
   const base = `${window.location.origin}/auth/callback`;
   if (!nextPath) return base;

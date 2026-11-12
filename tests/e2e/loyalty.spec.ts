@@ -234,7 +234,8 @@ test("gestión de recompensas como administrador", async ({ browser }) => {
   const admin = await openAs(browser, state, TOKENS.admin, "/admin/rewards");
 
   await expect(admin.page.getByRole("heading", { name: /Recompensas/ })).toBeVisible();
-  await expect(admin.page.getByText("Taco individual")).toBeVisible();
+  const list = admin.page.getByRole("list");
+  await expect(list.getByText("Taco individual")).toBeVisible();
 
   // Crear una recompensa nueva
   await admin.page.getByRole("button", { name: /Nueva recompensa/ }).click();
@@ -243,12 +244,12 @@ test("gestión de recompensas como administrador", async ({ browser }) => {
   await dialog.getByLabel("Loopoints requeridos").fill("15");
   await dialog.getByRole("button", { name: "Guardar" }).click();
 
-  await expect(admin.page.getByText("Quesadilla de prueba")).toBeVisible();
+  await expect(list.getByText("Quesadilla de prueba")).toBeVisible();
   expect(state.loyaltyRewards.some((r) => r.name === "Quesadilla de prueba")).toBe(true);
 
   // Desactivar la recompensa
-  await admin.page.getByRole("button", { name: /Desactivar Quesadilla de prueba/ }).click();
-  await expect(admin.page.getByText("Inactiva").first()).toBeVisible();
+  await list.getByRole("button", { name: /Desactivar Quesadilla de prueba/ }).click();
+  await expect(list.getByText("Inactiva").first()).toBeVisible();
 
   await admin.context.close();
 });
@@ -275,7 +276,7 @@ test("configura programa, carta y recompensas y persiste tras recargar", async (
   // Carta (en menú lateral): crear un producto.
   const sidebar = page.getByRole("navigation", { name: "Panel del negocio" });
   await sidebar.getByRole("link", { name: "Carta", exact: true }).click();
-  await expect(page.getByRole("heading", { name: /Carta —/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /^Carta$/ })).toBeVisible();
   await page.getByRole("button", { name: /Nuevo producto/ }).click();
   const productDialog = page.getByRole("dialog");
   await productDialog.getByLabel("Nombre").fill("Quesadilla");
@@ -296,7 +297,7 @@ test("configura programa, carta y recompensas y persiste tras recargar", async (
   await rewardDialog.getByRole("combobox", { name: /Producto que se entrega/ }).click();
   await page.getByRole("option", { name: /^Quesadilla/ }).click();
   await rewardDialog.getByRole("button", { name: "Guardar" }).click();
-  await expect(page.getByText("Quesadilla gratis")).toBeVisible();
+  await expect(page.getByRole("list").getByText("Quesadilla gratis")).toBeVisible();
 
   const createdReward = state.loyaltyRewards.find((r) => r.name === "Quesadilla gratis");
   expect(createdReward?.type).toBe("free_product");
@@ -305,7 +306,7 @@ test("configura programa, carta y recompensas y persiste tras recargar", async (
 
   // Recargar: los datos vienen del backend y siguen ahí.
   await page.reload();
-  await expect(page.getByText("Quesadilla gratis")).toBeVisible();
+  await expect(page.getByRole("list").getByText("Quesadilla gratis")).toBeVisible();
   await sidebar.getByRole("link", { name: "Carta", exact: true }).click();
   await expect(page.getByRole("table").getByText("Quesadilla", { exact: true })).toBeVisible();
   await sidebar.getByRole("link", { name: "Mi perfil", exact: true }).click();
@@ -575,7 +576,7 @@ test("aislamiento: negocio no ve datos de otro negocio", async ({ browser }) => 
   const admin = await openAs(browser, state, TOKENS.admin, "/admin/rewards");
 
   await expect(admin.page.getByRole("heading", { name: /Recompensas/ })).toBeVisible();
-  await expect(admin.page.getByText("Taco individual")).toBeVisible();
+  await expect(admin.page.getByRole("list").getByText("Taco individual")).toBeVisible();
 
   await admin.context.close();
 });
@@ -694,10 +695,10 @@ test("QR escaneado: confirma la entrega y vuelve a registrar compra", async ({ b
   expect(state.redemptionRequests[0].origin).toBe("qr_scan");
   expect(state.tokens.find((item) => item.token === token)?.consumedAt).toBeTruthy();
 
-  // Tras confirmar, el flujo vuelve a la ventana de registrar compra.
+  // Tras confirmar, el flujo vuelve a la ventana de registrar venta.
   await business.page.getByRole("link", { name: "Registrar compra" }).click();
   await expect(business.page).toHaveURL(/\/admin\/purchases\/new$/);
-  await expect(business.page.getByRole("heading", { name: "Registrar compra" })).toBeVisible();
+  await expect(business.page.getByRole("heading", { name: "Registrar venta" })).toBeVisible();
 
   // La solicitud aparece como QR escaneado en el listado del negocio.
   const admin = await openAs(browser, state, TOKENS.admin, "/admin/redemptions");
@@ -855,7 +856,7 @@ test("afiliación pública por enlace /join/:slug", async ({ browser }) => {
   await anonymous.close();
 });
 
-test("admin invita clientes con enlace y QR, y añade un encargado por correo", async ({
+test("admin invita clientes con enlace y QR, y genera QR de miembro para registro o cambio de rol", async ({
   browser,
 }) => {
   const state = createFakeState();
@@ -868,27 +869,70 @@ test("admin invita clientes con enlace y QR, y añade un encargado por correo", 
   await expect(page.getByLabel("Enlace de invitación")).toHaveValue(/\/join\/taqueria-el-fogon$/);
   await expect(page.getByLabel("QR de invitación al negocio")).toBeVisible();
 
-  // Añadir un encargado buscando por correo desde la opción Equipo en el menú lateral.
+  // Generar QR de invitación desde Miembros (/admin/members) para nuevo encargado.
   await page
     .getByRole("navigation", { name: "Panel del negocio" })
-    .getByRole("link", { name: "Equipo", exact: true })
+    .getByRole("link", { name: "Miembros", exact: true })
     .click();
   await expect(page.getByRole("heading", { name: /Miembros/ })).toBeVisible();
   await page.getByRole("button", { name: /Añadir miembro/i }).click();
   const dialog = page.getByRole("dialog");
-  await dialog.getByLabel("Buscar persona").fill("diego");
-  await expect(dialog.getByText("Diego Cliente")).toBeVisible();
-  await dialog.getByRole("button", { name: "Elegir" }).click();
+  await expect(dialog.getByLabel("Buscar persona")).toHaveCount(0);
   await dialog.getByRole("checkbox", { name: /Puede aprobar redenciones/i }).check();
-  await dialog.getByRole("button", { name: "Añadir miembro" }).click();
-  await expect(page.getByText(/se unió como encargado/i)).toBeVisible();
+  await dialog.getByRole("button", { name: /Generar QR/i }).click();
 
-  const membership = state.memberships.find(
+  await expect(dialog.getByLabel("Código QR de invitación para miembro")).toBeVisible();
+  const inviteUrl1 = await dialog.getByLabel("Enlace de invitación de miembro").inputValue();
+  expect(inviteUrl1).toContain("/login?mode=register&invite=");
+  const path1 = new URL(inviteUrl1).pathname + new URL(inviteUrl1).search;
+
+  // Un usuario nuevo abre el QR de registro: no ve opciones de Cliente/Administrador.
+  const newMemberCtx = await browser.newContext();
+  const newMemberPage = await newMemberCtx.newPage();
+  await installFakeSupabase(newMemberPage, state);
+  await newMemberPage.goto(path1);
+
+  await expect(newMemberPage.getByText("Taquería El Fogón", { exact: true })).toBeVisible();
+  await expect(newMemberPage.getByRole("radiogroup", { name: /tipo de cuenta/i })).toHaveCount(0);
+  await expect(newMemberPage.getByRole("radio", { name: /administrador/i })).toHaveCount(0);
+  await expect(newMemberPage.getByRole("radio", { name: /cliente/i })).toHaveCount(0);
+
+  await newMemberPage.getByLabel(/^nombre$/i).fill("Sofía Caja");
+  await newMemberPage.getByLabel(/^correo$/i).fill("sofia@example.test");
+  await newMemberPage.getByLabel(/^contraseña$/i).fill("secreto123");
+  await newMemberPage.getByRole("button", { name: /crear cuenta/i }).click();
+
+  await expect(newMemberPage).toHaveURL(/\/encargado/);
+  const sofiaUser = state.users.find((u) => u.email === "sofia@example.test");
+  const sofiaMembership = state.memberships.find(
+    (m) => m.businessId === "biz-test" && m.userId === sofiaUser?.id,
+  );
+  expect(sofiaMembership?.role).toBe("encargado");
+  expect(sofiaMembership?.canApproveRedemptions).toBe(true);
+  await newMemberCtx.close();
+
+  // Generar otro QR para un usuario que ya estaba registrado como cliente: cambia su rol.
+  await dialog.getByRole("button", { name: /Generar otro QR/i }).click();
+  await dialog.getByRole("checkbox", { name: /Puede aprobar redenciones/i }).uncheck();
+  await dialog.getByRole("button", { name: /Generar QR/i }).click();
+  const inviteUrl2 = await dialog.getByLabel("Enlace de invitación de miembro").inputValue();
+  const path2 = new URL(inviteUrl2).pathname + new URL(inviteUrl2).search;
+
+  const { page: existingCustomerPage, context: existingCustomerCtx } = await openAs(
+    browser,
+    state,
+    TOKENS.customer2,
+    path2,
+  );
+  await expect(existingCustomerPage).toHaveURL(/\/encargado/);
+
+  const upgradedMembership = state.memberships.find(
     (m) => m.businessId === "biz-test" && m.userId === "user-customer2",
   );
-  expect(membership?.role).toBe("encargado");
-  expect(membership?.canApproveRedemptions).toBe(true);
+  expect(upgradedMembership?.role).toBe("encargado");
+  expect(upgradedMembership?.canApproveRedemptions).toBe(false);
 
+  await existingCustomerCtx.close();
   await context.close();
 });
 
@@ -917,7 +961,7 @@ test("genera una venta con QR, el cliente la reclama y queda auditada", async ({
 
   const { page, context } = await openAs(browser, state, TOKENS.admin, "/admin/purchases/new");
 
-  await expect(page.getByRole("heading", { name: /Registrar compra/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /^Registrar venta$/ })).toBeVisible();
 
   await page.getByLabel("Importe de la compra (COP)").fill("15500");
   await expect(page.getByText(/15 loopoints/)).toBeVisible();
@@ -944,6 +988,8 @@ test("genera una venta con QR, el cliente la reclama y queda auditada", async ({
   await customer.context.close();
 
   // Panel económico en Mi perfil: guardar los datos y ver el cálculo.
+  await page.getByRole("button", { name: "Nueva venta" }).click();
+  await expect(page.getByRole("dialog")).toBeHidden();
   await page.getByRole("link", { name: "Mi perfil", exact: true }).click();
   await page.getByRole("tab", { name: "Económico" }).click();
   await expect(page.getByRole("heading", { name: /Panel económico/ })).toBeVisible();
@@ -1188,8 +1234,9 @@ test("crea una campaña y duplica los loopoints de una compra", async ({ browser
   await dialog.getByLabel("Multiplicador").fill("2");
   await dialog.getByRole("button", { name: "Guardar" }).click();
 
-  await expect(page.getByText("Doble loopoints")).toBeVisible();
-  await expect(page.getByText("En vigencia")).toBeVisible();
+  const campaignsTable = page.getByRole("table");
+  await expect(campaignsTable.getByText("Doble loopoints")).toBeVisible();
+  await expect(campaignsTable.getByText("En vigencia")).toBeVisible();
   await expect.poll(() => state.campaigns.length).toBe(1);
 
   // La campaña vigente duplica los loopoints de la venta con QR.
@@ -1262,7 +1309,11 @@ test("shell móvil: menú fijo, cabecera fija, FAB y modo oscuro persistente", a
       exact: true,
     }),
   ).toBeVisible();
-  await expect(page.getByLabel("Registrar compra")).toBeVisible();
+  const fab = page.getByLabel("Registrar compra");
+  await expect(fab).toBeVisible();
+  await expect(fab).toHaveClass(/rounded-full/);
+  await expect(fab).toHaveClass(/bg-amber-400/);
+  await expect(fab).toHaveClass(/border-black/);
   await expect(page.getByText("Ver portal del cliente")).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Cerrar sesión" })).toHaveCount(0);
 
@@ -1273,10 +1324,12 @@ test("shell móvil: menú fijo, cabecera fija, FAB y modo oscuro persistente", a
   await page.reload();
   await expect(page.locator("html")).toHaveClass(/dark/);
 
-  // La cabecera permanece fija (visible) al hacer scroll en móvil.
+  // La cabecera muestra el nombre del negocio en lugar de Loopoint y permanece fija al hacer scroll en móvil.
   const header = page.getByTestId("app-header");
   const main = page.locator("#contenido-principal");
   await expect(header).toBeVisible();
+  await expect(header).toContainText("Taquería El Fogón");
+  await expect(header).not.toContainText("Loopoint");
   await expect(header).not.toHaveClass(/-translate-y-full/);
   await main.evaluate((element) => {
     element.scrollTop = 700;
@@ -1292,9 +1345,9 @@ test("shell móvil: menú fijo, cabecera fija, FAB y modo oscuro persistente", a
   await expect(header).toBeVisible();
   await expect(header).not.toHaveClass(/-translate-y-full/);
 
-  // El FAB abre registrar compra y desaparece en esa pantalla.
-  await page.getByLabel("Registrar compra").click();
-  await expect(page.getByRole("heading", { name: /Registrar compra/ })).toBeVisible();
+  // El FAB abre registrar venta y desaparece en esa pantalla.
+  await fab.click();
+  await expect(page.getByRole("heading", { name: /^Registrar venta$/ })).toBeVisible();
   await expect(page.getByLabel("Registrar compra")).toHaveCount(0);
 
   await context.close();
@@ -1406,7 +1459,7 @@ test("clientes: muestra alias y distintivo de frecuente activo", async ({ browse
   await admin.context.close();
 });
 
-test("perfil de administrador y menú lateral: Negocio, Programa y Económico en Perfil; Carta, Recompensas y Equipo en menú", async ({
+test("perfil de administrador y menú lateral: Negocio, Programa y Económico en Perfil; Carta, Recompensas y Miembros en menú", async ({
   browser,
 }) => {
   const state = createFakeState();
@@ -1421,13 +1474,13 @@ test("perfil de administrador y menú lateral: Negocio, Programa y Económico en
   );
   await expect(admin.page.getByRole("tab", { name: "Avanzado" })).toHaveCount(0);
 
-  // Carta, Recompensas y Equipo están como enlaces directos en el menú lateral.
+  // Carta, Recompensas y Miembros están como enlaces directos en el menú lateral.
   await admin.page
     .getByRole("navigation", { name: "Panel del negocio" })
     .getByRole("link", { name: "Carta", exact: true })
     .click();
   await expect(admin.page).toHaveURL(/\/admin\/products$/);
-  await expect(admin.page.getByRole("heading", { name: /Carta —/i }).first()).toBeVisible();
+  await expect(admin.page.getByRole("heading", { name: /^Carta$/i }).first()).toBeVisible();
 
   // Volver a Mi perfil y cambiar entre Programa y Económico conservando el borrador.
   await admin.page
@@ -1502,13 +1555,19 @@ test("compra con carta y combos: total, líneas y detalle en ambos portales", as
   const admin = await openAs(browser, state, TOKENS.admin, "/admin/purchases/new");
 
   await admin.page.getByRole("tab", { name: /Elegir de la carta/i }).click();
-  await admin.page.getByRole("button", { name: "Añadir Combo enganche" }).click();
-  await admin.page.getByRole("button", { name: "Añadir Combo enganche" }).click();
-  await admin.page.getByRole("button", { name: "Añadir Taco de guisado" }).click();
-  await expect(admin.page.getByTestId("catalog-total")).toContainText("12.500");
+  const catalogDialog = admin.page.getByRole("dialog", { name: /Elegir de la carta/i });
+  await expect(catalogDialog).toBeVisible();
+  await catalogDialog.getByRole("button", { name: "Añadir Combo enganche" }).click();
+  await catalogDialog.getByRole("button", { name: "Añadir Combo enganche" }).click();
+  await catalogDialog.getByRole("button", { name: "Añadir Taco de guisado" }).click();
+  await catalogDialog.getByRole("button", { name: "Aceptar" }).click();
+  await expect(catalogDialog).toBeHidden();
+  await expect(admin.page.getByRole("table").getByTestId("catalog-total")).toContainText("12.500");
 
   await admin.page.getByRole("button", { name: /Generar QR de la venta/ }).click();
-  await expect(admin.page.getByText(/Escanéalo para sumar loopoints/)).toBeVisible();
+  const qrDialog = admin.page.getByRole("dialog", { name: /QR de la venta/i });
+  await expect(qrDialog).toBeVisible();
+  await expect(qrDialog.getByText(/Escanéalo para sumar loopoints/)).toBeVisible();
 
   await expect.poll(() => state.purchases.length).toBe(1);
   expect(state.purchases[0].amount_cop).toBe(12500);
@@ -1690,7 +1749,7 @@ test("crear cuenta de administrador tras cerrar sesión no dispara RPCs del nego
     { key: "sb-127-auth-token", value: sessionFor(previousAdmin) },
   );
   await page.goto("/admin/dashboard");
-  await expect(page.getByRole("heading", { name: /Inicio — Taquería El Fogón/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /^Inicio$/ })).toBeVisible();
 
   // 2. Cerrar sesión desde el panel (redirige a /login?next=%2Fadmin%2Fdashboard) y crear cuenta de administrador.
   trackDashboardRpcs = true;
@@ -1721,7 +1780,7 @@ test("en responsive oculta el badge Administrador y Cambiar negocio y organiza l
   const { context, page } = await openAs(browser, state, TOKENS.admin, "/admin/dashboard");
 
   await page.setViewportSize({ width: 375, height: 812 });
-  await expect(page.getByRole("heading", { name: /Inicio — Taquería El Fogón/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /^Inicio$/ })).toBeVisible();
   await expect(page.getByText("Administrador", { exact: true })).toBeHidden();
   await expect(page.getByRole("button", { name: "Cambiar negocio", exact: true })).toBeHidden();
 
@@ -1777,7 +1836,7 @@ test("en responsive la carta muestra tarjetas con foto, abre el detalle al selec
   const { context, page } = await openAs(browser, state, TOKENS.admin, "/admin/products");
 
   await page.setViewportSize({ width: 375, height: 667 });
-  await expect(page.getByRole("heading", { name: /Carta — Taquería El Fogón/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /^Carta$/ })).toBeVisible();
 
   // En móvil la tabla se oculta y los productos se muestran en tarjetas.
   await expect(page.getByRole("table")).toBeHidden();
@@ -1837,13 +1896,51 @@ test("en responsive la carta muestra tarjetas con foto, abre el detalle al selec
   await expect(saveButton).toBeVisible();
   await detailDialog.getByRole("button", { name: "Cancelar" }).click();
 
-  // Verificar otros modales altos en móvil (Campañas y Recompensas).
+  // Verificar menú inferior responsivo y tarjetas en Campañas y Recompensas.
+  const bottomNav = page.getByRole("navigation", { name: "Navegación del negocio" });
+  await expect(bottomNav.getByRole("link", { name: "Recompensas" })).toBeVisible();
+  await expect(bottomNav.getByText("Premios")).toHaveCount(0);
+  await bottomNav.getByRole("button", { name: "Más opciones" }).click();
+  const moreDialog = await assertDialogWithinViewport();
+  await expect(moreDialog.getByRole("link", { name: "Miembros" })).toBeVisible();
+  await expect(moreDialog.getByRole("link", { name: "Ventas" })).toBeVisible();
+  await page.keyboard.press("Escape");
+
+  state.campaigns.push({
+    id: "camp-mobile",
+    businessId: "biz-test",
+    name: "Jueves doble",
+    description: "Duplica tus loopoints los jueves",
+    multiplier: 2,
+    bonusPoints: 15,
+    minPurchaseAmount: 10000,
+    validFrom: new Date(Date.now() - 60_000).toISOString(),
+    validUntil: new Date(Date.now() + 86_400_000).toISOString(),
+    isActive: true,
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  });
+
   await page.goto("/admin/campaigns");
+  const campaignCards = page.getByTestId("campaigns-cards");
+  await expect(campaignCards).toBeVisible();
+  await expect(campaignCards.getByText("Jueves doble")).toBeVisible();
+  await expect(campaignCards.getByText("x2")).toBeVisible();
+  await expect(campaignCards.getByText("+15 loopoints")).toBeVisible();
   await page.getByRole("button", { name: /Nueva campaña/ }).click();
   const campaignDialog = await assertDialogWithinViewport();
   await campaignDialog.getByRole("button", { name: "Cancelar" }).click();
 
   await page.goto("/admin/rewards");
+  const rewardCards = page.getByTestId("rewards-cards");
+  await expect(rewardCards).toBeVisible();
+  await expect(rewardCards.getByRole("button", { name: /Desactivar/ })).toHaveCount(0);
+  await rewardCards.getByRole("button", { name: "Ver detalle de Taco individual" }).click();
+  const rewardDetailDialog = await assertDialogWithinViewport();
+  await expect(rewardDetailDialog.getByText("Detalle de la recompensa")).toBeVisible();
+  await expect(rewardDetailDialog.getByRole("button", { name: "Desactivar" })).toBeVisible();
+  await rewardDetailDialog.getByRole("button", { name: "Cancelar" }).click();
+
   await page.getByRole("button", { name: /Nueva recompensa/ }).click();
   const rewardDialog = await assertDialogWithinViewport();
   await rewardDialog.getByRole("button", { name: "Cancelar" }).click();

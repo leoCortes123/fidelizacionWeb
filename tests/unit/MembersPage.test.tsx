@@ -3,11 +3,10 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { MembersPage } from "@/features/admin/MembersPage";
-import type { BusinessMembershipWithProfile, ProfileLookup } from "@/types";
+import type { BusinessMembershipWithProfile } from "@/types";
 
-const create = vi.hoisted(() => vi.fn());
+const createInvite = vi.hoisted(() => vi.fn());
 const update = vi.hoisted(() => vi.fn());
-const profiles = vi.hoisted(() => ({ current: [] as ProfileLookup[] }));
 
 const fixture = vi.hoisted(() => ({
   business: {
@@ -48,21 +47,8 @@ vi.mock("@/features/loyalty/hooks", () => ({
     error: null,
     refetch: vi.fn(),
   }),
-  useCreateBusinessMembership: () => ({ mutateAsync: create, isPending: false }),
+  useCreateMemberInvite: () => ({ mutateAsync: createInvite, isPending: false }),
   useUpdateBusinessMembership: () => ({ mutateAsync: update, isPending: false }),
-  useSearchProfiles: (_businessId: string, query: string) => ({
-    data:
-      query.trim().length >= 2
-        ? profiles.current.filter((profile) =>
-            `${profile.full_name} ${profile.email}`
-              .toLowerCase()
-              .includes(query.trim().toLowerCase()),
-          )
-        : [],
-    isLoading: false,
-    isError: false,
-    error: null,
-  }),
 }));
 
 vi.mock("@/features/loyalty/businessContext", () => ({
@@ -86,22 +72,17 @@ function renderPage() {
 describe("MembersPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    create.mockResolvedValue({});
     update.mockResolvedValue({});
-    profiles.current = [
-      {
-        user_id: "user-luis",
-        full_name: "Luis Nuevo",
-        email: "luis@example.test",
-        already_member: false,
-      },
-      {
-        user_id: "user-ana",
-        full_name: "Ana Encargada",
-        email: "ana@example.test",
-        already_member: true,
-      },
-    ];
+    createInvite.mockResolvedValue({
+      invite_id: "inv-1",
+      token: "inv_token_12345678901234567890",
+      business_id: "biz-1",
+      business_name: "Taquería El Fogón",
+      business_slug: "taqueria-el-fogon",
+      role: "encargado",
+      can_approve_redemptions: true,
+      expires_at: "2026-11-13T12:00:00.000Z",
+    });
   });
 
   it("lista los miembros y alterna el permiso de aprobación", async () => {
@@ -124,50 +105,50 @@ describe("MembersPage", () => {
     );
   });
 
-  it("busca por correo y añade un encargado con permiso", async () => {
+  it("genera un código QR de invitación para encargado con permiso de aprobación", async () => {
     const user = userEvent.setup();
     renderPage();
 
     await user.click(screen.getByRole("button", { name: /Añadir miembro/i }));
     const dialog = within(screen.getByRole("dialog"));
 
-    await user.type(dialog.getByLabelText("Buscar persona"), "luis");
-    expect(await dialog.findByText("Luis Nuevo")).toBeInTheDocument();
-    await user.click(dialog.getByRole("button", { name: "Elegir" }));
+    expect(dialog.queryByLabelText("Buscar persona")).not.toBeInTheDocument();
 
     await user.click(dialog.getByRole("checkbox", { name: /Puede aprobar redenciones/i }));
-    await user.click(dialog.getByRole("button", { name: "Añadir miembro" }));
+    await user.click(dialog.getByRole("button", { name: /Generar QR/i }));
 
-    await waitFor(() => expect(create).toHaveBeenCalledTimes(1));
-    expect(create).toHaveBeenCalledWith({
+    await waitFor(() => expect(createInvite).toHaveBeenCalledTimes(1));
+    expect(createInvite).toHaveBeenCalledWith({
       businessId: "biz-1",
-      userId: "user-luis",
       role: "encargado",
       canApproveRedemptions: true,
     });
+
+    expect(
+      await dialog.findByLabelText("Código QR de invitación para miembro"),
+    ).toBeInTheDocument();
+    expect(dialog.getByLabelText("Enlace de invitación de miembro")).toHaveValue(
+      "https://fidelizacion01.vercel.app/login?mode=register&invite=inv_token_12345678901234567890",
+    );
   });
 
-  it("no permite añadir a quien ya es miembro", async () => {
+  it("genera un QR para cliente sin permiso de aprobación y permite generar otro", async () => {
+    createInvite.mockResolvedValueOnce({
+      invite_id: "inv-2",
+      token: "inv_cliente_12345678901234567890",
+      business_id: "biz-1",
+      business_name: "Taquería El Fogón",
+      business_slug: "taqueria-el-fogon",
+      role: "cliente",
+      can_approve_redemptions: false,
+      expires_at: "2026-11-13T12:00:00.000Z",
+    });
+
     const user = userEvent.setup();
     renderPage();
 
     await user.click(screen.getByRole("button", { name: /Añadir miembro/i }));
     const dialog = within(screen.getByRole("dialog"));
-    await user.type(dialog.getByLabelText("Buscar persona"), "ana");
-
-    expect(await dialog.findByText("Ya es miembro")).toBeInTheDocument();
-    expect(dialog.queryByRole("button", { name: "Elegir" })).not.toBeInTheDocument();
-  });
-
-  it("añade un cliente sin permiso de aprobación", async () => {
-    const user = userEvent.setup();
-    renderPage();
-
-    await user.click(screen.getByRole("button", { name: /Añadir miembro/i }));
-    const dialog = within(screen.getByRole("dialog"));
-    await user.type(dialog.getByLabelText("Buscar persona"), "luis");
-    await dialog.findByText("Luis Nuevo");
-    await user.click(dialog.getByRole("button", { name: "Elegir" }));
 
     await user.click(dialog.getByRole("combobox", { name: /Rol en el negocio/i }));
     await user.click(await screen.findByRole("option", { name: "Cliente" }));
@@ -176,10 +157,18 @@ describe("MembersPage", () => {
       dialog.queryByRole("checkbox", { name: /Puede aprobar redenciones/i }),
     ).not.toBeInTheDocument();
 
-    await user.click(dialog.getByRole("button", { name: "Añadir miembro" }));
-    await waitFor(() => expect(create).toHaveBeenCalledTimes(1));
-    expect(create).toHaveBeenCalledWith(
-      expect.objectContaining({ role: "cliente", canApproveRedemptions: false }),
-    );
+    await user.click(dialog.getByRole("button", { name: /Generar QR/i }));
+
+    await waitFor(() => expect(createInvite).toHaveBeenCalledTimes(1));
+    expect(createInvite).toHaveBeenCalledWith({
+      businessId: "biz-1",
+      role: "cliente",
+      canApproveRedemptions: false,
+    });
+
+    expect(await dialog.findByText(/Rol: Cliente/i)).toBeInTheDocument();
+
+    await user.click(dialog.getByRole("button", { name: /Generar otro QR/i }));
+    expect(dialog.getByRole("button", { name: /Generar QR/i })).toBeInTheDocument();
   });
 });

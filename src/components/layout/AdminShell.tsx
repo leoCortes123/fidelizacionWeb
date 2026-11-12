@@ -25,6 +25,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { BusinessSwitcher } from "@/features/loyalty/BusinessSwitcher";
+import { useOptionalBusinessContext } from "@/features/loyalty/businessContext";
 import { usePortalTheme } from "@/components/theme/ThemeProvider";
 import { cn } from "@/lib/utils";
 import { UserMenu } from "./UserMenu";
@@ -43,9 +44,9 @@ const mainNav: AdminNavItem[] = [
   { to: "/admin/dashboard", label: "Inicio", icon: Home, end: true },
   { to: "/admin/products", label: "Carta", icon: Package },
   { to: "/admin/rewards", label: "Recompensas", icon: Gift },
-  { to: "/admin/members", label: "Equipo", icon: UserRound },
+  { to: "/admin/members", label: "Miembros", icon: UserRound },
   { to: "/admin/redemptions", label: "Solicitudes", icon: TicketCheck },
-  { to: "/admin/purchases", label: "Compras", icon: ReceiptText, end: true },
+  { to: "/admin/purchases", label: "Ventas", icon: ReceiptText, end: true },
   { to: "/admin/customers", label: "Clientes", icon: Users },
   { to: "/admin/campaigns", label: "Campañas", icon: Megaphone },
   { to: "/admin/audit", label: "Auditoría", icon: ClipboardList },
@@ -53,8 +54,8 @@ const mainNav: AdminNavItem[] = [
 ];
 
 const moreNav: AdminNavItem[] = [
-  { to: "/admin/members", label: "Equipo", icon: UserRound },
-  { to: "/admin/purchases", label: "Compras", icon: ReceiptText, end: true },
+  { to: "/admin/members", label: "Miembros", icon: UserRound },
+  { to: "/admin/purchases", label: "Ventas", icon: ReceiptText, end: true },
   { to: "/admin/customers", label: "Clientes", icon: Users },
   { to: "/admin/campaigns", label: "Campañas", icon: Megaphone },
   { to: "/admin/audit", label: "Auditoría", icon: ClipboardList },
@@ -64,7 +65,7 @@ const moreNav: AdminNavItem[] = [
 const bottomNav: AdminNavItem[] = [
   { to: "/admin/dashboard", label: "Inicio", icon: Home, end: true },
   { to: "/admin/products", label: "Carta", icon: Package },
-  { to: "/admin/rewards", label: "Recompensas", shortLabel: "Premios", icon: Gift },
+  { to: "/admin/rewards", label: "Recompensas", icon: Gift },
   { to: "/admin/redemptions", label: "Solicitudes", shortLabel: "Solicitudes", icon: TicketCheck },
 ];
 
@@ -88,6 +89,11 @@ export function AdminShell({ children }: { children?: ReactNode }) {
   const scrollRef = useRef<HTMLElement | null>(null);
   const headerHidden = useHideOnScroll(scrollRef);
   const [moreOpen, setMoreOpen] = useState(false);
+  const businessContext = useOptionalBusinessContext();
+  const headerBusinessName =
+    businessContext?.selectedBusiness?.name ??
+    businessContext?.businesses.find((business) => business.role === "admin")?.name ??
+    businessContext?.businesses[0]?.name;
 
   const dateLabel = new Date().toLocaleDateString("es-CO", {
     timeZone: "America/Bogota",
@@ -100,7 +106,11 @@ export function AdminShell({ children }: { children?: ReactNode }) {
     <div className="flex h-dvh overflow-hidden bg-background">
       <aside className="hidden h-dvh w-64 shrink-0 flex-col border-r border-border/80 bg-card/95 backdrop-blur-sm md:flex dark:border-slate-800">
         <div className="border-b border-border/70 bg-muted/30 p-4 dark:border-slate-800">
-          <Brand />
+          <Brand
+            name={headerBusinessName}
+            tagline={headerBusinessName ? null : undefined}
+            linkTo="/admin/dashboard"
+          />
           <div className="mt-2.5 flex items-center gap-2">
             <Badge variant="default">ADMIN · NEGOCIO</Badge>
           </div>
@@ -150,12 +160,12 @@ export function AdminShell({ children }: { children?: ReactNode }) {
           )}
         >
           <div className="flex h-14 items-center justify-between gap-3 px-4">
-            <div className="md:hidden">
-              <Brand compact linkTo="/admin/dashboard" />
+            <div className="min-w-0 md:hidden">
+              <Brand compact name={headerBusinessName} linkTo="/admin/dashboard" />
             </div>
             <p className="hidden items-center gap-2 font-mono text-xs font-medium text-muted-foreground md:flex">
               <span className="size-2 rounded-full bg-emerald-500" aria-hidden="true" />
-              CAJA ACTIVA · {dateLabel}
+              {headerBusinessName ? `${headerBusinessName} · ` : ""}CAJA ACTIVA · {dateLabel}
             </p>
             <div className="flex items-center gap-2">
               <BusinessSwitcher className="hidden sm:flex" />
