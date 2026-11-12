@@ -84,6 +84,8 @@ describe("BusinessJoinPage", () => {
     expect(screen.getByText("Programa de loopoints activo")).toBeInTheDocument();
     const link = screen.getByRole("link", { name: /Entrar y unirme/i });
     expect(link).toHaveAttribute("href", "/login?next=%2Fjoin%2Ftaqueria-el-fogon");
+    const loginLink = screen.getByRole("link", { name: /Inicia sesión/i });
+    expect(loginLink).toHaveAttribute("href", "/login?next=%2Fjoin%2Ftaqueria-el-fogon&mode=login");
   });
 
   it("afilia al usuario y recuerda el negocio antes de navegar", async () => {

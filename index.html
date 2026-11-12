@@ -10,19 +10,7 @@
     />
     <link rel="icon" href="/loopoint-coin.png" type="image/png" />
     <link rel="apple-touch-icon" href="/loopoint-coin.png" />
-    <script>
-      // Aplica el tema antes del primer pintado para evitar el destello claro.
-      try {
-        var stored = localStorage.getItem("loopoint:theme");
-        var dark =
-          stored === "dark" ||
-          (!stored && window.matchMedia("(prefers-color-scheme: dark)").matches);
-        if (dark) document.documentElement.classList.add("dark");
-        document.documentElement.style.colorScheme = dark ? "dark" : "light";
-      } catch (error) {
-        /* Sin almacenamiento: se usa el tema del sistema. */
-      }
-    </script>
+    <script src="/theme-init.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link

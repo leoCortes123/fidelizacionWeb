@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { ThemeProvider, usePortalTheme, useTheme } from "@/components/theme/ThemeProvider";
@@ -59,5 +61,17 @@ describe("ThemeProvider", () => {
     const spy = vi.spyOn(console, "error").mockImplementation(() => {});
     expect(() => render(<ThemeProbe />)).toThrow("useTheme debe usarse dentro de ThemeProvider");
     spy.mockRestore();
+  });
+
+  it("carga la inicialización del tema desde script externo compatible con CSP", () => {
+    const htmlPath = resolve(__dirname, "../../index.html");
+    const scriptPath = resolve(__dirname, "../../public/theme-init.js");
+
+    const html = readFileSync(htmlPath, "utf8");
+    expect(html).toContain('<script src="/theme-init.js"></script>');
+    expect(html).not.toMatch(/<script(?![^>]*\bsrc=)[^>]*>[\s\S]*?<\/script>/i);
+
+    const scriptContent = readFileSync(scriptPath, "utf8");
+    expect(scriptContent).toContain('localStorage.getItem("loopoint:theme")');
   });
 });

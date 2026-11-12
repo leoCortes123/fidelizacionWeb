@@ -118,7 +118,12 @@ export function useBusinessPurchaseDetail(
 }
 
 /** Compras reclamadas por el cliente, con filtro opcional por negocio. */
-export function useMyPurchasesPage(businessId: string, page: number, pageSize: number) {
+export function useMyPurchasesPage(
+  businessId: string,
+  page: number,
+  pageSize: number,
+  enabled = true,
+) {
   return useQuery({
     queryKey: queryKeys.myPurchasesPage(businessId, page),
     queryFn: () =>
@@ -127,6 +132,7 @@ export function useMyPurchasesPage(businessId: string, page: number, pageSize: n
         p_limit: pageSize,
         p_offset: page * pageSize,
       }),
+    enabled,
   });
 }
 

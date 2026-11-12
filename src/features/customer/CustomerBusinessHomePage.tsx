@@ -68,10 +68,11 @@ export function CustomerBusinessHomePage() {
     setSelectedBusiness(business);
   }, [business, selectedBusiness?.id, setSelectedBusiness]);
 
-  const account = useLoyaltyPointAccount(businessId, customerId);
-  const transactions = useLoyaltyPointTransactions(businessId, customerId);
-  const rewards = useLoyaltyRewardsAvailable(businessId, customerId);
-  const purchases = useMyPurchasesPage(businessId, 0, 5);
+  const activeBusinessId = business?.id ?? "";
+  const account = useLoyaltyPointAccount(activeBusinessId, customerId);
+  const transactions = useLoyaltyPointTransactions(activeBusinessId, customerId);
+  const rewards = useLoyaltyRewardsAvailable(activeBusinessId, customerId);
+  const purchases = useMyPurchasesPage(activeBusinessId, 0, 5, Boolean(activeBusinessId));
   const requestRedemption = useRequestRedemption();
 
   const [redeemDialog, setRedeemDialog] = useState<LoyaltyRewardAvailable | null>(null);

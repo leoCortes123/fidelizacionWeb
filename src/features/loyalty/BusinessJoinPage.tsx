@@ -264,15 +264,17 @@ export function BusinessJoinPage() {
           </CardContent>
         </Card>
 
-        <p className="px-4 text-center text-xs text-muted-foreground sm:px-0">
-          ¿Ya tienes loopoints?{" "}
-          <Link
-            to="/login"
-            className="font-semibold text-primary underline-offset-4 hover:underline"
-          >
-            Inicia sesión
-          </Link>
-        </p>
+        {!session && (
+          <p className="px-4 text-center text-xs text-muted-foreground sm:px-0">
+            ¿Ya tienes loopoints?{" "}
+            <Link
+              to={`${loginHref}&mode=login`}
+              className="font-semibold text-primary underline-offset-4 hover:underline"
+            >
+              Inicia sesión
+            </Link>
+          </p>
+        )}
       </div>
     </div>
   );

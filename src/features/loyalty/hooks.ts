@@ -223,12 +223,20 @@ export function useJoinBusiness() {
   const queryClient = useQueryClient();
   return useMutation<BusinessJoinResult, Error, { slug: string }>({
     mutationFn: (params) => rpc<BusinessJoinResult>("business_join", { p_slug: params.slug }),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.businesses });
-      void queryClient.invalidateQueries({ queryKey: queryKeys.roles });
-      void queryClient.invalidateQueries({
+    onSuccess: async () => {
+      // Limpia caché inactiva para evitar un fotograma sin membresía al entrar desde /join/:slug.
+      queryClient.removeQueries({ queryKey: queryKeys.businesses, type: "inactive" });
+      queryClient.removeQueries({
         queryKey: queryKeys.customerBusinessesSummary,
+        type: "inactive",
       });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.businesses }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.roles }),
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.customerBusinessesSummary,
+        }),
+      ]);
     },
   });
 }

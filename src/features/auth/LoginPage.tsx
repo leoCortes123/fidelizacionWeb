@@ -114,9 +114,10 @@ export function LoginPage() {
   const modeParam = params.get("mode");
   const roleParam = params.get("role") ?? params.get("account");
 
-  const [mode, setMode] = useState<"login" | "register">(
-    modeParam === "register" ? "register" : "login",
-  );
+  const [mode, setMode] = useState<"login" | "register">(() => {
+    if (modeParam === "register" || modeParam === "login") return modeParam;
+    return next.startsWith("/join/") ? "register" : "login";
+  });
   const [accountType, setAccountType] = useState<AccountType>(() => {
     if (hasInvite) return "customer";
     if (

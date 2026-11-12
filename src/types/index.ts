@@ -425,10 +425,22 @@ export interface LoyaltyReward {
   times_redeemed: number;
 }
 
-export interface LoyaltyRewardAvailable extends LoyaltyReward {
+export interface LoyaltyRewardAvailable {
+  id: string;
+  type: LoyaltyRewardType;
+  name: string;
+  description: string;
+  points_required: number;
+  min_purchase_amount: number;
+  max_discount_amount: number | null;
+  discount_percentage: number | null;
+  product_price_cop: number | null;
+  product_cost_cop: number | null;
   balance: number;
   remaining: number;
   can_redeem: boolean;
+  valid_from: string | null;
+  valid_until: string | null;
 }
 
 export type ProductKind = "simple" | "combo";

@@ -467,4 +467,53 @@ describe("LoginPage", () => {
     expect(screen.getByRole("button", { name: /crear cuenta/i })).toBeDisabled();
     expect(screen.getByRole("button", { name: /continuar con google/i })).toBeDisabled();
   });
+
+  it("abre en modo registro por defecto cuando el usuario viene desde /join/:slug", async () => {
+    const user = userEvent.setup();
+    auth.signUpWithPassword.mockResolvedValue({ needsConfirmation: false });
+
+    render(
+      <MemoryRouter initialEntries={["/login?next=%2Fjoin%2Fempanadas"]}>
+        <LoginPage />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByLabelText("Nombre")).toBeInTheDocument();
+    await user.type(screen.getByLabelText("Nombre"), "Sofía Cliente");
+    await user.type(screen.getByLabelText("Correo"), "sofia@example.com");
+    await user.type(screen.getByLabelText(/^Contraseña$/), "secreto123");
+    await user.click(screen.getByRole("button", { name: "Crear cuenta" }));
+
+    await waitFor(() => {
+      expect(auth.signUpWithPassword).toHaveBeenCalledWith({
+        email: "sofia@example.com",
+        password: "secreto123",
+        fullName: "Sofía Cliente",
+        accountType: "customer",
+        nextPath: "/join/empanadas",
+      });
+    });
+    expect(auth.signInWithPassword).not.toHaveBeenCalled();
+  });
+
+  it("mantiene el modo inicio de sesión si se especifica mode=login viniendo desde /join/:slug", async () => {
+    const user = userEvent.setup();
+    auth.signInWithPassword.mockResolvedValue(undefined);
+
+    render(
+      <MemoryRouter initialEntries={["/login?next=%2Fjoin%2Fempanadas&mode=login"]}>
+        <LoginPage />
+      </MemoryRouter>,
+    );
+
+    expect(screen.queryByLabelText("Nombre")).not.toBeInTheDocument();
+    await user.type(screen.getByLabelText("Correo"), "cliente@example.com");
+    await user.type(screen.getByLabelText(/^Contraseña$/), "clave123");
+    await user.click(screen.getByRole("button", { name: "Entrar con correo" }));
+
+    await waitFor(() => {
+      expect(auth.signInWithPassword).toHaveBeenCalledWith("cliente@example.com", "clave123");
+    });
+    expect(auth.signUpWithPassword).not.toHaveBeenCalled();
+  });
 });
