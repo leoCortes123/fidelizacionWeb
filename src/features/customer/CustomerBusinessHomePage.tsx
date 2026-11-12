@@ -82,7 +82,7 @@ export function CustomerBusinessHomePage() {
 
   if (!business) {
     return (
-      <div className="space-y-6 animate-fade-in">
+      <div className="space-y-4 sm:space-y-5 animate-fade-in">
         <PageHeader
           title="Negocio no disponible"
           description="No encontramos este negocio entre tus afiliaciones."
@@ -163,11 +163,11 @@ export function CustomerBusinessHomePage() {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-4 sm:space-y-5 animate-fade-in">
       {businesses.length > 1 && (
         <nav
           aria-label="Mis negocios"
-          className="-mx-1 flex snap-x gap-2 overflow-x-auto px-1 pb-1.5"
+          className="flex snap-x gap-2 overflow-x-auto px-4 pb-1.5 sm:px-0"
         >
           {businesses.map((item) => {
             const active = item.id === business.id;
@@ -178,7 +178,7 @@ export function CustomerBusinessHomePage() {
                 to={`/customer/business/${item.id}`}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex min-h-11 shrink-0 snap-start items-center gap-2 rounded-md border-2 px-3.5 py-2 text-sm font-bold transition-all",
+                  "flex min-h-10 shrink-0 snap-start items-center gap-2 rounded-none border-2 px-3 py-1.5 text-sm font-bold transition-all",
                   active
                     ? "border-slate-900 bg-primary text-primary-foreground shadow-[0_2px_0_#0f172a]"
                     : "border-slate-300 bg-card text-muted-foreground hover:border-slate-400 hover:bg-muted hover:text-foreground dark:border-slate-700",
@@ -216,7 +216,7 @@ export function CustomerBusinessHomePage() {
         }
       />
 
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2 px-4 sm:px-0">
         <FrequencyBadge
           isFrequent={summaryRow?.is_frequent ?? false}
           isActive={summaryRow?.is_frequent_active ?? false}
@@ -232,7 +232,7 @@ export function CustomerBusinessHomePage() {
       </div>
 
       {createdRedemption && !qrOpen && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-100">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-none border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-100">
           <p>
             Solicitud de <strong>{createdRedemption.reward_name}</strong> creada. Muéstrale el QR al
             encargado para recibirla.
@@ -251,7 +251,7 @@ export function CustomerBusinessHomePage() {
       )}
 
       <Card className="overflow-hidden border-2 border-slate-900 bg-gradient-to-br from-slate-900 via-slate-900 to-blue-950 text-white shadow-sm dark:border-slate-700">
-        <CardContent className="relative space-y-6 p-6 sm:p-8">
+        <CardContent className="relative space-y-5 p-4 sm:space-y-6 sm:p-8">
           <div
             aria-hidden="true"
             className="absolute -right-10 -top-10 size-40 rounded-full bg-primary/30 blur-2xl"
@@ -259,7 +259,7 @@ export function CustomerBusinessHomePage() {
           <div className="relative flex items-start justify-between gap-4">
             <div className="min-w-0">
               <div className="mb-2 flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center rounded bg-cyan-400 px-2 py-0.5 font-pixel text-[9px] text-slate-950">
+                <span className="inline-flex items-center rounded-none bg-cyan-400 px-2 py-0.5 font-pixel text-[9px] text-slate-950">
                   {summaryRow?.is_frequent ? "NIVEL FRECUENTE" : "JUGADOR ACTIVO"}
                 </span>
                 <span className="font-mono text-xs uppercase tracking-[0.16em] text-blue-200">
@@ -274,7 +274,7 @@ export function CustomerBusinessHomePage() {
               </p>
               <p className="mt-3 text-sm text-slate-300">{formatLoopoints(balance)} disponibles</p>
             </div>
-            <div className="grid size-14 shrink-0 place-items-center rounded-lg border-2 border-amber-400/60 bg-slate-800/80">
+            <div className="grid size-14 shrink-0 place-items-center rounded-none border-2 border-amber-400/60 bg-slate-800/80">
               <Star className="size-8 text-amber-400" aria-hidden="true" />
             </div>
           </div>

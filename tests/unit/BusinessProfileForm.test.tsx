@@ -5,6 +5,7 @@ import { BusinessProfileForm } from "@/features/admin/BusinessProfileForm";
 import type { Business, BusinessProfile } from "@/types";
 
 const updateProfile = vi.hoisted(() => vi.fn());
+const updateBusiness = vi.hoisted(() => vi.fn());
 const setLogo = vi.hoisted(() => vi.fn());
 
 const business: Business = {
@@ -52,12 +53,25 @@ vi.mock("@/features/loyalty/hooks", () => ({
     mutateAsync: updateProfile,
     isPending: false,
   }),
+  useUpdateBusiness: () => ({
+    mutateAsync: updateBusiness,
+    isPending: false,
+  }),
   useSetBusinessLogo: () => ({ mutateAsync: setLogo, isPending: false }),
 }));
 
 describe("BusinessProfileForm", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    window.localStorage.clear();
+    updateBusiness.mockImplementation(async (payload) => ({
+      business_id: payload.businessId,
+      name: payload.name,
+      slug: profile.slug,
+      timezone: payload.timezone,
+      operating_days: payload.operatingDays,
+      updated_at: "2026-01-02T12:00:00.000Z",
+    }));
     updateProfile.mockImplementation(async (payload) => ({
       ...profile,
       name: payload.name,
@@ -107,6 +121,77 @@ describe("BusinessProfileForm", () => {
     await waitFor(() => {
       expect(screen.getByText(/Escribe un WhatsApp válido/i)).toBeInTheDocument();
     });
+    expect(updateProfile).not.toHaveBeenCalled();
+  });
+
+  it("actualiza zona horaria y días de operación desde la pestaña Negocio", async () => {
+    const user = userEvent.setup();
+    render(<BusinessProfileForm business={business} />);
+
+    await user.click(screen.getByRole("button", { name: "Lun–Vie" }));
+    await user.click(screen.getByRole("button", { name: "Lima" }));
+    await user.click(screen.getByRole("button", { name: /Guardar datos del negocio/i }));
+
+    await waitFor(() => {
+      expect(updateBusiness).toHaveBeenCalledWith({
+        businessId: "biz-1",
+        name: "Café Loopoint",
+        timezone: "America/Lima",
+        operatingDays: [1, 2, 3, 4, 5],
+      });
+    });
+    expect(updateProfile).toHaveBeenCalledTimes(1);
+  });
+
+  it("habilita guardar cuando restaura un borrador previo desde localStorage", async () => {
+    const user = userEvent.setup();
+    window.localStorage.setItem(
+      "loopoint:draft:admin:business-profile:biz-1",
+      JSON.stringify({
+        version: 1,
+        savedAt: Date.now(),
+        value: {
+          name: "Café Loopoint Borrador",
+          description: "Café de especialidad.",
+          address: "Calle 10 # 5-20",
+          neighborhood: "Centro",
+          city: "Bogotá",
+          phoneWhatsapp: "+573001234567",
+          phone: "",
+          instagram: "cafeloopoint",
+          website: "https://cafeloopoint.co",
+          timezone: "America/Bogota",
+          operatingDays: [1, 2, 3, 4, 5, 6],
+        },
+      }),
+    );
+
+    render(<BusinessProfileForm business={business} />);
+
+    const saveButton = screen.getByRole("button", { name: /Guardar datos del negocio/i });
+    expect(screen.getByText("Borrador guardado")).toBeInTheDocument();
+    expect(saveButton).toBeEnabled();
+
+    await user.click(saveButton);
+    await waitFor(() => {
+      expect(updateProfile).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: "Café Loopoint Borrador",
+        }),
+      );
+    });
+  });
+
+  it("bloquea el guardado si se desmarcan todos los días de operación", async () => {
+    const user = userEvent.setup();
+    render(<BusinessProfileForm business={business} />);
+
+    for (const label of ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"]) {
+      await user.click(screen.getByRole("button", { name: label }));
+    }
+    await user.click(screen.getByRole("button", { name: /Guardar datos del negocio/i }));
+
+    expect(await screen.findByText(/Selecciona al menos un día de operación/i)).toBeInTheDocument();
     expect(updateProfile).not.toHaveBeenCalled();
   });
 });

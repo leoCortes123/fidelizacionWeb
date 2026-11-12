@@ -415,6 +415,7 @@ export interface Product {
   is_active: boolean;
   kind: ProductKind;
   combo_items: ComboItem[];
+  image_url?: string | null;
   created_at: string;
   updated_at: string;
 }

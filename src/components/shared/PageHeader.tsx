@@ -5,29 +5,37 @@ export function PageHeader({
   description,
   kicker,
   actions,
+  actionsClassName,
   className,
+  as: Heading = "h1",
 }: {
   title: string;
   description?: string;
   kicker?: string;
   actions?: React.ReactNode;
+  actionsClassName?: string;
   className?: string;
+  as?: "h1" | "h2";
 }) {
   return (
     <div
       className={cn(
-        "flex flex-col gap-3 border-b border-slate-200/80 pb-4 sm:flex-row sm:items-end sm:justify-between dark:border-slate-800",
+        "flex flex-col gap-2.5 px-4 pb-1 sm:flex-row sm:items-end sm:justify-between sm:px-0",
         className,
       )}
     >
-      <div className="space-y-1">
+      <div className="min-w-0 space-y-1.5">
         {kicker && <span className="lp-section-kicker">{kicker}</span>}
-        <h1 className="font-display text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+        <Heading className="font-display text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
           {title}
-        </h1>
-        {description && <p className="max-w-2xl text-sm text-muted-foreground">{description}</p>}
+        </Heading>
+        {description && (
+          <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">{description}</p>
+        )}
       </div>
-      {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
+      {actions && (
+        <div className={cn("flex flex-wrap items-center gap-2", actionsClassName)}>{actions}</div>
+      )}
     </div>
   );
 }

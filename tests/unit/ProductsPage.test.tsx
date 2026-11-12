@@ -6,6 +6,21 @@ import { ProductsPage } from "@/features/admin/ProductsPage";
 import type { Product } from "@/types";
 
 const upsert = vi.hoisted(() => vi.fn());
+const uploadImage = vi.hoisted(() =>
+  vi
+    .fn()
+    .mockResolvedValue(
+      "https://demo.supabase.co/storage/v1/object/public/business-assets/business/biz-1/products/prod-taco.webp",
+    ),
+);
+
+vi.mock("@/lib/image", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/image")>();
+  return {
+    ...actual,
+    uploadBusinessAssetImage: uploadImage,
+  };
+});
 
 const fixture = vi.hoisted(() => ({
   business: {
@@ -89,11 +104,43 @@ describe("ProductsPage", () => {
   it("lista los productos con precio, costo y estado", () => {
     renderPage();
 
-    expect(screen.getByText("Taco de guisado")).toBeInTheDocument();
-    expect(screen.getByText("Agua fresca")).toBeInTheDocument();
-    expect(screen.getByText("2.500", { exact: false })).toBeInTheDocument();
-    expect(screen.getByText("Sin dato")).toBeInTheDocument();
-    expect(screen.getByText("Inactivo")).toBeInTheDocument();
+    const table = within(screen.getByRole("table"));
+    expect(table.getByText("Taco de guisado")).toBeInTheDocument();
+    expect(table.getByText("Agua fresca")).toBeInTheDocument();
+    expect(table.getByText("2.500", { exact: false })).toBeInTheDocument();
+    expect(table.getByText("Sin dato")).toBeInTheDocument();
+    expect(table.getByText("Inactivo")).toBeInTheDocument();
+  });
+
+  it("muestra tarjetas móviles con nombre, descripción, precio y carga de foto; al seleccionar abre el detalle", async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    const cards = within(screen.getByTestId("products-cards"));
+    expect(cards.getByText("Taco de guisado")).toBeInTheDocument();
+    expect(cards.getByText("Con doble tortilla")).toBeInTheDocument();
+    expect(cards.getByText("2.500", { exact: false })).toBeInTheDocument();
+    expect(cards.getByText("Agua fresca")).toBeInTheDocument();
+    expect(cards.getByText("Sin descripción")).toBeInTheDocument();
+    expect(cards.getAllByRole("button", { name: /Cargar foto/i })).toHaveLength(2);
+
+    const file = new File([new Uint8Array([1, 2, 3])], "taco.png", { type: "image/png" });
+    await user.upload(cards.getByLabelText("Archivo de foto para Taco de guisado"), file);
+
+    await waitFor(() => expect(uploadImage).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(upsert).toHaveBeenCalledTimes(1));
+    expect(upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: "prod-taco",
+        imageUrl:
+          "https://demo.supabase.co/storage/v1/object/public/business-assets/business/biz-1/products/prod-taco.webp",
+      }),
+    );
+
+    await user.click(cards.getByRole("button", { name: "Ver detalle de Taco de guisado" }));
+    const dialog = within(screen.getByRole("dialog"));
+    expect(dialog.getByText("Detalle del producto")).toBeInTheDocument();
+    expect(dialog.getByLabelText("Nombre")).toHaveValue("Taco de guisado");
   });
 
   it("filtra productos por nombre", async () => {
@@ -102,8 +149,9 @@ describe("ProductsPage", () => {
 
     await user.type(screen.getByLabelText("Buscar productos"), "taco");
 
-    expect(screen.getByText("Taco de guisado")).toBeInTheDocument();
-    expect(screen.queryByText("Agua fresca")).not.toBeInTheDocument();
+    const table = within(screen.getByRole("table"));
+    expect(table.getByText("Taco de guisado")).toBeInTheDocument();
+    expect(table.queryByText("Agua fresca")).not.toBeInTheDocument();
   });
 
   it("crea un producto con el precio interpretado en pesos", async () => {
@@ -175,7 +223,8 @@ describe("ProductsPage", () => {
     const user = userEvent.setup();
     renderPage();
 
-    await user.click(screen.getByRole("button", { name: "Desactivar Taco de guisado" }));
+    const table = within(screen.getByRole("table"));
+    await user.click(table.getByRole("button", { name: "Desactivar Taco de guisado" }));
 
     await waitFor(() => expect(upsert).toHaveBeenCalledTimes(1));
     expect(upsert).toHaveBeenCalledWith(

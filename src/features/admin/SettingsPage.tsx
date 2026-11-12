@@ -219,13 +219,13 @@ export function SettingsPage() {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-4 sm:space-y-5 animate-fade-in">
       <PageHeader
         title="Configuración"
         description="Reglas de acumulación, catálogo y auditoría. Los usuarios y roles se gestionan directamente en la base de datos."
       />
 
-      <div className="grid gap-5 xl:grid-cols-[1.05fr_0.95fr]">
+      <div className="grid gap-4 sm:gap-5 xl:grid-cols-[1.05fr_0.95fr]">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
@@ -314,7 +314,7 @@ export function SettingsPage() {
                   </div>
                 </div>
 
-                <p className="rounded-lg bg-muted p-3 text-xs text-muted-foreground">
+                <p className="rounded-none bg-muted p-3 text-xs text-muted-foreground">
                   Los cambios aplican solo a compras nuevas. Las compras ya generadas conservan las
                   reglas con las que fueron creadas.
                 </p>
@@ -593,13 +593,16 @@ export function SettingsPage() {
                     is_active: event.target.checked,
                   }))
                 }
-                className="size-4 rounded border-input"
+                className="size-4 cursor-pointer rounded-none border-input accent-primary"
               />
               Disponible en el catálogo
             </label>
 
             {rewardError && (
-              <p role="alert" className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">
+              <p
+                role="alert"
+                className="rounded-none bg-destructive/10 p-3 text-sm text-destructive"
+              >
                 {rewardError}
               </p>
             )}

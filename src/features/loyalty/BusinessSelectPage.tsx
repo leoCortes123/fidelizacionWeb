@@ -1,13 +1,10 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { ArrowRight, Plus, Building2 } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { ArrowRight, Building2, Plus } from "lucide-react";
 import { useBusinesses } from "./hooks";
 import { businessHomePath } from "@/lib/config";
 import { useBusinessContext } from "./businessContext";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { SignOutButton } from "@/components/shared/SignOutButton";
 import { EmptyState, ErrorState, ListSkeleton } from "@/components/shared/States";
@@ -16,87 +13,43 @@ export function BusinessSelectPage() {
   const businesses = useBusinesses();
   const { setSelectedBusiness } = useBusinessContext();
   const navigate = useNavigate();
-  const [registering, setRegistering] = useState(false);
 
-  if (businesses.isLoading) return <ListSkeleton rows={3} />;
-  if (businesses.isError) {
-    return <ErrorState error={businesses.error} onRetry={() => void businesses.refetch()} />;
-  }
-
-  const list = businesses.data ?? [];
-
-  if (registering) {
+  if (businesses.isLoading) {
     return (
-      <div className="mx-auto max-w-4xl space-y-6 px-4 py-8 animate-fade-in">
-        <PageHeader
-          title="Registrar negocio"
-          description="Crea tu negocio y conviértete en su administrador."
-          actions={<SignOutButton variant="outline" size="sm" />}
-        />
-        <Card className="max-w-md mx-auto">
-          <CardHeader>
-            <CardTitle>Nuevo negocio</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form
-              onSubmit={(event) => {
-                event.preventDefault();
-                const form = new FormData(event.currentTarget);
-                const name = form.get("name") as string;
-                const slug = form.get("slug") as string;
-                if (!name || !slug) return;
-                // El registro real se hace desde /business/register
-                navigate(
-                  `/business/register?name=${encodeURIComponent(name)}&slug=${encodeURIComponent(slug)}`,
-                );
-              }}
-              className="space-y-4"
-            >
-              <div className="space-y-2">
-                <Label htmlFor="business-name">Nombre del negocio</Label>
-                <Input id="business-name" name="name" required />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="business-slug">Slug (URL amigable)</Label>
-                <Input id="business-slug" name="slug" placeholder="mi-negocio" required />
-                <p className="text-xs text-muted-foreground">
-                  Solo letras minúsculas, números y guiones.
-                </p>
-              </div>
-              <Button type="submit" className="w-full">
-                <Plus aria-hidden="true" />
-                Crear negocio
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-        <p className="text-center text-xs text-muted-foreground">
-          ¿Ya tienes un negocio?{" "}
-          <Button variant="link" onClick={() => setRegistering(false)}>
-            Seleccionar uno existente
-          </Button>
-        </p>
+      <div className="mx-auto max-w-4xl px-0 py-4 sm:px-6 sm:py-8">
+        <ListSkeleton rows={3} />
+      </div>
+    );
+  }
+  if (businesses.isError) {
+    return (
+      <div className="mx-auto max-w-4xl px-0 py-4 sm:px-6 sm:py-8">
+        <ErrorState error={businesses.error} onRetry={() => void businesses.refetch()} />
       </div>
     );
   }
 
+  const list = businesses.data ?? [];
+
   return (
-    <div className="mx-auto max-w-4xl space-y-6 px-4 py-8 animate-fade-in">
+    <div className="mx-auto max-w-4xl space-y-4 px-0 py-4 sm:space-y-5 sm:px-6 sm:py-8 animate-fade-in">
       <PageHeader
         title="Selecciona tu negocio"
-        description="Elige el negocio con el que deseas trabajar."
+        description="Elige el negocio con el que deseas trabajar o registra uno nuevo."
         actions={<SignOutButton variant="outline" size="sm" />}
       />
 
       {list.length === 0 ? (
         <EmptyState
           title="Aún no tienes negocios"
-          description="Registra tu primer negocio para comenzar a usar el programa de fidelización."
+          description="Registra tu primer negocio para comenzar a configurar tu programa de fidelización."
           icon={Building2}
           action={
-            <Button variant="outline" onClick={() => setRegistering(true)}>
-              <Plus aria-hidden="true" />
-              Registrar negocio
+            <Button variant="outline" asChild>
+              <Link to="/admin/onboarding?new=1">
+                <Plus aria-hidden="true" />
+                Registrar negocio
+              </Link>
             </Button>
           }
         />
@@ -111,7 +64,7 @@ export function BusinessSelectPage() {
                 navigate(businessHomePath(business.role, business.id));
               }}
             >
-              <CardContent className="p-6 text-center">
+              <CardContent className="p-4 text-center sm:p-6">
                 <Building2 className="mx-auto size-12 text-primary mb-3" aria-hidden="true" />
                 <h3 className="font-semibold">{business.name}</h3>
                 <p className="text-xs text-muted-foreground">
@@ -136,10 +89,12 @@ export function BusinessSelectPage() {
         </div>
       )}
 
-      <div className="flex justify-center">
-        <Button variant="outline" size="sm" onClick={() => setRegistering(true)}>
-          <Plus aria-hidden="true" />
-          Registrar un negocio nuevo
+      <div className="flex justify-center px-4 sm:px-0">
+        <Button variant="outline" size="sm" asChild>
+          <Link to="/admin/onboarding?new=1">
+            <Plus aria-hidden="true" />
+            Registrar un negocio nuevo
+          </Link>
         </Button>
       </div>
     </div>

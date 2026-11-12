@@ -62,7 +62,7 @@ export function EncargadoShell() {
                 end={item.end}
                 className={({ isActive }) =>
                   cn(
-                    "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-semibold transition-colors",
+                    "flex items-center gap-2 rounded-none px-3 py-2 text-sm font-semibold transition-colors",
                     isActive
                       ? "bg-secondary text-secondary-foreground"
                       : "text-muted-foreground hover:bg-muted hover:text-foreground",
@@ -108,7 +108,7 @@ export function EncargadoShell() {
         className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
         id="contenido-principal"
       >
-        <div className="mx-auto w-full max-w-5xl px-4 pb-28 pt-5 md:pb-14">
+        <div className="mx-auto w-full max-w-5xl px-0 pb-24 pt-4 sm:px-6 md:py-6 md:pb-14">
           <Outlet />
         </div>
       </main>

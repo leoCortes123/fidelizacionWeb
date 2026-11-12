@@ -92,7 +92,7 @@ function PurchasesSection({ business }: { business: Business }) {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-4 sm:space-y-5 animate-fade-in">
       <PageHeader
         title={`Ventas — ${business.name}`}
         description="Cada venta genera un QR que el cliente confirma desde su teléfono. Aquí ves quién lo reclamó y puedes anular los pendientes."
@@ -268,7 +268,7 @@ function PurchasesSection({ business }: { business: Business }) {
       )}
 
       {total > PAGE_SIZE && (
-        <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
+        <div className="flex flex-col items-center justify-between gap-3 px-4 sm:flex-row sm:px-0">
           <p className="text-sm text-muted-foreground">
             {total} ventas · página {page + 1} de {pageCount}
           </p>

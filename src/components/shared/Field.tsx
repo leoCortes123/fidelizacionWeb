@@ -30,11 +30,19 @@ export function Field({ id, label, hint, help, error, required, className, child
       </div>
       {children}
       {error ? (
-        <p className="text-xs font-medium text-destructive" role="alert">
+        <p
+          id={id ? `${id}-error` : undefined}
+          className="text-xs font-medium text-destructive dark:text-red-400"
+          role="alert"
+        >
           {error}
         </p>
       ) : (
-        hint && <p className="text-xs text-muted-foreground">{hint}</p>
+        hint && (
+          <p id={id ? `${id}-hint` : undefined} className="text-xs text-muted-foreground">
+            {hint}
+          </p>
+        )
       )}
     </div>
   );

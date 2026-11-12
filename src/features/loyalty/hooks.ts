@@ -110,8 +110,18 @@ export function useUpdateBusiness() {
         p_timezone: params.timezone,
         p_operating_days: params.operatingDays,
       }),
-    onSuccess: () => {
+    onSuccess: (_, vars) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.businesses });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.businessProfile(vars.businessId),
+      });
+      void queryClient.invalidateQueries({ queryKey: ["business-public"] });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.businessDashboardSummary(vars.businessId),
+      });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.businessAuditLogPrefix(vars.businessId),
+      });
     },
   });
 }
@@ -347,6 +357,16 @@ export function useConfigureLoyaltyProgram() {
       }),
     onSuccess: (_, vars) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.loyaltyProgram(vars.businessId) });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.businessEconomicDashboard(vars.businessId),
+      });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.businessDashboardSummary(vars.businessId),
+      });
+      void queryClient.invalidateQueries({ queryKey: ["business-public"] });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.businessAuditLogPrefix(vars.businessId),
+      });
     },
   });
 }
@@ -421,6 +441,7 @@ export function useUpsertProduct() {
       costCop?: number | null;
       isActive: boolean;
       kind?: ProductKind;
+      imageUrl?: string | null;
     }
   >({
     mutationFn: (params) =>
@@ -433,6 +454,7 @@ export function useUpsertProduct() {
         p_cost_cop: params.costCop ?? null,
         p_is_active: params.isActive,
         p_kind: params.kind ?? "simple",
+        p_image_url: params.imageUrl ?? null,
       }),
     onSuccess: (_, vars) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.products(vars.businessId, true) });
@@ -879,6 +901,9 @@ export function useUpsertEconomicProfile() {
       });
       void queryClient.invalidateQueries({
         queryKey: queryKeys.businessEconomicDashboard(vars.businessId),
+      });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.businessDashboardSummary(vars.businessId),
       });
       void queryClient.invalidateQueries({
         queryKey: queryKeys.businessAuditLogPrefix(vars.businessId),

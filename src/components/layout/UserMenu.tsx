@@ -42,7 +42,7 @@ export function UserMenu({ compact = false, className, align = "end" }: UserMenu
         <button
           type="button"
           className={cn(
-            "flex items-center gap-2 rounded-xl text-left transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+            "flex items-center gap-2 rounded-none text-left transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
             compact ? "p-1" : "w-full p-2",
             className,
           )}

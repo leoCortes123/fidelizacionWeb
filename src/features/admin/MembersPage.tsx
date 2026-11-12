@@ -66,7 +66,7 @@ export function MembersPage() {
 
   if (list.length > 1 && !selectedBusiness) {
     return (
-      <div className="space-y-6 animate-fade-in">
+      <div className="space-y-4 sm:space-y-5 animate-fade-in">
         <PageHeader
           title="Selecciona un negocio"
           description="Elige el negocio para gestionar miembros."
@@ -102,7 +102,7 @@ export function MembersPage() {
   const current = selectedBusiness ?? list[0];
   if (!current) {
     return (
-      <div className="space-y-6 animate-fade-in">
+      <div className="space-y-4 sm:space-y-5 animate-fade-in">
         <PageHeader title="Sin negocios" description="No tienes negocios asignados." />
         <EmptyState
           title="Sin negocios"
@@ -181,7 +181,7 @@ export function MembersPage() {
   const canSubmitSearch = search.trim().length >= 2;
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-4 sm:space-y-5 animate-fade-in">
       <PageHeader
         title={`Miembros — ${current.name}`}
         description="Administra encargados, clientes y sus permisos de redención."
@@ -205,16 +205,16 @@ export function MembersPage() {
           }
         />
       ) : (
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           {membershipsData.map((member) => (
             <Card key={member.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
-              <div className="flex items-center gap-3">
-                <div className="grid size-10 place-items-center rounded-full bg-secondary text-secondary-foreground">
+              <div className="flex min-w-0 items-center gap-3">
+                <div className="grid size-10 shrink-0 place-items-center rounded-full bg-secondary text-secondary-foreground">
                   {(member.full_name || member.email || "?").charAt(0).toUpperCase()}
                 </div>
-                <div>
-                  <p className="font-semibold">{member.full_name}</p>
-                  <p className="text-xs text-muted-foreground">{member.email}</p>
+                <div className="min-w-0">
+                  <p className="truncate font-semibold">{member.full_name}</p>
+                  <p className="truncate text-xs text-muted-foreground">{member.email}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
@@ -225,7 +225,7 @@ export function MembersPage() {
                       type="checkbox"
                       checked={member.can_approve_redemptions}
                       onChange={() => toggleApproval(member, !member.can_approve_redemptions)}
-                      className="size-4 rounded border-input"
+                      className="size-4 cursor-pointer rounded-none border-input accent-primary"
                     />
                     Puede aprobar redenciones
                   </label>
@@ -237,14 +237,14 @@ export function MembersPage() {
         </div>
       )}
 
-      <p className="text-xs text-muted-foreground">
+      <p className="px-4 text-xs text-muted-foreground sm:px-0">
         El permiso <strong>Puede aprobar redenciones</strong> solo aplica a encargados. Los
         administradores siempre pueden aprobar. El sistema impide dejar un negocio sin
         administrador.
       </p>
 
       <Dialog open={dialogOpen} onOpenChange={closeDialog}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Añadir miembro</DialogTitle>
             <DialogDescription>
@@ -257,7 +257,7 @@ export function MembersPage() {
               <Label htmlFor="member-search">Buscar persona</Label>
               <div className="relative">
                 <Search
-                  className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+                  className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
                   aria-hidden="true"
                 />
                 <Input
@@ -268,7 +268,7 @@ export function MembersPage() {
                     setSelectedProfile(null);
                   }}
                   placeholder="correo@ejemplo.com o nombre"
-                  className="pl-9"
+                  className="pl-8"
                   autoComplete="off"
                 />
               </div>
@@ -276,7 +276,7 @@ export function MembersPage() {
             </div>
 
             {canSubmitSearch && (
-              <div className="max-h-56 overflow-y-auto rounded-lg border">
+              <div className="max-h-56 overflow-y-auto rounded-none border">
                 {profiles.isLoading ? (
                   <p className="p-3 text-sm text-muted-foreground">Buscando…</p>
                 ) : profiles.isError ? (
@@ -321,7 +321,7 @@ export function MembersPage() {
             )}
 
             {selectedProfile && (
-              <div className="space-y-4 rounded-lg border border-primary/30 bg-primary/5 p-4">
+              <div className="space-y-4 rounded-none border border-primary/30 bg-primary/5 p-4">
                 <div>
                   <p className="text-sm font-semibold">{selectedProfile.full_name}</p>
                   <p className="text-xs text-muted-foreground">{selectedProfile.email}</p>
@@ -351,7 +351,7 @@ export function MembersPage() {
                         type="checkbox"
                         checked={canApprove}
                         onChange={(event) => setCanApprove(event.target.checked)}
-                        className="mt-0.5 size-4 rounded border-input"
+                        className="mt-0.5 size-4 cursor-pointer rounded-none border-input accent-primary"
                       />
                       Puede aprobar redenciones
                     </label>

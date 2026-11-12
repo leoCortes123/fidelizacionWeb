@@ -7,6 +7,7 @@ import type { Business, BusinessEconomicDashboard, BusinessEconomicProfile } fro
 
 const upsert = vi.hoisted(() => vi.fn());
 const createSnapshot = vi.hoisted(() => vi.fn());
+const profileHolder = vi.hoisted(() => ({ current: null as BusinessEconomicProfile | null }));
 
 const fixture = vi.hoisted(() => ({
   business: {
@@ -68,7 +69,7 @@ vi.mock("@/features/loyalty/hooks", () => ({
     refetch: vi.fn(),
   }),
   useBusinessEconomicProfile: () => ({
-    data: fixture.profile,
+    data: profileHolder.current,
     isLoading: false,
     isError: false,
     error: null,
@@ -113,6 +114,8 @@ function renderPage() {
 describe("EconomicPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    window.localStorage.clear();
+    profileHolder.current = fixture.profile;
     upsert.mockResolvedValue({
       business_id: "biz-1",
       updated_at: "2026-10-25T13:00:00.000Z",
@@ -122,7 +125,7 @@ describe("EconomicPage", () => {
   it("muestra el panel económico y alerta al superar el 80 %", () => {
     renderPage();
 
-    expect(screen.getByText(/5\.200\.000/)).toBeInTheDocument();
+    expect(screen.getAllByText(/5\.200\.000/).length).toBeGreaterThan(0);
     expect(screen.getByText("85.0 %")).toBeInTheDocument();
     expect(screen.getByText(/presupuesto cerca del límite/i)).toBeInTheDocument();
     expect(screen.getAllByText(/estimación comercial/i).length).toBeGreaterThan(0);
@@ -177,5 +180,99 @@ describe("EconomicPage", () => {
         dataStatus: expect.objectContaining({ daily_avg_sales: "unknown" }),
       }),
     );
+  });
+
+  it("interpreta separadores de miles en COP sin truncar el valor", async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    const sales = screen.getByLabelText("Ventas diarias promedio");
+    await user.clear(sales);
+    await user.type(sales, "200.000");
+    await user.click(screen.getByRole("button", { name: /Guardar datos económicos/i }));
+
+    await waitFor(() => expect(upsert).toHaveBeenCalledTimes(1));
+    expect(upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        dailyAvgSales: 200000,
+      }),
+    );
+  });
+
+  it("calcula automáticamente el margen bruto a partir de ventas y ganancia diarias", async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    const marginInput = screen.getByLabelText("Margen bruto");
+    await user.clear(marginInput);
+
+    const salesInput = screen.getByLabelText("Ventas diarias promedio");
+    await user.clear(salesInput);
+    await user.type(salesInput, "200000");
+
+    const gainInput = screen.getByLabelText("Ganancia diaria");
+    await user.type(gainInput, "60000");
+
+    expect(marginInput).toHaveValue("30");
+    expect(screen.getByText("Calculado automáticamente")).toBeInTheDocument();
+  });
+
+  it("sugiere días de operación al mes según los días del negocio cuando el perfil económico está vacío", () => {
+    profileHolder.current = null;
+    renderPage();
+
+    expect(screen.getByLabelText("Días de operación al mes")).toHaveValue("26");
+    expect(screen.getByText("Calculado según tu horario")).toBeInTheDocument();
+    expect(screen.getAllByText(/opcional/i).length).toBeGreaterThan(0);
+  });
+
+  it("conserva los días en blanco cuando un perfil guardado ya los marcó como Desconocido", () => {
+    profileHolder.current = {
+      id: "profile-unknown",
+      business_id: "biz-1",
+      daily_avg_sales: null,
+      monthly_operation_days: null,
+      daily_gain: null,
+      gross_margin: null,
+      avg_customers_per_day: null,
+      max_monthly_reward_budget: null,
+      data_status: {
+        daily_avg_sales: "unknown",
+        monthly_operation_days: "unknown",
+        daily_gain: "unknown",
+        gross_margin: "unknown",
+        avg_customers_per_day: "unknown",
+        max_monthly_reward_budget: "unknown",
+      },
+      updated_by: "user-admin",
+      updated_at: "2026-10-24T12:00:00.000Z",
+    };
+
+    renderPage();
+
+    expect(screen.getByLabelText("Días de operación al mes")).toHaveValue("");
+  });
+
+  it("calcula ganancia diaria desde el margen bruto, advierte ganancia mayor a ventas y rechaza 1000.000", async () => {
+    profileHolder.current = null;
+    const user = userEvent.setup();
+    renderPage();
+
+    const sales = screen.getByLabelText("Ventas diarias promedio");
+    const gain = screen.getByLabelText("Ganancia diaria");
+    const margin = screen.getByLabelText("Margen bruto");
+
+    await user.type(sales, "200000");
+    await user.type(margin, "25");
+    expect(gain).toHaveValue("50000");
+
+    await user.clear(gain);
+    await user.type(gain, "250000");
+    expect(screen.getByText(/La ganancia diaria supera las ventas diarias/i)).toBeInTheDocument();
+
+    await user.clear(sales);
+    await user.type(sales, "1000.000");
+    await user.click(screen.getByRole("button", { name: /Guardar datos económicos/i }));
+    expect(upsert).not.toHaveBeenCalled();
   });
 });

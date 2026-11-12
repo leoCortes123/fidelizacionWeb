@@ -82,14 +82,14 @@ export function RedemptionsPage() {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-4 sm:space-y-5 animate-fade-in">
       <PageHeader
         title="Mis canjes"
         description="Solicitudes de recompensa en todos tus negocios, su estado y el código QR de entrega."
       />
 
       {businesses.length > 1 && (
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 px-4 sm:px-0">
           <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Filtrar por negocio
           </span>
@@ -146,9 +146,9 @@ export function RedemptionsPage() {
 
             return (
               <Card key={redemption.id}>
-                <CardContent className="flex flex-col gap-4 p-5 sm:flex-row sm:items-center sm:justify-between">
+                <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between sm:p-5">
                   <div className="flex items-start gap-4">
-                    <span className="grid size-11 shrink-0 place-items-center overflow-hidden rounded-xl bg-secondary text-secondary-foreground">
+                    <span className="grid size-11 shrink-0 place-items-center overflow-hidden rounded-none bg-secondary text-secondary-foreground">
                       {redemption.business_logo_url ? (
                         <img
                           src={redemption.business_logo_url}
@@ -233,7 +233,7 @@ export function RedemptionsPage() {
         </div>
       )}
 
-      <p className="text-xs text-muted-foreground">
+      <p className="px-4 text-xs text-muted-foreground sm:px-0">
         El QR contiene solo un token aleatorio, nunca datos personales. Al aprobar la entrega queda
         inválido y los loopoints se descuentan de tu saldo.
       </p>
@@ -256,7 +256,7 @@ export function RedemptionsPage() {
               <dt className="text-muted-foreground">Loopoints</dt>
               <dd>{formatPoints(detail.points_spent)}</dd>
               <dt className="text-muted-foreground">Código</dt>
-              <dd className="font-mono text-xs">{detail.code}</dd>
+              <dd className="min-w-0 break-all font-mono text-xs">{detail.code}</dd>
               <dt className="text-muted-foreground">Solicitado</dt>
               <dd>{formatDateTimeBogota(detail.created_at)}</dd>
               {detail.approved_at && (

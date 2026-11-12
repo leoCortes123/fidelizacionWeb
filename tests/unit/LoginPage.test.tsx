@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { Link, MemoryRouter, Route, Routes } from "react-router-dom";
 import { LoginPage } from "@/features/auth/LoginPage";
 import { clearPendingClaim, pendingClaimPath, rememberPendingClaim } from "@/lib/pendingClaim";
 
@@ -181,7 +181,7 @@ describe("LoginPage", () => {
       password: "secreto123",
       fullName: "Ana Admin",
       accountType: "admin",
-      nextPath: "/business/register",
+      nextPath: "/admin/onboarding",
     });
   });
 
@@ -206,7 +206,106 @@ describe("LoginPage", () => {
       password: "secreto123",
       fullName: "Carlos Admin",
       accountType: "admin",
-      nextPath: "/business/register",
+      nextPath: "/admin/onboarding",
     });
+  });
+
+  it("permite alternar visibilidad de la contraseña y valida campos inline", async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter initialEntries={["/login"]}>
+        <LoginPage />
+      </MemoryRouter>,
+    );
+
+    const passwordInput = screen.getByLabelText(/^contraseña$/i);
+    expect(passwordInput).toHaveAttribute("type", "password");
+
+    const toggleButton = screen.getByRole("button", { name: /mostrar contraseña/i });
+    await user.click(toggleButton);
+    expect(passwordInput).toHaveAttribute("type", "text");
+    expect(screen.getByRole("button", { name: /ocultar contraseña/i })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+
+    await user.type(screen.getByLabelText(/^correo$/i), "correo-invalido");
+    await user.click(screen.getByRole("button", { name: /entrar con correo/i }));
+
+    expect(screen.getByRole("alert")).toHaveTextContent(/escribe un correo válido/i);
+    expect(auth.signInWithPassword).not.toHaveBeenCalled();
+  });
+
+  it("envía a /admin/onboarding al crear cuenta de administrador aunque el destino fuera ?next=/admin/dashboard", async () => {
+    auth.signUpWithPassword.mockResolvedValue({ needsConfirmation: false });
+    const user = userEvent.setup();
+    const previousState = { ...auth.state };
+
+    try {
+      const renderUi = () => (
+        <MemoryRouter initialEntries={["/login?next=%2Fadmin%2Fdashboard&mode=register"]}>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/admin/onboarding" element={<div>Onboarding admin</div>} />
+            <Route path="/admin/dashboard" element={<div>Dashboard admin</div>} />
+          </Routes>
+        </MemoryRouter>
+      );
+      const { rerender } = render(renderUi());
+
+      await user.click(screen.getByRole("radio", { name: /administrador/i }));
+      await user.type(screen.getByLabelText(/^nombre$/i), "Laura Admin");
+      await user.type(screen.getByLabelText(/^correo$/i), "laura@negocio.test");
+      await user.type(screen.getByLabelText(/^contraseña$/i), "secreto123");
+      await user.click(screen.getByRole("button", { name: /crear cuenta de administrador/i }));
+
+      expect(auth.signUpWithPassword).toHaveBeenCalledWith({
+        email: "laura@negocio.test",
+        password: "secreto123",
+        fullName: "Laura Admin",
+        accountType: "admin",
+        nextPath: "/admin/onboarding",
+      });
+
+      auth.state.session = {
+        user: { id: "user-laura", email: "laura@negocio.test" },
+      } as never;
+      auth.state.roles = ["admin"];
+      auth.state.loading = false;
+      auth.state.rolesLoading = false;
+      auth.state.rolesLoaded = true;
+      rerender(renderUi());
+
+      expect(await screen.findByText("Onboarding admin")).toBeInTheDocument();
+      expect(screen.queryByText("Dashboard admin")).not.toBeInTheDocument();
+    } finally {
+      Object.assign(auth.state, previousState);
+    }
+  });
+
+  it("sincroniza el modo de registro cuando cambian los parámetros de /login sin desmontar", async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter initialEntries={["/login"]}>
+        <Routes>
+          <Route
+            path="/login"
+            element={
+              <>
+                <Link to="/login?mode=register&role=admin">Cambiar a registro admin</Link>
+                <LoginPage />
+              </>
+            }
+          />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(screen.queryByLabelText(/^nombre$/i)).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("link", { name: "Cambiar a registro admin" }));
+
+    expect(screen.getByLabelText(/^nombre$/i)).toBeInTheDocument();
+    expect(screen.getByRole("radio", { name: /administrador/i })).toBeChecked();
   });
 });

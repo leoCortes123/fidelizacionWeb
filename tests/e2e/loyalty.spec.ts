@@ -187,17 +187,40 @@ function seedCustomerBusiness(
 
 test("registro de negocio como administrador", async ({ browser }) => {
   const state = createFakeState();
-  const admin = await openAs(browser, state, TOKENS.admin, "/business/register");
+  const admin = await openAs(browser, state, TOKENS.admin, "/business/select");
 
-  await expect(admin.page.getByRole("heading", { name: "Nuevo negocio" })).toBeVisible();
-  await admin.page.getByLabel("Nombre del negocio").fill("Mi Negocio Test");
-  await admin.page.getByLabel("Slug (identificador en URL)").fill("mi-negocio-test");
-  await admin.page.getByRole("button", { name: "Crear negocio" }).click();
-
-  // Tras el registro redirige directamente al asistente de onboarding del nuevo negocio
+  // Desde el selector, registrar un negocio nuevo dirige directamente al onboarding
+  await admin.page.getByRole("link", { name: "Registrar negocio" }).click();
+  await expect(admin.page).toHaveURL(/\/admin\/onboarding\?new=1/);
+  await expect(admin.page.getByRole("heading", { name: "Configuración inicial" })).toBeVisible();
   await expect(
-    admin.page.getByRole("heading", { name: /Configuración inicial — Mi Negocio Test/ }),
+    admin.page.getByRole("heading", { name: /Paso 1 · Datos del negocio/ }),
   ).toBeVisible();
+
+  await admin.page.getByLabel("Nombre del negocio").fill("Mi Negocio Test");
+  await expect(admin.page.getByLabel("Slug (identificador en URL)")).toHaveValue("mi-negocio-test");
+  await admin.page.getByRole("button", { name: "Guardar y continuar" }).click();
+
+  await expect(
+    admin.page.getByRole("heading", { name: /Paso 2 · Datos económicos/ }),
+  ).toBeVisible();
+  expect(state.businesses.some((b) => b.slug === "mi-negocio-test")).toBe(true);
+
+  // El margen bruto se calcula automáticamente con ventas y ganancia diarias
+  await admin.page.getByLabel("Ventas diarias promedio").fill("200000");
+  await admin.page.getByLabel("Ganancia diaria").fill("60000");
+  await expect(admin.page.getByLabel("Margen bruto")).toHaveValue("30");
+  await admin.page.getByRole("button", { name: "Guardar y continuar" }).click();
+
+  await expect(
+    admin.page.getByRole("heading", { name: /Paso 3 · Programa y activación/ }),
+  ).toBeVisible();
+  await admin.page.getByRole("button", { name: /Activar programa/ }).click();
+  await expect(admin.page).toHaveURL(/\/admin\/dashboard/);
+
+  // Entrar a /business/register también redirige directo al onboarding
+  await admin.page.goto("/business/register");
+  await expect(admin.page).toHaveURL(/\/admin\/onboarding\?new=1/);
   await expect(
     admin.page.getByRole("heading", { name: /Paso 1 · Datos del negocio/ }),
   ).toBeVisible();
@@ -259,7 +282,7 @@ test("configura programa, carta y recompensas y persiste tras recargar", async (
   await productDialog.getByLabel("Precio (COP)").fill("3500");
   await productDialog.getByLabel("Costo (COP, opcional)").fill("1200");
   await productDialog.getByRole("button", { name: "Guardar" }).click();
-  await expect(page.getByText("Quesadilla", { exact: true })).toBeVisible();
+  await expect(page.getByRole("table").getByText("Quesadilla", { exact: true })).toBeVisible();
   const createdProduct = state.products.find((p) => p.name === "Quesadilla");
   expect(createdProduct?.priceCop).toBe(3500);
 
@@ -284,7 +307,7 @@ test("configura programa, carta y recompensas y persiste tras recargar", async (
   await page.reload();
   await expect(page.getByText("Quesadilla gratis")).toBeVisible();
   await sidebar.getByRole("link", { name: "Carta", exact: true }).click();
-  await expect(page.getByText("Quesadilla", { exact: true })).toBeVisible();
+  await expect(page.getByRole("table").getByText("Quesadilla", { exact: true })).toBeVisible();
   await sidebar.getByRole("link", { name: "Mi perfil", exact: true }).click();
   await page.getByRole("tab", { name: "Programa" }).click();
   await expect(page.getByLabel("COP por loopoint ganado")).toHaveValue("2000");
@@ -930,7 +953,7 @@ test("genera una venta con QR, el cliente la reclama y queda auditada", async ({
   await page.getByLabel("Presupuesto mensual de recompensas").fill("100000");
   await page.getByRole("button", { name: /Guardar datos económicos/ }).click();
 
-  await expect(page.getByText(/5\.200\.000/)).toBeVisible();
+  await expect(page.getByRole("paragraph").filter({ hasText: /5\.200\.000/ })).toBeVisible();
   await expect.poll(() => state.economicProfiles["biz-test"]?.monthlyOperationDays).toBe(26);
 
   // Auditoría: la compra y el cambio económico quedaron registrados.
@@ -1107,7 +1130,7 @@ test("auditoría legible en móvil: tarjetas y detalle", async ({ browser }) => 
   await context.close();
 });
 
-test("wizard de configuración inicial: cuatro pasos y activación", async ({ browser }) => {
+test("wizard de configuración inicial: tres pasos y activación", async ({ browser }) => {
   const state = createFakeState();
   seedBusiness(state);
   state.loyaltyPrograms["biz-test"].is_active = false;
@@ -1117,15 +1140,12 @@ test("wizard de configuración inicial: cuatro pasos y activación", async ({ br
   await expect(page.getByRole("heading", { name: /Paso 1 · Datos del negocio/ })).toBeVisible();
   await page.getByLabel("Nombre del negocio").fill("Taquería Renombrada");
   await page.getByRole("button", { name: /Guardar y continuar/ }).click();
-  await expect(page.getByRole("heading", { name: /Paso 2 · Carta y costos/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Paso 2 · Datos económicos/ })).toBeVisible();
   expect(state.businesses[0].name).toBe("Taquería Renombrada");
 
-  await page.getByRole("button", { name: /^Continuar$/ }).click();
-  await expect(page.getByRole("heading", { name: /Paso 3 · Datos económicos/ })).toBeVisible();
-
-  // Los datos económicos son opcionales: se puede continuar con desconocidos.
+  // Los datos económicos son opcionales: se puede continuar sin llenarlos.
   await page.getByRole("button", { name: /Saltar por ahora/ }).click();
-  await expect(page.getByRole("heading", { name: /Paso 4 · Programa y activación/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Paso 3 · Programa y activación/ })).toBeVisible();
 
   await expect(page.getByLabel("Loopoints para Taco de guisado")).toHaveValue("80");
   await page.getByRole("button", { name: /Activar programa/ }).click();
@@ -1628,4 +1648,205 @@ test("clientes: detalle sin canje manual, compras clicables y filtro de frecuent
   await expect(admin.page.getByRole("dialog")).toContainText("Taco de guisado");
 
   await admin.context.close();
+});
+
+test("crear cuenta de administrador tras cerrar sesión no dispara RPCs del negocio anterior", async ({
+  browser,
+}) => {
+  const state = createFakeState();
+  seedBusiness(state);
+  const context = await browser.newContext();
+  const page = await context.newPage();
+  await installFakeSupabase(page, state);
+
+  const failedRequests: Array<{ url: string; status: number }> = [];
+  let trackDashboardRpcs = false;
+  const dashboardRpcsAfterLogout: string[] = [];
+  page.on("request", (request) => {
+    if (!trackDashboardRpcs) return;
+    const url = request.url();
+    if (
+      url.includes("/rest/v1/rpc/business_recent_activity") ||
+      url.includes("/rest/v1/rpc/loyalty_program_get") ||
+      url.includes("/rest/v1/rpc/business_dashboard_summary")
+    ) {
+      dashboardRpcsAfterLogout.push(url);
+    }
+  });
+  page.on("response", (response) => {
+    const url = response.url();
+    if ((url.includes("/rest/v1/") || url.includes("/auth/v1/")) && response.status() >= 400) {
+      failedRequests.push({ url, status: response.status() });
+    }
+  });
+
+  // 1. Iniciar sesión previa con un administrador que ya tiene negocio (llena cache y localStorage).
+  const previousAdmin = state.users.find((u) => u.token === TOKENS.admin)!;
+  await page.goto("/");
+  await page.evaluate(
+    ({ key, value }) => {
+      window.localStorage.setItem(key, JSON.stringify(value));
+    },
+    { key: "sb-127-auth-token", value: sessionFor(previousAdmin) },
+  );
+  await page.goto("/admin/dashboard");
+  await expect(page.getByRole("heading", { name: /Inicio — Taquería El Fogón/ })).toBeVisible();
+
+  // 2. Cerrar sesión desde el panel (redirige a /login?next=%2Fadmin%2Fdashboard) y crear cuenta de administrador.
+  trackDashboardRpcs = true;
+  await page.locator('button[aria-label="Abrir menú de usuario"]:visible').first().click();
+  await page.getByRole("menuitem", { name: /Cerrar sesión/i }).click();
+  await expect(page).toHaveURL(/\/login\?next=%2Fadmin%2Fdashboard/);
+
+  await page.getByRole("tab", { name: /Registro/i }).click();
+  await page.getByRole("radio", { name: /Administrador/i }).click();
+  await page.getByLabel(/^Nombre$/i).fill("Lucía Nueva Admin");
+  await page.getByLabel(/^Correo$/i).fill("lucia@nuevonegocio.test");
+  await page.getByLabel(/^Contraseña$/i).fill("secreto123");
+  await page.getByRole("button", { name: /Crear cuenta de administrador/i }).click();
+
+  await expect(page).toHaveURL(/\/admin\/onboarding/);
+  await expect(page.getByRole("heading", { name: /Paso 1 · Datos del negocio/ })).toBeVisible();
+  expect(failedRequests).toEqual([]);
+  expect(dashboardRpcsAfterLogout).toEqual([]);
+
+  await context.close();
+});
+
+test("en responsive oculta el badge Administrador y Cambiar negocio y organiza los KPI principales en filas de 2", async ({
+  browser,
+}) => {
+  const state = createFakeState();
+  seedBusiness(state);
+  const { context, page } = await openAs(browser, state, TOKENS.admin, "/admin/dashboard");
+
+  await page.setViewportSize({ width: 375, height: 812 });
+  await expect(page.getByRole("heading", { name: /Inicio — Taquería El Fogón/ })).toBeVisible();
+  await expect(page.getByText("Administrador", { exact: true })).toBeHidden();
+  await expect(page.getByRole("button", { name: "Cambiar negocio", exact: true })).toBeHidden();
+
+  const cardBox = async (label: string) => {
+    const box = await page
+      .getByText(label, { exact: true })
+      .locator("xpath=ancestor::div[contains(@class, 'border-t-4')][1]")
+      .boundingBox();
+    expect(box).not.toBeNull();
+    return box!;
+  };
+
+  const hoyMobile = await cardBox("Ventas de hoy");
+  const mesMobile = await cardBox("Ventas del mes");
+  const pendMobile = await cardBox("Solicitudes pendientes");
+  const frecMobile = await cardBox("Clientes frecuentes");
+
+  expect(Math.abs(hoyMobile.y - mesMobile.y)).toBeLessThan(6);
+  expect(mesMobile.x).toBeGreaterThan(hoyMobile.x);
+  expect(Math.abs(pendMobile.y - frecMobile.y)).toBeLessThan(6);
+  expect(frecMobile.x).toBeGreaterThan(pendMobile.x);
+  expect(pendMobile.y).toBeGreaterThan(hoyMobile.y + 40);
+
+  const hasHorizontalOverflow = await page.evaluate(
+    () => document.documentElement.scrollWidth > window.innerWidth,
+  );
+  expect(hasHorizontalOverflow).toBe(false);
+
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await expect(page.getByText("Administrador", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Cambiar negocio", exact: true })).toBeVisible();
+
+  const hoyDesktop = await cardBox("Ventas de hoy");
+  const mesDesktop = await cardBox("Ventas del mes");
+  const pendDesktop = await cardBox("Solicitudes pendientes");
+  const frecDesktop = await cardBox("Clientes frecuentes");
+
+  expect(Math.abs(hoyDesktop.y - mesDesktop.y)).toBeLessThan(6);
+  expect(Math.abs(hoyDesktop.y - pendDesktop.y)).toBeLessThan(6);
+  expect(Math.abs(hoyDesktop.y - frecDesktop.y)).toBeLessThan(6);
+  expect(mesDesktop.x).toBeGreaterThan(hoyDesktop.x);
+  expect(pendDesktop.x).toBeGreaterThan(mesDesktop.x);
+  expect(frecDesktop.x).toBeGreaterThan(pendDesktop.x);
+
+  await context.close();
+});
+
+test("en responsive la carta muestra tarjetas con foto, abre el detalle al seleccionar y los modales no se desbordan", async ({
+  browser,
+}) => {
+  const state = createFakeState();
+  seedBusiness(state);
+  const { context, page } = await openAs(browser, state, TOKENS.admin, "/admin/products");
+
+  await page.setViewportSize({ width: 375, height: 667 });
+  await expect(page.getByRole("heading", { name: /Carta — Taquería El Fogón/ })).toBeVisible();
+
+  // En móvil la tabla se oculta y los productos se muestran en tarjetas.
+  await expect(page.getByRole("table")).toBeHidden();
+  const cards = page.getByTestId("products-cards");
+  await expect(cards).toBeVisible();
+  await expect(cards.getByText("Taco de guisado")).toBeVisible();
+  await expect(cards.getByText("2.500", { exact: false })).toBeVisible();
+  await expect(cards.getByRole("button", { name: /Cargar foto/i }).first()).toBeVisible();
+
+  const pageOverflow = await page.evaluate(
+    () => document.documentElement.scrollWidth > window.innerWidth,
+  );
+  expect(pageOverflow).toBe(false);
+
+  // Cargar foto desde la tarjeta.
+  const pngBytes = Buffer.from(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+    "base64",
+  );
+  await cards
+    .getByLabel("Archivo de foto para Taco de guisado")
+    .setInputFiles({ name: "taco.png", mimeType: "image/png", buffer: pngBytes });
+  await expect(page.getByText("Foto del producto actualizada.")).toBeVisible();
+  await expect(cards.getByRole("button", { name: /Cambiar foto/i }).first()).toBeVisible();
+  expect(state.products.find((p) => p.name === "Taco de guisado")?.imageUrl).toContain(
+    "/storage/v1/object/public/business-assets/business/biz-test/",
+  );
+
+  const assertDialogWithinViewport = async () => {
+    const dialog = page.getByRole("dialog");
+    await expect(dialog).toBeVisible();
+    const box = await dialog.boundingBox();
+    expect(box).not.toBeNull();
+    expect(box!.x).toBeGreaterThanOrEqual(0);
+    expect(box!.y).toBeGreaterThanOrEqual(0);
+    expect(box!.x + box!.width).toBeLessThanOrEqual(375);
+    expect(box!.y + box!.height).toBeLessThanOrEqual(667);
+    const horizontalOverflow = await dialog.evaluate(
+      (node) => node.scrollWidth > node.clientWidth + 1,
+    );
+    expect(horizontalOverflow).toBe(false);
+    return dialog;
+  };
+
+  // Seleccionar la tarjeta abre el detalle sin desbordarse arriba ni abajo.
+  await cards.getByRole("button", { name: "Ver detalle de Taco de guisado" }).click();
+  const detailDialog = await assertDialogWithinViewport();
+  await expect(detailDialog.getByText("Detalle del producto")).toBeVisible();
+  await expect(detailDialog.getByLabel("Nombre")).toHaveValue("Taco de guisado");
+
+  // Cambiar a tipo combo hace crecer el contenido; el modal debe seguir contenido y scrolleable.
+  await detailDialog.getByLabel("Tipo de producto").click();
+  await page.getByRole("option", { name: "Combo (varios productos)" }).click();
+  await assertDialogWithinViewport();
+  const saveButton = detailDialog.getByRole("button", { name: "Guardar" });
+  await saveButton.scrollIntoViewIfNeeded();
+  await expect(saveButton).toBeVisible();
+  await detailDialog.getByRole("button", { name: "Cancelar" }).click();
+
+  // Verificar otros modales altos en móvil (Campañas y Recompensas).
+  await page.goto("/admin/campaigns");
+  await page.getByRole("button", { name: /Nueva campaña/ }).click();
+  const campaignDialog = await assertDialogWithinViewport();
+  await campaignDialog.getByRole("button", { name: "Cancelar" }).click();
+
+  await page.goto("/admin/rewards");
+  await page.getByRole("button", { name: /Nueva recompensa/ }).click();
+  const rewardDialog = await assertDialogWithinViewport();
+  await rewardDialog.getByRole("button", { name: "Cancelar" }).click();
+
+  await context.close();
 });

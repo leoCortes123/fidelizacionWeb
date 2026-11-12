@@ -147,9 +147,9 @@ export function ClaimPage() {
               Tu compra en {result.business_name} ya está asociada a tu cuenta.
             </p>
           </div>
-          <CardContent className="space-y-5 p-6">
+          <CardContent className="space-y-4 p-4 sm:space-y-5 sm:p-6">
             <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-xl bg-muted p-4 text-center">
+              <div className="rounded-none bg-muted p-4 text-center">
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Compra
                 </p>
@@ -157,7 +157,7 @@ export function ClaimPage() {
                   {formatCOP(result.amount_cop)}
                 </p>
               </div>
-              <div className="rounded-xl bg-secondary p-4 text-center">
+              <div className="rounded-none bg-secondary p-4 text-center">
                 <p className="text-xs font-semibold uppercase tracking-wider text-secondary-foreground/70">
                   Loopoints sumados
                 </p>
@@ -166,7 +166,7 @@ export function ClaimPage() {
                 </p>
               </div>
             </div>
-            <div className="flex items-center justify-between rounded-lg border bg-card p-4">
+            <div className="flex items-center justify-between rounded-none border bg-card p-4">
               <span className="text-sm text-muted-foreground">Nuevo saldo</span>
               <span className="font-display text-xl font-extrabold">
                 {formatPoints(result.balance)}
@@ -220,7 +220,7 @@ export function ClaimPage() {
   return (
     <ClaimLayout>
       <Card>
-        <CardContent className="space-y-5 p-6">
+        <CardContent className="space-y-4 p-4 sm:space-y-5 sm:p-6">
           <div className="text-center">
             <span className="mx-auto grid size-14 place-items-center rounded-full bg-secondary text-secondary-foreground">
               <Building2 className="size-7" aria-hidden="true" />
@@ -232,7 +232,7 @@ export function ClaimPage() {
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-xl bg-muted p-4 text-center">
+            <div className="rounded-none bg-muted p-4 text-center">
               <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Importe
               </p>
@@ -240,7 +240,7 @@ export function ClaimPage() {
                 {formatCOP(data.amount_cop)}
               </p>
             </div>
-            <div className="rounded-xl bg-secondary p-4 text-center">
+            <div className="rounded-none bg-secondary p-4 text-center">
               <p className="text-xs font-semibold uppercase tracking-wider text-secondary-foreground/70">
                 Loopoints
               </p>
@@ -281,7 +281,7 @@ export function ClaimPage() {
             </>
           ) : (
             <>
-              <div className="rounded-xl border border-dashed bg-muted/40 p-4 text-sm">
+              <div className="rounded-none border border-dashed bg-muted/40 p-4 text-sm">
                 <p className="font-semibold">¿Qué pasará al confirmar?</p>
                 <ul className="mt-2 space-y-1.5 text-muted-foreground">
                   <li className="flex gap-2">
@@ -332,13 +332,13 @@ export function ClaimPage() {
 
 function ClaimLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="hero-glow min-h-screen px-4 py-8 sm:py-12">
-      <div className="mx-auto flex w-full max-w-lg flex-col gap-6">
-        <div className="flex justify-center">
+    <div className="hero-glow min-h-screen px-0 py-5 sm:px-4 sm:py-12">
+      <div className="mx-auto flex w-full max-w-lg flex-col gap-4 sm:gap-6">
+        <div className="flex justify-center px-4 sm:px-0">
           <Brand />
         </div>
         {children}
-        <p className={cn("text-center text-xs text-muted-foreground")}>
+        <p className={cn("px-4 text-center text-xs text-muted-foreground sm:px-0")}>
           Tus datos se usan solo para el programa de loopoints del negocio.
         </p>
       </div>

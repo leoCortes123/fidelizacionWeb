@@ -52,8 +52,16 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        sans: ['"Space Grotesk"', "Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+        sans: [
+          '"Plus Jakarta Sans"',
+          '"Space Grotesk"',
+          "Inter",
+          "ui-sans-serif",
+          "system-ui",
+          "sans-serif",
+        ],
         display: [
+          '"Plus Jakarta Sans"',
           '"Space Grotesk"',
           '"Bricolage Grotesque"',
           "Inter",

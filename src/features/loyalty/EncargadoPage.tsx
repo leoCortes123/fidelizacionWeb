@@ -82,7 +82,7 @@ export function EncargadoPage() {
 
   if (list.length > 1 && !selectedBusiness) {
     return (
-      <div className="space-y-6 animate-fade-in">
+      <div className="space-y-4 sm:space-y-5 animate-fade-in">
         <PageHeader
           title="Selecciona un negocio"
           description="Elige el negocio para atender redenciones."
@@ -91,7 +91,7 @@ export function EncargadoPage() {
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {list.map((business) => (
             <Card key={business.id} className="cursor-pointer transition-shadow hover:shadow-md">
-              <CardContent className="p-6 text-center">
+              <CardContent className="p-4 text-center sm:p-6">
                 <Scan className="mx-auto mb-3 size-12 text-primary" aria-hidden="true" />
                 <h3 className="font-semibold">{business.name}</h3>
                 <p className="text-xs text-muted-foreground">{business.slug}</p>
@@ -117,7 +117,7 @@ export function EncargadoPage() {
   const current = selectedBusiness ?? list[0];
   if (!current) {
     return (
-      <div className="space-y-6 animate-fade-in">
+      <div className="space-y-4 sm:space-y-5 animate-fade-in">
         <PageHeader
           title="Sin negocios"
           description="No tienes negocios asignados."
@@ -157,14 +157,14 @@ function EncargadoSection({ business }: { business: Business }) {
 
   if (!canAct) {
     return (
-      <div className="space-y-6 animate-fade-in">
+      <div className="space-y-4 sm:space-y-5 animate-fade-in">
         <PageHeader
           title={`Atención de redenciones — ${business.name}`}
           description="Valida y entrega las recompensas solicitadas por los clientes."
           actions={<SignOutButton />}
         />
         <Card className="mx-auto max-w-lg">
-          <CardContent className="space-y-3 p-6 text-center">
+          <CardContent className="space-y-3 p-4 text-center sm:p-6">
             <span className="mx-auto grid size-12 place-items-center rounded-full bg-amber-100 text-amber-900">
               <ShieldAlert className="size-6" aria-hidden="true" />
             </span>
@@ -270,7 +270,7 @@ function EncargadoSection({ business }: { business: Business }) {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-4 sm:space-y-5 animate-fade-in">
       <PageHeader
         kicker="TERMINAL DE CAJA · ENCARGADO"
         title={`Atención de redenciones — ${business.name}`}
@@ -318,7 +318,7 @@ function EncargadoSection({ business }: { business: Business }) {
         </Card>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
@@ -456,8 +456,8 @@ function EncargadoSection({ business }: { business: Business }) {
             <div
               className={
                 qrExpired
-                  ? "flex items-start gap-2 rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive"
-                  : "flex items-start gap-2 rounded-lg border bg-muted/40 p-3 text-sm"
+                  ? "flex items-start gap-2 rounded-none border border-destructive/30 bg-destructive/10 p-3 text-sm text-destructive"
+                  : "flex items-start gap-2 rounded-none border bg-muted/40 p-3 text-sm"
               }
             >
               {qrExpired ? (
@@ -538,8 +538,8 @@ function EncargadoSection({ business }: { business: Business }) {
         </DialogContent>
       </Dialog>
 
-      <p className="flex items-center gap-2 text-xs text-muted-foreground">
-        <RefreshCw className="size-4" aria-hidden="true" />
+      <p className="flex items-center gap-2 px-4 text-xs text-muted-foreground sm:px-0">
+        <RefreshCw className="size-4 shrink-0" aria-hidden="true" />
         Cada paso (validar, aprobar, entregar) queda registrado en la auditoría del negocio con el
         responsable.
       </p>

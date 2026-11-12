@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import {
   Building2,
+  CalendarDays,
   Camera,
   CheckCircle2,
   ImageOff,
@@ -14,16 +15,24 @@ import { z } from "zod";
 import {
   useBusinessProfile,
   useSetBusinessLogo,
+  useUpdateBusiness,
   useUpdateBusinessProfile,
 } from "@/features/loyalty/hooks";
+import {
+  COMMON_TIMEZONES,
+  DAY_LABELS,
+  DAY_PRESETS,
+  TIMEZONES,
+} from "@/features/loyalty/programEconomics";
 import { errorMessage } from "@/lib/errors";
 import { useFormDraft } from "@/lib/useFormDraft";
-import { isSupportedImage, prepareImage } from "@/lib/image";
-import { supabase } from "@/lib/supabase";
+import { isSupportedImage, uploadBusinessAssetImage } from "@/lib/image";
+import { cn } from "@/lib/utils";
 import type { Business, BusinessProfile } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Field } from "@/components/shared/Field";
@@ -71,11 +80,28 @@ export const businessProfileSchema = z.object({
       (value) => value === "" || websitePattern.test(value),
       "Escribe una dirección web válida.",
     ),
+  timezone: z.string().trim().min(1, "Elige una zona horaria."),
+  operatingDays: z
+    .array(z.number().int().min(1).max(7))
+    .min(1, "Selecciona al menos un día de operación."),
 });
 
 export type BusinessProfileFormState = z.infer<typeof businessProfileSchema>;
 
-function fromProfile(profile: BusinessProfile): BusinessProfileFormState {
+function normalizeOperatingDays(days: number[] | null | undefined, fallback: number[]): number[] {
+  const source = days && days.length > 0 ? days : fallback;
+  return [...new Set(source)].filter((day) => day >= 1 && day <= 7).sort((a, b) => a - b);
+}
+
+function sameDays(left: number[], right: number[]): boolean {
+  if (left.length !== right.length) return false;
+  return left.every((day, index) => day === right[index]);
+}
+
+function fromProfile(
+  profile: BusinessProfile,
+  fallbackBusiness?: Business,
+): BusinessProfileFormState {
   return {
     name: profile.name,
     description: profile.description ?? "",
@@ -86,6 +112,11 @@ function fromProfile(profile: BusinessProfile): BusinessProfileFormState {
     phone: profile.phone ?? "",
     instagram: profile.instagram ?? "",
     website: profile.website ?? "",
+    timezone: profile.timezone || fallbackBusiness?.timezone || "America/Bogota",
+    operatingDays: normalizeOperatingDays(
+      profile.operating_days,
+      fallbackBusiness?.operating_days ?? [1, 2, 3, 4, 5, 6],
+    ),
   };
 }
 
@@ -118,16 +149,19 @@ function BusinessProfileFields({
   profile: BusinessProfile;
 }) {
   const updateProfile = useUpdateBusinessProfile();
+  const updateBusiness = useUpdateBusiness();
   const setLogo = useSetBusinessLogo();
   const draft = useFormDraft<BusinessProfileFormState>({
     key: `admin:business-profile:${business.id}`,
   });
   const fileInput = useRef<HTMLInputElement | null>(null);
-  const [form, setForm] = useState<BusinessProfileFormState>(
-    () => draft.read() ?? fromProfile(profile),
+  const baseProfile = fromProfile(profile, business);
+  const [restoredDraft] = useState(() => draft.read());
+  const [form, setForm] = useState<BusinessProfileFormState>(() =>
+    restoredDraft ? { ...baseProfile, ...restoredDraft } : baseProfile,
   );
   const [errors, setErrors] = useState<Partial<Record<keyof BusinessProfileFormState, string>>>({});
-  const [dirty, setDirty] = useState(false);
+  const [dirty, setDirty] = useState(() => Boolean(restoredDraft));
   const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
@@ -141,6 +175,13 @@ function BusinessProfileFields({
     setDirty(true);
     setForm((current) => ({ ...current, [key]: value }));
     setErrors((current) => ({ ...current, [key]: undefined }));
+  }
+
+  function toggleDay(day: number) {
+    const next = form.operatingDays.includes(day)
+      ? form.operatingDays.filter((item) => item !== day)
+      : [...form.operatingDays, day].sort((a, b) => a - b);
+    update("operatingDays", next);
   }
 
   async function handleSubmit(event: React.FormEvent) {
@@ -157,7 +198,21 @@ function BusinessProfileFields({
       return;
     }
 
+    const sortedDays = normalizeOperatingDays(parsed.data.operatingDays, [1, 2, 3, 4, 5, 6]);
+    const scheduleChanged =
+      parsed.data.timezone !== baseProfile.timezone ||
+      !sameDays(sortedDays, baseProfile.operatingDays);
+
     try {
+      let updatedSchedule: { timezone: string; operating_days: number[] } | null = null;
+      if (scheduleChanged) {
+        updatedSchedule = await updateBusiness.mutateAsync({
+          businessId: business.id,
+          name: parsed.data.name,
+          timezone: parsed.data.timezone,
+          operatingDays: sortedDays,
+        });
+      }
       const result = await updateProfile.mutateAsync({
         businessId: business.id,
         name: parsed.data.name,
@@ -170,7 +225,11 @@ function BusinessProfileFields({
         instagram: parsed.data.instagram,
         website: parsed.data.website,
       });
-      setForm(fromProfile(result));
+      setForm({
+        ...fromProfile(result, business),
+        timezone: updatedSchedule?.timezone ?? result.timezone ?? parsed.data.timezone,
+        operatingDays: updatedSchedule?.operating_days ?? sortedDays,
+      });
       setDirty(false);
       draft.clear();
       toast.success("Datos del negocio guardados.");
@@ -191,19 +250,14 @@ function BusinessProfileFields({
 
     setUploading(true);
     try {
-      const prepared = await prepareImage(file);
-      const path = `business/${business.id}/logo-${Date.now()}.${prepared.extension}`;
-      const { error } = await supabase.storage.from("business-assets").upload(path, prepared.blob, {
-        contentType: prepared.contentType,
-        cacheControl: "3600",
-        upsert: false,
+      const publicUrl = await uploadBusinessAssetImage({
+        businessId: business.id,
+        folder: "logo",
+        file,
       });
-      if (error) throw error;
-
-      const { data } = supabase.storage.from("business-assets").getPublicUrl(path);
       await setLogo.mutateAsync({
         businessId: business.id,
-        logoUrl: data.publicUrl,
+        logoUrl: publicUrl,
       });
       toast.success("Logo actualizado.");
     } catch (error) {
@@ -228,7 +282,7 @@ function BusinessProfileFields({
   }
 
   return (
-    <div className="space-y-5 animate-fade-in">
+    <div className="space-y-4 sm:space-y-5 animate-fade-in">
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
@@ -236,9 +290,9 @@ function BusinessProfileFields({
             Identidad del negocio
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-5">
-          <div className="flex flex-col gap-4 rounded-xl border bg-muted/20 p-4 sm:flex-row sm:items-center">
-            <div className="grid size-20 shrink-0 place-items-center overflow-hidden rounded-2xl border bg-background">
+        <CardContent className="space-y-4 sm:space-y-5">
+          <div className="flex flex-col gap-4 rounded-none border bg-muted/20 p-3.5 sm:flex-row sm:items-center sm:p-4">
+            <div className="grid size-20 shrink-0 place-items-center overflow-hidden rounded-none border bg-background">
               {profile.logo_url ? (
                 <img
                   src={profile.logo_url}
@@ -283,6 +337,7 @@ function BusinessProfileFields({
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
                 className="sr-only"
+                tabIndex={-1}
                 data-testid="logo-input"
                 onChange={(event) => void handleLogo(event)}
               />
@@ -297,7 +352,7 @@ function BusinessProfileFields({
               <Field
                 id="business-name"
                 label="Nombre del negocio"
-                hint="Es el nombre que ven tus clientes."
+                hint="Es el nombre visible para tus clientes en su billetera de puntos y códigos QR."
                 error={errors.name}
                 required
               >
@@ -311,7 +366,7 @@ function BusinessProfileFields({
               <Field
                 id="business-slug"
                 label="Enlace público"
-                hint="El identificador no se puede cambiar para no romper los QR."
+                hint="Enlace único con el que se afilian tus clientes. No se puede cambiar para no romper los QR."
               >
                 <Input id="business-slug" value={`/join/${profile.slug}`} readOnly disabled />
               </Field>
@@ -320,7 +375,7 @@ function BusinessProfileFields({
             <Field
               id="business-description"
               label="Descripción"
-              hint="Qué ofrece el negocio, en una o dos frases."
+              hint="Cuenta brevemente qué ofrece tu negocio; aparecerá en tu página pública de invitación."
               error={errors.description}
             >
               <Textarea
@@ -332,6 +387,114 @@ function BusinessProfileFields({
                 aria-invalid={Boolean(errors.description)}
               />
             </Field>
+
+            <div className="space-y-4 rounded-none border border-border/80 bg-muted/20 p-3.5 sm:p-4">
+              <div className="flex items-center gap-2 text-sm font-semibold">
+                <CalendarDays className="size-4 text-muted-foreground" aria-hidden="true" />
+                Horario y zona horaria
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="business-timezone">Zona horaria</Label>
+                <select
+                  id="business-timezone"
+                  value={form.timezone}
+                  onChange={(event) => update("timezone", event.target.value)}
+                  className="flex h-9 w-full cursor-pointer rounded-none border border-input bg-background px-2 py-1 text-base font-medium shadow-sm transition-colors focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 dark:border-slate-700 dark:bg-slate-900/90 md:text-sm"
+                >
+                  {(TIMEZONES.includes(form.timezone)
+                    ? TIMEZONES
+                    : [form.timezone, ...TIMEZONES]
+                  ).map((zone) => (
+                    <option key={zone} value={zone}>
+                      {zone}
+                    </option>
+                  ))}
+                </select>
+                <div
+                  className="flex flex-wrap gap-1.5"
+                  role="group"
+                  aria-label="Zonas horarias frecuentes"
+                >
+                  {COMMON_TIMEZONES.map((zone) => {
+                    const active = form.timezone === zone.value;
+                    return (
+                      <button
+                        key={zone.value}
+                        type="button"
+                        aria-pressed={active}
+                        onClick={() => update("timezone", zone.value)}
+                        className={cn(
+                          "min-h-8 cursor-pointer rounded-none border px-2.5 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                          active
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground",
+                        )}
+                      >
+                        {zone.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Se usa para mostrar las fechas en tu hora local y calcular vencimientos.
+                </p>
+                {errors.timezone && (
+                  <p className="text-xs font-medium text-destructive" role="alert">
+                    {errors.timezone}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2.5">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <Label>Días de operación</Label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {DAY_PRESETS.map((preset) => (
+                      <button
+                        key={preset.label}
+                        type="button"
+                        onClick={() => update("operatingDays", [...preset.days])}
+                        className="cursor-pointer rounded-none border border-border bg-background px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                      >
+                        {preset.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div className="grid grid-cols-4 gap-2 sm:grid-cols-7">
+                  {Object.entries(DAY_LABELS).map(([day, label]) => {
+                    const value = Number(day);
+                    const selected = form.operatingDays.includes(value);
+                    return (
+                      <button
+                        key={day}
+                        type="button"
+                        aria-pressed={selected}
+                        onClick={() => toggleDay(value)}
+                        className={cn(
+                          "min-h-10 cursor-pointer rounded-none border px-2.5 py-1.5 text-sm font-semibold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:min-h-11 sm:px-3 sm:py-2",
+                          selected
+                            ? "border-primary bg-primary text-primary-foreground shadow-sm shadow-primary/20"
+                            : "border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground",
+                        )}
+                      >
+                        {label}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Indica qué días atiende tu negocio. Ayuda a estimar los días de operación al mes
+                  en tus datos económicos.
+                </p>
+                {errors.operatingDays && (
+                  <p className="text-xs font-medium text-destructive" role="alert">
+                    {errors.operatingDays}
+                  </p>
+                )}
+              </div>
+            </div>
 
             <div className="flex items-center gap-2 text-sm font-semibold">
               <MapPin className="size-4 text-muted-foreground" aria-hidden="true" />
@@ -426,7 +589,11 @@ function BusinessProfileFields({
                 {draft.hasDraft && <Badge variant="muted">Borrador guardado</Badge>}
                 {profile.logo_url && <Badge variant="secondary">Logo activo</Badge>}
               </div>
-              <Button type="submit" loading={updateProfile.isPending} disabled={!dirty}>
+              <Button
+                type="submit"
+                loading={updateProfile.isPending || updateBusiness.isPending}
+                disabled={!dirty}
+              >
                 <CheckCircle2 aria-hidden="true" />
                 Guardar datos del negocio
               </Button>

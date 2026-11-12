@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import {
   AlertTriangle,
-  Building2,
+  Calculator,
   CheckCircle2,
   Info,
   RotateCcw,
@@ -12,24 +11,30 @@ import {
 import { toast } from "sonner";
 import { z } from "zod";
 import {
-  useBusinesses,
+  useBusinessEconomicProfile,
   useConfigureLoyaltyProgram,
   useExpirePointsDue,
   useLoyaltyProgram,
 } from "@/features/loyalty/hooks";
-import { useBusinessContext } from "@/features/loyalty/businessContext";
+import {
+  analyzeEconomicProfile,
+  analyzeProgramEconomics,
+  parseProgramDecimal,
+  parseProgramInteger,
+} from "@/features/loyalty/programEconomics";
 import { errorMessage } from "@/lib/errors";
-import { formatCOP, formatNumber } from "@/lib/format";
+import { formatCompactNumber, formatCOP, formatNumber, formatPointValueCOP } from "@/lib/format";
 import { useFormDraft } from "@/lib/useFormDraft";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { BusinessGate } from "./BusinessGate";
 import { FrequentCriteriaCard } from "./FrequentCriteriaCard";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { Field } from "@/components/shared/Field";
-import { EmptyState, ErrorState, ListSkeleton, LoadingScreen } from "@/components/shared/States";
-import type { Business, LoyaltyProgram } from "@/types";
+import { ErrorState, LoadingScreen } from "@/components/shared/States";
+import type { Business, BusinessEconomicProfile, LoyaltyProgram } from "@/types";
 
 const UNCONFIGURED_ID = "00000000-0000-0000-0000-000000000000";
 
@@ -45,21 +50,25 @@ const DEFAULTS = {
 };
 
 const requiredInteger = (label: string, min: number, max: number) =>
-  z.coerce
-    .number({ invalid_type_error: `${label}: introduce un número.` })
-    .int(`${label}: debe ser un número entero.`)
-    .min(min, `${label}: el mínimo es ${formatNumber(min)}.`)
-    .max(max, `${label}: el máximo es ${formatNumber(max)}.`);
+  z
+    .union([z.string(), z.number()])
+    .transform((value) => (typeof value === "number" ? value : parseProgramInteger(value)))
+    .refine((value) => !Number.isNaN(value), `${label}: introduce un número.`)
+    .refine((value) => Number.isInteger(value), `${label}: debe ser un número entero.`)
+    .refine((value) => value >= min, `${label}: el mínimo es ${formatNumber(min)}.`)
+    .refine((value) => value <= max, `${label}: el máximo es ${formatNumber(max)}.`);
 
 const programSchema = z
   .object({
     copPerPointUnit: requiredInteger("COP por loopoint", 100, 1_000_000),
     pointsPerCopUnit: requiredInteger("Loopoints por $1.000", 1, 1_000_000),
     pointsExpiryDays: requiredInteger("Vencimiento de loopoints", 1, 3650),
-    budgetRatePercent: z.coerce
-      .number({ invalid_type_error: "Tasa de presupuesto: introduce un número." })
-      .min(0, "Tasa de presupuesto: el mínimo es 0 %.")
-      .max(100, "Tasa de presupuesto: el máximo es 100 %."),
+    budgetRatePercent: z
+      .union([z.string(), z.number()])
+      .transform((value) => (typeof value === "number" ? value : parseProgramDecimal(value)))
+      .refine((value) => !Number.isNaN(value), "Tasa de presupuesto: introduce un número.")
+      .refine((value) => value >= 0, "Tasa de presupuesto: el mínimo es 0 %.")
+      .refine((value) => value <= 100, "Tasa de presupuesto: el máximo es 100 %."),
     firstPurchaseBonusPoints: requiredInteger("Bono de primera compra", 0, 1_000_000),
     recurrenceBonusPoints: requiredInteger("Bono de recurrencia", 0, 1_000_000),
     referralBonusPoints: requiredInteger("Bono por referidos", 0, 1_000_000),
@@ -110,70 +119,23 @@ function fromProgram(program: LoyaltyProgram): FormState {
   };
 }
 
-export function ProgramPage() {
-  const businesses = useBusinesses();
-  const { selectedBusiness, setSelectedBusiness } = useBusinessContext();
-  const navigate = useNavigate();
-
-  if (businesses.isLoading) return <ListSkeleton rows={3} />;
-  if (businesses.isError) {
-    return <ErrorState error={businesses.error} onRetry={() => void businesses.refetch()} />;
-  }
-
-  const list = businesses.data ?? [];
-
-  if (list.length > 1 && !selectedBusiness) {
-    return (
-      <div className="space-y-6 animate-fade-in">
-        <PageHeader
-          title="Selecciona un negocio"
-          description="Elige el negocio cuyo programa de loopoints deseas configurar."
-        />
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {list.map((business) => (
-            <Card key={business.id} className="cursor-pointer transition-shadow hover:shadow-md">
-              <CardContent className="p-6 text-center">
-                <Settings2 className="mx-auto mb-3 size-12 text-primary" aria-hidden="true" />
-                <h3 className="font-semibold">{business.name}</h3>
-                <p className="text-xs text-muted-foreground">{business.slug}</p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="mt-4 w-full"
-                  onClick={() => {
-                    setSelectedBusiness(business);
-                    navigate("/admin/program");
-                  }}
-                >
-                  Seleccionar
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  const current = selectedBusiness ?? list[0];
-  if (!current) {
-    return (
-      <div className="space-y-6 animate-fade-in">
-        <PageHeader title="Sin negocios" description="No tienes negocios asignados." />
-        <EmptyState
-          title="Sin negocios"
-          description="Registra un negocio para configurar su programa de loopoints."
-          icon={Building2}
-        />
-      </div>
-    );
-  }
-
-  return <ProgramSection key={current.id} business={current} />;
+export function ProgramPage({ headingAs = "h1" }: { headingAs?: "h1" | "h2" }) {
+  return (
+    <BusinessGate
+      headingAs={headingAs}
+      title="Sin negocios"
+      description="Elige el negocio cuyo programa de loopoints deseas configurar."
+      icon={Settings2}
+      emptyDescription="Registra un negocio para configurar su programa de loopoints."
+    >
+      {(business) => <ProgramSection key={business.id} business={business} headingAs={headingAs} />}
+    </BusinessGate>
+  );
 }
 
-function ProgramSection({ business }: { business: Business }) {
+function ProgramSection({ business, headingAs }: { business: Business; headingAs: "h1" | "h2" }) {
   const program = useLoyaltyProgram(business.id);
+  const economic = useBusinessEconomicProfile(business.id);
 
   if (program.isLoading) return <LoadingScreen label="Cargando programa de loopoints…" />;
   if (program.isError) {
@@ -181,45 +143,117 @@ function ProgramSection({ business }: { business: Business }) {
   }
   if (!program.data) return null;
 
-  return <ProgramForm business={business} program={program.data} />;
+  return (
+    <ProgramForm
+      business={business}
+      program={program.data}
+      economicProfile={economic.data ?? null}
+      economicError={economic.isError ? economic.error : null}
+      onRetryEconomic={() => void economic.refetch()}
+      headingAs={headingAs}
+    />
+  );
 }
 
-function ProgramForm({ business, program }: { business: Business; program: LoyaltyProgram }) {
+function ProgramForm({
+  business,
+  program,
+  economicProfile,
+  economicError,
+  onRetryEconomic,
+  headingAs,
+}: {
+  business: Business;
+  program: LoyaltyProgram;
+  economicProfile: BusinessEconomicProfile | null;
+  economicError: unknown;
+  onRetryEconomic: () => void;
+  headingAs: "h1" | "h2";
+}) {
   const configureProgram = useConfigureLoyaltyProgram();
   const expirePoints = useExpirePointsDue();
   const draft = useFormDraft<FormState>({
     key: `admin:program:${business.id}`,
   });
-  const [form, setForm] = useState<FormState>(() => draft.read() ?? fromProgram(program));
+  const [restoredDraft] = useState(() => draft.read());
+  const [form, setForm] = useState<FormState>(() => restoredDraft ?? fromProgram(program));
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
   const [dirty, setDirty] = useState(false);
+  const [budgetRateEdited, setBudgetRateEdited] = useState(false);
   const unconfigured = isUnconfigured(program);
   const configured = !unconfigured;
+
+  const economic = analyzeEconomicProfile(economicProfile);
+  const copPerPoint = parseProgramInteger(form.copPerPointUnit);
+  const pointsPerThousand = parseProgramInteger(form.pointsPerCopUnit);
+  const parsedBudgetRatePercent = parseProgramDecimal(form.budgetRatePercent);
+  const validNumbers =
+    Number.isInteger(copPerPoint) &&
+    Number.isInteger(pointsPerThousand) &&
+    copPerPoint > 0 &&
+    pointsPerThousand > 0;
+  const analysis = analyzeProgramEconomics({
+    economic,
+    copPerPoint,
+    budgetRatePercent: parsedBudgetRatePercent,
+    explicitPointsPerThousand:
+      Number.isInteger(pointsPerThousand) && pointsPerThousand > 0 ? pointsPerThousand : undefined,
+  });
+
+  const {
+    budgetRate,
+    referenceBudget,
+    maxBudget,
+    effectiveProgramBudget,
+    costPerPoint: recommendedCostPerPoint,
+    pointsPerThousand: recommendedPointsPerThousand,
+    pointValueCop: rawPointValueCop,
+    pointsPer1000Spent: rawPointsPer1000Spent,
+    estimatedCostRate: rawEstimatedCostRate,
+    examplePurchasePoints,
+    exampleAvgTicketPoints,
+    examplePurchaseCostCop,
+    suggestedRateFromCap,
+    utilityAbsorptionPct,
+    netMarginAfterRewards,
+  } = analysis;
+  const pointValueCop = validNumbers ? (rawPointValueCop ?? 0) : 0;
+  const pointsPer1000Spent = validNumbers ? (rawPointsPer1000Spent ?? 0) : 0;
+  const estimatedCostRate = validNumbers ? (rawEstimatedCostRate ?? 0) : 0;
+  const estimatedCostRateRounded = Math.round(estimatedCostRate * 10000) / 100;
+
+  // Si el programa aún no está configurado y existe tope económico mensual, sugiere la tasa inicial.
+  useEffect(() => {
+    if (
+      !unconfigured ||
+      restoredDraft ||
+      budgetRateEdited ||
+      form.budgetRatePercent !== String(DEFAULTS.budgetRatePercent)
+    ) {
+      return;
+    }
+    if (suggestedRateFromCap !== null) {
+      setForm((previous) => ({
+        ...previous,
+        budgetRatePercent: String(suggestedRateFromCap),
+      }));
+    }
+  }, [budgetRateEdited, form.budgetRatePercent, restoredDraft, suggestedRateFromCap, unconfigured]);
 
   useEffect(() => {
     if (dirty) draft.save(form);
   }, [dirty, draft.save, form]);
 
-  const copPerPoint = Number(form.copPerPointUnit);
-  const pointsPerThousand = Number(form.pointsPerCopUnit);
-  const validNumbers =
-    Number.isFinite(copPerPoint) &&
-    Number.isFinite(pointsPerThousand) &&
-    copPerPoint > 0 &&
-    pointsPerThousand > 0;
-  const pointValueCop = validNumbers ? 1000 / pointsPerThousand : 0;
-  const pointsPer1000Spent = validNumbers ? 1000 / copPerPoint : 0;
-  const estimatedCostRate = validNumbers ? 1000 / (copPerPoint * pointsPerThousand) : 0;
-  const budgetRate = Number(form.budgetRatePercent) / 100;
-
   function update<K extends keyof FormState>(key: K, value: FormState[K]) {
     setDirty(true);
+    if (key === "budgetRatePercent") setBudgetRateEdited(true);
     setForm((previous) => ({ ...previous, [key]: value }));
     setErrors((previous) => ({ ...previous, [key]: undefined }));
   }
 
   function resetToDefaults() {
     setDirty(true);
+    setBudgetRateEdited(true);
     setForm({
       copPerPointUnit: String(DEFAULTS.copPerPointUnit),
       pointsPerCopUnit: String(DEFAULTS.pointsPerCopUnit),
@@ -292,10 +326,11 @@ function ProgramForm({ business, program }: { business: Business; program: Loyal
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-4 sm:space-y-5 animate-fade-in">
       <PageHeader
+        as={headingAs}
         title={`Programa de loopoints — ${business.name}`}
-        description="Define cómo se acumulan, vencen y canjean los loopoints de tus clientes."
+        description="Configura cuántos loopoints acumulan tus clientes por cada compra, cuánto valen al canjearlos y qué parte de tus ventas destinas a premios."
         actions={
           <div className="flex flex-wrap items-center gap-2">
             {draft.hasDraft && <Badge variant="muted">Borrador guardado</Badge>}
@@ -307,7 +342,7 @@ function ProgramForm({ business, program }: { business: Business; program: Loyal
       />
 
       {unconfigured && (
-        <div className="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+        <div className="flex items-start gap-3 rounded-none border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
           <AlertTriangle className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
           <div>
             <p className="font-semibold">El programa aún no está configurado</p>
@@ -320,7 +355,7 @@ function ProgramForm({ business, program }: { business: Business; program: Loyal
       )}
 
       {configured && !program.is_active && (
-        <div className="flex items-start gap-3 rounded-xl border bg-muted/40 p-4 text-sm">
+        <div className="flex items-start gap-3 rounded-none border bg-muted/40 p-4 text-sm">
           <Info className="mt-0.5 size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
           <p className="text-muted-foreground">
             El programa está configurado pero <strong>inactivo</strong>. Los clientes no podrán
@@ -329,7 +364,22 @@ function ProgramForm({ business, program }: { business: Business; program: Loyal
         </div>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+      {economicError != null && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-none border border-amber-200 bg-amber-50 p-3.5 text-xs text-amber-900">
+          <div className="flex items-start gap-2">
+            <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+            <p>
+              No pudimos cargar tus datos económicos ({errorMessage(economicError)}). Aún puedes
+              configurar el programa o reintentar.
+            </p>
+          </div>
+          <Button type="button" variant="outline" size="sm" onClick={onRetryEconomic}>
+            Reintentar
+          </Button>
+        </div>
+      )}
+
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
@@ -338,13 +388,17 @@ function ProgramForm({ business, program }: { business: Business; program: Loyal
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5" noValidate>
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field
                   id="cop-per-point"
                   label="COP por loopoint ganado"
-                  hint="Cada cuántos pesos de compra se acumula 1 loopoint."
-                  help="Ejemplo: con 1.000, una compra de $50.000 genera 50 loopoints."
+                  hint={
+                    Number.isInteger(copPerPoint) && copPerPoint > 0
+                      ? `¿Cuánto debe comprar un cliente para sumar 1 loopoint? Ahora mismo gana 1 loopoint por cada ${formatCOP(copPerPoint)} elegibles.`
+                      : "¿Cuánto debe comprar un cliente para sumar 1 loopoint? Ejemplo: con 1.000, una compra de $50.000 genera 50 loopoints."
+                  }
+                  help="Mientras más bajo sea este valor, más rápido acumulan loopoints tus clientes en caja."
                   error={errors.copPerPointUnit}
                 >
                   <Input
@@ -355,26 +409,45 @@ function ProgramForm({ business, program }: { business: Business; program: Loyal
                     aria-invalid={Boolean(errors.copPerPointUnit)}
                   />
                 </Field>
-                <Field
-                  id="points-per-cop"
-                  label="Loopoints que equivalen a $1.000"
-                  hint="Con 100, un cliente necesita 100 loopoints para $1.000 (1 loopoint = $10)."
-                  help="Define cuánto vale un loopoint al canjear. No cambia cuántos se ganan por compra."
-                  error={errors.pointsPerCopUnit}
-                >
-                  <Input
+                <div className="space-y-1.5">
+                  <Field
                     id="points-per-cop"
-                    inputMode="numeric"
-                    value={form.pointsPerCopUnit}
-                    onChange={(event) => update("pointsPerCopUnit", event.target.value)}
-                    aria-invalid={Boolean(errors.pointsPerCopUnit)}
-                  />
-                </Field>
+                    label="Loopoints que equivalen a $1.000"
+                    hint={
+                      validNumbers
+                        ? `Con ${formatNumber(pointsPerThousand)} loopoints para $1.000, cada loopoint equivale a ${formatPointValueCOP(pointValueCop)} al canjear.`
+                        : "Cantidad de loopoints necesarios para cubrir $1.000 en premios."
+                    }
+                    help="Define cuánto vale cada loopoint al canjear. Puedes ajustarlo manualmente o calcularlo según tu tasa de presupuesto."
+                    error={errors.pointsPerCopUnit}
+                  >
+                    <Input
+                      id="points-per-cop"
+                      inputMode="numeric"
+                      value={form.pointsPerCopUnit}
+                      onChange={(event) => update("pointsPerCopUnit", event.target.value)}
+                      aria-invalid={Boolean(errors.pointsPerCopUnit)}
+                    />
+                  </Field>
+                  {recommendedCostPerPoint !== null &&
+                    pointsPerThousand !== recommendedPointsPerThousand && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          update("pointsPerCopUnit", String(recommendedPointsPerThousand))
+                        }
+                        className="cursor-pointer text-left text-xs font-semibold text-primary underline-offset-2 hover:underline"
+                      >
+                        Calcular según tasa de presupuesto (
+                        {formatNumber(recommendedPointsPerThousand)} loopoints)
+                      </button>
+                    )}
+                </div>
                 <Field
                   id="points-expiry-days"
                   label="Vencimiento de loopoints (días)"
-                  hint="1 a 3.650 días. Los loopoints vencen por lote desde su emisión."
-                  help="Cada compra crea un lote con su propia fecha. Al vencer se descuentan primero los más antiguos."
+                  hint="Plazo en días antes de que caduquen los loopoints desde la compra que los generó (ej. 365 días = 1 año)."
+                  help="Incentiva visitas frecuentes. Cada compra crea un lote con su fecha; al vencer se descuentan primero los más antiguos."
                   error={errors.pointsExpiryDays}
                 >
                   <Input
@@ -385,26 +458,61 @@ function ProgramForm({ business, program }: { business: Business; program: Loyal
                     aria-invalid={Boolean(errors.pointsExpiryDays)}
                   />
                 </Field>
-                <Field
-                  id="budget-rate"
-                  label="Tasa de presupuesto (%)"
-                  hint="Porcentaje de las ventas que planeas destinar a recompensas."
-                  help="Es una estimación comercial para alertarte si el costo de canje supera el presupuesto."
-                  error={errors.budgetRatePercent}
-                >
-                  <Input
+                <div className="space-y-1.5">
+                  <Field
                     id="budget-rate"
-                    inputMode="decimal"
-                    value={form.budgetRatePercent}
-                    onChange={(event) => update("budgetRatePercent", event.target.value)}
-                    aria-invalid={Boolean(errors.budgetRatePercent)}
-                  />
-                </Field>
+                    label="Tasa de presupuesto (%)"
+                    hint={
+                      referenceBudget !== null
+                        ? `Porcentaje de tus ventas mensuales destinado a recompensas (recomendado: 1 % a 5 %). Equivale a ≈ ${formatCOP(referenceBudget)}/mes sobre tus ventas estimadas.`
+                        : "Porcentaje de tus ventas mensuales destinado a recompensas (recomendado: 1 % a 5 %)."
+                    }
+                    help="Es una referencia financiera para alertarte si el costo de tus premios supera lo planeado."
+                    error={errors.budgetRatePercent}
+                  >
+                    <Input
+                      id="budget-rate"
+                      inputMode="decimal"
+                      value={form.budgetRatePercent}
+                      onChange={(event) => update("budgetRatePercent", event.target.value)}
+                      aria-invalid={Boolean(errors.budgetRatePercent)}
+                    />
+                  </Field>
+                  <div className="flex flex-wrap gap-x-3 gap-y-1">
+                    {suggestedRateFromCap !== null &&
+                      parsedBudgetRatePercent !== suggestedRateFromCap && (
+                        <button
+                          type="button"
+                          onClick={() => update("budgetRatePercent", String(suggestedRateFromCap))}
+                          className="cursor-pointer text-left text-xs font-semibold text-primary underline-offset-2 hover:underline"
+                        >
+                          Ajustar al tope mensual ({suggestedRateFromCap} %)
+                        </button>
+                      )}
+                    {validNumbers &&
+                      estimatedCostRateRounded > 0 &&
+                      estimatedCostRateRounded <= 100 &&
+                      Math.abs(
+                        estimatedCostRateRounded -
+                          (Number.isFinite(parsedBudgetRatePercent) ? parsedBudgetRatePercent : 0),
+                      ) >= 0.05 && (
+                        <button
+                          type="button"
+                          onClick={() =>
+                            update("budgetRatePercent", String(estimatedCostRateRounded))
+                          }
+                          className="cursor-pointer text-left text-xs font-semibold text-primary underline-offset-2 hover:underline"
+                        >
+                          Igualar al costo de canje ({estimatedCostRateRounded} %)
+                        </button>
+                      )}
+                  </div>
+                </div>
                 <Field
                   id="qr-expiry-hours"
                   label="Vigencia del QR (horas)"
-                  hint="Tiempo que tiene el encargado para validar el canje."
-                  help="Si el QR vence, el cliente puede reemitirlo desde Mis canjes mientras la solicitud siga pendiente."
+                  hint="Tiempo máximo durante el cual el código QR de un canje o validación sigue vigente (ej. 24 horas)."
+                  help="Si el QR vence antes de validarse, el cliente puede reemitirlo desde Mis canjes mientras la solicitud siga pendiente."
                   error={errors.qrExpiryHours}
                 >
                   <Input
@@ -416,6 +524,30 @@ function ProgramForm({ business, program }: { business: Business; program: Loyal
                   />
                 </Field>
               </div>
+
+              {examplePurchasePoints !== null && (
+                <div className="space-y-1.5 rounded-none border border-primary/20 bg-primary/5 px-3.5 py-2.5 text-sm sm:px-4 sm:py-3">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="flex items-center gap-2 font-medium text-foreground">
+                      <Calculator className="size-4 shrink-0 text-primary" aria-hidden="true" />
+                      Simulación rápida en caja
+                    </span>
+                    <span className="font-mono text-xs font-bold text-primary">
+                      Compra de {formatCOP(50000)} = {formatNumber(examplePurchasePoints)} loopoints
+                      {validNumbers &&
+                        examplePurchaseCostCop !== null &&
+                        ` (costo est. ${formatCOP(examplePurchaseCostCop)})`}
+                    </span>
+                  </div>
+                  {exampleAvgTicketPoints !== null && economic.avgTicket !== null && (
+                    <p className="text-xs text-muted-foreground">
+                      En tu ticket promedio ({formatCOP(economic.avgTicket)}), el cliente sumaría{" "}
+                      <strong>{formatNumber(exampleAvgTicketPoints)} loopoint(s)</strong> por
+                      visita.
+                    </p>
+                  )}
+                </div>
+              )}
 
               <div className="space-y-3">
                 <h3 className="text-sm font-semibold">Bonos en loopoints</h3>
@@ -457,22 +589,23 @@ function ProgramForm({ business, program }: { business: Business; program: Loyal
                   </Field>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Los bonos son adicionales a los loopoints por compra. Usa 0 para desactivarlos.
+                  Los bonos suman loopoints extra en hitos clave (primera compra, recurrencia o
+                  referidos), además de los ganados por compra. Usa 0 para desactivarlos.
                 </p>
               </div>
 
-              <label className="flex items-start gap-3 rounded-lg border p-4">
+              <label className="flex items-start gap-3 rounded-none border p-3.5 sm:p-4">
                 <input
                   type="checkbox"
                   checked={form.isActive}
                   onChange={(event) => update("isActive", event.target.checked)}
-                  className="mt-0.5 size-4 rounded border-input"
+                  className="mt-0.5 size-4 cursor-pointer rounded-none border-input accent-primary"
                 />
                 <span className="space-y-1">
                   <span className="block text-sm font-semibold">Programa activo</span>
                   <span className="block text-xs text-muted-foreground">
-                    Al activarlo, los clientes afiliados podrán acumular loopoints y solicitar
-                    recompensas.
+                    Al activarlo, tus clientes afiliados podrán acumular loopoints en cada compra y
+                    solicitar recompensas.
                   </span>
                 </span>
               </label>
@@ -494,7 +627,7 @@ function ProgramForm({ business, program }: { business: Business; program: Loyal
         <div className="space-y-4">
           <Card>
             <CardHeader>
-              <CardTitle className="text-base">Equivalencia</CardTitle>
+              <CardTitle className="text-base">Equivalencia y análisis financiero</CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
               <SummaryRow
@@ -503,7 +636,7 @@ function ProgramForm({ business, program }: { business: Business; program: Loyal
               />
               <SummaryRow
                 label="Valor al canjear"
-                value={validNumbers ? `1 loopoint = ${formatCOP(pointValueCop)}` : "—"}
+                value={validNumbers ? `1 loopoint = ${formatPointValueCOP(pointValueCop)}` : "—"}
               />
               <SummaryRow
                 label="Cien loopoints"
@@ -519,29 +652,88 @@ function ProgramForm({ business, program }: { business: Business; program: Loyal
                 label="Presupuesto declarado"
                 value={
                   Number.isFinite(budgetRate)
-                    ? `${(budgetRate * 100).toFixed(1)} % de las ventas`
+                    ? `${(budgetRate * 100).toFixed(1)} % de las ventas${referenceBudget !== null ? ` (≈ ${formatCOP(referenceBudget)}/mes)` : ""}`
                     : "—"
                 }
               />
+              <div className="h-px bg-border/70" />
+              <SummaryRow
+                label="Ventas mensuales est."
+                value={
+                  economic.monthlySales !== null ? formatCOP(economic.monthlySales) : "Sin dato"
+                }
+              />
+              <SummaryRow
+                label="Presupuesto máximo usado"
+                value={maxBudget !== null ? formatCOP(maxBudget) : "Sin dato"}
+              />
+              <SummaryRow
+                label="Impacto en utilidad"
+                value={utilityAbsorptionPct !== null ? `${utilityAbsorptionPct} %` : "Sin dato"}
+              />
+              <SummaryRow
+                label="Margen tras recompensas"
+                value={netMarginAfterRewards !== null ? `${netMarginAfterRewards} %` : "Sin dato"}
+              />
+
+              <div className="space-y-1.5 border-t border-border/70 pt-2 text-xs leading-relaxed text-muted-foreground">
+                {economic.monthlyGain !== null &&
+                effectiveProgramBudget !== null &&
+                utilityAbsorptionPct !== null ? (
+                  <p>
+                    Sobre una ganancia mensual estimada de{" "}
+                    <strong className="text-foreground">{formatCOP(economic.monthlyGain)}</strong>,
+                    el programa representa aproximadamente el{" "}
+                    <strong className="text-foreground">{utilityAbsorptionPct} %</strong> de tu
+                    utilidad.
+                  </p>
+                ) : (
+                  <p>
+                    Completa la pestaña Económico (opcional) para estimar ventas mensuales y cuánto
+                    absorbe el programa de tu utilidad.
+                  </p>
+                )}
+                {economic.effectiveGrossMargin !== null && netMarginAfterRewards !== null && (
+                  <p>
+                    Con un margen bruto del{" "}
+                    <strong className="text-foreground">{economic.effectiveGrossMargin} %</strong>,
+                    tras recompensas conservarías un margen aproximado del{" "}
+                    <strong className="text-foreground">{netMarginAfterRewards} %</strong>.
+                  </p>
+                )}
+              </div>
             </CardContent>
           </Card>
 
-          {validNumbers &&
-            Number.isFinite(budgetRate) &&
-            budgetRate > 0 &&
-            (estimatedCostRate > budgetRate + 0.0005 ? (
-              <div className="flex items-start gap-2 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+          {economic.configuredMaxBudget !== null &&
+            referenceBudget !== null &&
+            referenceBudget > economic.configuredMaxBudget && (
+              <div className="flex items-start gap-2 rounded-none border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
                 <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
                 <p>
-                  El costo estimado de canje ({formatNumber(estimatedCostRate * 100)} %) supera el
-                  presupuesto declarado ({formatNumber(budgetRate * 100)} %). Ajusta la acumulación,
-                  el valor del loopoint o el presupuesto.
+                  Con esta tasa ({form.budgetRatePercent.trim()} %), el presupuesto estimado (
+                  {formatCOP(referenceBudget)}) supera el tope mensual que definiste en Económico (
+                  {formatCOP(economic.configuredMaxBudget)}).
+                </p>
+              </div>
+            )}
+
+          {validNumbers &&
+            Number.isFinite(budgetRate) &&
+            budgetRate >= 0 &&
+            (estimatedCostRate > budgetRate + 0.0005 ? (
+              <div className="flex items-start gap-2 rounded-none border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+                <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+                <p>
+                  El costo estimado de canje ({(estimatedCostRate * 100).toFixed(1)} %) supera el
+                  presupuesto declarado ({(budgetRate * 100).toFixed(1)} %). Ajusta la acumulación,
+                  el valor del loopoint o usa el cálculo automático según tu tasa.
                 </p>
               </div>
             ) : (
-              <p className="text-xs text-muted-foreground">
-                Con {formatNumber(pointsPer1000Spent)} loopoint(s) por cada $1.000 gastados y un
-                loopoint de {formatCOP(pointValueCop)}, el costo de canje estimado es{" "}
+              <p className="px-4 text-xs text-muted-foreground sm:px-0">
+                Con {formatCompactNumber(pointsPer1000Spent)} loopoint(s) por cada $1.000 gastados y
+                un loopoint de {formatPointValueCOP(pointValueCop)}, el costo de canje estimado es{" "}
                 {(estimatedCostRate * 100).toFixed(1)} % de las ventas. Es una estimación comercial,
                 no un costo contable.
               </p>

@@ -67,7 +67,7 @@ export function CustomersPage() {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-4 sm:space-y-5 animate-fade-in">
       <PageHeader
         title="Clientes"
         description={
@@ -82,14 +82,14 @@ export function CustomersPage() {
           <form onSubmit={handleSearch} className="flex flex-col gap-2 sm:flex-row">
             <div className="relative flex-1">
               <Search
-                className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+                className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
                 aria-hidden="true"
               />
               <Input
                 value={searchInput}
                 onChange={(event) => setSearchInput(event.target.value)}
                 placeholder="Buscar por nombre o correo"
-                className="pl-9"
+                className="pl-8"
                 aria-label="Buscar cliente"
               />
             </div>
@@ -282,7 +282,7 @@ export function CustomersPage() {
       )}
 
       {total > PAGE_SIZE && (
-        <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
+        <div className="flex flex-col items-center justify-between gap-3 px-4 sm:flex-row sm:px-0">
           <p className="text-sm text-muted-foreground">
             {total} clientes · página {page + 1} de {pageCount}
           </p>

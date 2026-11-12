@@ -126,7 +126,7 @@ function AuditSection({ business }: { business: Business }) {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-4 sm:space-y-5 animate-fade-in">
       <PageHeader
         title={`Auditoría — ${business.name}`}
         description="Compras, canjes, campañas y cambios de configuración explicados en lenguaje claro."
@@ -140,7 +140,7 @@ function AuditSection({ business }: { business: Business }) {
                 <Label htmlFor="audit-search">Buscar</Label>
                 <div className="relative">
                   <Search
-                    className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+                    className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
                     aria-hidden="true"
                   />
                   <Input
@@ -153,7 +153,7 @@ function AuditSection({ business }: { business: Business }) {
                       }))
                     }
                     placeholder="Recompensa, cliente, motivo…"
-                    className="pl-9"
+                    className="pl-8"
                   />
                 </div>
               </div>
@@ -206,7 +206,7 @@ function AuditSection({ business }: { business: Business }) {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 <div className="space-y-1">
                   <Label htmlFor="audit-from">Desde</Label>
                   <Input
@@ -336,7 +336,7 @@ function AuditSection({ business }: { business: Business }) {
       )}
 
       {total > 0 && (
-        <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
+        <div className="flex flex-col items-center justify-between gap-3 px-4 sm:flex-row sm:px-0">
           <p className="text-sm text-muted-foreground">
             {formatNumber(total)} {total === 1 ? "operación" : "operaciones"} · página {page + 1} de{" "}
             {pageCount}
@@ -367,7 +367,7 @@ function AuditSection({ business }: { business: Business }) {
       )}
 
       <Dialog open={Boolean(detail)} onOpenChange={(open) => !open && setDetail(null)}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+        <DialogContent className="sm:max-w-2xl">
           {detail && <AuditDetail key={detail.id} entry={detail} />}
         </DialogContent>
       </Dialog>
@@ -495,27 +495,29 @@ function AuditDetail({ entry }: { entry: BusinessAuditLog }) {
       </DialogHeader>
 
       <div className="space-y-4">
-        <div className="grid gap-3 rounded-xl border bg-muted/30 p-3 text-sm sm:grid-cols-3">
-          <div>
+        <div className="grid gap-3 rounded-none border bg-muted/30 p-3 text-sm sm:grid-cols-3">
+          <div className="min-w-0">
             <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Actor</p>
-            <p className="font-medium">{entry.actor_name || entry.actor_email || "Sistema"}</p>
+            <p className="break-words font-medium">
+              {entry.actor_name || entry.actor_email || "Sistema"}
+            </p>
             {entry.actor_name && entry.actor_email && (
               <p className="break-all text-xs text-muted-foreground">{entry.actor_email}</p>
             )}
           </div>
-          <div>
+          <div className="min-w-0">
             <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Fecha</p>
             <p className="font-medium">{formatDateTimeBogota(entry.created_at)}</p>
           </div>
-          <div>
+          <div className="min-w-0">
             <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Entidad</p>
-            <p className="font-medium">{getAuditEntityLabel(entry.entity_type)}</p>
+            <p className="break-words font-medium">{getAuditEntityLabel(entry.entity_type)}</p>
           </div>
         </div>
 
-        <div className="rounded-xl border p-3">
+        <div className="min-w-0 rounded-none border p-3">
           <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Resumen</p>
-          <p className="font-medium">{auditSubject(entry)}</p>
+          <p className="break-words font-medium">{auditSubject(entry)}</p>
         </div>
 
         {description.fields.length > 0 && (
@@ -525,7 +527,10 @@ function AuditDetail({ entry }: { entry: BusinessAuditLog }) {
             </p>
             <dl className="grid gap-2 sm:grid-cols-2">
               {description.fields.map((field) => (
-                <div key={`${field.label}-${field.value}`} className="rounded-lg border p-2.5">
+                <div
+                  key={`${field.label}-${field.value}`}
+                  className="min-w-0 rounded-none border p-2.5"
+                >
                   <dt className="text-[11px] uppercase tracking-wide text-muted-foreground">
                     {field.label}
                   </dt>
@@ -541,7 +546,7 @@ function AuditDetail({ entry }: { entry: BusinessAuditLog }) {
             <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Cambios
             </p>
-            <div className="overflow-x-auto rounded-lg border">
+            <div className="overflow-x-auto rounded-none border">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -582,7 +587,7 @@ function AuditDetail({ entry }: { entry: BusinessAuditLog }) {
             {showJson ? "Ocultar JSON" : "Ver JSON"}
           </Button>
           {showJson && (
-            <pre className="max-h-80 overflow-auto rounded-lg border bg-muted/40 p-3 text-xs">
+            <pre className="max-h-80 overflow-auto rounded-none border bg-muted/40 p-3 text-xs">
               {JSON.stringify(
                 {
                   operation: entry.operation,

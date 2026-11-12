@@ -37,12 +37,14 @@ export function CustomerDetailPage() {
   if (customer.isError || !customer.data) {
     return (
       <div className="space-y-4">
-        <Button asChild variant="ghost" size="sm">
-          <Link to="/admin/customers">
-            <ArrowLeft aria-hidden="true" />
-            Volver a clientes
-          </Link>
-        </Button>
+        <div className="px-4 sm:px-0">
+          <Button asChild variant="ghost" size="sm" className="-ml-2">
+            <Link to="/admin/customers">
+              <ArrowLeft aria-hidden="true" />
+              Volver a clientes
+            </Link>
+          </Button>
+        </div>
         <ErrorState
           error={customer.error ?? new Error("Cliente no encontrado")}
           onRetry={() => void customer.refetch()}
@@ -56,13 +58,15 @@ export function CustomerDetailPage() {
   const lastPurchaseAt = data.last_purchase_at ?? null;
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <Button asChild variant="ghost" size="sm" className="-ml-2">
-        <Link to="/admin/customers">
-          <ArrowLeft aria-hidden="true" />
-          Volver a clientes
-        </Link>
-      </Button>
+    <div className="space-y-4 sm:space-y-5 animate-fade-in">
+      <div className="px-4 sm:px-0">
+        <Button asChild variant="ghost" size="sm" className="-ml-2">
+          <Link to="/admin/customers">
+            <ArrowLeft aria-hidden="true" />
+            Volver a clientes
+          </Link>
+        </Button>
+      </div>
 
       <PageHeader
         title={data.profile.full_name || "Cliente sin nombre"}
@@ -90,7 +94,7 @@ export function CustomerDetailPage() {
             </p>
             <p
               data-testid="customer-points-balance"
-              className="mt-1 font-display text-6xl font-extrabold leading-none text-amber-300"
+              className="mt-1 break-all font-display text-6xl font-extrabold leading-none text-amber-300"
             >
               {balance}
             </p>

@@ -3,11 +3,13 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { ProgramPage } from "@/features/admin/ProgramPage";
-import type { Business, LoyaltyProgram } from "@/types";
+import type { Business, BusinessEconomicProfile, LoyaltyProgram } from "@/types";
 
 const configure = vi.hoisted(() => vi.fn());
 const expirePoints = vi.hoisted(() => vi.fn());
 const programData = vi.hoisted(() => ({ current: null as LoyaltyProgram | null }));
+const economicData = vi.hoisted(() => ({ current: null as BusinessEconomicProfile | null }));
+const economicErrorState = vi.hoisted(() => ({ isError: false }));
 
 const fixture = vi.hoisted(() => ({
   business: {
@@ -61,6 +63,13 @@ vi.mock("@/features/loyalty/hooks", () => ({
     error: null,
     refetch: vi.fn(),
   }),
+  useBusinessEconomicProfile: () => ({
+    data: economicData.current,
+    isLoading: false,
+    isError: economicErrorState.isError,
+    error: economicErrorState.isError ? new Error("Fallo económico") : null,
+    refetch: vi.fn(),
+  }),
   useConfigureLoyaltyProgram: () => ({ mutateAsync: configure, isPending: false }),
   useExpirePointsDue: () => ({ mutateAsync: expirePoints, isPending: false }),
   useUpdateFrequentCriteria: () => ({
@@ -90,7 +99,10 @@ function renderPage() {
 describe("ProgramPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    window.localStorage.clear();
     programData.current = unconfiguredProgram();
+    economicData.current = null;
+    economicErrorState.isError = false;
     configure.mockResolvedValue(unconfiguredProgram());
   });
 
@@ -145,5 +157,102 @@ describe("ProgramPage", () => {
 
     expect(await screen.findByText(/el mínimo es 1/i)).toBeInTheDocument();
     expect(configure).not.toHaveBeenCalled();
+  });
+
+  it("interpreta separadores de miles y coma decimal y calcula loopoints según la tasa", async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    const copInput = screen.getByLabelText("COP por loopoint ganado");
+    await user.clear(copInput);
+    await user.type(copInput, "2.000");
+
+    const budget = screen.getByLabelText("Tasa de presupuesto (%)");
+    await user.clear(budget);
+    await user.type(budget, "2,5");
+
+    await user.click(
+      screen.getByRole("button", { name: /Calcular según tasa de presupuesto \(20 loopoints\)/i }),
+    );
+    expect(screen.getByLabelText("Loopoints que equivalen a $1.000")).toHaveValue("20");
+
+    await user.click(screen.getByRole("button", { name: "Guardar programa" }));
+
+    await waitFor(() => expect(configure).toHaveBeenCalledTimes(1));
+    expect(configure).toHaveBeenCalledWith(
+      expect.objectContaining({
+        copPerPointUnit: 2000,
+        pointsPerCopUnit: 20,
+        budgetRate: 0.025,
+      }),
+    );
+  });
+
+  it("integra datos económicos en la tasa sugerida, simulación en caja e impacto financiero", () => {
+    economicData.current = {
+      id: "eco-1",
+      business_id: "biz-1",
+      daily_avg_sales: 200000,
+      monthly_operation_days: 26,
+      daily_gain: 60000,
+      gross_margin: 30,
+      avg_customers_per_day: 20,
+      max_monthly_reward_budget: 104000,
+      data_status: {
+        daily_avg_sales: "confirmed",
+        monthly_operation_days: "confirmed",
+        daily_gain: "confirmed",
+        gross_margin: "confirmed",
+        avg_customers_per_day: "confirmed",
+        max_monthly_reward_budget: "confirmed",
+      },
+      updated_by: "user-admin",
+      updated_at: "2026-10-24T12:00:00.000Z",
+    };
+
+    renderPage();
+
+    expect(screen.getByLabelText("Tasa de presupuesto (%)")).toHaveValue("2");
+    expect(screen.getByText(/Simulación rápida en caja/)).toBeInTheDocument();
+    expect(screen.getByText(/En tu ticket promedio \(\$ 10\.000\)/)).toBeInTheDocument();
+    expect(screen.getByText(/5\.200\.000/)).toBeInTheDocument();
+    expect(screen.getAllByText(/6\.7 %/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/28\.0 %/).length).toBeGreaterThan(0);
+  });
+
+  it("muestra alerta incluso con tasa 0 % y formatea valores menores a 1 sin redondear a 0", async () => {
+    const user = userEvent.setup();
+    economicErrorState.isError = true;
+    renderPage();
+
+    expect(screen.getByText(/No pudimos cargar tus datos económicos/i)).toBeInTheDocument();
+
+    const budgetInput = screen.getByLabelText("Tasa de presupuesto (%)");
+    await user.clear(budgetInput);
+    await user.type(budgetInput, "0");
+
+    expect(
+      screen.getByText(
+        /El costo estimado de canje \(1\.0 %\) supera el presupuesto declarado \(0\.0 %\)/i,
+      ),
+    ).toBeInTheDocument();
+
+    const copInput = screen.getByLabelText("COP por loopoint ganado");
+    await user.clear(copInput);
+    await user.type(copInput, "3000");
+
+    const pointsInput = screen.getByLabelText("Loopoints que equivalen a $1.000");
+    await user.clear(pointsInput);
+    await user.type(pointsInput, "5000");
+
+    expect(screen.getAllByText(/0,20/).length).toBeGreaterThan(0);
+    expect(screen.getByText(/0,33 loopoint\(s\)/)).toBeInTheDocument();
+
+    await user.clear(pointsInput);
+    await user.type(pointsInput, "100");
+    await user.click(
+      screen.getByRole("button", { name: /Igualar al costo de canje \(0\.33 %\)/i }),
+    );
+    expect(budgetInput).toHaveValue("0.33");
   });
 });

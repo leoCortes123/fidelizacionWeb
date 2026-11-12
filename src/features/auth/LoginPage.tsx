@@ -1,30 +1,42 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowLeft, Building2, Loader2, UserRound } from "lucide-react";
+import {
+  ArrowLeft,
+  Building2,
+  Check,
+  Eye,
+  EyeOff,
+  Gift,
+  Loader2,
+  QrCode,
+  ShieldCheck,
+  Sparkles,
+  TrendingUp,
+  UserRound,
+} from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Brand } from "@/components/shared/Brand";
 import { useAuth } from "./AuthProvider";
 import { brandName, brandTagline, isSupabaseConfigured, safeNextPath } from "@/lib/config";
 import { clearPendingClaim } from "@/lib/pendingClaim";
 import { resolvePostLoginPath } from "@/lib/postLogin";
 import { errorMessage } from "@/lib/errors";
-import "./LandingPage.css";
+import { cn } from "@/lib/utils";
 
 export type AccountType = "customer" | "admin";
 
-function PixelHeartIcon() {
-  return (
-    <svg viewBox="0 0 8 7" className="pixel-heart" shapeRendering="crispEdges" aria-hidden="true">
-      <path fill="#e6533f" d="M1 0h2v1h2V0h2v1h1v2H7v1H6v1H5v1H3V5H2V4H1V3H0V1h1V0z" />
-      <path fill="#ffd166" d="M1 1h1v1H1V1z" />
-    </svg>
-  );
-}
+type FieldErrors = {
+  fullName?: string;
+  email?: string;
+  password?: string;
+};
 
 function GoogleIcon() {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true" className="size-4">
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="size-4 shrink-0">
       <path
         fill="#4285F4"
         d="M21.6 12.23c0-.71-.06-1.4-.18-2.07H12v3.92h5.38a4.6 4.6 0 0 1-2 3.02v2.51h3.24c1.9-1.75 2.98-4.33 2.98-7.38Z"
@@ -60,11 +72,14 @@ export function LoginPage() {
     signInWithPassword,
     signUpWithPassword,
   } = useAuth();
+
+  const modeParam = params.get("mode");
+  const roleParam = params.get("role") ?? params.get("account");
+
   const [mode, setMode] = useState<"login" | "register">(
-    params.get("mode") === "register" ? "register" : "login",
+    modeParam === "register" ? "register" : "login",
   );
   const [accountType, setAccountType] = useState<AccountType>(() => {
-    const roleParam = params.get("role") ?? params.get("account");
     if (
       roleParam === "admin" ||
       next.startsWith("/business/register") ||
@@ -74,29 +89,56 @@ export function LoginPage() {
     }
     return "customer";
   });
+
+  useEffect(() => {
+    if (modeParam === "register" || modeParam === "login") {
+      setMode(modeParam);
+    }
+  }, [modeParam]);
+
+  useEffect(() => {
+    if (
+      roleParam === "admin" ||
+      next.startsWith("/business/register") ||
+      next.startsWith("/admin")
+    ) {
+      setAccountType("admin");
+    } else if (roleParam === "customer") {
+      setAccountType("customer");
+    }
+  }, [roleParam, next]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [notice, setNotice] = useState<string | null>(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
+  const errorBannerRef = useRef<HTMLDivElement>(null);
+  const loginTabRef = useRef<HTMLButtonElement>(null);
+  const registerTabRef = useRef<HTMLButtonElement>(null);
+  const customerRadioRef = useRef<HTMLButtonElement>(null);
+  const adminRadioRef = useRef<HTMLButtonElement>(null);
+
+  const isGenericAdminHome = next === "/admin" || next === "/admin/dashboard";
   const effectiveNext =
     mode === "register"
       ? accountType === "admin"
-        ? next.startsWith("/admin") || next.startsWith("/business")
+        ? next.startsWith("/admin/onboarding") || next.startsWith("/business")
           ? next
-          : "/business/register"
+          : "/admin/onboarding"
         : next.startsWith("/admin") || next.startsWith("/business")
           ? "/customer"
           : next
       : next;
 
   useEffect(() => {
-    if (!hasNextParam) {
+    if (!hasNextParam || !next.startsWith("/claim/")) {
       clearPendingClaim();
     }
-  }, [hasNextParam]);
+  }, [hasNextParam, next]);
 
   useEffect(() => {
     if (loading || !session || rolesLoading || !rolesLoaded) return;
@@ -104,7 +146,7 @@ export function LoginPage() {
       navigate(effectiveNext, { replace: true });
       return;
     }
-    if (hasNextParam && next !== "/customer") {
+    if (hasNextParam && next !== "/customer" && !isGenericAdminHome) {
       navigate(next, { replace: true });
       return;
     }
@@ -124,21 +166,45 @@ export function LoginPage() {
     next,
     effectiveNext,
     hasNextParam,
+    isGenericAdminHome,
     mode,
     navigate,
   ]);
 
+  function focusErrorBanner() {
+    window.requestAnimationFrame(() => {
+      errorBannerRef.current?.focus();
+    });
+  }
+
+  function validateField(field: keyof FieldErrors, value: string): string | undefined {
+    if (field === "fullName" && mode === "register") {
+      if (value.trim().length > 0 && value.trim().length < 2) {
+        return "Escribe tu nombre (mínimo 2 caracteres).";
+      }
+    }
+    if (field === "email" && value.trim().length > 0 && !value.includes("@")) {
+      return "Escribe un correo válido.";
+    }
+    if (field === "password" && value.length > 0 && value.length < 6) {
+      return "La contraseña debe tener al menos 6 caracteres.";
+    }
+    return undefined;
+  }
+
   async function handleGoogle() {
     setSubmitting(true);
     setError(null);
+    setFieldErrors({});
     try {
       if (mode === "register") {
         await signInWithGoogle(effectiveNext, accountType);
       } else {
-        await signInWithGoogle(effectiveNext);
+        await signInWithGoogle(hasNextParam ? effectiveNext : undefined);
       }
     } catch (submitError) {
       setError(errorMessage(submitError));
+      focusErrorBanner();
       setSubmitting(false);
     }
   }
@@ -147,19 +213,31 @@ export function LoginPage() {
     event.preventDefault();
     setError(null);
     setNotice(null);
+
+    const nextFieldErrors: FieldErrors = {};
+    if (mode === "register" && fullName.trim().length < 2) {
+      nextFieldErrors.fullName = "Escribe tu nombre para personalizar tu cuenta.";
+    }
     if (!email.includes("@")) {
-      setError("Escribe un correo válido.");
-      return;
+      nextFieldErrors.email = "Escribe un correo válido.";
     }
     if (password.length < 6) {
-      setError("La contraseña debe tener al menos 6 caracteres.");
-      return;
+      nextFieldErrors.password = "La contraseña debe tener al menos 6 caracteres.";
     }
-    if (mode === "register" && fullName.trim().length < 2) {
-      setError("Escribe tu nombre para personalizar tu cuenta.");
+
+    if (Object.keys(nextFieldErrors).length > 0) {
+      setFieldErrors(nextFieldErrors);
+      setError(
+        nextFieldErrors.email ??
+          nextFieldErrors.password ??
+          nextFieldErrors.fullName ??
+          "Revisa los campos marcados.",
+      );
+      focusErrorBanner();
       return;
     }
 
+    setFieldErrors({});
     setSubmitting(true);
     try {
       if (mode === "login") {
@@ -178,6 +256,7 @@ export function LoginPage() {
       }
     } catch (submitError) {
       setError(errorMessage(submitError));
+      focusErrorBanner();
     } finally {
       setSubmitting(false);
     }
@@ -187,229 +266,537 @@ export function LoginPage() {
     setMode(nextMode);
     setError(null);
     setNotice(null);
+    setFieldErrors({});
+  }
+
+  function handleTabKeyDown(event: React.KeyboardEvent, current: "login" | "register") {
+    if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+    event.preventDefault();
+    const nextMode = current === "login" ? "register" : "login";
+    switchMode(nextMode);
+    (nextMode === "login" ? loginTabRef : registerTabRef).current?.focus();
+  }
+
+  function handleRadioKeyDown(event: React.KeyboardEvent, current: AccountType) {
+    if (
+      event.key !== "ArrowLeft" &&
+      event.key !== "ArrowRight" &&
+      event.key !== "ArrowUp" &&
+      event.key !== "ArrowDown"
+    ) {
+      return;
+    }
+    event.preventDefault();
+    const nextType: AccountType = current === "customer" ? "admin" : "customer";
+    setAccountType(nextType);
+    (nextType === "customer" ? customerRadioRef : adminRadioRef).current?.focus();
   }
 
   const brand = brandName || "Loopoint";
+  const isBusinessRegister = mode === "register" && accountType === "admin";
 
   return (
-    <div className="retro-landing retro-auth">
-      <header className="retro-header">
-        <div className="wrap nav">
-          <Link className="brand" to="/" aria-label={`${brand}, ir al inicio`}>
-            <span className="brand-mark" aria-hidden="true">
-              <img src="/loopoint-coin.png" alt="" width={26} height={26} className="brand-coin" />
-            </span>
-            <span className="brand-text">
-              {brand.toLowerCase()}
-              <span className="brand-dot">.</span>
-            </span>
-          </Link>
-          <div className="nav-actions">
-            <Link className="btn btn-light" to="/">
-              <ArrowLeft className="size-4" aria-hidden="true" />
+    <div className="flex min-h-dvh flex-col bg-background text-foreground">
+      <header className="sticky top-0 z-20 border-b border-border/80 bg-card/85 backdrop-blur-md">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
+          <Brand linkTo="/" />
+          <Button variant="outline" size="sm" asChild className="shrink-0">
+            <Link to="/">
+              <ArrowLeft aria-hidden="true" />
               Volver al inicio
             </Link>
-          </div>
+          </Button>
         </div>
       </header>
 
-      <main className="auth-main">
-        <div className="auth-shell">
-          <div className="pixel-window auth-window">
-            <div className="window-bar">
-              <span className="window-title">
-                <span className="window-led" aria-hidden="true" />{" "}
-                {mode === "login" ? "PLAYER LOGIN" : "NEW PLAYER"}
-              </span>
-              <span className="window-hearts" aria-hidden="true">
-                <PixelHeartIcon />
-                <PixelHeartIcon />
-                <PixelHeartIcon />
-              </span>
-            </div>
+      <main className="grid flex-1 lg:grid-cols-12">
+        {/* Panel editorial izquierdo (desktop) */}
+        <section
+          aria-label={`Beneficios de ${brand}`}
+          className="relative hidden overflow-hidden bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 p-10 text-white lg:col-span-5 lg:flex lg:flex-col lg:justify-between xl:p-14"
+        >
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -left-24 -top-24 size-80 rounded-full bg-blue-500/20 blur-3xl"
+          />
+          <div
+            aria-hidden="true"
+            className="pointer-events-none absolute -bottom-24 -right-24 size-80 rounded-full bg-amber-400/15 blur-3xl"
+          />
 
-            <div className="window-body">
-              <div className="auth-head">
-                <div className="kicker">
-                  {mode === "login" ? "★ INSERT COIN · ACCESO" : "✦ SELECT YOUR MODE"}
-                </div>
-                <h1 className="auth-title">
-                  {mode === "login" ? "Entra a tus loopoints" : "Crea tu cuenta"}
-                </h1>
-                <p className="auth-subtitle">
-                  {mode === "login"
-                    ? "Revisa tu saldo y tus recompensas desde el teléfono."
-                    : accountType === "admin"
-                      ? "Crea tu cuenta de administrador para registrar y gestionar tu negocio."
-                      : "Regístrate en segundos para empezar a acumular."}
-                </p>
-              </div>
+          <div className="relative space-y-6">
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold text-blue-100 backdrop-blur-sm">
+              <Sparkles className="size-3.5 text-amber-300" aria-hidden="true" />
+              {isBusinessRegister
+                ? "Portal para negocios"
+                : mode === "register"
+                  ? "Empieza en menos de un minuto"
+                  : "Tu billetera de recompensas"}
+            </span>
 
-              <div className="auth-stack">
-                {!isSupabaseConfigured && (
-                  <Alert variant="warning">
-                    <AlertTitle>Configuración pendiente</AlertTitle>
-                    <AlertDescription>
-                      Define las variables de Supabase en <code>.env</code> para habilitar el inicio
-                      de sesión. Consulta <code>docs/CONFIGURACION.md</code>.
-                    </AlertDescription>
-                  </Alert>
-                )}
-
-                {error && (
-                  <Alert variant="destructive">
-                    <AlertTitle>No se pudo continuar</AlertTitle>
-                    <AlertDescription>{error}</AlertDescription>
-                  </Alert>
-                )}
-
-                {notice && (
-                  <Alert variant="success">
-                    <AlertTitle>Cuenta creada</AlertTitle>
-                    <AlertDescription>{notice}</AlertDescription>
-                  </Alert>
-                )}
-
-                {mode === "register" && (
-                  <div className="account-type-group" role="radiogroup" aria-label="Tipo de cuenta">
-                    <span className="account-type-label">Tipo de cuenta</span>
-                    <div className="account-type-grid">
-                      <button
-                        type="button"
-                        role="radio"
-                        aria-checked={accountType === "customer"}
-                        className={`account-type-card customer ${
-                          accountType === "customer" ? "active" : ""
-                        }`}
-                        onClick={() => setAccountType("customer")}
-                      >
-                        <div className="account-type-top">
-                          <span className="account-type-tag">PLAYER 1</span>
-                          <UserRound className="size-4" aria-hidden="true" />
-                        </div>
-                        <span className="account-type-name">Cliente</span>
-                        <span className="account-type-desc">
-                          Acumula loopoints y canjea premios
-                        </span>
-                      </button>
-
-                      <button
-                        type="button"
-                        role="radio"
-                        aria-checked={accountType === "admin"}
-                        className={`account-type-card admin ${
-                          accountType === "admin" ? "active" : ""
-                        }`}
-                        onClick={() => setAccountType("admin")}
-                      >
-                        <div className="account-type-top">
-                          <span className="account-type-tag">PLAYER 2</span>
-                          <Building2 className="size-4" aria-hidden="true" />
-                        </div>
-                        <span className="account-type-name">Administrador</span>
-                        <span className="account-type-desc">Registra y administra tu negocio</span>
-                      </button>
-                    </div>
-                  </div>
-                )}
-
-                <button
-                  type="button"
-                  className="btn btn-light auth-btn-full"
-                  onClick={handleGoogle}
-                  disabled={submitting || loading}
-                >
-                  {submitting ? (
-                    <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                  ) : (
-                    <GoogleIcon />
-                  )}
-                  Continuar con Google
-                </button>
-
-                <div className="auth-divider">o con tu correo</div>
-
-                <form onSubmit={handleSubmit} className="retro-form">
-                  {mode === "register" && (
-                    <div className="retro-field">
-                      <Label htmlFor="full-name" className="retro-label">
-                        Nombre
-                      </Label>
-                      <Input
-                        id="full-name"
-                        autoComplete="name"
-                        value={fullName}
-                        onChange={(event) => setFullName(event.target.value)}
-                        placeholder={
-                          accountType === "admin" ? "Nombre del administrador" : "Tu nombre"
-                        }
-                        className="retro-input"
-                        required
-                      />
-                    </div>
-                  )}
-                  <div className="retro-field">
-                    <Label htmlFor="email" className="retro-label">
-                      Correo
-                    </Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      inputMode="email"
-                      autoComplete="email"
-                      value={email}
-                      onChange={(event) => setEmail(event.target.value)}
-                      placeholder="tu@correo.com"
-                      className="retro-input"
-                      required
-                    />
-                  </div>
-                  <div className="retro-field">
-                    <Label htmlFor="password" className="retro-label">
-                      Contraseña
-                    </Label>
-                    <Input
-                      id="password"
-                      type="password"
-                      autoComplete={mode === "login" ? "current-password" : "new-password"}
-                      value={password}
-                      onChange={(event) => setPassword(event.target.value)}
-                      placeholder="Mínimo 6 caracteres"
-                      minLength={6}
-                      className="retro-input"
-                      required
-                    />
-                  </div>
-
-                  <button type="submit" className="btn btn-red auth-btn-full" disabled={submitting}>
-                    {submitting && <Loader2 className="size-4 animate-spin" aria-hidden="true" />}
-                    {mode === "login"
-                      ? "Entrar con correo"
-                      : accountType === "admin"
-                        ? "Crear cuenta de administrador"
-                        : "Crear cuenta"}
-                  </button>
-                </form>
-
-                <p className="auth-switch">
-                  {mode === "login" ? "¿No tienes cuenta?" : "¿Ya tienes cuenta?"}{" "}
-                  <button
-                    type="button"
-                    className="retro-link-btn"
-                    onClick={() => switchMode(mode === "login" ? "register" : "login")}
-                  >
-                    {mode === "login" ? "Regístrate" : "Inicia sesión"}
-                  </button>
-                </p>
-              </div>
+            <div className="space-y-3">
+              <h2 className="font-display text-3xl font-extrabold leading-tight tracking-tight xl:text-4xl">
+                {isBusinessRegister
+                  ? "Convierte cada venta en clientes que vuelven."
+                  : "Cada compra suma loopoints y te acerca a un premio."}
+              </h2>
+              <p className="max-w-md text-sm leading-relaxed text-slate-300">
+                {isBusinessRegister
+                  ? "Configura tus reglas en pesos colombianos, controla el presupuesto de recompensas y valida canjes con QR desde cualquier celular."
+                  : "Consulta tus saldos separados por negocio, revisa tus compras y canjea recompensas al instante sin tarjetas físicas."}
+              </p>
             </div>
           </div>
 
-          <p className="auth-legal">
-            {brandTagline} · Al entrar aceptas que guardemos tu nombre y correo para asociar tus
-            compras. No pedimos datos de tarjetas.
-          </p>
-        </div>
+          <div className="relative my-8 rounded-none border border-white/15 bg-white/10 p-5 shadow-2xl backdrop-blur-md">
+            {isBusinessRegister ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <span className="grid size-9 place-items-center rounded-none bg-amber-400 text-slate-950">
+                      <TrendingUp className="size-4" aria-hidden="true" />
+                    </span>
+                    <div>
+                      <p className="text-xs font-medium text-blue-200">Resumen del programa</p>
+                      <p className="text-sm font-bold text-white">Panel operativo en vivo</p>
+                    </div>
+                  </div>
+                  <span className="rounded-full bg-emerald-400/20 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-300">
+                    Activo
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="rounded-none border border-white/10 bg-slate-950/40 p-3">
+                    <p className="text-[11px] text-slate-300">Regla sugerida</p>
+                    <p className="mt-1 font-mono text-sm font-bold text-amber-300">
+                      1 PTO / $1.000
+                    </p>
+                  </div>
+                  <div className="rounded-none border border-white/10 bg-slate-950/40 p-3">
+                    <p className="text-[11px] text-slate-300">Acreditación</p>
+                    <p className="mt-1 font-mono text-sm font-bold text-cyan-300">QR en caja</p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <img
+                      src="/loopoint-coin.png"
+                      alt=""
+                      width={34}
+                      height={34}
+                      className="size-8 rounded-none object-contain"
+                      aria-hidden="true"
+                    />
+                    <div>
+                      <p className="text-[11px] uppercase tracking-wider text-blue-200">
+                        Saldo disponible
+                      </p>
+                      <p className="font-display text-xl font-extrabold tabular-nums text-white">
+                        1.250 loopoints
+                      </p>
+                    </div>
+                  </div>
+                  <span className="rounded-full bg-amber-400/20 px-2.5 py-0.5 text-[11px] font-semibold text-amber-300">
+                    72% meta
+                  </span>
+                </div>
+                <div className="h-2 w-full overflow-hidden rounded-full bg-white/15">
+                  <div className="h-full w-[72%] rounded-full bg-gradient-to-r from-amber-400 to-cyan-400" />
+                </div>
+                <div className="flex items-center justify-between text-xs text-slate-300">
+                  <span>Próximo premio: Café gratis</span>
+                  <span className="font-mono text-emerald-300">2.000 pts</span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <ul className="relative space-y-3 text-xs text-slate-300">
+            <li className="flex items-center gap-2.5">
+              <QrCode className="size-4 shrink-0 text-cyan-300" aria-hidden="true" />
+              <span>Escanea códigos QR de venta o canje directamente desde tu navegador.</span>
+            </li>
+            <li className="flex items-center gap-2.5">
+              <Gift className="size-4 shrink-0 text-amber-300" aria-hidden="true" />
+              <span>Tus saldos de cada comercio se mantienen ordenados y separados.</span>
+            </li>
+            <li className="flex items-center gap-2.5">
+              <ShieldCheck className="size-4 shrink-0 text-emerald-300" aria-hidden="true" />
+              <span>Acceso seguro con Google o correo, compatible con gestores de claves.</span>
+            </li>
+          </ul>
+        </section>
+
+        {/* Formulario principal derecho */}
+        <section className="flex items-center justify-center px-0 py-4 sm:px-8 sm:py-8 lg:col-span-7 lg:py-12">
+          <div className="w-full max-w-[460px] space-y-4 sm:space-y-5">
+            <div className="rounded-none border border-border/80 bg-card p-4 shadow-[0_8px_30px_rgba(15,23,42,0.06)] dark:border-slate-800 sm:p-8">
+              <div
+                role="tablist"
+                aria-label="Modo de acceso"
+                className="mb-5 grid grid-cols-2 gap-1 rounded-none bg-muted p-1"
+              >
+                <button
+                  ref={loginTabRef}
+                  id="tab-login"
+                  type="button"
+                  role="tab"
+                  aria-selected={mode === "login"}
+                  aria-controls="auth-tabpanel"
+                  tabIndex={mode === "login" ? 0 : -1}
+                  onClick={() => switchMode("login")}
+                  onKeyDown={(event) => handleTabKeyDown(event, "login")}
+                  className={cn(
+                    "min-h-9 cursor-pointer rounded-none px-3 py-1.5 text-sm font-semibold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                    mode === "login"
+                      ? "bg-card text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  Iniciar sesión
+                </button>
+                <button
+                  ref={registerTabRef}
+                  id="tab-register"
+                  type="button"
+                  role="tab"
+                  aria-selected={mode === "register"}
+                  aria-controls="auth-tabpanel"
+                  tabIndex={mode === "register" ? 0 : -1}
+                  onClick={() => switchMode("register")}
+                  onKeyDown={(event) => handleTabKeyDown(event, "register")}
+                  className={cn(
+                    "min-h-9 cursor-pointer rounded-none px-3 py-1.5 text-sm font-semibold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                    mode === "register"
+                      ? "bg-card text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  Registro
+                </button>
+              </div>
+
+              <div
+                id="auth-tabpanel"
+                role="tabpanel"
+                aria-labelledby={mode === "login" ? "tab-login" : "tab-register"}
+              >
+                <div className="mb-6 space-y-1.5">
+                  <span className="lp-section-kicker">
+                    {mode === "login"
+                      ? "Acceso a tu cuenta"
+                      : accountType === "admin"
+                        ? "Registro de administrador"
+                        : "Registro de cliente"}
+                  </span>
+                  <h1 className="font-display text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
+                    {mode === "login" ? "Entra a tus loopoints" : "Crea tu cuenta"}
+                  </h1>
+                  <p className="text-sm leading-relaxed text-muted-foreground">
+                    {mode === "login"
+                      ? "Revisa tu saldo y tus recompensas desde el teléfono."
+                      : accountType === "admin"
+                        ? "Crea tu cuenta de administrador para registrar y gestionar tu negocio."
+                        : "Regístrate en segundos para empezar a acumular."}
+                  </p>
+                </div>
+
+                <div className="space-y-5">
+                  {!isSupabaseConfigured && (
+                    <Alert variant="warning">
+                      <AlertTitle>Configuración pendiente</AlertTitle>
+                      <AlertDescription>
+                        Define las variables de Supabase en <code>.env</code> para habilitar el
+                        inicio de sesión. Consulta <code>docs/CONFIGURACION.md</code>.
+                      </AlertDescription>
+                    </Alert>
+                  )}
+
+                  {error && (
+                    <div
+                      ref={errorBannerRef}
+                      tabIndex={-1}
+                      className="rounded-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive"
+                    >
+                      <Alert variant="destructive">
+                        <AlertTitle>No se pudo continuar</AlertTitle>
+                        <AlertDescription>{error}</AlertDescription>
+                      </Alert>
+                    </div>
+                  )}
+
+                  {notice && (
+                    <Alert variant="success">
+                      <AlertTitle>Cuenta creada</AlertTitle>
+                      <AlertDescription>{notice}</AlertDescription>
+                    </Alert>
+                  )}
+
+                  {mode === "register" && (
+                    <div className="space-y-2" role="radiogroup" aria-label="Tipo de cuenta">
+                      <span className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                        Tipo de cuenta
+                      </span>
+                      <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                        <button
+                          ref={customerRadioRef}
+                          type="button"
+                          role="radio"
+                          aria-checked={accountType === "customer"}
+                          tabIndex={accountType === "customer" ? 0 : -1}
+                          onClick={() => setAccountType("customer")}
+                          onKeyDown={(event) => handleRadioKeyDown(event, "customer")}
+                          className={cn(
+                            "relative flex cursor-pointer flex-col gap-1.5 rounded-none border p-3.5 text-left transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                            accountType === "customer"
+                              ? "border-emerald-600 bg-emerald-50/70 text-emerald-950 shadow-sm ring-1 ring-emerald-600/20 dark:border-emerald-500 dark:bg-emerald-950/35 dark:text-emerald-50"
+                              : "border-border bg-background/60 text-foreground hover:border-slate-300 hover:bg-muted/50 dark:hover:border-slate-700",
+                          )}
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <span
+                              className={cn(
+                                "grid size-8 place-items-center rounded-none",
+                                accountType === "customer"
+                                  ? "bg-emerald-600 text-white"
+                                  : "bg-muted text-muted-foreground",
+                              )}
+                            >
+                              <UserRound className="size-4" aria-hidden="true" />
+                            </span>
+                            {accountType === "customer" && (
+                              <span className="grid size-5 place-items-center rounded-full bg-emerald-600 text-white">
+                                <Check className="size-3" aria-hidden="true" />
+                              </span>
+                            )}
+                          </div>
+                          <span className="font-display text-sm font-bold">Cliente</span>
+                          <span className="text-xs leading-snug text-muted-foreground dark:text-slate-300">
+                            Acumula loopoints y canjea premios
+                          </span>
+                        </button>
+
+                        <button
+                          ref={adminRadioRef}
+                          type="button"
+                          role="radio"
+                          aria-checked={accountType === "admin"}
+                          tabIndex={accountType === "admin" ? 0 : -1}
+                          onClick={() => setAccountType("admin")}
+                          onKeyDown={(event) => handleRadioKeyDown(event, "admin")}
+                          className={cn(
+                            "relative flex cursor-pointer flex-col gap-1.5 rounded-none border p-3.5 text-left transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                            accountType === "admin"
+                              ? "border-primary bg-primary/5 text-foreground shadow-sm ring-1 ring-primary/20 dark:bg-primary/15"
+                              : "border-border bg-background/60 text-foreground hover:border-slate-300 hover:bg-muted/50 dark:hover:border-slate-700",
+                          )}
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <span
+                              className={cn(
+                                "grid size-8 place-items-center rounded-none",
+                                accountType === "admin"
+                                  ? "bg-primary text-primary-foreground"
+                                  : "bg-muted text-muted-foreground",
+                              )}
+                            >
+                              <Building2 className="size-4" aria-hidden="true" />
+                            </span>
+                            {accountType === "admin" && (
+                              <span className="grid size-5 place-items-center rounded-full bg-primary text-primary-foreground">
+                                <Check className="size-3" aria-hidden="true" />
+                              </span>
+                            )}
+                          </div>
+                          <span className="font-display text-sm font-bold">Administrador</span>
+                          <span className="text-xs leading-snug text-muted-foreground dark:text-slate-300">
+                            Registra y administra tu negocio
+                          </span>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    onClick={handleGoogle}
+                    disabled={submitting || loading}
+                  >
+                    {submitting ? (
+                      <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                    ) : (
+                      <GoogleIcon />
+                    )}
+                    Continuar con Google
+                  </Button>
+
+                  <div className="relative flex items-center gap-3">
+                    <div className="h-px flex-1 bg-border" />
+                    <span className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      o con tu correo
+                    </span>
+                    <div className="h-px flex-1 bg-border" />
+                  </div>
+
+                  <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+                    {mode === "register" && (
+                      <div className="space-y-1.5">
+                        <Label htmlFor="full-name">Nombre</Label>
+                        <Input
+                          id="full-name"
+                          name="name"
+                          autoComplete="name"
+                          value={fullName}
+                          onChange={(event) => {
+                            setFullName(event.target.value);
+                            if (fieldErrors.fullName) {
+                              setFieldErrors((current) => ({ ...current, fullName: undefined }));
+                            }
+                          }}
+                          onBlur={() => {
+                            const msg = validateField("fullName", fullName);
+                            if (msg) setFieldErrors((current) => ({ ...current, fullName: msg }));
+                          }}
+                          placeholder={
+                            accountType === "admin" ? "Nombre del administrador" : "Tu nombre"
+                          }
+                          aria-invalid={Boolean(fieldErrors.fullName)}
+                          aria-describedby={fieldErrors.fullName ? "full-name-error" : undefined}
+                          required
+                        />
+                        {fieldErrors.fullName && (
+                          <p
+                            id="full-name-error"
+                            aria-live="polite"
+                            className="text-xs font-medium text-destructive dark:text-red-400"
+                          >
+                            {fieldErrors.fullName}
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    <div className="space-y-1.5">
+                      <Label htmlFor="email">Correo</Label>
+                      <Input
+                        id="email"
+                        name="email"
+                        type="email"
+                        inputMode="email"
+                        autoComplete="email"
+                        value={email}
+                        onChange={(event) => {
+                          setEmail(event.target.value);
+                          if (fieldErrors.email) {
+                            setFieldErrors((current) => ({ ...current, email: undefined }));
+                          }
+                        }}
+                        onBlur={() => {
+                          const msg = validateField("email", email);
+                          if (msg) setFieldErrors((current) => ({ ...current, email: msg }));
+                        }}
+                        placeholder="tu@correo.com"
+                        aria-invalid={Boolean(fieldErrors.email)}
+                        aria-describedby={fieldErrors.email ? "email-error" : undefined}
+                        required
+                      />
+                      {fieldErrors.email && (
+                        <p
+                          id="email-error"
+                          aria-live="polite"
+                          className="text-xs font-medium text-destructive dark:text-red-400"
+                        >
+                          {fieldErrors.email}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <Label htmlFor="password">Contraseña</Label>
+                      <div className="relative">
+                        <Input
+                          id="password"
+                          name="password"
+                          type={showPassword ? "text" : "password"}
+                          autoComplete={mode === "login" ? "current-password" : "new-password"}
+                          value={password}
+                          onChange={(event) => {
+                            setPassword(event.target.value);
+                            if (fieldErrors.password) {
+                              setFieldErrors((current) => ({ ...current, password: undefined }));
+                            }
+                          }}
+                          onBlur={() => {
+                            const msg = validateField("password", password);
+                            if (msg) setFieldErrors((current) => ({ ...current, password: msg }));
+                          }}
+                          placeholder="Mínimo 6 caracteres"
+                          minLength={6}
+                          className="pr-9"
+                          aria-invalid={Boolean(fieldErrors.password)}
+                          aria-describedby={fieldErrors.password ? "password-error" : undefined}
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword((current) => !current)}
+                          aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                          aria-pressed={showPassword}
+                          className="absolute right-0.5 top-1/2 grid size-8 -translate-y-1/2 cursor-pointer place-items-center rounded-none text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        >
+                          {showPassword ? (
+                            <EyeOff className="size-4" aria-hidden="true" />
+                          ) : (
+                            <Eye className="size-4" aria-hidden="true" />
+                          )}
+                        </button>
+                      </div>
+                      {fieldErrors.password && (
+                        <p
+                          id="password-error"
+                          aria-live="polite"
+                          className="text-xs font-medium text-destructive dark:text-red-400"
+                        >
+                          {fieldErrors.password}
+                        </p>
+                      )}
+                    </div>
+
+                    <Button type="submit" className="w-full" size="lg" loading={submitting}>
+                      {mode === "login"
+                        ? "Entrar con correo"
+                        : accountType === "admin"
+                          ? "Crear cuenta de administrador"
+                          : "Crear cuenta"}
+                    </Button>
+                  </form>
+
+                  <p className="text-center text-sm text-muted-foreground">
+                    {mode === "login" ? "¿No tienes cuenta?" : "¿Ya tienes cuenta?"}{" "}
+                    <button
+                      type="button"
+                      className="cursor-pointer font-semibold text-primary underline-offset-4 hover:underline"
+                      onClick={() => switchMode(mode === "login" ? "register" : "login")}
+                    >
+                      {mode === "login" ? "Regístrate" : "Inicia sesión"}
+                    </button>
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <p className="px-4 text-center text-xs leading-relaxed text-muted-foreground sm:px-0">
+              {brand} · {brandTagline}. Al entrar aceptas que guardemos tu nombre y correo para
+              asociar tus compras. No pedimos datos de tarjetas.
+            </p>
+          </div>
+        </section>
       </main>
     </div>
   );

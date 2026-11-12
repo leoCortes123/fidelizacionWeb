@@ -236,7 +236,7 @@ export function RewardsPage() {
 
   if (list.length > 1 && !selectedBusiness) {
     return (
-      <div className="space-y-6 animate-fade-in">
+      <div className="space-y-4 sm:space-y-5 animate-fade-in">
         <PageHeader
           title="Selecciona un negocio"
           description="Elige el negocio para gestionar recompensas."
@@ -270,7 +270,7 @@ export function RewardsPage() {
   const current = selectedBusiness ?? list[0];
   if (!current) {
     return (
-      <div className="space-y-6 animate-fade-in">
+      <div className="space-y-4 sm:space-y-5 animate-fade-in">
         <PageHeader title="Sin negocios" description="No tienes negocios asignados." />
         <EmptyState
           title="Sin negocios"
@@ -439,7 +439,7 @@ function RewardsSection({ business }: { business: Business }) {
     form.type === "configurable_benefit";
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-4 sm:space-y-5 animate-fade-in">
       <PageHeader
         title={`Recompensas — ${business.name}`}
         description="Catálogo de recompensas del programa de fidelización."
@@ -463,7 +463,7 @@ function RewardsSection({ business }: { business: Business }) {
           }
         />
       ) : (
-        <ul className="divide-y rounded-xl border px-4">
+        <ul className="divide-y rounded-none border px-4">
           {rewardsData.map((reward) => (
             <li
               key={reward.id}
@@ -551,7 +551,7 @@ function RewardsSection({ business }: { business: Business }) {
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>{editing ? "Editar recompensa" : "Nueva recompensa"}</DialogTitle>
             <DialogDescription>
@@ -631,7 +631,7 @@ function RewardsSection({ business }: { business: Business }) {
               <div className="space-y-2">
                 <Label htmlFor="reward-product">Producto que se entrega</Label>
                 {(products.data ?? []).length === 0 ? (
-                  <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+                  <p className="rounded-none border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
                     La carta está vacía. Crea un producto en <strong>Carta</strong> antes de usar
                     una recompensa de producto gratis.
                   </p>
@@ -750,7 +750,7 @@ function RewardsSection({ business }: { business: Business }) {
               </div>
             </div>
 
-            <div className="space-y-3 rounded-lg border p-4">
+            <div className="space-y-3 rounded-none border p-3.5 sm:p-4">
               <h3 className="text-sm font-semibold">Límites de uso (opcional)</h3>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
@@ -824,7 +824,7 @@ function RewardsSection({ business }: { business: Business }) {
                 type="checkbox"
                 checked={form.isActive}
                 onChange={(event) => update("isActive", event.target.checked)}
-                className="size-4 rounded border-input"
+                className="size-4 cursor-pointer rounded-none border-input accent-primary"
               />
               Disponible en el catálogo
             </label>

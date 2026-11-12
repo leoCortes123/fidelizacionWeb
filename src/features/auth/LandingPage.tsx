@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { useAuth } from "./AuthProvider";
 import { brandName, brandTagline, defaultPathForRoles, isSupabaseConfigured } from "@/lib/config";
+import { resolvePostLoginPath } from "@/lib/postLogin";
 import "./LandingPage.css";
 
 function PixelQrIcon() {
@@ -262,9 +263,10 @@ const features: Array<{
 ];
 
 export function LandingPage() {
-  const { session, roles } = useAuth();
+  const { session, roles, rolesLoading = false, rolesLoaded = true } = useAuth();
   const navigate = useNavigate();
   const [selectedBizIndex, setSelectedBizIndex] = useState(0);
+  const [navigatingAccount, setNavigatingAccount] = useState(false);
 
   const brand = brandName || "Loopoint";
   const activeBiz = demoBusinesses[selectedBizIndex] ?? demoBusinesses[0];
@@ -292,7 +294,15 @@ export function LandingPage() {
               <button
                 className="btn btn-dark"
                 type="button"
-                onClick={() => navigate(defaultPathForRoles(roles))}
+                disabled={navigatingAccount || rolesLoading || !rolesLoaded}
+                onClick={() => {
+                  if (rolesLoading || !rolesLoaded || navigatingAccount) return;
+                  setNavigatingAccount(true);
+                  void resolvePostLoginPath(roles)
+                    .then((destination) => navigate(destination))
+                    .catch(() => navigate(defaultPathForRoles(roles)))
+                    .finally(() => setNavigatingAccount(false));
+                }}
               >
                 Ir a mi cuenta ↗
               </button>
@@ -554,7 +564,7 @@ export function LandingPage() {
                   <li>Publica premios y campañas.</li>
                   <li>Controla canjes y presupuesto.</li>
                 </ul>
-                <Link className="btn" to="/business/register">
+                <Link className="btn" to="/admin/onboarding?new=1">
                   Registrar mi negocio ↗
                 </Link>
                 <div className="decor" aria-hidden="true">
@@ -607,7 +617,7 @@ export function LandingPage() {
               <Link className="btn btn-dark" to="/login?mode=register">
                 Crear cuenta
               </Link>
-              <Link className="btn btn-light" to="/business/register">
+              <Link className="btn btn-light" to="/admin/onboarding?new=1">
                 Soy un negocio
               </Link>
             </div>
@@ -630,7 +640,7 @@ export function LandingPage() {
           <div className="footer-links">
             <a href="#como-funciona">Cómo funciona</a>
             <Link to="/login">Iniciar sesión</Link>
-            <Link to="/business/register">Negocios</Link>
+            <Link to="/admin/onboarding?new=1">Negocios</Link>
           </div>
         </div>
       </footer>

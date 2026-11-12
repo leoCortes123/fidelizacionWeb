@@ -28,10 +28,12 @@ export function CustomerShell() {
     <div className="flex h-dvh flex-col overflow-hidden bg-background">
       <header
         data-testid="app-header"
+        inert={headerHidden || undefined}
+        aria-hidden={headerHidden || undefined}
         className={cn(
-          "z-30 shrink-0 overflow-hidden border-b border-slate-300 bg-card/95 backdrop-blur transition-all duration-300 ease-out no-print dark:border-slate-800",
+          "z-30 shrink-0 overflow-hidden border-b border-slate-300 bg-card/95 backdrop-blur transition-[max-height,transform,opacity] duration-300 ease-out no-print dark:border-slate-800",
           headerHidden
-            ? "max-h-0 -translate-y-full border-transparent opacity-0"
+            ? "invisible pointer-events-none max-h-0 -translate-y-full border-transparent opacity-0"
             : "max-h-40 opacity-100",
         )}
       >
@@ -45,10 +47,10 @@ export function CustomerShell() {
                 end={item.end}
                 className={({ isActive }) =>
                   cn(
-                    "rounded-md border px-3.5 py-2 text-sm font-bold transition-all",
+                    "rounded-none px-3.5 py-2 text-sm font-semibold transition-all duration-150",
                     isActive
-                      ? "border-slate-900 bg-primary text-primary-foreground shadow-[0_2px_0_#0f172a] dark:border-slate-200"
-                      : "border-transparent text-muted-foreground hover:border-border hover:bg-muted hover:text-foreground",
+                      ? "bg-primary text-primary-foreground shadow-sm shadow-primary/25"
+                      : "text-muted-foreground hover:bg-muted/80 hover:text-foreground",
                   )
                 }
               >
@@ -59,10 +61,11 @@ export function CustomerShell() {
           <div className="flex items-center gap-2">
             <BusinessSwitcher className="hidden md:flex" linkToCustomerHome />
             {isAdmin && (
-              <Button variant="outline" size="sm" asChild className="hidden sm:inline-flex">
+              <Button variant="outline" size="sm" asChild className="inline-flex">
                 <Link to="/admin">
                   <Wrench aria-hidden="true" />
-                  Administrar
+                  <span className="hidden sm:inline">Administrar</span>
+                  <span className="sm:hidden">Admin</span>
                 </Link>
               </Button>
             )}
@@ -76,19 +79,19 @@ export function CustomerShell() {
 
       <main
         ref={scrollRef}
-        className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
+        className="min-h-0 flex-1 overflow-y-auto overscroll-contain scroll-pb-28 md:scroll-pb-14"
         id="contenido-principal"
       >
-        <div className="mx-auto w-full max-w-5xl px-4 pb-28 pt-5 md:pb-14">
+        <div className="mx-auto w-full max-w-5xl px-0 pb-24 pt-4 sm:px-6 md:py-6 md:pb-14">
           <Outlet />
         </div>
       </main>
 
       <nav
-        className="fixed inset-x-0 bottom-0 z-40 border-t-2 border-slate-900 bg-card/98 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden no-print dark:border-slate-700"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-border/80 bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden no-print dark:border-slate-800"
         aria-label="Navegación inferior"
       >
-        <div className="grid grid-cols-3 p-1">
+        <div className="grid grid-cols-3 gap-1 p-1.5">
           {navItems.map((item) => {
             const Icon = item.icon;
             const active = item.end
@@ -100,10 +103,10 @@ export function CustomerShell() {
                 to={item.to}
                 end={item.end}
                 className={cn(
-                  "flex min-h-12 flex-col items-center justify-center gap-1 rounded-md py-1.5 text-[11px] font-bold transition-colors",
+                  "flex min-h-12 flex-col items-center justify-center gap-1 rounded-none py-1.5 text-[11px] font-semibold transition-colors",
                   active
-                    ? "bg-primary text-primary-foreground shadow-[0_2px_0_#0f172a]"
-                    : "text-muted-foreground hover:text-foreground",
+                    ? "bg-primary text-primary-foreground shadow-sm shadow-primary/25"
+                    : "text-muted-foreground hover:bg-muted/70 hover:text-foreground",
                 )}
               >
                 <Icon className="size-4" aria-hidden="true" />

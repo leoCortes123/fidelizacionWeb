@@ -98,3 +98,68 @@ export function formatRedemptionCode(code: string): string {
   if (clean.length <= 4) return clean;
   return clean.match(/.{1,4}/g)?.join(" ") ?? clean;
 }
+
+const THOUSANDS_DOT_PATTERN = /^\d{1,3}(\.\d{3})+$/;
+
+/**
+ * Interpreta entradas numéricas en formato es-CO (acepta separadores de miles
+ * con punto para COP/enteros y coma o punto decimal para porcentajes).
+ */
+export function parseEconomicNumber(
+  value: string,
+  kind: "cop" | "integer" | "percent" = "percent",
+): number | null {
+  const cleaned = value.trim().replace(/\s/g, "");
+  if (!cleaned) return null;
+
+  if (kind === "cop" || kind === "integer") {
+    const unsigned = cleaned.startsWith("-") ? cleaned.slice(1) : cleaned;
+    if (unsigned.includes(",")) {
+      const normalizedDecimal = cleaned.replace(",", ".");
+      const decimalParsed = Number(normalizedDecimal);
+      if (!Number.isFinite(decimalParsed) || Number.isInteger(decimalParsed)) {
+        return null;
+      }
+      return decimalParsed;
+    }
+    if (unsigned.includes(".")) {
+      if (THOUSANDS_DOT_PATTERN.test(unsigned)) {
+        const parsed = Number(cleaned.replace(/\./g, ""));
+        return Number.isFinite(parsed) ? parsed : null;
+      }
+      const decimalDotParsed = Number(cleaned);
+      if (!Number.isFinite(decimalDotParsed) || Number.isInteger(decimalDotParsed)) {
+        return null;
+      }
+      return decimalDotParsed;
+    }
+    const parsed = Number(cleaned);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  const normalized = cleaned.replace(",", ".");
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+/** Formatea valores unitarios por loopoint conservando 2 decimales cuando son menores a $1. */
+export function formatPointValueCOP(value: number): string {
+  if (!Number.isFinite(value)) return "$ 0";
+  if (value > 0 && value < 1) {
+    return new Intl.NumberFormat("es-CO", {
+      style: "currency",
+      currency: "COP",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value);
+  }
+  return formatCOP(value);
+}
+
+/** Formatea cantidades con hasta 2 decimales cuando no son enteras (evita redondear 0,33 a 0). */
+export function formatCompactNumber(value: number): string {
+  if (!Number.isFinite(value)) return "0";
+  return new Intl.NumberFormat("es-CO", {
+    maximumFractionDigits: Number.isInteger(value) ? 0 : 2,
+  }).format(value);
+}

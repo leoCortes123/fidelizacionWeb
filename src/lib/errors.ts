@@ -72,6 +72,9 @@ const MESSAGES: Record<string, string> = {
   invalid_website: "La dirección web no es válida.",
   invalid_logo_url: "El logo debe ser una URL pública del almacenamiento de Loopoint.",
   logo_outside_business: "El logo debe pertenecer a este negocio.",
+  invalid_product_image_url:
+    "La foto del producto debe ser una URL pública del almacenamiento de Loopoint.",
+  product_image_outside_business: "La foto del producto debe pertenecer a este negocio.",
   invalid_frequent_min_purchases:
     "El número de compras para ser frecuente debe estar entre 1 y 100.",
   invalid_frequent_period_days: "La ventana de frecuencia debe estar entre 7 y 3.650 días.",
@@ -86,7 +89,13 @@ const MESSAGES: Record<string, string> = {
   invalid_product_name: "El nombre del producto no es válido (2 a 120 caracteres).",
   invalid_product_price: "El precio del producto debe ser mayor que cero.",
   invalid_product_cost: "El costo del producto no puede ser negativo.",
+  invalid_product_kind: "El tipo de producto debe ser simple o combo.",
   product_not_found: "No encontramos ese producto en la carta.",
+  product_used_in_combo: "Este producto forma parte de un combo y no puede convertirse en combo.",
+  product_not_combo: "Solo puedes definir componentes en un producto tipo combo.",
+  invalid_combo_items: "Un combo necesita al menos un producto componente válido.",
+  invalid_combo_quantity: "La cantidad de cada componente debe ser un entero positivo.",
+  combo_component_must_be_simple: "Los componentes de un combo deben ser productos simples.",
   invalid_amount: "Introduce un importe mayor que cero.",
   invalid_eligible_amount:
     "El importe elegible no puede ser negativo ni superar el importe de la compra.",

@@ -61,6 +61,7 @@ function renderPage(initialEntry = "/") {
 describe("ProfilePage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    window.localStorage.clear();
     availability.data = true;
     updateProfile.mockResolvedValue({
       ...profile,
@@ -143,5 +144,38 @@ describe("ProfilePage", () => {
     expect(screen.getByLabelText(/Nombre de administrador/)).toHaveValue("Carla Cliente");
     expect(screen.getByLabelText(/Alias de administrador/)).toHaveValue("carlacliente");
     expect(screen.getByTestId("business-profile-form")).toBeInTheDocument();
+  });
+
+  it("no muestra pestañas administrativas en /customer/perfil", () => {
+    renderPage("/customer/perfil");
+
+    expect(screen.queryByRole("tab", { name: "Negocio" })).not.toBeInTheDocument();
+    expect(screen.getByLabelText(/Nombre completo/)).toBeInTheDocument();
+  });
+
+  it("habilita Guardar perfil al restaurar un borrador personal desde localStorage", async () => {
+    const user = userEvent.setup();
+    window.localStorage.setItem(
+      "loopoint:draft:profile:user-1",
+      JSON.stringify({
+        version: 1,
+        savedAt: Date.now(),
+        value: { fullName: "Carla Borrador", nickname: "carlacliente" },
+      }),
+    );
+
+    renderPage("/perfil");
+
+    const saveButton = screen.getByRole("button", { name: /Guardar perfil/i });
+    expect(screen.getByLabelText(/Nombre completo/)).toHaveValue("Carla Borrador");
+    expect(saveButton).toBeEnabled();
+
+    await user.click(saveButton);
+    await waitFor(() => {
+      expect(updateProfile).toHaveBeenCalledWith({
+        fullName: "Carla Borrador",
+        nickname: "carlacliente",
+      });
+    });
   });
 });

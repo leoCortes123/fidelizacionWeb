@@ -10,14 +10,14 @@ interface BrandProps {
 
 export function Brand({ className, compact = false, linkTo = "/" }: BrandProps) {
   const content = (
-    <span className={cn("flex items-center gap-2.5", className)}>
+    <span className={cn("flex min-w-0 items-center gap-2.5", className)}>
       <img
         src="/loopoint-coin.png"
         alt=""
         width={40}
         height={40}
         className={cn(
-          "shrink-0 rounded-xl object-contain drop-shadow-sm",
+          "shrink-0 rounded-none object-contain drop-shadow-sm",
           compact ? "size-8" : "size-10",
         )}
         aria-hidden="true"
@@ -25,14 +25,14 @@ export function Brand({ className, compact = false, linkTo = "/" }: BrandProps) 
       <span className="flex min-w-0 flex-col leading-tight">
         <span
           className={cn(
-            "font-display font-extrabold tracking-tight",
+            "truncate font-display font-extrabold tracking-tight",
             compact ? "text-base" : "text-base sm:text-lg",
           )}
         >
           {brandName}
         </span>
         {!compact && (
-          <span className="truncate text-[11px] font-medium text-muted-foreground">
+          <span className="hidden truncate text-[11px] font-medium text-muted-foreground sm:block">
             {brandTagline}
           </span>
         )}
@@ -42,7 +42,7 @@ export function Brand({ className, compact = false, linkTo = "/" }: BrandProps) 
 
   if (!linkTo) return content;
   return (
-    <Link to={linkTo} className="rounded-lg" aria-label={`${brandName}, ir al inicio`}>
+    <Link to={linkTo} className="min-w-0 rounded-none" aria-label={`${brandName}, ir al inicio`}>
       {content}
     </Link>
   );

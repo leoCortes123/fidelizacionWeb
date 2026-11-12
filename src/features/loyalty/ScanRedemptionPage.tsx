@@ -126,16 +126,16 @@ function ScanDetails({
         />
 
         <Card>
-          <CardContent className="space-y-4 p-5 sm:p-6">
+          <CardContent className="space-y-4 p-4 sm:p-6">
             <div className="flex items-center gap-3">
               {data.business_logo_url ? (
                 <img
                   src={data.business_logo_url}
                   alt=""
-                  className="size-12 rounded-xl border object-cover"
+                  className="size-12 rounded-none border object-cover"
                 />
               ) : (
-                <span className="grid size-12 place-items-center rounded-xl bg-secondary text-secondary-foreground">
+                <span className="grid size-12 place-items-center rounded-none bg-secondary text-secondary-foreground">
                   <QrCode className="size-6" aria-hidden="true" />
                 </span>
               )}
@@ -150,7 +150,7 @@ function ScanDetails({
               </Badge>
             </div>
 
-            <div className="rounded-xl border bg-muted/30 p-4">
+            <div className="rounded-none border bg-muted/30 p-3.5 sm:p-4">
               <div className="flex items-start gap-3">
                 <Gift className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden="true" />
                 <div className="min-w-0 flex-1">
@@ -167,7 +167,7 @@ function ScanDetails({
             </div>
 
             <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-xl border p-3">
+              <div className="rounded-none border p-3">
                 <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   <User className="size-3.5" aria-hidden="true" />
                   Cliente
@@ -176,7 +176,7 @@ function ScanDetails({
                   {data.customer_nickname ? `@${data.customer_nickname}` : "Cliente afiliado"}
                 </p>
               </div>
-              <div className="rounded-xl border p-3">
+              <div className="rounded-none border p-3">
                 <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   <Clock className="size-3.5" aria-hidden="true" />
                   Vigencia del QR
@@ -194,8 +194,8 @@ function ScanDetails({
               <div
                 className={
                   reasonCopy.tone === "warning"
-                    ? "flex items-start gap-2 rounded-xl border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950"
-                    : "flex items-start gap-2 rounded-xl border bg-muted/40 p-3 text-sm"
+                    ? "flex items-start gap-2 rounded-none border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950"
+                    : "flex items-start gap-2 rounded-none border bg-muted/40 p-3 text-sm"
                 }
               >
                 <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
@@ -268,8 +268,8 @@ function ScanSuccess({ result }: { result: RedemptionRedeemResult }) {
           El canje quedó registrado y los loopoints fueron consumidos.
         </p>
       </div>
-      <CardContent className="space-y-4 p-6">
-        <dl className="space-y-2 rounded-xl border bg-muted/30 p-4 text-sm">
+      <CardContent className="space-y-4 p-4 sm:p-6">
+        <dl className="space-y-2 rounded-none border bg-muted/30 p-3.5 text-sm sm:p-4">
           <div className="flex items-center justify-between gap-3">
             <dt className="text-muted-foreground">Recompensa</dt>
             <dd className="text-right font-semibold">{result.reward_name}</dd>
@@ -459,7 +459,7 @@ function ScanLayout({ children }: { children: React.ReactNode }) {
           </Badge>
         </div>
       </header>
-      <main className="mx-auto max-w-2xl px-4 py-6 pb-[calc(2rem+env(safe-area-inset-bottom))]">
+      <main className="mx-auto max-w-2xl px-0 py-4 pb-[calc(2rem+env(safe-area-inset-bottom))] sm:px-4 sm:py-6">
         {children}
       </main>
     </div>

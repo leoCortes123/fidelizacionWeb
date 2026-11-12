@@ -71,8 +71,9 @@ export function FrequentCriteriaCard({
   const draft = useFormDraft<FrequentFields>({
     key: `admin:frequent:${business.id}`,
   });
-  const [form, setForm] = useState<FrequentFields>(() => draft.read() ?? fromProgram(program));
-  const [dirty, setDirty] = useState(false);
+  const [restoredDraft] = useState(() => draft.read());
+  const [form, setForm] = useState<FrequentFields>(() => restoredDraft ?? fromProgram(program));
+  const [dirty, setDirty] = useState(() => Boolean(restoredDraft));
   const [errors, setErrors] = useState<Partial<Record<keyof FrequentFields, string>>>({});
 
   useEffect(() => {
@@ -219,7 +220,7 @@ export function FrequentCriteriaCard({
           </div>
 
           {explanationValid && (
-            <div className="space-y-2 rounded-xl border bg-muted/30 p-4 text-sm">
+            <div className="space-y-2 rounded-none border bg-muted/30 p-3.5 text-sm sm:p-4">
               <p className="flex items-start gap-2">
                 <Sparkles className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
                 <span>

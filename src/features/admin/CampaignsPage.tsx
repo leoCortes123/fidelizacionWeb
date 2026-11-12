@@ -249,7 +249,7 @@ function CampaignsSection({ business }: { business: Business }) {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-4 sm:space-y-5 animate-fade-in">
       <PageHeader
         title={`Campañas — ${business.name}`}
         description="Multiplica los loopoints de compra o añade un bono durante una vigencia."
@@ -267,7 +267,7 @@ function CampaignsSection({ business }: { business: Business }) {
           <p>
             En cada compra se aplica la campaña vigente con mayor beneficio. Los loopoints
             resultantes quedan registrados con la regla{" "}
-            <code className="rounded bg-muted px-1 py-0.5 text-xs">v1+campaign:…</code> en el
+            <code className="rounded-none bg-muted px-1 py-0.5 text-xs">v1+campaign:…</code> en el
             movimiento y en la auditoría.
           </p>
         </CardContent>
@@ -285,7 +285,7 @@ function CampaignsSection({ business }: { business: Business }) {
           }
         />
       ) : (
-        <div className="overflow-x-auto rounded-xl border">
+        <div className="overflow-x-auto rounded-none border">
           <table className="w-full text-sm">
             <thead className="bg-muted/50 text-left text-xs uppercase tracking-wide text-muted-foreground">
               <tr>
@@ -379,8 +379,8 @@ function CampaignsSection({ business }: { business: Business }) {
         </div>
       )}
 
-      <p className="flex items-center gap-2 text-xs text-muted-foreground">
-        <CalendarClock className="size-3.5" aria-hidden="true" />
+      <p className="flex items-center gap-2 px-4 text-xs text-muted-foreground sm:px-0">
+        <CalendarClock className="size-3.5 shrink-0" aria-hidden="true" />
         Las fechas se guardan en UTC y se muestran en hora de Bogotá.
       </p>
 
@@ -510,7 +510,7 @@ function CampaignsSection({ business }: { business: Business }) {
                 type="checkbox"
                 checked={form.isActive}
                 onChange={(event) => update("isActive", event.target.checked)}
-                className="size-4 rounded border-input"
+                className="size-4 cursor-pointer rounded-none border-input accent-primary"
               />
               Campaña activa
             </label>

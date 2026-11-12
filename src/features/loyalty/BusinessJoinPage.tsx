@@ -122,22 +122,22 @@ export function BusinessJoinPage() {
   }
 
   return (
-    <div className="hero-glow min-h-screen px-4 py-10">
-      <div className="mx-auto w-full max-w-lg space-y-5">
-        <div className="flex justify-center">
+    <div className="hero-glow min-h-screen px-0 py-5 sm:px-4 sm:py-10">
+      <div className="mx-auto w-full max-w-lg space-y-4 sm:space-y-5">
+        <div className="flex justify-center px-4 sm:px-0">
           <Brand />
         </div>
 
         <Card className="overflow-hidden shadow-lg">
-          <div className="bg-foreground px-6 py-8 text-background">
+          <div className="bg-foreground px-4 py-6 text-background sm:px-6 sm:py-8">
             {data.logo_url ? (
               <img
                 src={data.logo_url}
                 alt={`Logo de ${data.name}`}
-                className="size-14 rounded-2xl border border-background/20 object-cover"
+                className="size-14 rounded-none border border-background/20 object-cover"
               />
             ) : (
-              <span className="grid size-12 place-items-center rounded-2xl bg-background/10">
+              <span className="grid size-12 place-items-center rounded-none bg-background/10">
                 <Building2 className="size-6" aria-hidden="true" />
               </span>
             )}
@@ -167,7 +167,7 @@ export function BusinessJoinPage() {
               No necesitas tarjeta física.
             </p>
 
-            <div className="space-y-2 rounded-lg border bg-muted/30 p-3 text-sm">
+            <div className="space-y-2 rounded-none border bg-muted/30 p-3 text-sm">
               {(data.address || data.neighborhood || data.city) && (
                 <p className="flex items-start gap-2">
                   <MapPin
@@ -264,7 +264,7 @@ export function BusinessJoinPage() {
           </CardContent>
         </Card>
 
-        <p className="text-center text-xs text-muted-foreground">
+        <p className="px-4 text-center text-xs text-muted-foreground sm:px-0">
           ¿Ya tienes loopoints?{" "}
           <Link
             to="/login"

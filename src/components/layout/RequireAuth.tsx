@@ -11,7 +11,7 @@ function loginPath(next: string) {
   return `/login?next=${encodeURIComponent(next)}`;
 }
 
-function RolesErrorScreen({ error, onRetry }: { error: unknown; onRetry: () => void }) {
+export function RolesErrorScreen({ error, onRetry }: { error: unknown; onRetry: () => void }) {
   return (
     <div className="hero-glow grid min-h-screen place-items-center p-6">
       <div className="w-full max-w-md space-y-4">
@@ -80,6 +80,10 @@ export function RequireBusinessRole({
 
   if (businesses.length === 0) {
     return <Navigate to="/business/select" replace />;
+  }
+  const hasAllowedBusiness = businesses.some((business) => roles.includes(business.role));
+  if (!hasAllowedBusiness) {
+    return <Navigate to={businessHomePath(businesses[0].role, businesses[0].id)} replace />;
   }
   // Sin negocio elegido se deja que la página muestre su selector.
   if (!selectedBusiness) return <>{children}</>;

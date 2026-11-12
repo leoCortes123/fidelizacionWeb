@@ -65,7 +65,7 @@ export function RedemptionQrDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto">
+      <DialogContent>
         <DialogHeader>
           <DialogTitle>Tu código QR</DialogTitle>
           <DialogDescription>
@@ -76,7 +76,7 @@ export function RedemptionQrDialog({
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="rounded-xl border bg-muted/40 p-3 text-center">
+          <div className="rounded-none border bg-muted/40 p-3 text-center">
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Referencia del canje
             </p>
@@ -87,7 +87,7 @@ export function RedemptionQrDialog({
 
           {usable && token ? (
             <div className="flex flex-col items-center gap-3">
-              <div className="rounded-2xl border bg-white p-4 shadow-sm">
+              <div className="rounded-none border bg-white p-4 shadow-sm">
                 <QRCodeCanvas
                   value={scanUrl}
                   size={220}
@@ -113,11 +113,11 @@ export function RedemptionQrDialog({
                 Válido hasta {formatDateTimeBogota(expiresAt)}.
               </p>
 
-              <div className="w-full space-y-2 rounded-xl border bg-muted/30 p-3">
+              <div className="w-full space-y-2 rounded-none border bg-muted/30 p-3">
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Código manual de respaldo
                 </p>
-                <p className="break-all rounded-lg bg-background px-2 py-1.5 font-mono text-[11px] leading-relaxed">
+                <p className="break-all rounded-none bg-background px-2 py-1.5 font-mono text-[11px] leading-relaxed">
                   {token}
                 </p>
                 <p className="break-all text-[11px] text-muted-foreground">{scanUrl}</p>
@@ -144,7 +144,7 @@ export function RedemptionQrDialog({
               </div>
             </div>
           ) : (
-            <div className="space-y-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+            <div className="space-y-3 rounded-none border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
               <div className="flex items-start gap-2">
                 <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
                 <p>

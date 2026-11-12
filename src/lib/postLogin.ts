@@ -23,7 +23,7 @@ export async function resolvePostLoginPath(roles: string[]): Promise<string> {
       ? businesses.filter((b) => b.role === "admin" || b.role === "encargado")
       : [];
     if (Array.isArray(businesses) && staffBusinesses.length === 0 && roles.includes("admin")) {
-      return "/business/register";
+      return "/admin/onboarding";
     }
     if (staffBusinesses.length > 1) {
       return "/business/select";

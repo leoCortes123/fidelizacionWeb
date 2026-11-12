@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { Link, NavLink, Outlet, useLocation, type NavLinkRenderProps } from "react-router-dom";
 import {
   ClipboardList,
@@ -75,14 +75,14 @@ function isItemActive(item: AdminNavItem, pathname: string) {
 
 function navClass(isActive: boolean) {
   return cn(
-    "flex min-h-11 items-center gap-3 rounded-md border px-3 py-2 text-sm font-bold transition-all",
+    "flex min-h-11 items-center gap-3 rounded-none px-3 py-2 text-sm font-semibold transition-all duration-150",
     isActive
-      ? "border-slate-900 bg-primary text-primary-foreground shadow-[0_2px_0_#0f172a] dark:border-slate-200"
-      : "border-transparent text-muted-foreground hover:border-border hover:bg-muted/80 hover:text-foreground",
+      ? "bg-primary text-primary-foreground shadow-sm shadow-primary/25"
+      : "text-muted-foreground hover:bg-muted/80 hover:text-foreground",
   );
 }
 
-export function AdminShell() {
+export function AdminShell({ children }: { children?: ReactNode }) {
   usePortalTheme("admin");
   const { pathname } = useLocation();
   const scrollRef = useRef<HTMLElement | null>(null);
@@ -98,10 +98,10 @@ export function AdminShell() {
 
   return (
     <div className="flex h-dvh overflow-hidden bg-background">
-      <aside className="hidden h-dvh w-64 shrink-0 flex-col border-r-2 border-slate-300 bg-card md:flex dark:border-slate-800">
-        <div className="border-b border-slate-200 bg-slate-50/70 p-4 dark:border-slate-800 dark:bg-slate-900/50">
+      <aside className="hidden h-dvh w-64 shrink-0 flex-col border-r border-border/80 bg-card/95 backdrop-blur-sm md:flex dark:border-slate-800">
+        <div className="border-b border-border/70 bg-muted/30 p-4 dark:border-slate-800">
           <Brand />
-          <div className="mt-2 flex items-center gap-2">
+          <div className="mt-2.5 flex items-center gap-2">
             <Badge variant="default">ADMIN · NEGOCIO</Badge>
           </div>
         </div>
@@ -140,10 +140,12 @@ export function AdminShell() {
       <div className="flex h-dvh min-w-0 flex-1 flex-col">
         <header
           data-testid="app-header"
+          inert={headerHidden || undefined}
+          aria-hidden={headerHidden || undefined}
           className={cn(
-            "z-30 shrink-0 overflow-hidden border-b border-slate-300 bg-card/95 backdrop-blur transition-all duration-300 ease-out no-print dark:border-slate-800",
+            "z-30 shrink-0 overflow-hidden border-b border-border/80 bg-card/85 backdrop-blur-md transition-[max-height,transform,opacity] duration-300 ease-out no-print dark:border-slate-800",
             headerHidden
-              ? "max-h-0 -translate-y-full border-transparent opacity-0"
+              ? "invisible pointer-events-none max-h-0 -translate-y-full border-transparent opacity-0"
               : "max-h-40 opacity-100",
           )}
         >
@@ -151,7 +153,8 @@ export function AdminShell() {
             <div className="md:hidden">
               <Brand compact linkTo="/admin/dashboard" />
             </div>
-            <p className="hidden font-mono text-xs font-medium text-muted-foreground md:block">
+            <p className="hidden items-center gap-2 font-mono text-xs font-medium text-muted-foreground md:flex">
+              <span className="size-2 rounded-full bg-emerald-500" aria-hidden="true" />
               CAJA ACTIVA · {dateLabel}
             </p>
             <div className="flex items-center gap-2">
@@ -159,18 +162,18 @@ export function AdminShell() {
               <UserMenu compact />
             </div>
           </div>
-          <div className="border-t border-slate-200 px-4 py-2 sm:hidden dark:border-slate-800">
+          <div className="border-t border-border/70 px-4 py-2 sm:hidden dark:border-slate-800">
             <BusinessSwitcher />
           </div>
         </header>
 
         <main
           ref={scrollRef}
-          className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
+          className="min-h-0 flex-1 overflow-y-auto overscroll-contain scroll-pb-28 md:scroll-pb-10"
           id="contenido-principal"
         >
-          <div className="mx-auto w-full max-w-6xl px-4 pb-28 pt-5 md:px-6 md:py-8 md:pb-10">
-            <Outlet />
+          <div className="mx-auto w-full max-w-6xl px-0 pb-28 pt-4 sm:px-6 md:py-6 md:pb-10">
+            {children ?? <Outlet />}
           </div>
         </main>
       </div>
@@ -178,10 +181,10 @@ export function AdminShell() {
       <PurchaseFab />
 
       <nav
-        className="fixed inset-x-0 bottom-0 z-40 border-t-2 border-slate-900 bg-card/98 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden no-print dark:border-slate-700"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-border/80 bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden no-print dark:border-slate-800"
         aria-label="Navegación del negocio"
       >
-        <div className="grid grid-cols-5 p-1">
+        <div className="grid grid-cols-5 p-1.5 gap-1">
           {bottomNav.map((item) => {
             const Icon = item.icon;
             const active = isItemActive(item, pathname);
@@ -191,21 +194,23 @@ export function AdminShell() {
                 to={item.to}
                 end={item.end}
                 className={cn(
-                  "flex min-h-12 flex-col items-center justify-center gap-1 rounded-md px-1 py-1.5 text-[10px] font-bold transition-colors",
+                  "flex min-h-12 flex-col items-center justify-center gap-1 rounded-none px-1 py-1.5 text-[10px] font-semibold transition-colors",
                   active
-                    ? "bg-primary text-primary-foreground shadow-[0_2px_0_#0f172a]"
-                    : "text-muted-foreground hover:text-foreground",
+                    ? "bg-primary text-primary-foreground shadow-sm shadow-primary/25"
+                    : "text-muted-foreground hover:bg-muted/70 hover:text-foreground",
                 )}
               >
-                <Icon className="size-4" aria-hidden="true" />
-                {item.shortLabel ?? item.label}
+                <Icon className="size-4 shrink-0" aria-hidden="true" />
+                <span className="max-w-full truncate">{item.shortLabel ?? item.label}</span>
               </NavLink>
             );
           })}
           <button
             type="button"
             onClick={() => setMoreOpen(true)}
-            className="flex min-h-12 flex-col items-center justify-center gap-1 rounded-md px-1 py-1.5 text-[10px] font-bold text-muted-foreground transition-colors hover:text-foreground"
+            aria-expanded={moreOpen}
+            aria-haspopup="dialog"
+            className="flex min-h-12 cursor-pointer flex-col items-center justify-center gap-1 rounded-none px-1 py-1.5 text-[10px] font-semibold text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground"
             aria-label="Más opciones"
           >
             <LayoutGrid className="size-4" aria-hidden="true" />
@@ -215,7 +220,7 @@ export function AdminShell() {
       </nav>
 
       <Dialog open={moreOpen} onOpenChange={setMoreOpen}>
-        <DialogContent className="max-h-[85vh] overflow-y-auto">
+        <DialogContent className="max-h-[85dvh]">
           <DialogHeader>
             <DialogTitle>Más opciones</DialogTitle>
             <DialogDescription>Accesos del negocio.</DialogDescription>
@@ -224,7 +229,7 @@ export function AdminShell() {
             <Link
               to="/admin/purchases/new"
               onClick={() => setMoreOpen(false)}
-              className="flex items-center gap-3 rounded-lg border p-3 text-sm font-semibold hover:bg-muted"
+              className="flex items-center gap-3 rounded-none border p-3 text-sm font-semibold hover:bg-muted"
             >
               <QrCode className="size-4 text-primary" aria-hidden="true" />
               Registrar compra
@@ -236,7 +241,7 @@ export function AdminShell() {
                   key={item.to}
                   to={item.to}
                   onClick={() => setMoreOpen(false)}
-                  className="flex items-center gap-3 rounded-lg border p-3 text-sm font-semibold hover:bg-muted"
+                  className="flex items-center gap-3 rounded-none border p-3 text-sm font-semibold hover:bg-muted"
                 >
                   <Icon className="size-4 text-muted-foreground" aria-hidden="true" />
                   {item.label}

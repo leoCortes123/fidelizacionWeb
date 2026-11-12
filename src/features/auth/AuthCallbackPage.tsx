@@ -12,20 +12,23 @@ import { resolvePostLoginPath } from "@/lib/postLogin";
 export function AuthCallbackPage() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
-  const { session, roles, loading, rolesLoading } = useAuth();
+  const { session, roles, loading, rolesLoading, rolesLoaded } = useAuth();
   const nextParam = params.get("next");
   const next = nextParam ? safeNextPath(nextParam) : null;
   const oauthError = params.get("error_description") || params.get("error");
 
   useEffect(() => {
-    if (loading) return;
+    if (loading || rolesLoading || !rolesLoaded) return;
     if (!session) return;
-    if (next) {
+    const isGenericAdminHome = next === "/admin" || next === "/admin/dashboard";
+    if (next && !isGenericAdminHome) {
+      if (!next.startsWith("/claim/")) {
+        clearPendingClaim();
+      }
       navigate(next, { replace: true });
       return;
     }
     clearPendingClaim();
-    if (rolesLoading) return;
     let active = true;
     void resolvePostLoginPath(roles).then((destination) => {
       if (active) navigate(destination, { replace: true });
@@ -33,7 +36,7 @@ export function AuthCallbackPage() {
     return () => {
       active = false;
     };
-  }, [loading, session, roles, rolesLoading, next, navigate]);
+  }, [loading, session, roles, rolesLoading, rolesLoaded, next, navigate]);
 
   if (oauthError) {
     return (

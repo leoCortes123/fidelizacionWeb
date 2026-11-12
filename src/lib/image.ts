@@ -1,3 +1,5 @@
+import { supabase } from "./supabase";
+
 /**
  * Compresión de imágenes en el navegador antes de subirlas a Storage.
  * Mantiene el formato cuando ya es pequeño y convierte a JPEG cuando hay
@@ -53,35 +55,68 @@ export async function prepareImage(
   }
 
   const source = await loadBitmap(file);
-  const width = "width" in source ? source.width : 0;
-  const height = "height" in source ? source.height : 0;
-  const ratio = Math.min(1, maxSide / Math.max(width || maxSide, height || maxSide));
+  try {
+    const width = "width" in source ? source.width : 0;
+    const height = "height" in source ? source.height : 0;
+    const ratio = Math.min(1, maxSide / Math.max(width || maxSide, height || maxSide));
 
-  // Si ya es pequeña y cabe en el bucket, se sube sin recomprimir.
-  if (file.size <= MAX_UPLOAD_BYTES && ratio === 1) {
-    return {
-      blob: file,
-      extension: extensionFor(file.type),
-      contentType: file.type as PreparedImage["contentType"],
-    };
+    // Si ya es pequeña y cabe en el bucket, se sube sin recomprimir.
+    if (file.size <= MAX_UPLOAD_BYTES && ratio === 1) {
+      return {
+        blob: file,
+        extension: extensionFor(file.type),
+        contentType: file.type as PreparedImage["contentType"],
+      };
+    }
+
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(width * ratio));
+    canvas.height = Math.max(1, Math.round(height * ratio));
+    const context = canvas.getContext("2d");
+    if (!context) {
+      throw new Error("El navegador no pudo procesar la imagen.");
+    }
+    context.drawImage(source as CanvasImageSource, 0, 0, canvas.width, canvas.height);
+
+    const toJpegBlob = (q: number) =>
+      new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, "image/jpeg", q));
+
+    let blob = await toJpegBlob(quality);
+    if (blob && blob.size > MAX_UPLOAD_BYTES && quality > 0.7) {
+      blob = await toJpegBlob(0.7);
+    }
+    if (!blob) {
+      throw new Error("No pudimos comprimir la imagen. Prueba con otra.");
+    }
+    if (blob.size > MAX_UPLOAD_BYTES) {
+      throw new Error("La imagen comprimida supera los 2 MB. Prueba con una más liviana.");
+    }
+
+    return { blob, extension: "jpg", contentType: "image/jpeg" };
+  } finally {
+    if ("close" in source && typeof source.close === "function") source.close();
   }
+}
 
-  const canvas = document.createElement("canvas");
-  canvas.width = Math.max(1, Math.round(width * ratio));
-  canvas.height = Math.max(1, Math.round(height * ratio));
-  const context = canvas.getContext("2d");
-  if (!context) {
-    throw new Error("El navegador no pudo procesar la imagen.");
-  }
-  context.drawImage(source as CanvasImageSource, 0, 0, canvas.width, canvas.height);
-  if ("close" in source && typeof source.close === "function") source.close();
+/**
+ * Comprime y sube una imagen al bucket `business-assets` dentro de la carpeta
+ * del negocio (`business/<businessId>/...`) y retorna su URL pública.
+ */
+export async function uploadBusinessAssetImage(options: {
+  businessId: string;
+  folder: string;
+  file: File;
+}): Promise<string> {
+  const prepared = await prepareImage(options.file);
+  const nonce = Math.random().toString(36).slice(2, 8);
+  const path = `business/${options.businessId}/${options.folder}-${Date.now()}-${nonce}.${prepared.extension}`;
+  const { error } = await supabase.storage.from("business-assets").upload(path, prepared.blob, {
+    contentType: prepared.contentType,
+    cacheControl: "3600",
+    upsert: false,
+  });
+  if (error) throw error;
 
-  const blob = await new Promise<Blob | null>((resolve) =>
-    canvas.toBlob(resolve, "image/jpeg", quality),
-  );
-  if (!blob) {
-    throw new Error("No pudimos comprimir la imagen. Prueba con otra.");
-  }
-
-  return { blob, extension: "jpg", contentType: "image/jpeg" };
+  const { data } = supabase.storage.from("business-assets").getPublicUrl(path);
+  return data.publicUrl;
 }

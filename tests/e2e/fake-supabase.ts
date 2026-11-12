@@ -16,6 +16,7 @@ export interface FakeUser {
   email: string;
   nickname?: string;
   nicknameChanges?: number;
+  accountType?: "customer" | "admin";
   token: string;
   roles: FakeRole[];
   balance: number;
@@ -65,6 +66,7 @@ export interface FakeProduct {
   isActive: boolean;
   kind: "simple" | "combo";
   comboItems: FakeComboItem[];
+  imageUrl?: string | null;
 }
 
 export interface FakePurchaseLine {
@@ -480,7 +482,11 @@ export function sessionFor(user: FakeUser) {
       confirmed_at: new Date().toISOString(),
       last_sign_in_at: new Date().toISOString(),
       app_metadata: { provider: "google", providers: ["google"] },
-      user_metadata: { full_name: user.name, name: user.name },
+      user_metadata: {
+        full_name: user.name,
+        name: user.name,
+        ...(user.accountType ? { account_type: user.accountType, role: user.accountType } : {}),
+      },
       identities: [],
       created_at: user.createdAt,
       updated_at: new Date().toISOString(),
@@ -708,6 +714,29 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
     if (request.method() === "OPTIONS") {
       return route.fulfill({ status: 204, headers: CORS_HEADERS });
     }
+    if (request.url().includes("/signup") && request.method() === "POST") {
+      const body = (request.postDataJSON() ?? {}) as {
+        email?: string;
+        data?: { full_name?: string; account_type?: string; role?: string };
+      };
+      const email = String(body.email ?? "").trim();
+      const rawAccountType = String(body.data?.account_type ?? body.data?.role ?? "customer");
+      const accountType = rawAccountType === "admin" ? "admin" : "customer";
+      const created: FakeUser = {
+        id: `user-${crypto.randomUUID().slice(0, 8)}`,
+        name: String(body.data?.full_name ?? email).trim() || "Nuevo Usuario",
+        email,
+        nickname: `user_${crypto.randomUUID().slice(0, 6)}`,
+        nicknameChanges: 0,
+        accountType,
+        token: `test-token-${crypto.randomUUID()}`,
+        roles: accountType === "admin" ? ["customer", "admin"] : ["customer"],
+        balance: 0,
+        createdAt: now(),
+      };
+      state.users.push(created);
+      return json(route, sessionFor(created));
+    }
     const token = (request.headers()["authorization"] ?? "").replace(/^Bearer\s+/i, "");
     const user = userFor(state, token) ?? state.users.find((u) => u.token === TOKENS.admin);
     if (request.url().includes("/user") && user) {
@@ -720,6 +749,32 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
       return json(route, sessionFor(user));
     }
     return json(route, {});
+  });
+
+  const tinyPng = Buffer.from(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+    "base64",
+  );
+
+  await page.route("**/storage/v1/**", async (route) => {
+    const request = route.request();
+    if (request.method() === "OPTIONS") {
+      return route.fulfill({ status: 204, headers: CORS_HEADERS });
+    }
+    const url = new URL(request.url());
+    if (request.method() === "POST" || request.method() === "PUT") {
+      const objectPath = url.pathname.replace(/^.*\/storage\/v1\/object\//, "");
+      return route.fulfill({
+        status: 200,
+        headers: { ...CORS_HEADERS, "content-type": "application/json" },
+        body: JSON.stringify({ Id: `obj-${crypto.randomUUID().slice(0, 8)}`, Key: objectPath }),
+      });
+    }
+    return route.fulfill({
+      status: 200,
+      headers: { ...CORS_HEADERS, "content-type": "image/png" },
+      body: tinyPng,
+    });
   });
 
   await page.route("**/rest/v1/rpc/**", async (route) => {
@@ -766,8 +821,13 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
         if (nextType !== "customer" && nextType !== "admin") {
           return fail(route, "invalid_account_type");
         }
-        if (nextType === "admin" && !user.roles.includes("admin")) {
-          user.roles.push("admin");
+        user.accountType = nextType;
+        if (nextType === "admin") {
+          if (!user.roles.includes("admin")) {
+            user.roles.push("admin");
+          }
+        } else {
+          user.roles = user.roles.filter((role) => role !== "admin");
         }
         return json(route, nextType);
       }
@@ -2090,6 +2150,10 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
       case "loyalty_program_get": {
         if (!user) return fail(route, "not_authenticated");
         const businessId = String(body.p_business_id ?? "");
+        const membership = state.memberships.find(
+          (m) => m.businessId === businessId && m.userId === user.id,
+        );
+        if (!membership) return fail(route, "business_not_found_or_no_access");
         const stored = state.loyaltyPrograms[businessId];
         const prog = stored ?? {
           cop_per_point_unit: 1000,
@@ -2188,7 +2252,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
       case "products_list": {
         if (!user) return fail(route, "not_authenticated");
         const businessId = String(body.p_business_id ?? "");
-        const onlyActive = body.p_only_active !== "false";
+        const onlyActive = body.p_only_active !== false && body.p_only_active !== "false";
         return json(
           route,
           state.products
@@ -2203,6 +2267,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
               is_active: p.isActive,
               kind: p.kind,
               combo_items: comboItemsFor(state, p),
+              image_url: p.imageUrl ?? null,
               created_at: now(),
               updated_at: now(),
             })),
@@ -2210,9 +2275,33 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
       }
       case "product_upsert": {
         if (!user) return fail(route, "not_authenticated");
+        if (!isAdmin) return fail(route, "forbidden");
         const businessId = String(body.p_business_id ?? "");
         const id = body.p_id ? String(body.p_id) : `prod-${crypto.randomUUID().slice(0, 8)}`;
         const existing = state.products.find((p) => p.id === id);
+        const rawImageUrl =
+          typeof body.p_image_url === "string" && body.p_image_url.trim().length > 0
+            ? body.p_image_url.trim()
+            : null;
+        if (rawImageUrl !== null) {
+          if (
+            rawImageUrl.length > 500 ||
+            rawImageUrl.includes("..") ||
+            /(%2e|%2f|%5c|\\)/i.test(rawImageUrl) ||
+            !/^https?:\/\/[^/?#@\s]+\/storage\/v1\/object\/public\/business-assets\/[^?#\s]+$/i.test(
+              rawImageUrl,
+            )
+          ) {
+            return fail(route, "invalid_product_image_url");
+          }
+          const prefixPattern = new RegExp(
+            `^https?://[^/?#@\\s]+/storage/v1/object/public/business-assets/business/${businessId}/[^?#\\s]+$`,
+            "i",
+          );
+          if (!prefixPattern.test(rawImageUrl)) {
+            return fail(route, "product_image_outside_business");
+          }
+        }
         const product: FakeProduct = {
           id,
           businessId,
@@ -2223,6 +2312,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           isActive: Boolean(body.p_is_active ?? true),
           kind: String(body.p_kind ?? "simple") as "simple" | "combo",
           comboItems: existing?.comboItems ?? [],
+          imageUrl: rawImageUrl,
         };
         if (existing) Object.assign(existing, product);
         else state.products.push(product);
@@ -2236,6 +2326,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           is_active: product.isActive,
           kind: product.kind,
           combo_items: comboItemsFor(state, product),
+          image_url: product.imageUrl ?? null,
           created_at: now(),
           updated_at: now(),
         });
@@ -2910,6 +3001,13 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
       case "business_dashboard_summary": {
         if (!user) return fail(route, "not_authenticated");
         const businessId = String(body.p_business_id ?? "");
+        const membership = state.memberships.find(
+          (m) => m.businessId === businessId && m.userId === user.id,
+        );
+        if (!membership) return fail(route, "business_not_found_or_no_access");
+        if (membership.role !== "admin" && membership.role !== "encargado") {
+          return fail(route, "forbidden");
+        }
         const events = state.purchaseEvents.filter((event) => event.businessId === businessId);
         const pending = state.redemptionRequests.filter(
           (request) => request.businessId === businessId && request.status === "pending",
@@ -2966,6 +3064,13 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
       case "business_recent_activity": {
         if (!user) return fail(route, "not_authenticated");
         const businessId = String(body.p_business_id ?? "");
+        const membership = state.memberships.find(
+          (m) => m.businessId === businessId && m.userId === user.id,
+        );
+        if (!membership) return fail(route, "business_not_found_or_no_access");
+        if (membership.role !== "admin" && membership.role !== "encargado") {
+          return fail(route, "forbidden");
+        }
         const limit = Number(body.p_limit ?? 10);
         const rows = [
           ...state.purchaseEvents

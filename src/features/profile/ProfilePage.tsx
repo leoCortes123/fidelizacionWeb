@@ -72,12 +72,13 @@ interface ProfileFormState {
 export function ProfilePage() {
   const profile = useMyProfile();
   const updateProfile = useUpdateProfile();
-  const { user, roles } = useAuth();
+  const { user } = useAuth();
   const { pathname } = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
   const rawTab = searchParams.get("tab") ?? "negocio";
   const tab: ProfileTab = validProfileTabs.has(rawTab) ? (rawTab as ProfileTab) : "negocio";
-  const showBusinessTabs = Boolean(roles?.includes("admin")) || pathname.startsWith("/admin");
+  // Solo el portal /admin expone pestañas de administración; /customer/perfil y /perfil son cuenta personal.
+  const showBusinessTabs = pathname.startsWith("/admin");
   const insideShell = pathname.startsWith("/admin") || pathname.startsWith("/customer");
 
   const draft = useFormDraft<ProfileFormState>({
@@ -91,12 +92,14 @@ export function ProfilePage() {
 
   useEffect(() => {
     if (!profile.data || initialized) return;
+    const saved = draft.read();
     setForm(
-      draft.read() ?? {
+      saved ?? {
         fullName: profile.data.full_name,
         nickname: profile.data.nickname ?? "",
       },
     );
+    if (saved) setDirty(true);
     setInitialized(true);
   }, [draft.read, initialized, profile.data]);
 
@@ -119,8 +122,16 @@ export function ProfilePage() {
 
   if (profile.isError || !profile.data) {
     return (
-      <div className="space-y-4">
-        {!insideShell && <BackLink />}
+      <div
+        className={
+          insideShell ? "space-y-4" : "mx-auto w-full max-w-4xl space-y-4 px-0 py-4 sm:px-6 sm:py-6"
+        }
+      >
+        {!insideShell && (
+          <div className="px-4 sm:px-0">
+            <BackLink />
+          </div>
+        )}
         <ErrorState
           error={profile.error ?? new Error("No encontramos tu perfil.")}
           onRetry={() => void profile.refetch()}
@@ -195,10 +206,10 @@ export function ProfilePage() {
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-          <div className="rounded-lg border border-slate-200 bg-muted/50 p-4 text-sm dark:border-slate-800">
+        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+          <div className="rounded-none border border-slate-200 bg-muted/50 p-3.5 text-sm dark:border-slate-800 sm:p-4">
             <p className="font-bold">{data.full_name || "Sin nombre"}</p>
-            <p className="font-mono text-xs text-muted-foreground">{data.email}</p>
+            <p className="break-all font-mono text-xs text-muted-foreground">{data.email}</p>
             <p className="mt-1 text-xs text-muted-foreground">
               {data.business_count} negocio(s) · en Loopoint desde{" "}
               {formatDateBogota(data.created_at)}
@@ -234,12 +245,12 @@ export function ProfilePage() {
           >
             <div className="relative">
               <AtSign
-                className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+                className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
                 aria-hidden="true"
               />
               <Input
                 id="nickname"
-                className="pl-9"
+                className="pl-8"
                 value={form?.nickname ?? ""}
                 onChange={(event) => update("nickname", event.target.value.toLowerCase())}
                 disabled={!canChangeNickname}
@@ -299,17 +310,21 @@ export function ProfilePage() {
     <div
       className={
         insideShell
-          ? "space-y-5 animate-fade-in"
-          : "mx-auto w-full max-w-4xl space-y-5 px-4 py-6 animate-fade-in"
+          ? "space-y-4 sm:space-y-5 animate-fade-in"
+          : "mx-auto w-full max-w-4xl space-y-4 px-0 py-4 sm:space-y-5 sm:px-6 sm:py-6 animate-fade-in"
       }
     >
-      {!insideShell && <BackLink />}
+      {!insideShell && (
+        <div className="px-4 sm:px-0">
+          <BackLink />
+        </div>
+      )}
       <PageHeader
         kicker={showBusinessTabs ? "PERFIL Y AJUSTES DEL NEGOCIO" : "CUENTA PERSONAL"}
         title="Mi perfil"
         description={
           showBusinessTabs
-            ? "Tu cuenta personal y la configuración de Negocio, Programa y Económico."
+            ? "Administra tu cuenta personal y configura la identidad del negocio, las reglas del programa de loopoints y tus datos económicos opcionales."
             : "Tu nombre y tu alias público en Loopoint."
         }
         actions={
@@ -346,6 +361,7 @@ export function ProfilePage() {
           <TabsContent value="negocio" className="mt-4 space-y-5">
             {personalCard}
             <BusinessGate
+              headingAs="h2"
               title="Negocio"
               description="Elige el negocio que deseas configurar."
               icon={Building2}
@@ -354,8 +370,9 @@ export function ProfilePage() {
               {(business) => (
                 <div className="space-y-4">
                   <PageHeader
+                    as="h2"
                     title="Negocio"
-                    description="Ficha pública, contacto, horarios y logo."
+                    description="Define el nombre visible para tus clientes, enlace de afiliación, horarios de operación, ubicación, contacto y logo."
                   />
                   <BusinessProfileForm key={business.id} business={business} />
                 </div>
@@ -364,11 +381,11 @@ export function ProfilePage() {
           </TabsContent>
 
           <TabsContent value="programa" className="mt-4">
-            <ProgramPage />
+            <ProgramPage headingAs="h2" />
           </TabsContent>
 
           <TabsContent value="economico" className="mt-4">
-            <EconomicPage />
+            <EconomicPage headingAs="h2" />
           </TabsContent>
         </Tabs>
       ) : (

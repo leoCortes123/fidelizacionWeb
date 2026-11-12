@@ -109,4 +109,13 @@ describe("RequireBusinessRole", () => {
     expect(screen.queryByText("Panel privado")).not.toBeInTheDocument();
     expect(screen.getByText("Selector de negocio")).toBeInTheDocument();
   });
+
+  it("redirige al portal correspondiente si no hay negocio elegido y ninguno cumple el rol requerido", () => {
+    ctx.businesses = [{ ...business, id: "biz-cliente", role: "cliente" }];
+    ctx.selectedBusiness = null;
+    ctx.selectedRole = null;
+    renderGuard(["admin"]);
+    expect(screen.queryByText("Panel privado")).not.toBeInTheDocument();
+    expect(screen.getByText("Portal del cliente")).toBeInTheDocument();
+  });
 });

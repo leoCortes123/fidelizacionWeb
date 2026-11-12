@@ -230,7 +230,7 @@ function PurchaseQrSection({ business }: { business: Business }) {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-4 sm:space-y-5 animate-fade-in">
       <PageHeader
         title={`Registrar compra — ${business.name}`}
         description="Elige el valor manual o los productos de la carta. El cliente confirma desde su teléfono y recibe los loopoints."
@@ -245,7 +245,7 @@ function PurchaseQrSection({ business }: { business: Business }) {
         </Alert>
       )}
 
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-2">
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-base">
@@ -317,14 +317,14 @@ function PurchaseQrSection({ business }: { business: Business }) {
                     <>
                       <div className="relative">
                         <Search
-                          className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+                          className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
                           aria-hidden="true"
                         />
                         <Input
                           value={search}
                           onChange={(event) => setSearch(event.target.value)}
                           placeholder="Buscar producto o combo"
-                          className="pl-9"
+                          className="pl-8"
                           aria-label="Buscar en la carta"
                         />
                       </div>
@@ -341,7 +341,7 @@ function PurchaseQrSection({ business }: { business: Business }) {
                       </ul>
 
                       {selectedProducts.length > 0 && (
-                        <div className="space-y-2 rounded-xl border bg-muted/30 p-3">
+                        <div className="space-y-2 rounded-none border bg-muted/30 p-3">
                           {selectedProducts.map((item) => (
                             <div
                               key={item.product.id}
@@ -366,7 +366,7 @@ function PurchaseQrSection({ business }: { business: Business }) {
                 </TabsContent>
 
                 {preview !== null && (
-                  <div className="flex items-center justify-between rounded-lg bg-secondary/60 p-4">
+                  <div className="flex items-center justify-between rounded-none bg-secondary/60 p-4">
                     <span className="flex items-center gap-2 text-sm font-medium">
                       <Sparkles className="size-4 text-primary" aria-hidden="true" />
                       Loopoints para el cliente
@@ -411,7 +411,7 @@ function PurchaseQrSection({ business }: { business: Business }) {
           </CardHeader>
           <CardContent>
             {result ? (
-              <div className="print-area space-y-4 rounded-xl border bg-card p-5">
+              <div className="print-area space-y-4 rounded-none border bg-card p-4 sm:p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="font-display text-2xl font-extrabold">
@@ -426,7 +426,7 @@ function PurchaseQrSection({ business }: { business: Business }) {
                 </div>
 
                 {result.items && result.items.length > 0 && (
-                  <ul className="space-y-1 rounded-lg bg-muted/40 p-3 text-xs">
+                  <ul className="space-y-1 rounded-none bg-muted/40 p-3 text-xs">
                     {result.items.map((item) => (
                       <li
                         key={`${item.name}-${item.quantity}`}
@@ -448,7 +448,7 @@ function PurchaseQrSection({ business }: { business: Business }) {
                   </ul>
                 )}
 
-                <div className="flex justify-center rounded-xl bg-muted/40 p-4">
+                <div className="flex justify-center rounded-none bg-muted/40 p-4">
                   <QRCodeCanvas
                     ref={qrRef}
                     value={claimUrl(result.token)}
@@ -492,7 +492,7 @@ function PurchaseQrSection({ business }: { business: Business }) {
                 </div>
               </div>
             ) : (
-              <div className="grid min-h-[22rem] place-items-center rounded-xl border border-dashed bg-muted/20 p-6 text-center">
+              <div className="grid min-h-[22rem] place-items-center rounded-none border border-dashed bg-muted/20 p-6 text-center">
                 <div className="space-y-3">
                   <span className="mx-auto grid size-14 place-items-center rounded-full bg-muted text-muted-foreground">
                     <QrCode className="size-6" aria-hidden="true" />
@@ -569,7 +569,7 @@ function ProductPickerRow({
   onQuantity: (quantity: number) => void;
 }) {
   return (
-    <li className="rounded-xl border p-3">
+    <li className="rounded-none border p-3">
       <div className="flex flex-col gap-2.5 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
         <div className="min-w-0 flex-1">
           <p className="flex flex-wrap items-center gap-1.5 font-semibold">

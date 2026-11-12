@@ -103,7 +103,7 @@ export function RedemptionsPage() {
 
   if (list.length > 1 && !selectedBusiness) {
     return (
-      <div className="space-y-6 animate-fade-in">
+      <div className="space-y-4 sm:space-y-5 animate-fade-in">
         <PageHeader
           title="Selecciona un negocio"
           description="Elige el negocio cuyas solicitudes deseas atender."
@@ -111,7 +111,7 @@ export function RedemptionsPage() {
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {list.map((business) => (
             <Card key={business.id} className="cursor-pointer transition-shadow hover:shadow-md">
-              <CardContent className="p-6 text-center">
+              <CardContent className="p-4 text-center sm:p-6">
                 <TicketCheck className="mx-auto mb-3 size-12 text-primary" aria-hidden="true" />
                 <h3 className="font-semibold">{business.name}</h3>
                 <p className="text-xs text-muted-foreground">{business.slug}</p>
@@ -137,7 +137,7 @@ export function RedemptionsPage() {
   const current = selectedBusiness ?? list[0];
   if (!current) {
     return (
-      <div className="space-y-6 animate-fade-in">
+      <div className="space-y-4 sm:space-y-5 animate-fade-in">
         <PageHeader title="Sin negocios" description="No tienes negocios asignados." />
         <EmptyState
           title="Sin negocios"
@@ -235,7 +235,7 @@ function RedemptionsSection({ business }: { business: Business }) {
   const copy = action ? actionCopy[action.kind] : null;
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-4 sm:space-y-5 animate-fade-in">
       <PageHeader
         title={`Solicitudes — ${business.name}`}
         description="Valida, aprueba, entrega o cancela los canjes solicitados por tus clientes."
@@ -276,7 +276,7 @@ function RedemptionsSection({ business }: { business: Business }) {
       />
 
       {!canAct && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+        <div className="rounded-none border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
           Tu rol en este negocio es <strong>{selectedRole ?? "sin rol"}</strong>
           {selectedRole === "encargado" ? " y no tienes permiso de aprobación" : ""}. Puedes
           consultar las solicitudes, pero solo un administrador o un encargado autorizado puede
@@ -295,7 +295,7 @@ function RedemptionsSection({ business }: { business: Business }) {
           icon={TicketCheck}
         />
       ) : (
-        <div className="overflow-x-auto rounded-xl border">
+        <div className="overflow-x-auto rounded-none border">
           <table className="w-full text-sm">
             <thead className="bg-muted/50 text-left text-xs uppercase tracking-wide text-muted-foreground">
               <tr>
@@ -410,7 +410,7 @@ function RedemptionsSection({ business }: { business: Business }) {
         </div>
       )}
 
-      <p className="text-xs text-muted-foreground">
+      <p className="px-4 text-xs text-muted-foreground sm:px-0">
         Aprobar consume el token QR: el cliente ya no podrá reutilizarlo. Si el QR se escanea desde{" "}
         <span className="font-mono">/scan</span>, la entrega se confirma en un solo paso y la
         solicitud aparece como “QR escaneado”. Cancelar o rechazar devuelve los loopoints

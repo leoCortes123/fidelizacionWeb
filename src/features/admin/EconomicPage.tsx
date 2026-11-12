@@ -14,6 +14,7 @@ import {
   useBusinessEconomicProfile,
   useCreateBudgetSnapshot,
 } from "@/features/loyalty/hooks";
+import { estimateMonthlyOperationDays } from "@/features/loyalty/programEconomics";
 import { errorMessage } from "@/lib/errors";
 import { formatCOP, formatDateBogota, formatDateTimeBogota, formatNumber } from "@/lib/format";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -32,20 +33,23 @@ import {
 } from "./EconomicDataForm";
 import type { Business, BusinessEconomicDashboard, EconomicDataStatus } from "@/types";
 
-export function EconomicPage() {
+export function EconomicPage({ headingAs = "h1" }: { headingAs?: "h1" | "h2" }) {
   return (
     <BusinessGate
+      headingAs={headingAs}
       title="Panel económico"
       description="Elige el negocio cuyo presupuesto de recompensas deseas revisar."
       icon={BadgeDollarSign}
       emptyDescription="Registra un negocio para calcular su presupuesto de recompensas."
     >
-      {(business) => <EconomicSection key={business.id} business={business} />}
+      {(business) => (
+        <EconomicSection key={business.id} business={business} headingAs={headingAs} />
+      )}
     </BusinessGate>
   );
 }
 
-function EconomicSection({ business }: { business: Business }) {
+function EconomicSection({ business, headingAs }: { business: Business; headingAs: "h1" | "h2" }) {
   const profile = useBusinessEconomicProfile(business.id);
   const dashboard = useBusinessEconomicDashboard(business.id);
 
@@ -59,17 +63,24 @@ function EconomicSection({ business }: { business: Business }) {
     return <ErrorState error={dashboard.error} onRetry={() => void dashboard.refetch()} />;
   }
 
+  const suggestedOperationDays = estimateMonthlyOperationDays(business.operating_days);
+
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-4 sm:space-y-5 animate-fade-in">
       <PageHeader
+        as={headingAs}
         title={`Panel económico — ${business.name}`}
-        description="Estimación comercial del costo de las recompensas. No es un costo contable."
+        description="Todos estos datos son opcionales: registrarlos nos ayuda a hacer el análisis financiero de tu negocio y calcular el presupuesto ideal y recompensas rentables. Es una estimación comercial, no un costo contable."
       />
 
       <EconomicDataForm
-        key={profile.data?.updated_at ?? "new"}
+        key={`${profile.data?.updated_at ?? "new"}:${suggestedOperationDays}`}
         businessId={business.id}
         profile={profile.data ?? null}
+        title="Datos económicos del negocio"
+        intro="Todos estos datos son opcionales: si no los tienes a la mano, déjalos sin dato o marca «Desconocido». Sin embargo, proporcionarlos nos ayuda a calcular automáticamente tu margen bruto, ventas mensuales, ticket promedio y el presupuesto ideal para las recompensas."
+        suggestedOperationDays={suggestedOperationDays}
+        draftKey={`admin:economic:${business.id}`}
       />
 
       {dashboard.data && <EconomicDashboardCards data={dashboard.data} />}
@@ -178,7 +189,7 @@ function EconomicDashboardCards({ data }: { data: BusinessEconomicDashboard }) {
         </CardContent>
       </Card>
 
-      <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+      <div className="flex flex-wrap items-center gap-2 px-4 text-xs text-muted-foreground sm:px-0">
         <span>Estados de los datos:</span>
         {ECONOMIC_FIELDS.map((config) => {
           const value = status[config.field];
@@ -194,7 +205,7 @@ function EconomicDashboardCards({ data }: { data: BusinessEconomicDashboard }) {
         })}
       </div>
 
-      <p className="text-xs text-muted-foreground">
+      <p className="px-4 text-xs text-muted-foreground sm:px-0">
         Cálculo actualizado el {formatDateTimeBogota(data.calculated_at)}. Es una estimación
         comercial basada en precios y loopoints, no un costo contable.
       </p>

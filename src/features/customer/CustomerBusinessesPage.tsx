@@ -1,9 +1,18 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { ArrowRight, Building2, Gift, Link2, Sparkles, Store, TicketCheck } from "lucide-react";
+import {
+  ArrowRight,
+  Building2,
+  Coins,
+  Gift,
+  Link2,
+  Sparkles,
+  Store,
+  TicketCheck,
+} from "lucide-react";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { useCustomerBusinessesSummary } from "@/features/loyalty/hooks";
-import { formatLoopoints } from "@/lib/format";
+import { formatLoopoints, formatNumber } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -32,10 +41,11 @@ export function CustomerBusinessesPage() {
   const [invitation, setInvitation] = useState("");
   const [invitationError, setInvitationError] = useState<string | null>(null);
 
-  const firstName = displayName.split(" ")[0] || "hola";
+  const firstName = displayName.trim().split(/\s+/)[0] ?? "";
   const rows = summary.data ?? [];
   const total = rows.reduce((sum, row) => sum + row.balance, 0);
   const ready = rows.reduce((sum, row) => sum + row.ready_rewards, 0);
+  const pendingTotal = rows.reduce((sum, row) => sum + row.pending_redemptions, 0);
 
   function openInvitation(event: React.FormEvent) {
     event.preventDefault();
@@ -67,21 +77,22 @@ export function CustomerBusinessesPage() {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-4 sm:space-y-5 animate-fade-in">
       <PageHeader
-        title={`¡Hola, ${firstName}!`}
+        kicker="TU BILLETERA DE PUNTOS"
+        title={firstName ? `¡Hola, ${firstName}!` : "¡Hola!"}
         description="Tus loopoints, recompensas y negocios en un solo lugar."
       />
 
       {rows.length === 0 ? (
-        <div className="space-y-4">
+        <div className="space-y-4 sm:space-y-5">
           <EmptyState
             title="Aún no participas en ningún negocio"
             description="Escanea el QR de invitación del negocio o abre su enlace para empezar a sumar loopoints."
             icon={Building2}
           />
           <Card className="mx-auto max-w-md">
-            <CardContent className="space-y-3 p-5">
+            <CardContent className="space-y-3 p-4 sm:p-5">
               <div className="space-y-1">
                 <Label htmlFor="invitation-link">Enlace o código del negocio</Label>
                 <p className="text-xs text-muted-foreground">
@@ -115,17 +126,24 @@ export function CustomerBusinessesPage() {
         </div>
       ) : (
         <>
-          <div className="grid gap-3 sm:grid-cols-3">
-            <Card className="border-2 border-slate-900 bg-gradient-to-br from-slate-900 via-slate-900 to-blue-950 text-white">
-              <CardContent className="p-5">
-                <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-blue-200">
-                  Loopoints totales
-                </p>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <Card className="relative overflow-hidden border-slate-800 bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 text-white shadow-lg">
+              <div
+                aria-hidden="true"
+                className="pointer-events-none absolute -right-8 -top-8 size-32 rounded-full bg-amber-400/15 blur-2xl"
+              />
+              <CardContent className="relative p-5">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.16em] text-blue-200">
+                    Loopoints totales
+                  </p>
+                  <Coins className="size-4 text-amber-400" aria-hidden="true" />
+                </div>
                 <p
                   data-testid="total-points-balance"
-                  className="mt-2 break-all font-pixel text-2xl leading-tight text-amber-400 drop-shadow-[2px_2px_0_#020617] sm:text-3xl"
+                  className="mt-2 break-all font-display text-3xl font-extrabold tabular-nums leading-tight text-amber-400 sm:text-4xl"
                 >
-                  {total}
+                  {formatNumber(total)}
                 </p>
                 <p className="mt-2 text-xs text-slate-300">
                   {formatLoopoints(total)} en {rows.length}{" "}
@@ -133,13 +151,13 @@ export function CustomerBusinessesPage() {
                 </p>
               </CardContent>
             </Card>
-            <Card className="border-t-4 border-t-emerald-600">
-              <CardContent className="flex h-full items-center gap-3 p-5">
-                <span className="grid size-11 shrink-0 place-items-center rounded-md border border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
+            <Card className="border-t-4 border-t-emerald-500">
+              <CardContent className="flex h-full items-center gap-3.5 p-4 sm:p-5">
+                <span className="grid size-11 shrink-0 place-items-center rounded-none bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
                   <Sparkles className="size-5" aria-hidden="true" />
                 </span>
                 <div>
-                  <p className="font-pixel text-lg text-emerald-700 dark:text-emerald-400">
+                  <p className="font-display text-2xl font-extrabold tabular-nums text-emerald-700 dark:text-emerald-400">
                     {ready}
                   </p>
                   <p className="mt-0.5 text-xs text-muted-foreground">
@@ -149,13 +167,13 @@ export function CustomerBusinessesPage() {
               </CardContent>
             </Card>
             <Card className="border-t-4 border-t-primary">
-              <CardContent className="flex h-full items-center gap-3 p-5">
-                <span className="grid size-11 shrink-0 place-items-center rounded-md border border-blue-200 bg-blue-50 text-primary dark:border-blue-800 dark:bg-blue-950">
+              <CardContent className="flex h-full items-center gap-3.5 p-4 sm:p-5">
+                <span className="grid size-11 shrink-0 place-items-center rounded-none bg-primary/10 text-primary">
                   <TicketCheck className="size-5" aria-hidden="true" />
                 </span>
                 <div>
-                  <p className="font-pixel text-lg text-primary">
-                    {rows.reduce((sum, row) => sum + row.pending_redemptions, 0)}
+                  <p className="font-display text-2xl font-extrabold tabular-nums text-primary">
+                    {pendingTotal}
                   </p>
                   <p className="mt-0.5 text-xs text-muted-foreground">canjes en curso</p>
                 </div>
@@ -164,7 +182,7 @@ export function CustomerBusinessesPage() {
           </div>
 
           <section className="space-y-3" aria-labelledby="businesses-title">
-            <div className="flex items-end justify-between gap-3">
+            <div className="flex items-end justify-between gap-3 px-4 sm:px-0">
               <div>
                 <h2 id="businesses-title" className="font-display text-xl font-extrabold">
                   Mis negocios
@@ -186,19 +204,19 @@ export function CustomerBusinessesPage() {
                 <Link
                   key={row.business_id}
                   to={`/customer/business/${row.business_id}`}
-                  className="group rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="group rounded-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <Card
                     className={cn(
-                      "h-full transition-shadow group-hover:shadow-md",
+                      "h-full transition-all duration-150 group-hover:border-primary/40 group-hover:shadow-md",
                       row.ready_rewards > 0
-                        ? "border-emerald-300 dark:border-emerald-800"
+                        ? "border-emerald-300/90 dark:border-emerald-800"
                         : undefined,
                     )}
                   >
-                    <CardContent className="flex h-full flex-col gap-4 p-5">
+                    <CardContent className="flex h-full flex-col gap-4 p-4 sm:p-5">
                       <div className="flex items-start gap-3">
-                        <span className="grid size-12 shrink-0 place-items-center overflow-hidden rounded-xl bg-secondary text-secondary-foreground">
+                        <span className="grid size-12 shrink-0 place-items-center overflow-hidden rounded-none bg-secondary text-secondary-foreground">
                           {row.logo_url ? (
                             <img
                               src={row.logo_url}
@@ -212,7 +230,7 @@ export function CustomerBusinessesPage() {
                         <div className="min-w-0 flex-1">
                           <h3 className="truncate font-bold leading-tight">{row.name}</h3>
                           <p className="truncate text-xs text-muted-foreground">@{row.slug}</p>
-                          <div className="mt-1 flex flex-wrap gap-1">
+                          <div className="mt-1.5 flex flex-wrap gap-1">
                             <FrequencyBadge
                               isFrequent={row.is_frequent}
                               isActive={row.is_frequent_active}
@@ -226,7 +244,7 @@ export function CustomerBusinessesPage() {
 
                       <div className="mt-auto flex items-end justify-between gap-3">
                         <div>
-                          <p className="font-display text-4xl font-extrabold leading-none">
+                          <p className="font-display text-4xl font-extrabold tabular-nums leading-none">
                             {row.balance}
                           </p>
                           <p className="mt-1 text-xs text-muted-foreground">
@@ -245,14 +263,14 @@ export function CustomerBusinessesPage() {
                         ) : null}
                       </div>
 
-                      <div className="flex items-center justify-between border-t pt-3 text-xs text-muted-foreground">
+                      <div className="flex items-center justify-between border-t border-border/70 pt-3 text-xs text-muted-foreground">
                         <span>
                           {row.last_purchase_at
                             ? "Última compra registrada"
                             : "Sin compras todavía"}
                         </span>
                         <ArrowRight
-                          className="size-4 transition-transform group-hover:translate-x-0.5"
+                          className="size-4 transition-transform group-hover:translate-x-0.5 group-hover:text-primary"
                           aria-hidden="true"
                         />
                       </div>
@@ -263,8 +281,8 @@ export function CustomerBusinessesPage() {
             </div>
           </section>
 
-          <Card className="border-dashed bg-secondary/30">
-            <CardContent className="space-y-2 p-5 text-sm">
+          <Card className="border-dashed bg-muted/30">
+            <CardContent className="space-y-1.5 p-4 text-sm sm:p-5">
               <p className="font-semibold">¿Quieres sumar otro negocio?</p>
               <p className="text-muted-foreground">
                 Pide en caja el enlace de invitación o escanea su QR. Tus loopoints de cada negocio

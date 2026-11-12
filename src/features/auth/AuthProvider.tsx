@@ -4,10 +4,12 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
 import type { Session } from "@supabase/supabase-js";
+import { queryClient } from "@/app/queryClient";
 import { supabase, rpc } from "@/lib/supabase";
 import { oauthRedirectUrl } from "@/lib/config";
 import type { AppRole } from "@/types";
@@ -71,15 +73,21 @@ function roleFromSessionMetadata(session: Session | null): AppRole | null {
   return null;
 }
 
-function consumePendingAccountType(): "admin" | "customer" | null {
+function peekPendingAccountType(): "admin" | "customer" | null {
   try {
     const value = window.sessionStorage.getItem(PENDING_ACCOUNT_TYPE_KEY);
-    if (!value) return null;
-    window.sessionStorage.removeItem(PENDING_ACCOUNT_TYPE_KEY);
     if (value === "admin" || value === "customer") return value;
     return null;
   } catch {
     return null;
+  }
+}
+
+function clearPendingAccountType(): void {
+  try {
+    window.sessionStorage.removeItem(PENDING_ACCOUNT_TYPE_KEY);
+  } catch {
+    // Ignorado.
   }
 }
 
@@ -98,9 +106,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [roles, setRoles] = useState<AppRole[]>([]);
+  const [rolesUserId, setRolesUserId] = useState<string | null>(null);
   const [rolesLoading, setRolesLoading] = useState(false);
   const [rolesLoaded, setRolesLoaded] = useState(false);
   const [rolesError, setRolesError] = useState<unknown>(null);
+  const prevUserIdRef = useRef<string | null | undefined>(undefined);
+  const rolesRequestIdRef = useRef(0);
+  const sessionRef = useRef<Session | null>(null);
+  sessionRef.current = session;
+
+  const applySession = useCallback((nextSession: Session | null) => {
+    const nextUserId = nextSession?.user.id ?? null;
+    if (prevUserIdRef.current !== undefined && prevUserIdRef.current !== nextUserId) {
+      queryClient.clear();
+    }
+    prevUserIdRef.current = nextUserId;
+    setSession(nextSession);
+    setLoading(false);
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -112,31 +135,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     )
       .then(({ data }) => {
         if (!active) return;
-        setSession(data.session ?? null);
-        setLoading(false);
+        applySession(data.session ?? null);
       })
       .catch(() => {
         if (!active) return;
-        setSession(null);
-        setLoading(false);
+        applySession(null);
       });
 
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-      setSession(nextSession ?? null);
-      setLoading(false);
+      applySession(nextSession ?? null);
     });
 
     return () => {
       active = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [applySession]);
 
   const loadRoles = useCallback(async (currentSession: Session | null) => {
-    if (!currentSession) {
+    const requestId = ++rolesRequestIdRef.current;
+    const targetUserId = currentSession?.user.id ?? null;
+    if (!currentSession || !targetUserId) {
       setRoles([]);
+      setRolesUserId(null);
       setRolesError(null);
       setRolesLoading(false);
       setRolesLoaded(true);
@@ -145,11 +168,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setRolesLoading(true);
     setRolesLoaded(false);
     setRolesError(null);
-    const pendingType = consumePendingAccountType();
+    const pendingType = peekPendingAccountType();
     const metaRole = pendingType ?? roleFromSessionMetadata(currentSession);
     try {
       if (pendingType === "admin") {
         await rpc("profile_set_account_type", { p_account_type: "admin" }).catch(() => undefined);
+      }
+      if (pendingType && rolesRequestIdRef.current === requestId) {
+        clearPendingAccountType();
       }
       // get_my_app_roles une los roles legacy, las membresías por negocio y account_type.
       // Si la migración 0009 aún no está aplicada, se usa el RPC anterior.
@@ -159,45 +185,40 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch {
         data = await rpc<AppRole[]>("get_my_roles");
       }
+      if (rolesRequestIdRef.current !== requestId) return;
       const fetched = Array.isArray(data) ? data : [];
+      setRolesUserId(targetUserId);
       if (metaRole === "admin" && !fetched.includes("admin")) {
         setRoles(Array.from(new Set<AppRole>(["admin", ...fetched])));
       } else {
         setRoles(fetched);
       }
     } catch (error) {
+      if (rolesRequestIdRef.current !== requestId) return;
       if (import.meta.env.DEV) {
         console.error("No se pudieron cargar los roles", error);
       }
+      setRolesUserId(targetUserId);
       setRoles(metaRole === "admin" ? ["admin"] : []);
       setRolesError(error);
     } finally {
-      setRolesLoading(false);
-      setRolesLoaded(true);
+      if (rolesRequestIdRef.current === requestId) {
+        setRolesLoading(false);
+        setRolesLoaded(true);
+      }
     }
   }, []);
 
-  // Al cambiar de cuenta no se debe reutilizar el rol anterior mientras se
-  // consultan los roles del nuevo usuario.
-  useEffect(() => {
-    if (loading) return;
-    setRoles([]);
-    setRolesError(null);
-    if (!session) {
-      setRolesLoaded(true);
-      return;
-    }
-    setRolesLoaded(false);
-  }, [loading, session?.user.id]);
+  const currentUserId = session?.user.id ?? null;
 
   useEffect(() => {
     if (loading) return;
-    void loadRoles(session);
-  }, [loading, session, loadRoles]);
+    void loadRoles(sessionRef.current);
+  }, [loading, currentUserId, loadRoles]);
 
   const refreshRoles = useCallback(async () => {
-    await loadRoles(session);
-  }, [loadRoles, session]);
+    await loadRoles(sessionRef.current);
+  }, [loadRoles]);
 
   const signInWithGoogle = useCallback(
     async (nextPath?: string, accountType?: "customer" | "admin") => {
@@ -217,12 +238,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           queryParams: { prompt: "select_account" },
         },
       });
-      if (error) throw error;
+      if (error) {
+        clearPendingAccountType();
+        throw error;
+      }
     },
     [],
   );
 
   const signInWithPassword = useCallback(async (email: string, password: string) => {
+    clearPendingAccountType();
     const { error } = await supabase.auth.signInWithPassword({
       email: email.trim(),
       password,
@@ -245,6 +270,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       nextPath?: string;
     }) => {
       const resolvedAccountType = accountType === "admin" ? "admin" : "customer";
+      if (resolvedAccountType !== "admin") {
+        clearPendingAccountType();
+      }
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
         password,
@@ -258,7 +286,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           emailRedirectTo: oauthRedirectUrl(nextPath),
         },
       });
-      if (error) throw error;
+      if (error) {
+        clearPendingAccountType();
+        throw error;
+      }
       // Con la confirmación por correo desactivada Supabase devuelve sesión.
       return { needsConfirmation: !data.session };
     },
@@ -266,11 +297,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const signOut = useCallback(async () => {
-    try {
-      window.sessionStorage.removeItem(PENDING_ACCOUNT_TYPE_KEY);
-    } catch {
-      // Ignorado.
-    }
+    clearPendingAccountType();
     try {
       const { error } = await supabase.auth.signOut();
       // Si el servidor no responde, al menos se limpia la sesión local.
@@ -278,21 +305,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       await supabase.auth.signOut({ scope: "local" }).catch(() => undefined);
     } finally {
+      rolesRequestIdRef.current += 1;
+      prevUserIdRef.current = null;
+      queryClient.clear();
       setSession(null);
       setRoles([]);
+      setRolesUserId(null);
+      setRolesError(null);
+      setRolesLoading(false);
       setRolesLoaded(true);
     }
   }, []);
+
+  const rolesMatchSession = currentUserId === null ? !loading : rolesUserId === currentUserId;
+  const activeRoles = useMemo(
+    () => (currentUserId !== null && rolesMatchSession ? roles : []),
+    [currentUserId, rolesMatchSession, roles],
+  );
+  const activeRolesLoading = currentUserId !== null && (!rolesMatchSession || rolesLoading);
+  const activeRolesLoaded = rolesMatchSession && rolesLoaded;
+  const activeRolesError = rolesMatchSession ? rolesError : null;
 
   const value = useMemo<AuthContextValue>(
     () => ({
       session,
       user: session?.user ?? null,
-      roles,
+      roles: activeRoles,
       loading,
-      rolesLoading,
-      rolesLoaded,
-      rolesError,
+      rolesLoading: activeRolesLoading,
+      rolesLoaded: activeRolesLoaded,
+      rolesError: activeRolesError,
       displayName: nameFromSession(session),
       signInWithGoogle,
       signInWithPassword,
@@ -302,11 +344,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }),
     [
       session,
-      roles,
+      activeRoles,
       loading,
-      rolesLoading,
-      rolesLoaded,
-      rolesError,
+      activeRolesLoading,
+      activeRolesLoaded,
+      activeRolesError,
       signInWithGoogle,
       signInWithPassword,
       signUpWithPassword,

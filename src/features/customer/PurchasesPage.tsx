@@ -39,7 +39,7 @@ export function PurchasesPage() {
   const businessLabel = businesses.find((business) => business.id === businessFilter)?.name ?? null;
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-4 sm:space-y-5 animate-fade-in">
       <PageHeader
         title="Mis compras"
         description={
@@ -50,7 +50,7 @@ export function PurchasesPage() {
       />
 
       {businesses.length > 1 && (
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2 px-4 sm:px-0">
           <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
             Filtrar por negocio
           </span>
@@ -184,7 +184,7 @@ export function PurchasesPage() {
       )}
 
       {total > pageSize && (
-        <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
+        <div className="flex flex-col items-center justify-between gap-3 px-4 sm:flex-row sm:px-0">
           <p className="text-sm text-muted-foreground">
             {total} compras · página {page + 1} de {pageCount}
           </p>
