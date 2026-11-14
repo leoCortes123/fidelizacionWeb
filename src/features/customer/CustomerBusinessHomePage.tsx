@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
+  ArrowLeft,
   ArrowRight,
   Building2,
   Check,
   Gift,
   LockKeyhole,
   ReceiptText,
-  Star,
   TicketCheck,
   TrendingUp,
 } from "lucide-react";
@@ -24,12 +24,16 @@ import { useBusinessContext } from "@/features/loyalty/businessContext";
 import { useMyPurchasesPage } from "@/features/purchases/hooks";
 import { PurchaseDetailDialog } from "@/features/purchases/PurchaseDetailDialog";
 import { errorMessage } from "@/lib/errors";
-import { formatCOP, formatDateBogota, formatLoopoints, formatPoints } from "@/lib/format";
+import {
+  formatCOP,
+  formatDateBogota,
+  formatLoopoints,
+  formatNumber,
+  formatPoints,
+} from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import {
   Dialog,
   DialogContent,
@@ -47,9 +51,9 @@ import {
   CardSkeleton,
 } from "@/components/shared/States";
 import { FrequencyBadge } from "@/components/shared/StatusBadge";
-import { RedemptionQrDialog } from "@/features/loyalty/RedemptionQrDialog";
 import { saveRedemptionToken } from "@/features/loyalty/redemptionTokens";
 import type { LoyaltyRewardAvailable, RedemptionRequestResult } from "@/types";
+import { PixelHeartIcon } from "./PlayerCard";
 
 export function CustomerBusinessHomePage() {
   const { businessId = "" } = useParams();
@@ -78,7 +82,6 @@ export function CustomerBusinessHomePage() {
   const [redeemDialog, setRedeemDialog] = useState<LoyaltyRewardAvailable | null>(null);
   const [idempotencyKey, setIdempotencyKey] = useState("");
   const [createdRedemption, setCreatedRedemption] = useState<RedemptionRequestResult | null>(null);
-  const [qrOpen, setQrOpen] = useState(false);
   const [detailId, setDetailId] = useState<string | null>(null);
 
   if (!business) {
@@ -87,13 +90,15 @@ export function CustomerBusinessHomePage() {
         <PageHeader
           title="Negocio no disponible"
           description="No encontramos este negocio entre tus afiliaciones."
+          className="px-0"
         />
         <EmptyState
           title="No participas en este negocio"
           description="Vuelve a tus negocios para elegir uno de tus programas activos."
           icon={Building2}
+          className="retro-card"
           action={
-            <Button asChild>
+            <Button asChild className="retro-btn retro-btn-dark">
               <Link to="/customer">Ver mis negocios</Link>
             </Button>
           }
@@ -123,6 +128,15 @@ export function CustomerBusinessHomePage() {
   const balance = account.data?.balance ?? 0;
   const available = rewards.data ?? [];
   const readyRewards = available.filter((reward) => reward.can_redeem).length;
+  const closestUpcoming = available
+    .filter((reward) => !reward.can_redeem && reward.points_required > 0)
+    .sort((a, b) => a.remaining - b.remaining)[0];
+  const heroProgressPct =
+    readyRewards > 0
+      ? 100
+      : closestUpcoming
+        ? Math.min(99, Math.max(0, Math.floor((balance / closestUpcoming.points_required) * 100)))
+        : 0;
 
   function requestReward(reward: LoyaltyRewardAvailable) {
     if (!reward.can_redeem) {
@@ -150,10 +164,9 @@ export function CustomerBusinessHomePage() {
           expires_at: result.expires_at,
           code: result.code,
         });
-        setQrOpen(true);
-        toast.success("Solicitud creada. Muestra el QR al encargado.");
+        toast.success("Solicitud enviada. El encargado la revisará y aprobará en caja.");
       } else {
-        toast.info("Esta solicitud ya existía. Recupera el QR desde “Mis canjes”.");
+        toast.info("Esta solicitud ya existía. El encargado la revisará en caja.");
       }
       void account.refetch();
       void rewards.refetch();
@@ -164,11 +177,28 @@ export function CustomerBusinessHomePage() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-5 animate-fade-in">
+    <div className="space-y-5 sm:space-y-6 animate-fade-in">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Link
+          to="/customer"
+          className="retro-btn retro-btn-light px-3 py-1.5 text-xs"
+        >
+          <ArrowLeft className="size-3.5" aria-hidden="true" />
+          Mis negocios
+        </Link>
+        <Link
+          to="/customer/redemptions"
+          className="retro-btn retro-btn-light px-3 py-1.5 text-xs"
+        >
+          <TicketCheck className="size-3.5" aria-hidden="true" />
+          Mis canjes
+        </Link>
+      </div>
+
       {businesses.length > 1 && (
         <nav
           aria-label="Mis negocios"
-          className="flex snap-x gap-2 overflow-x-auto px-4 pb-1.5 sm:px-0"
+          className="flex snap-x gap-2 overflow-x-auto pb-1.5"
         >
           {businesses.map((item) => {
             const active = item.id === business.id;
@@ -179,16 +209,16 @@ export function CustomerBusinessHomePage() {
                 to={`/customer/business/${item.id}`}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex min-h-10 shrink-0 snap-start items-center gap-2 rounded-none border-2 px-3 py-1.5 text-sm font-bold transition-all",
+                  "flex min-h-10 shrink-0 snap-start items-center gap-2 border-2 border-[var(--line)] px-3 py-1.5 font-mono text-xs font-bold transition-all",
                   active
-                    ? "border-slate-900 bg-primary text-primary-foreground shadow-[0_2px_0_#0f172a]"
-                    : "border-slate-300 bg-card text-muted-foreground hover:border-slate-400 hover:bg-muted hover:text-foreground dark:border-slate-700",
+                    ? "bg-[var(--ink)] text-[var(--paper)] shadow-[3px_3px_0_var(--red)]"
+                    : "bg-[var(--cream)] text-[var(--ink)] hover:bg-[var(--gold)] hover:text-[#1e1c1a] shadow-[2px_2px_0_var(--shadow-ink)]",
                 )}
               >
                 <span
                   className={cn(
-                    "grid size-6 place-items-center overflow-hidden rounded-full",
-                    active ? "bg-primary-foreground/20" : "bg-secondary",
+                    "grid size-6 place-items-center overflow-hidden border border-[var(--line)]",
+                    active ? "bg-[var(--paper)] text-[var(--ink)]" : "bg-[var(--paper-deep)]",
                   )}
                 >
                   {logoUrl ? (
@@ -204,307 +234,342 @@ export function CustomerBusinessHomePage() {
         </nav>
       )}
 
-      <PageHeader
-        title={business.name}
-        description={`Saldo, recompensas y compras en @${business.slug}.`}
-        actions={
-          <Button variant="outline" size="sm" asChild>
-            <Link to="/customer/redemptions">
-              <TicketCheck aria-hidden="true" />
-              Mis canjes
-            </Link>
-          </Button>
-        }
-      />
-
-      <div className="flex flex-wrap items-center gap-2 px-4 sm:px-0">
-        <FrequencyBadge
-          isFrequent={summaryRow?.is_frequent ?? false}
-          isActive={summaryRow?.is_frequent_active ?? false}
-        />
-        {(summaryRow?.pending_redemptions ?? 0) > 0 && (
-          <Badge variant="secondary">{summaryRow?.pending_redemptions} canje(s) en curso</Badge>
-        )}
-        {summaryRow?.last_purchase_at && (
-          <span className="text-xs text-muted-foreground">
-            Última compra: {formatDateBogota(summaryRow.last_purchase_at)}
-          </span>
-        )}
+      <div className="space-y-2">
+        <h1 className="font-display text-3xl font-bold tracking-tight text-[var(--ink)] sm:text-4xl">
+          {business.name}
+        </h1>
+        <p className="font-mono text-xs text-[var(--ink-muted)] sm:text-sm">
+          Saldo, recompensas y compras en @{business.slug}.
+        </p>
+        <div className="flex flex-wrap items-center gap-2 pt-1">
+          <FrequencyBadge
+            isFrequent={summaryRow?.is_frequent ?? false}
+            isActive={summaryRow?.is_frequent_active ?? false}
+          />
+          {(summaryRow?.pending_redemptions ?? 0) > 0 && (
+            <span className="border-2 border-[var(--line)] bg-[#ffd166] px-2 py-0.5 font-mono text-xs font-bold text-[#1e1c1a]">
+              {summaryRow?.pending_redemptions} canje(s) en curso
+            </span>
+          )}
+          {summaryRow?.last_purchase_at && (
+            <span className="font-mono text-xs text-[var(--ink-soft)]">
+              Última compra: {formatDateBogota(summaryRow.last_purchase_at)}
+            </span>
+          )}
+        </div>
       </div>
 
-      {createdRedemption && !qrOpen && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-none border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-900 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-100">
+      {createdRedemption && (
+        <div className="retro-card retro-card-success flex flex-wrap items-center justify-between gap-3 p-4 text-sm text-[var(--ink)]">
           <p>
-            Solicitud de <strong>{createdRedemption.reward_name}</strong> creada. Muéstrale el QR al
-            encargado para recibirla.
+            Solicitud de <strong>{createdRedemption.reward_name}</strong> enviada. El encargado la
+            revisará y aprobará en caja.
           </p>
-          <div className="flex gap-2">
-            {createdRedemption.token && (
-              <Button size="sm" variant="outline" onClick={() => setQrOpen(true)}>
-                Ver QR
-              </Button>
-            )}
-            <Button size="sm" asChild>
-              <Link to="/customer/redemptions">Ver mis canjes</Link>
-            </Button>
-          </div>
+          <Link to="/customer/redemptions" className="retro-btn retro-btn-dark text-xs">
+            Ver mis canjes
+          </Link>
         </div>
       )}
 
-      <Card className="overflow-hidden border-2 border-slate-900 bg-gradient-to-br from-slate-900 via-slate-900 to-blue-950 text-white shadow-sm dark:border-slate-700">
-        <CardContent className="relative space-y-5 p-4 sm:space-y-6 sm:p-8">
-          <div
-            aria-hidden="true"
-            className="absolute -right-10 -top-10 size-40 rounded-full bg-primary/30 blur-2xl"
-          />
-          <div className="relative flex items-start justify-between gap-4">
-            <div className="min-w-0">
-              <div className="mb-2 flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center rounded-none bg-cyan-400 px-2 py-0.5 font-pixel text-[9px] text-slate-950">
-                  {summaryRow?.is_frequent ? "NIVEL FRECUENTE" : "JUGADOR ACTIVO"}
-                </span>
-                <span className="font-mono text-xs uppercase tracking-[0.16em] text-blue-200">
-                  TUS LOOPOINTS AQUÍ
-                </span>
-              </div>
+      {/* Player Card del negocio */}
+      <section className="pixel-window" aria-label={`Tarjeta de jugador en ${business.name}`}>
+        <div className="window-bar">
+          <span className="window-title">
+            <span className="window-led" aria-hidden="true" />
+            PLAYER CARD · {business.name.toUpperCase()}
+          </span>
+          <span className="window-hearts" aria-hidden="true">
+            <PixelHeartIcon />
+            <PixelHeartIcon />
+            <PixelHeartIcon />
+          </span>
+        </div>
+
+        <div className="window-body space-y-5">
+          <div className="hud-meta">
+            <span className="points-label">TUS LOOPOINTS EN {business.name.toUpperCase()}</span>
+            <span className={cn("level-pill", readyRewards > 0 && "level-pill-ready")}>
+              {summaryRow?.is_frequent ? "NIVEL FRECUENTE" : "JUGADOR ACTIVO"}
+            </span>
+          </div>
+
+          <div className="points-row">
+            <img
+              src="/loopoint-coin.png"
+              alt=""
+              width={44}
+              height={44}
+              className="points-coin"
+              aria-hidden="true"
+            />
+            <div>
               <p
                 data-testid="points-balance"
-                className="mt-1 break-all font-pixel text-4xl leading-none text-amber-400 drop-shadow-[3px_3px_0_#020617] sm:text-5xl"
+                className="points"
               >
                 {balance}
               </p>
-              <p className="mt-3 text-sm text-slate-300">{formatLoopoints(balance)} disponibles</p>
-            </div>
-            <div className="grid size-14 shrink-0 place-items-center rounded-none border-2 border-amber-400/60 bg-slate-800/80">
-              <Star className="size-8 text-amber-400" aria-hidden="true" />
+              <p className="mt-1 font-mono text-xs text-[var(--ink-soft)]">
+                {formatLoopoints(balance)} disponibles
+              </p>
             </div>
           </div>
 
-          <div className="relative grid grid-cols-2 gap-3 border-t border-white/15 pt-4">
+          {(readyRewards > 0 || closestUpcoming) && (
             <div>
-              <p className="font-pixel text-lg text-emerald-400">{readyRewards}</p>
-              <p className="mt-1 text-xs text-slate-300">recompensas disponibles</p>
+              <div className="progress-caption">
+                {readyRewards > 0
+                  ? `¡TIENES ${readyRewards} ${readyRewards === 1 ? "RECOMPENSA LISTA" : "RECOMPENSAS LISTAS"}!`
+                  : `PRÓXIMO PREMIO: ${closestUpcoming?.name.toUpperCase()}`}
+              </div>
+              <div className="retro-progress" aria-hidden="true">
+                <span style={{ width: `${heroProgressPct}%` }} />
+              </div>
+              <div className="progress-footer">
+                <span>
+                  {readyRewards > 0
+                    ? "SOLICITA TU PREMIO ABAJO"
+                    : `FALTAN ${formatNumber(closestUpcoming?.remaining ?? 0)} PTS`}
+                </span>
+                <strong>{heroProgressPct}%</strong>
+              </div>
             </div>
-            <div>
-              <p className="font-pixel text-lg text-cyan-300">
+          )}
+
+          <div className="grid grid-cols-2 gap-3 border-t-2 border-dashed border-[var(--dash-line)] pt-4">
+            <div className="border-2 border-[var(--line)] bg-[var(--paper)] p-3">
+              <p className="font-pixel text-lg text-[#4e8c57] dark:text-[#34d399]">{readyRewards}</p>
+              <p className="mt-1 font-mono text-xs text-[var(--ink-muted)]">recompensas disponibles</p>
+            </div>
+            <div className="border-2 border-[var(--line)] bg-[var(--paper)] p-3">
+              <p className="font-pixel text-lg text-[var(--blue)]">
                 {summaryRow?.pending_redemptions ?? 0}
               </p>
-              <p className="mt-1 text-xs text-slate-300">canjes en curso</p>
+              <p className="mt-1 font-mono text-xs text-[var(--ink-muted)]">canjes en curso</p>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </section>
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Gift className="size-4 text-muted-foreground" aria-hidden="true" />
+        <section className="retro-card p-4 sm:p-5 lg:col-span-2" aria-labelledby="rewards-heading">
+          <div className="mb-4 flex items-center gap-2 border-b-2 border-dashed border-[var(--dash-line)] pb-3">
+            <Gift className="size-4 text-[var(--red)]" aria-hidden="true" />
+            <h2 id="rewards-heading" className="font-display text-lg font-bold text-[var(--ink)]">
               Recompensas disponibles
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {available.length === 0 ? (
-              <EmptyState
-                title="Catálogo en preparación"
-                description="Todavía no hay recompensas publicadas en este negocio. Vuelve pronto."
-                icon={Gift}
-                className="border-0 bg-transparent py-8"
-              />
-            ) : (
-              <div className="grid gap-3 sm:grid-cols-2">
-                {available.map((reward) => {
-                  const progress = Math.min((balance / reward.points_required) * 100, 100);
-                  return (
-                    <Card
-                      key={reward.id}
-                      className={
-                        reward.can_redeem
-                          ? "border-emerald-300 bg-emerald-50/50 dark:border-emerald-800 dark:bg-emerald-950/20"
-                          : undefined
-                      }
-                    >
-                      <CardContent className="space-y-3 p-4">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="min-w-0">
-                            <h3 className="font-bold leading-tight">{reward.name}</h3>
-                            <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
-                              {reward.description}
-                            </p>
-                          </div>
-                          {reward.can_redeem ? (
-                            <Badge variant="success" className="shrink-0">
-                              <Check className="mr-1 size-3" aria-hidden="true" />
-                              Disponible
-                            </Badge>
-                          ) : (
-                            <Badge variant="muted" className="shrink-0">
-                              <LockKeyhole className="mr-1 size-3" aria-hidden="true" />
-                              Faltan {reward.remaining}
-                            </Badge>
-                          )}
-                        </div>
+            </h2>
+          </div>
 
-                        <div className="space-y-1.5">
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="font-semibold">
-                              {formatPoints(reward.points_required)}
-                            </span>
-                            <span className="text-muted-foreground">
-                              {reward.can_redeem
-                                ? "Puedes solicitarla"
-                                : `${Math.floor(progress)}% de avance`}
-                            </span>
-                          </div>
-                          <Progress
-                            value={progress}
-                            label={`Progreso para ${reward.name}`}
-                            className={reward.can_redeem ? "[&>div]:bg-emerald-500" : undefined}
-                          />
-                        </div>
-
-                        <Button
-                          onClick={() => requestReward(reward)}
-                          disabled={!reward.can_redeem}
-                          className="w-full"
-                        >
-                          {reward.can_redeem ? "Solicitar" : "No disponible"}
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Movimientos recientes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {transactions.isLoading ? (
-              <ListSkeleton rows={3} />
-            ) : transactions.isError ? (
-              <ErrorState error={transactions.error} onRetry={() => void transactions.refetch()} />
-            ) : !transactions.data || transactions.data.length === 0 ? (
-              <p className="text-sm text-muted-foreground">Sin movimientos todavía.</p>
-            ) : (
-              <ul className="space-y-3">
-                {transactions.data.slice(0, 10).map((movement) => (
-                  <li
-                    key={movement.id}
-                    className="flex items-center justify-between gap-3 border-b py-2 last:border-0"
-                  >
-                    <div>
-                      <p className="text-sm font-semibold">
-                        {movement.movement_type === "purchase_credit"
-                          ? "Compra acreditada"
-                          : movement.movement_type === "redemption_debit"
-                            ? "Canje"
-                            : movement.movement_type === "bonus_credit"
-                              ? "Bono"
-                              : movement.movement_type === "expiry_debit"
-                                ? "Loopoints vencidos"
-                                : movement.movement_type}
-                      </p>
-                      <p className="text-xs text-muted-foreground">{movement.reason ?? ""}</p>
-                    </div>
-                    <p
-                      className={cn(
-                        "font-mono",
-                        movement.points > 0 ? "text-emerald-600" : "text-destructive",
-                      )}
-                    >
-                      {movement.points > 0 ? "+" : ""}
-                      {movement.points}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card>
-        <CardHeader className="flex-row items-center justify-between space-y-0">
-          <CardTitle className="text-base">Compras recientes</CardTitle>
-          <Button variant="ghost" size="sm" asChild>
-            <Link to="/customer/purchases">
-              Ver historial
-              <ArrowRight aria-hidden="true" />
-            </Link>
-          </Button>
-        </CardHeader>
-        <CardContent>
-          {purchases.isLoading ? (
-            <CardSkeleton className="border-0 p-0" />
-          ) : purchases.isError ? (
-            <ErrorState error={purchases.error} onRetry={() => void purchases.refetch()} />
-          ) : !purchases.data || purchases.data.length === 0 ? (
+          {available.length === 0 ? (
             <EmptyState
-              title="Aún no tienes compras aquí"
-              description="Pide en caja que generen el QR de tu compra y escanéalo con este teléfono."
-              icon={ReceiptText}
-              className="border-0 bg-transparent py-6"
+              title="Catálogo en preparación"
+              description="Todavía no hay recompensas publicadas en este negocio. Vuelve pronto."
+              icon={Gift}
+              className="border-0 bg-transparent py-8"
             />
           ) : (
-            <ul className="divide-y">
-              {purchases.data.slice(0, 5).map((purchase) => (
+            <div className="grid gap-4 sm:grid-cols-2">
+              {available.map((reward) => {
+                const progress = Math.min((balance / reward.points_required) * 100, 100);
+                return (
+                  <article
+                    key={reward.id}
+                    className={cn(
+                      "flex flex-col justify-between gap-3 border-[3px] border-[var(--line)] p-4 shadow-[4px_4px_0_var(--shadow-ink)]",
+                      reward.can_redeem ? "bg-[var(--cream-alt)]" : "bg-[var(--paper)]",
+                    )}
+                  >
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <h3 className="font-bold leading-tight text-[var(--ink)]">{reward.name}</h3>
+                          <p className="mt-1 line-clamp-2 text-xs text-[var(--ink-muted)]">
+                            {reward.description}
+                          </p>
+                        </div>
+                        {reward.can_redeem ? (
+                          <Badge variant="success" className="shrink-0 border border-[var(--line)]">
+                            <Check className="mr-1 size-3" aria-hidden="true" />
+                            Disponible
+                          </Badge>
+                        ) : (
+                          <Badge variant="muted" className="shrink-0 border border-[var(--line)]">
+                            <LockKeyhole className="mr-1 size-3" aria-hidden="true" />
+                            Faltan {reward.remaining}
+                          </Badge>
+                        )}
+                      </div>
+
+                      <div className="space-y-1">
+                        <div className="flex items-center justify-between font-mono text-xs">
+                          <span className="font-bold text-[var(--ink)]">
+                            {formatPoints(reward.points_required)}
+                          </span>
+                          <span className="text-[var(--ink-soft)]">
+                            {reward.can_redeem
+                              ? "Puedes solicitarla"
+                              : `${Math.floor(progress)}% de avance`}
+                          </span>
+                        </div>
+                        <div className="retro-progress retro-progress-sm" aria-hidden="true">
+                          <span style={{ width: `${progress}%` }} />
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => requestReward(reward)}
+                      disabled={!reward.can_redeem}
+                      className={cn(
+                        "retro-btn w-full text-xs",
+                        reward.can_redeem ? "retro-btn-red" : "retro-btn-light",
+                      )}
+                    >
+                      {reward.can_redeem ? "Solicitar" : "No disponible"}
+                    </button>
+                  </article>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
+        <section className="retro-card p-4 sm:p-5" aria-labelledby="movements-heading">
+          <div className="mb-4 border-b-2 border-dashed border-[var(--dash-line)] pb-3">
+            <h2 id="movements-heading" className="font-display text-lg font-bold text-[var(--ink)]">
+              Movimientos recientes
+            </h2>
+          </div>
+          {transactions.isLoading ? (
+            <ListSkeleton rows={3} />
+          ) : transactions.isError ? (
+            <ErrorState error={transactions.error} onRetry={() => void transactions.refetch()} />
+          ) : !transactions.data || transactions.data.length === 0 ? (
+            <p className="font-mono text-xs text-[var(--ink-soft)]">Sin movimientos todavía.</p>
+          ) : (
+            <ul className="space-y-2.5">
+              {transactions.data.slice(0, 10).map((movement) => (
                 <li
-                  key={purchase.id}
-                  className="flex flex-wrap items-center justify-between gap-3 py-3 first:pt-0 last:pb-0"
+                  key={movement.id}
+                  className="flex items-center justify-between gap-3 border-b-2 border-dashed border-[var(--dash-line)] py-2 last:border-0"
                 >
-                  <div>
-                    <p className="font-semibold">{formatCOP(purchase.amount_cop)}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {formatDateBogota(purchase.claimed_at ?? purchase.created_at)}
-                      {purchase.items_count > 0 ? ` · ${purchase.items_count} producto(s)` : ""}
+                  <div className="min-w-0">
+                    <p className="text-sm font-bold text-[var(--ink)]">
+                      {movement.movement_type === "purchase_credit"
+                        ? "Compra acreditada"
+                        : movement.movement_type === "redemption_debit"
+                          ? "Canje"
+                          : movement.movement_type === "bonus_credit"
+                            ? "Bono"
+                            : movement.movement_type === "expiry_debit"
+                              ? "Loopoints vencidos"
+                              : movement.movement_type}
+                    </p>
+                    <p className="truncate font-mono text-xs text-[var(--ink-soft)]">
+                      {movement.reason ?? ""}
                     </p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="success">+{purchase.points_awarded} pts</Badge>
-                    <Button variant="outline" size="sm" onClick={() => setDetailId(purchase.id)}>
-                      Ver detalle
-                    </Button>
-                  </div>
+                  <p
+                    className={cn(
+                      "shrink-0 font-mono text-sm font-bold",
+                      movement.points > 0 ? "text-[#4e8c57] dark:text-[#34d399]" : "text-[var(--red)]",
+                    )}
+                  >
+                    {movement.points > 0 ? "+" : ""}
+                    {movement.points}
+                  </p>
                 </li>
               ))}
             </ul>
           )}
-        </CardContent>
-      </Card>
+        </section>
+      </div>
 
-      <Card className="border-dashed bg-secondary/30">
-        <CardContent className="flex flex-col gap-3 p-5 sm:flex-row sm:items-start">
-          <span className="grid size-10 shrink-0 place-items-center rounded-full bg-secondary text-secondary-foreground">
+      <section className="retro-card p-4 sm:p-5" aria-labelledby="purchases-heading">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b-2 border-dashed border-[var(--dash-line)] pb-3">
+          <h2 id="purchases-heading" className="font-display text-lg font-bold text-[var(--ink)]">
+            Compras recientes
+          </h2>
+          <Link to="/customer/purchases" className="retro-btn retro-btn-light px-3 py-1.5 text-xs">
+            Ver historial
+            <ArrowRight className="size-3.5" aria-hidden="true" />
+          </Link>
+        </div>
+
+        {purchases.isLoading ? (
+          <CardSkeleton className="border-0 p-0" />
+        ) : purchases.isError ? (
+          <ErrorState error={purchases.error} onRetry={() => void purchases.refetch()} />
+        ) : !purchases.data || purchases.data.length === 0 ? (
+          <EmptyState
+            title="Aún no tienes compras aquí"
+            description="Pide en caja que generen el QR de tu compra y escanéalo con este teléfono."
+            icon={ReceiptText}
+            className="border-0 bg-transparent py-6"
+          />
+        ) : (
+          <ul className="divide-y-2 divide-dashed divide-[var(--dash-line)]">
+            {purchases.data.slice(0, 5).map((purchase) => (
+              <li
+                key={purchase.id}
+                className="flex flex-wrap items-center justify-between gap-3 py-3 first:pt-0 last:pb-0"
+              >
+                <div>
+                  <p className="font-bold text-[var(--ink)]">{formatCOP(purchase.amount_cop)}</p>
+                  <p className="font-mono text-xs text-[var(--ink-soft)]">
+                    {formatDateBogota(purchase.claimed_at ?? purchase.created_at)}
+                    {purchase.items_count > 0 ? ` · ${purchase.items_count} producto(s)` : ""}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="border-2 border-[var(--line)] bg-[#34d399] px-2 py-0.5 font-mono text-xs font-bold text-[#1e1c1a]">
+                    +{purchase.points_awarded} pts
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setDetailId(purchase.id)}
+                    className="retro-btn retro-btn-light px-3 py-1.5 text-xs"
+                  >
+                    Ver detalle
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <div className="retro-card retro-card-muted border-dashed p-4 sm:p-5">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
+          <span className="grid size-10 shrink-0 place-items-center border-2 border-[var(--line)] bg-[#ffd166] text-[#1e1c1a]">
             <TrendingUp className="size-4" aria-hidden="true" />
           </span>
           <div className="space-y-1 text-sm">
-            <p className="font-semibold">¿Cómo sumo más loopoints?</p>
-            <p className="text-muted-foreground">
+            <p className="font-bold text-[var(--ink)]">¿Cómo sumo más loopoints?</p>
+            <p className="text-[var(--ink-muted)]">
               Pide en caja que registren tu compra y escanea el QR con este teléfono. Para canjear,
-              solicita la recompensa aquí y muestra el QR al encargado.
+              solicita la recompensa aquí y el encargado la aprobará en mostrador.
             </p>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       <Dialog open={redeemDialog !== null} onOpenChange={() => setRedeemDialog(null)}>
-        <DialogContent>
+        <DialogContent className="border-[3px] border-[var(--line)] bg-[var(--cream)] shadow-[6px_6px_0_var(--shadow-ink)]">
           <DialogHeader>
-            <DialogTitle>Solicitar recompensa</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="font-display text-xl font-bold text-[var(--ink)]">
+              Solicitar recompensa
+            </DialogTitle>
+            <DialogDescription className="text-[var(--ink-muted)]">
               Canjear <strong>{redeemDialog?.name}</strong> por{" "}
               <strong>{formatPoints(redeemDialog?.points_required ?? 0)}</strong>.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={confirmRedemption} className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Se reservarán los loopoints de {business.name} y se generará un código QR para que el
-              encargado valide la entrega.
+            <p className="text-sm text-[var(--ink-muted)]">
+              Se reservarán los loopoints de {business.name} y el encargado podrá aprobar la
+              solicitud directamente desde su panel.
             </p>
             <DialogFooter>
               <Button
@@ -512,6 +577,7 @@ export function CustomerBusinessHomePage() {
                 variant="outline"
                 onClick={() => setRedeemDialog(null)}
                 disabled={requestRedemption.isPending}
+                className="border-2 border-[var(--line)]"
               >
                 Cancelar
               </Button>
@@ -519,6 +585,7 @@ export function CustomerBusinessHomePage() {
                 type="submit"
                 loading={requestRedemption.isPending}
                 disabled={!redeemDialog?.can_redeem}
+                className="retro-btn retro-btn-red border-2 border-[var(--line)]"
               >
                 Confirmar solicitud
               </Button>
@@ -526,16 +593,6 @@ export function CustomerBusinessHomePage() {
           </form>
         </DialogContent>
       </Dialog>
-
-      <RedemptionQrDialog
-        open={qrOpen && createdRedemption !== null}
-        onOpenChange={setQrOpen}
-        rewardName={createdRedemption?.reward_name ?? ""}
-        code={createdRedemption?.code ?? ""}
-        token={createdRedemption?.token ?? null}
-        expiresAt={createdRedemption?.expires_at ?? null}
-        businessName={business.name}
-      />
 
       <PurchaseDetailDialog
         open={Boolean(detailId)}

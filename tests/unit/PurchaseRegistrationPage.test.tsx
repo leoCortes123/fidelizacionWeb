@@ -118,6 +118,20 @@ vi.mock("@/features/purchases/hooks", () => ({
     error: null,
     refetch: vi.fn(),
   }),
+  useBusinessPurchaseDetail: () => ({
+    data: null,
+    isLoading: false,
+    isError: false,
+    error: null,
+    refetch: vi.fn(),
+  }),
+  useMyPurchaseDetail: () => ({
+    data: null,
+    isLoading: false,
+    isError: false,
+    error: null,
+    refetch: vi.fn(),
+  }),
 }));
 
 function renderPage() {

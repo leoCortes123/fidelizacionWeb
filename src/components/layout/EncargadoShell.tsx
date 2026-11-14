@@ -1,7 +1,6 @@
 import { useRef } from "react";
-import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { LogOut, ReceiptText, TicketCheck, Wrench } from "lucide-react";
-import { toast } from "sonner";
+import { Link, NavLink, Outlet } from "react-router-dom";
+import { Home, ReceiptText, TicketCheck, Wrench } from "lucide-react";
 import { Brand } from "@/components/shared/Brand";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,30 +10,39 @@ import { useAuth } from "@/features/auth/AuthProvider";
 import { usePortalTheme } from "@/components/theme/ThemeProvider";
 import { cn } from "@/lib/utils";
 import { UserMenu } from "./UserMenu";
+import { PurchaseFab } from "./Fab";
 import { useHideOnScroll } from "./useHideOnScroll";
 
-const navItems = [
-  { to: "/encargado", label: "Redenciones", icon: TicketCheck, end: true },
-  { to: "/encargado/venta", label: "Registrar compra", icon: ReceiptText },
+type EncargadoNavItem = {
+  to: string;
+  label: string;
+  shortLabel: string;
+  icon: typeof Home;
+  end?: boolean;
+};
+
+const navItems: EncargadoNavItem[] = [
+  { to: "/encargado", label: "Inicio", shortLabel: "Inicio", icon: Home, end: true },
+  { to: "/encargado/venta", label: "Generar venta", shortLabel: "Generar venta", icon: ReceiptText },
+  {
+    to: "/encargado/solicitudes",
+    label: "Solicitudes de recompensa",
+    shortLabel: "Solicitudes",
+    icon: TicketCheck,
+  },
 ];
 
 export function EncargadoShell() {
   usePortalTheme("admin");
-  const { roles, signOut } = useAuth();
+  const { roles } = useAuth();
   const businessContext = useOptionalBusinessContext();
   const headerBusinessName =
-    businessContext?.selectedBusiness?.name ?? businessContext?.businesses[0]?.name;
-  const { pathname } = useLocation();
-  const navigate = useNavigate();
+    businessContext?.selectedBusiness?.name ??
+    businessContext?.businesses.find((business) => business.role === "encargado")?.name ??
+    businessContext?.businesses[0]?.name;
   const scrollRef = useRef<HTMLElement | null>(null);
   const headerHidden = useHideOnScroll(scrollRef);
-  const isAdmin = roles.includes("admin");
-
-  async function handleSignOut() {
-    await signOut();
-    toast.success("Sesión cerrada");
-    navigate("/", { replace: true });
-  }
+  const isAdmin = businessContext?.selectedRole === "admin" || roles.includes("admin");
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-background">
@@ -43,7 +51,7 @@ export function EncargadoShell() {
         inert={headerHidden || undefined}
         aria-hidden={headerHidden || undefined}
         className={cn(
-          "z-30 shrink-0 overflow-hidden border-b bg-background/95 backdrop-blur transition-all duration-300 ease-out no-print",
+          "z-30 shrink-0 overflow-hidden border-b border-border/80 bg-card/95 backdrop-blur transition-[max-height,transform,opacity] duration-300 ease-out no-print dark:border-slate-800",
           headerHidden
             ? "invisible pointer-events-none max-h-0 -translate-y-full border-transparent opacity-0"
             : "max-h-40 opacity-100",
@@ -64,14 +72,14 @@ export function EncargadoShell() {
               name={headerBusinessName}
               tagline={headerBusinessName ? null : undefined}
             />
-            <Badge variant="secondary" className="hidden sm:inline-flex text-[11px]">
-              Colaborador
+            <Badge variant="default" className="hidden sm:inline-flex text-[11px]">
+              ENCARGADO · NEGOCIO
             </Badge>
           </div>
 
           <nav
-            className="hidden items-center gap-1 md:flex"
-            aria-label="Navegación del colaborador"
+            className="hidden items-center gap-1.5 md:flex"
+            aria-label="Navegación del encargado"
           >
             {navItems.map((item) => (
               <NavLink
@@ -80,10 +88,10 @@ export function EncargadoShell() {
                 end={item.end}
                 className={({ isActive }) =>
                   cn(
-                    "flex items-center gap-2 rounded-none px-3 py-2 text-sm font-semibold transition-colors",
+                    "flex items-center gap-2 rounded-none px-3.5 py-2 text-sm font-semibold transition-all duration-150",
                     isActive
-                      ? "bg-secondary text-secondary-foreground"
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
+                      ? "bg-primary text-primary-foreground shadow-sm shadow-primary/25"
+                      : "text-muted-foreground hover:bg-muted/80 hover:text-foreground",
                   )
                 }
               >
@@ -103,56 +111,47 @@ export function EncargadoShell() {
                 </Link>
               </Button>
             )}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => void handleSignOut()}
-              className="flex items-center gap-1.5"
-              aria-label="Cerrar sesión"
-            >
-              <LogOut className="size-4 text-destructive" aria-hidden="true" />
-              <span className="hidden sm:inline">Cerrar sesión</span>
-            </Button>
             <UserMenu compact />
           </div>
         </div>
-        <div className="border-t px-4 py-2 md:hidden">
+        <div className="border-t border-border/70 px-4 py-2 md:hidden dark:border-slate-800">
           <BusinessSwitcher />
         </div>
       </header>
 
       <main
         ref={scrollRef}
-        className="min-h-0 flex-1 overflow-y-auto overscroll-contain"
+        className="min-h-0 flex-1 overflow-y-auto overscroll-contain scroll-pb-28 md:scroll-pb-14"
         id="contenido-principal"
       >
-        <div className="mx-auto w-full max-w-5xl px-0 pb-24 pt-4 sm:px-6 md:py-6 md:pb-14">
+        <div className="mx-auto w-full max-w-5xl px-4 pb-24 pt-4 sm:px-6 md:py-6 md:pb-14">
           <Outlet />
         </div>
       </main>
+
+      <PurchaseFab />
 
       <nav
         className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden no-print"
         aria-label="Navegación inferior"
       >
-        <div className="grid grid-cols-2">
+        <div className="grid grid-cols-3">
           {navItems.map((item) => {
             const Icon = item.icon;
-            const active = item.end
-              ? pathname === item.to
-              : pathname === item.to || pathname.startsWith(`${item.to}/`);
             return (
               <NavLink
                 key={item.to}
                 to={item.to}
                 end={item.end}
-                className={cn(
-                  "flex flex-col items-center gap-1 py-2.5 text-[11px] font-semibold transition-colors",
-                  active ? "text-primary" : "text-muted-foreground hover:text-foreground",
-                )}
+                className={({ isActive }) =>
+                  cn(
+                    "flex flex-col items-center gap-1 py-2.5 text-[11px] font-semibold transition-colors",
+                    isActive ? "text-primary font-bold" : "text-muted-foreground hover:text-foreground",
+                  )
+                }
               >
                 <Icon className="size-5" aria-hidden="true" />
-                {item.label}
+                <span>{item.shortLabel}</span>
               </NavLink>
             );
           })}

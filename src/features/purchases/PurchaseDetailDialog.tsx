@@ -39,7 +39,7 @@ export function PurchaseDetailDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ReceiptText className="size-5 text-muted-foreground" aria-hidden="true" />
-            Detalle de la compra
+            Detalle de la venta
           </DialogTitle>
           <DialogDescription>Líneas, loopoints y datos de la venta.</DialogDescription>
         </DialogHeader>

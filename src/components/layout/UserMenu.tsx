@@ -28,7 +28,11 @@ export function UserMenu({ compact = false, className, align = "end" }: UserMenu
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const { pathname } = useLocation();
-  const profilePath = pathname.startsWith("/admin") ? "/admin/perfil" : "/perfil";
+  const profilePath = pathname.startsWith("/admin")
+    ? "/admin/perfil"
+    : pathname.startsWith("/customer")
+      ? "/customer/perfil"
+      : "/perfil";
 
   async function handleSignOut() {
     await signOut();

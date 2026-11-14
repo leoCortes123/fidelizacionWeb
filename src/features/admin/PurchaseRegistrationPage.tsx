@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { QRCodeCanvas } from "qrcode.react";
 import {
   CalendarClock,
+  ChevronRight,
   Copy,
   Download,
   ImageIcon,
@@ -63,6 +64,7 @@ import { Field } from "@/components/shared/Field";
 import { PurchaseStatusBadge } from "@/components/shared/StatusBadge";
 import { EmptyState, ErrorState, ListSkeleton } from "@/components/shared/States";
 import { BusinessGate } from "./BusinessGate";
+import { PurchaseDetailDialog } from "@/features/purchases/PurchaseDetailDialog";
 
 const RECENT_PAGE_SIZE = 5;
 
@@ -116,6 +118,7 @@ function PurchaseQrSection({ business }: { business: Business }) {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<PurchaseQrCreateResult | null>(null);
   const [qrOpen, setQrOpen] = useState(false);
+  const [selectedPurchaseId, setSelectedPurchaseId] = useState<string | null>(null);
   const qrRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
@@ -473,10 +476,15 @@ function PurchaseQrSection({ business }: { business: Business }) {
 
       <Card>
         <CardHeader className="flex-row items-center justify-between space-y-0">
-          <CardTitle className="text-base">Últimas ventas</CardTitle>
-          <Button variant="ghost" size="sm" asChild>
-            <Link to="/admin/purchases">Ver todas</Link>
-          </Button>
+          <div>
+            <CardTitle className="text-base">Últimas ventas</CardTitle>
+            <p className="text-xs text-muted-foreground">Toca una venta para ver sus detalles</p>
+          </div>
+          {business.role === "admin" && (
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/admin/purchases">Ver todas</Link>
+            </Button>
+          )}
         </CardHeader>
         <CardContent>
           {recent.isLoading ? (
@@ -491,24 +499,29 @@ function PurchaseQrSection({ business }: { business: Business }) {
           ) : (
             <ul className="divide-y">
               {recent.data.map((purchase) => (
-                <li
-                  key={purchase.id}
-                  className="flex flex-wrap items-center justify-between gap-3 py-3 first:pt-0 last:pb-0"
-                >
-                  <div className="min-w-0">
-                    <p className="font-semibold">{formatCOP(purchase.amount_cop)}</p>
-                    <p className="truncate text-xs text-muted-foreground">
-                      {formatDateTimeBogota(purchase.created_at)} ·{" "}
-                      {purchase.customer_name ?? "Sin reclamar"}
-                      {purchase.items_count ? ` · ${purchase.items_count} ítem(s)` : ""}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs text-muted-foreground">
-                      {purchase.points_awarded > 0 ? formatPoints(purchase.points_awarded) : ""}
-                    </span>
-                    <PurchaseStatusBadge status={purchase.status} />
-                  </div>
+                <li key={purchase.id}>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedPurchaseId(purchase.id)}
+                    className="flex w-full flex-wrap items-center justify-between gap-3 rounded-none py-3 text-left transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary first:pt-0 last:pb-0"
+                    aria-label={`Ver detalle de la venta por ${formatCOP(purchase.amount_cop)}`}
+                  >
+                    <div className="min-w-0">
+                      <p className="font-semibold">{formatCOP(purchase.amount_cop)}</p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {formatDateTimeBogota(purchase.created_at)} ·{" "}
+                        {purchase.customer_name ?? "Sin reclamar"}
+                        {purchase.items_count ? ` · ${purchase.items_count} ítem(s)` : ""}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs text-muted-foreground">
+                        {purchase.points_awarded > 0 ? formatPoints(purchase.points_awarded) : ""}
+                      </span>
+                      <PurchaseStatusBadge status={purchase.status} />
+                      <ChevronRight className="size-4 text-muted-foreground" aria-hidden="true" />
+                    </div>
+                  </button>
                 </li>
               ))}
             </ul>
@@ -692,6 +705,16 @@ function PurchaseQrSection({ business }: { business: Business }) {
           )}
         </DialogContent>
       </Dialog>
+
+      <PurchaseDetailDialog
+        open={Boolean(selectedPurchaseId)}
+        onOpenChange={(open) => {
+          if (!open) setSelectedPurchaseId(null);
+        }}
+        purchaseId={selectedPurchaseId}
+        businessId={business.id}
+        mode="business"
+      />
     </div>
   );
 }

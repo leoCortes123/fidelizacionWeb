@@ -394,7 +394,7 @@ function RedemptionsSection({ business }: { business: Business }) {
                         <Button size="sm" variant="outline" asChild>
                           <Link to="/admin/purchases/new">
                             <ReceiptText aria-hidden="true" />
-                            Registrar compra
+                            Registrar venta
                           </Link>
                         </Button>
                       )}

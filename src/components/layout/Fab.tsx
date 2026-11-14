@@ -8,12 +8,18 @@ import { cn } from "@/lib/utils";
  */
 export function PurchaseFab({ className }: { className?: string }) {
   const { pathname } = useLocation();
-  if (pathname.startsWith("/admin/purchases/new")) return null;
+  if (pathname.startsWith("/admin/purchases/new") || pathname.startsWith("/encargado/venta")) {
+    return null;
+  }
+
+  const destination = pathname.startsWith("/encargado")
+    ? "/encargado/venta"
+    : "/admin/purchases/new";
 
   return (
     <Link
-      to="/admin/purchases/new"
-      aria-label="Registrar compra"
+      to={destination}
+      aria-label="Registrar venta"
       className={cn(
         "fixed right-4 z-40 inline-flex size-14 items-center justify-center rounded-full border-2 border-black bg-amber-400 text-black shadow-lg transition-transform hover:scale-105 hover:bg-amber-300 active:scale-95 md:hidden dark:bg-amber-400 dark:hover:bg-amber-300",
         "bottom-[calc(4.75rem+env(safe-area-inset-bottom))]",

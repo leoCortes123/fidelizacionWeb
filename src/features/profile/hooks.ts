@@ -40,6 +40,8 @@ export interface ProfileUpdateResult {
   nickname: string | null;
   nickname_changes: number;
   nickname_changes_left: number;
+  phone?: string | null;
+  birth_date?: string | null;
   business_count: number;
 }
 
@@ -51,12 +53,18 @@ export function useUpdateProfile() {
     {
       fullName: string;
       nickname: string | null;
+      phone?: string | null;
+      birthDate?: string | null;
+      clearBirthDate?: boolean;
     }
   >({
     mutationFn: (params) =>
       rpc<ProfileUpdateResult>("profile_update", {
         p_full_name: params.fullName,
         p_nickname: params.nickname,
+        ...(params.phone !== undefined ? { p_phone: params.phone } : {}),
+        ...(params.birthDate !== undefined ? { p_birth_date: params.birthDate } : {}),
+        ...(params.clearBirthDate ? { p_clear_birth_date: true } : {}),
       }),
     onSuccess: (data) => {
       queryClient.setQueryData<MyProfile>(queryKeys.profile, (current) =>

@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { rpc } from "@/lib/supabase";
 import { queryKeys } from "@/lib/queryKeys";
 import type {
@@ -550,6 +550,115 @@ export function useLoyaltyRewardsAvailable(businessId: string, customerId: strin
       }),
     enabled: Boolean(businessId) && Boolean(customerId),
   });
+}
+
+export interface BusinessClosestRewardInfo {
+  business: CustomerBusinessSummary;
+  nextReward: LoyaltyRewardAvailable | null;
+  progressPct: number;
+  remainingPoints: number;
+  hasReadyReward: boolean;
+}
+
+/** Calcula la recompensa más cercana (o lista para canjear) de un negocio para el cliente. */
+export function computeClosestRewardInfo(
+  business: CustomerBusinessSummary,
+  rewards: LoyaltyRewardAvailable[] | undefined,
+): BusinessClosestRewardInfo {
+  const list = rewards ?? [];
+  const ready = list
+    .filter((reward) => reward.can_redeem)
+    .sort((a, b) => b.points_required - a.points_required);
+
+  if (ready.length > 0) {
+    return {
+      business,
+      nextReward: ready[0],
+      progressPct: 100,
+      remainingPoints: 0,
+      hasReadyReward: true,
+    };
+  }
+
+  const upcoming = list
+    .filter((reward) => !reward.can_redeem && reward.points_required > 0)
+    .sort((a, b) => {
+      const pctA = Math.min(99, Math.floor((business.balance / a.points_required) * 100));
+      const pctB = Math.min(99, Math.floor((business.balance / b.points_required) * 100));
+      if (pctB !== pctA) return pctB - pctA;
+      return a.remaining - b.remaining;
+    });
+
+  if (upcoming.length > 0) {
+    const target = upcoming[0];
+    const progressPct = Math.min(
+      99,
+      Math.max(0, Math.floor((business.balance / target.points_required) * 100)),
+    );
+    return {
+      business,
+      nextReward: target,
+      progressPct,
+      remainingPoints: Math.max(0, target.remaining),
+      hasReadyReward: false,
+    };
+  }
+
+  const hasReadyFallback = business.ready_rewards > 0;
+  return {
+    business,
+    nextReward: null,
+    progressPct: hasReadyFallback ? 100 : 0,
+    remainingPoints: 0,
+    hasReadyReward: hasReadyFallback,
+  };
+}
+
+/** Consulta las recompensas disponibles de los negocios del cliente y los ordena por cercanía de canje. */
+export function useCustomerBusinessesClosestRewards(
+  businesses: CustomerBusinessSummary[],
+  customerId: string,
+) {
+  const activeBusinesses = businesses.filter((b) => b.loyalty_active);
+  const queries = useQueries({
+    queries: activeBusinesses.map((biz) => ({
+      queryKey: queryKeys.loyaltyRewardsAvailable(biz.business_id, customerId),
+      queryFn: () =>
+        rpc<LoyaltyRewardAvailable[]>("loyalty_rewards_available", {
+          p_business_id: biz.business_id,
+          p_customer_id: customerId,
+        }),
+      enabled: Boolean(biz.business_id) && Boolean(customerId),
+    })),
+  });
+
+  const infoByBusinessId = new Map<string, BusinessClosestRewardInfo>();
+  businesses.forEach((biz) => {
+    const activeIndex = activeBusinesses.findIndex((item) => item.business_id === biz.business_id);
+    const rewards = activeIndex >= 0 ? queries[activeIndex]?.data : undefined;
+    infoByBusinessId.set(biz.business_id, computeClosestRewardInfo(biz, rewards));
+  });
+
+  const sortedForPlayerCard = [...businesses]
+    .map((biz) => infoByBusinessId.get(biz.business_id)!)
+    .sort((a, b) => {
+      if (a.hasReadyReward !== b.hasReadyReward) return a.hasReadyReward ? -1 : 1;
+      if (a.business.ready_rewards !== b.business.ready_rewards) {
+        return b.business.ready_rewards - a.business.ready_rewards;
+      }
+      const aHasTarget = a.nextReward !== null;
+      const bHasTarget = b.nextReward !== null;
+      if (aHasTarget !== bHasTarget) return aHasTarget ? -1 : 1;
+      if (b.progressPct !== a.progressPct) return b.progressPct - a.progressPct;
+      if (a.remainingPoints !== b.remainingPoints) return a.remainingPoints - b.remainingPoints;
+      return b.business.balance - a.business.balance;
+    });
+
+  return {
+    items: sortedForPlayerCard,
+    byBusinessId: infoByBusinessId,
+    isLoading: queries.some((q) => q.isLoading),
+  };
 }
 
 export function useUpsertLoyaltyReward() {

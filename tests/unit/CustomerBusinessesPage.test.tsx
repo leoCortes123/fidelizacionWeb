@@ -6,7 +6,7 @@ import {
   CustomerBusinessesPage,
   parseInvitationSlug,
 } from "@/features/customer/CustomerBusinessesPage";
-import type { CustomerBusinessSummary } from "@/types";
+import type { CustomerBusinessSummary, LoyaltyRewardAvailable } from "@/types";
 
 const summary = vi.hoisted(() => ({
   current: {
@@ -18,12 +18,43 @@ const summary = vi.hoisted(() => ({
   },
 }));
 
-vi.mock("@/features/loyalty/hooks", () => ({
-  useCustomerBusinessesSummary: () => summary.current,
+const rewardsByBusiness = vi.hoisted(() => ({
+  current: {} as Record<string, LoyaltyRewardAvailable[]>,
 }));
 
+vi.mock("@/features/loyalty/hooks", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/features/loyalty/hooks")>();
+  return {
+    ...actual,
+    useCustomerBusinessesSummary: () => summary.current,
+    useCustomerBusinessesClosestRewards: (businesses: CustomerBusinessSummary[]) => {
+      const byBusinessId = new Map();
+      const items = businesses
+        .map((biz) => {
+          const info = actual.computeClosestRewardInfo(biz, rewardsByBusiness.current[biz.business_id]);
+          byBusinessId.set(biz.business_id, info);
+          return info;
+        })
+        .sort((a, b) => {
+          if (a.hasReadyReward !== b.hasReadyReward) return a.hasReadyReward ? -1 : 1;
+          if (a.business.ready_rewards !== b.business.ready_rewards) {
+            return b.business.ready_rewards - a.business.ready_rewards;
+          }
+          const aHasTarget = a.nextReward !== null;
+          const bHasTarget = b.nextReward !== null;
+          if (aHasTarget !== bHasTarget) return aHasTarget ? -1 : 1;
+          if (b.progressPct !== a.progressPct) return b.progressPct - a.progressPct;
+          if (a.remainingPoints !== b.remainingPoints) return a.remainingPoints - b.remainingPoints;
+          return b.business.balance - a.business.balance;
+        });
+
+      return { items, byBusinessId, isLoading: false };
+    },
+  };
+});
+
 vi.mock("@/features/auth/AuthProvider", () => ({
-  useAuth: () => ({ displayName: "Carla Cliente" }),
+  useAuth: () => ({ displayName: "Carla Cliente", user: { id: "cust-1" } }),
 }));
 
 function row(
@@ -58,6 +89,7 @@ function renderPage(initialEntry = "/customer") {
 describe("CustomerBusinessesPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    rewardsByBusiness.current = {};
     summary.current = {
       data: [],
       isLoading: false,
@@ -137,5 +169,80 @@ describe("CustomerBusinessesPage", () => {
     expect(parseInvitationSlug("https://loopoint.app/join/cafe-central?x=1")).toBe("cafe-central");
     expect(parseInvitationSlug("Cafe Central")).toBeNull();
     expect(parseInvitationSlug("")).toBeNull();
+  });
+
+  it("muestra la Player Card ordenada por recompensas más cercanas y permite cambiar de pestaña", async () => {
+    const user = userEvent.setup();
+    summary.current.data = [
+      row({
+        business_id: "biz-1",
+        name: "Masa & Miel",
+        slug: "masa-y-miel",
+        balance: 200,
+      }),
+      row({
+        business_id: "biz-2",
+        name: "Café Aurora",
+        slug: "cafe-aurora",
+        balance: 90,
+      }),
+    ];
+function rewardFixture(
+  overrides: Partial<LoyaltyRewardAvailable> & Pick<LoyaltyRewardAvailable, "id" | "name">,
+): LoyaltyRewardAvailable {
+  return {
+    type: "free_product",
+    description: "",
+    points_required: 100,
+    min_purchase_amount: 0,
+    max_discount_amount: null,
+    discount_percentage: null,
+    product_price_cop: null,
+    product_cost_cop: null,
+    balance: 0,
+    remaining: 100,
+    can_redeem: false,
+    valid_from: null,
+    valid_until: null,
+    ...overrides,
+  };
+}
+
+    rewardsByBusiness.current = {
+      "biz-1": [
+        rewardFixture({
+          id: "rew-1",
+          name: "Croissant",
+          description: "Croissant artesanal",
+          points_required: 1000,
+          balance: 200,
+          remaining: 800,
+        }),
+      ],
+      "biz-2": [
+        rewardFixture({
+          id: "rew-2",
+          name: "Café gratis",
+          description: "Americano o latte",
+          points_required: 100,
+          balance: 90,
+          remaining: 10,
+        }),
+      ],
+    };
+
+    renderPage();
+
+    const region = screen.getByRole("region", {
+      name: /Player Card de recompensas más cercanas/i,
+    });
+    expect(region).toHaveTextContent("Café Aurora");
+    expect(region).toHaveTextContent("90%");
+    expect(region).toHaveTextContent("Café gratis");
+
+    const masaTab = screen.getByRole("tab", { name: "Masa & Miel" });
+    await user.click(masaTab);
+    expect(region).toHaveTextContent("Croissant");
+    expect(region).toHaveTextContent("20%");
   });
 });

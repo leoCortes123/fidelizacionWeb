@@ -329,7 +329,19 @@ function Wizard({
   const { setSelectedBusiness } = useBusinessContext();
   const currentKeyId = business?.id ?? null;
 
-  const [restoredDraft] = useState(() => loadDraft(currentKeyId));
+  const [restoredDraft] = useState(() => {
+    const loaded = loadDraft(currentKeyId);
+    if (loaded && !business && initialName && loaded.name !== initialName) {
+      return {
+        ...loaded,
+        step: 0,
+        name: initialName,
+        slug: initialSlug || slugifyBusinessName(initialName),
+        slugEditedManually: Boolean(initialSlug),
+      };
+    }
+    return loaded;
+  });
   const [draft, setDraft] = useState<WizardDraft>(
     () => restoredDraft ?? initialDraft(business, program, initialName, initialSlug),
   );

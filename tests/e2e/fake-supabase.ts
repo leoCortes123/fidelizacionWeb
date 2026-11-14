@@ -16,6 +16,8 @@ export interface FakeUser {
   email: string;
   nickname?: string;
   nicknameChanges?: number;
+  phone?: string | null;
+  birthDate?: string | null;
   accountType?: "customer" | "admin";
   token: string;
   roles: FakeRole[];
@@ -835,6 +837,8 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           nickname: user?.nickname ?? null,
           nickname_changes: user?.nicknameChanges ?? 0,
           nickname_changes_left: 2 - (user?.nicknameChanges ?? 0),
+          phone: user?.phone ?? null,
+          birth_date: user?.birthDate ?? null,
           business_count: state.memberships.filter((m) => m.userId === user?.id).length,
           created_at: user?.createdAt,
         });
@@ -896,6 +900,15 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
         }
         user.name = nextName;
         user.nickname = nextNickname;
+        if (body.p_phone !== undefined) {
+          const nextPhone = String(body.p_phone ?? "").trim();
+          user.phone = nextPhone || null;
+        }
+        if (body.p_clear_birth_date) {
+          user.birthDate = null;
+        } else if (body.p_birth_date !== undefined) {
+          user.birthDate = body.p_birth_date ? String(body.p_birth_date) : null;
+        }
         return json(route, {
           id: user.id,
           full_name: user.name,
@@ -903,6 +916,8 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           nickname: user.nickname,
           nickname_changes: user.nicknameChanges ?? 0,
           nickname_changes_left: 2 - (user.nicknameChanges ?? 0),
+          phone: user.phone ?? null,
+          birth_date: user.birthDate ?? null,
           business_count: state.memberships.filter((m) => m.userId === user.id).length,
         });
       }

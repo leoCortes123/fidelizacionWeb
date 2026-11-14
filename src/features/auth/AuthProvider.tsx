@@ -29,6 +29,7 @@ interface AuthContextValue {
     email: string;
     password: string;
     fullName: string;
+    businessName?: string;
     accountType?: "customer" | "admin";
     nextPath?: string;
   }) => Promise<{ needsConfirmation: boolean }>;
@@ -260,19 +261,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       email,
       password,
       fullName,
+      businessName,
       accountType = "customer",
       nextPath,
     }: {
       email: string;
       password: string;
       fullName: string;
+      businessName?: string;
       accountType?: "customer" | "admin";
       nextPath?: string;
     }) => {
       const resolvedAccountType = accountType === "admin" ? "admin" : "customer";
-      if (resolvedAccountType !== "admin") {
+      if (resolvedAccountType === "admin") {
+        try {
+          window.sessionStorage.setItem(PENDING_ACCOUNT_TYPE_KEY, "admin");
+        } catch {
+          // ignore
+        }
+      } else {
         clearPendingAccountType();
       }
+      const trimmedBusinessName = businessName?.trim();
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
         password,
@@ -281,6 +291,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             full_name: fullName.trim(),
             role: resolvedAccountType,
             account_type: resolvedAccountType,
+            ...(resolvedAccountType === "admin" && trimmedBusinessName
+              ? { business_name: trimmedBusinessName }
+              : {}),
           },
           // Vuelve al QR (o al destino pendiente) después de confirmar el correo.
           emailRedirectTo: oauthRedirectUrl(nextPath),

@@ -254,7 +254,8 @@ function ScanDetails({
 function ScanSuccess({ result }: { result: RedemptionRedeemResult }) {
   const registerPurchasePath =
     result.role === "admin" ? "/admin/purchases/new" : "/encargado/venta";
-  const requestsPath = result.role === "admin" ? "/admin/redemptions" : "/encargado";
+  const requestsPath =
+    result.role === "admin" ? "/admin/redemptions" : "/encargado/solicitudes";
   const businessHome = result.role === "admin" ? "/admin/dashboard" : "/encargado";
 
   return (
@@ -300,7 +301,7 @@ function ScanSuccess({ result }: { result: RedemptionRedeemResult }) {
           <Button asChild>
             <Link to={registerPurchasePath}>
               <ReceiptText aria-hidden="true" />
-              Registrar compra
+              Registrar venta
             </Link>
           </Button>
           <Button variant="outline" asChild>

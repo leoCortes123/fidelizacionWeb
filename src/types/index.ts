@@ -32,6 +32,8 @@ export interface MyProfile {
   nickname: string | null;
   nickname_changes: number;
   nickname_changes_left: number;
+  phone?: string | null;
+  birth_date?: string | null;
   business_count: number;
   created_at: string;
 }

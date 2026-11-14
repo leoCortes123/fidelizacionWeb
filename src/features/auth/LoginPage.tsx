@@ -44,6 +44,7 @@ export type AccountType = "customer" | "admin";
 
 type FieldErrors = {
   fullName?: string;
+  businessName?: string;
   email?: string;
   password?: string;
 };
@@ -90,6 +91,19 @@ function inviteStatusMessage(status: MemberInvitePreview["status"] | undefined):
     return "Esta invitación fue anulada. Pide al administrador un código nuevo.";
   }
   return null;
+}
+
+function appendBusinessNameToPath(targetPath: string, bizName: string): string {
+  const trimmed = bizName.trim();
+  if (!trimmed) return targetPath;
+  try {
+    const url = new URL(targetPath, "http://localhost");
+    url.searchParams.set("name", trimmed);
+    return `${url.pathname}${url.search}`;
+  } catch {
+    const separator = targetPath.includes("?") ? "&" : "?";
+    return `${targetPath}${separator}name=${encodeURIComponent(trimmed)}`;
+  }
 }
 
 export function LoginPage() {
@@ -158,6 +172,7 @@ export function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [businessName, setBusinessName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
 
   const [invitePreview, setInvitePreview] = useState<MemberInvitePreview | null>(null);
@@ -188,9 +203,12 @@ export function LoginPage() {
     ? inviteCallbackPath
     : mode === "register"
       ? accountType === "admin"
-        ? next.startsWith("/admin/onboarding") || next.startsWith("/business")
-          ? next
-          : "/admin/onboarding"
+        ? appendBusinessNameToPath(
+            next.startsWith("/admin/onboarding") || next.startsWith("/business")
+              ? next
+              : "/admin/onboarding",
+            businessName,
+          )
         : next.startsWith("/admin") || next.startsWith("/business")
           ? "/customer"
           : next
@@ -333,6 +351,11 @@ export function LoginPage() {
         return "Escribe tu nombre (mínimo 2 caracteres).";
       }
     }
+    if (field === "businessName" && mode === "register" && accountType === "admin" && !hasInvite) {
+      if (value.trim().length > 0 && value.trim().length < 2) {
+        return "El nombre del negocio debe tener al menos 2 caracteres.";
+      }
+    }
     if (field === "email" && value.trim().length > 0 && !value.includes("@")) {
       return "Escribe un correo válido.";
     }
@@ -370,6 +393,14 @@ export function LoginPage() {
     if (mode === "register" && fullName.trim().length < 2) {
       nextFieldErrors.fullName = "Escribe tu nombre para personalizar tu cuenta.";
     }
+    if (
+      mode === "register" &&
+      accountType === "admin" &&
+      !hasInvite &&
+      businessName.trim().length < 2
+    ) {
+      nextFieldErrors.businessName = "Escribe el nombre de tu negocio para continuar.";
+    }
     if (!email.includes("@")) {
       nextFieldErrors.email = "Escribe un correo válido.";
     }
@@ -380,9 +411,10 @@ export function LoginPage() {
     if (Object.keys(nextFieldErrors).length > 0) {
       setFieldErrors(nextFieldErrors);
       setError(
-        nextFieldErrors.email ??
+        nextFieldErrors.fullName ??
+          nextFieldErrors.businessName ??
+          nextFieldErrors.email ??
           nextFieldErrors.password ??
-          nextFieldErrors.fullName ??
           "Revisa los campos marcados.",
       );
       focusErrorBanner();
@@ -399,6 +431,9 @@ export function LoginPage() {
           email,
           password,
           fullName,
+          ...(accountType === "admin" && !hasInvite && businessName.trim()
+            ? { businessName: businessName.trim() }
+            : {}),
           accountType: hasInvite ? "customer" : accountType,
           nextPath: effectiveNext,
         });
@@ -429,6 +464,16 @@ export function LoginPage() {
     (nextMode === "login" ? loginTabRef : registerTabRef).current?.focus();
   }
 
+  function handleSelectAccountType(nextType: AccountType) {
+    setAccountType(nextType);
+    if (nextType === "customer") {
+      setFieldErrors((current) => ({ ...current, businessName: undefined }));
+      setError((current) =>
+        current === "Escribe el nombre de tu negocio para continuar." ? null : current,
+      );
+    }
+  }
+
   function handleRadioKeyDown(event: React.KeyboardEvent, current: AccountType) {
     if (
       event.key !== "ArrowLeft" &&
@@ -440,7 +485,7 @@ export function LoginPage() {
     }
     event.preventDefault();
     const nextType: AccountType = current === "customer" ? "admin" : "customer";
-    setAccountType(nextType);
+    handleSelectAccountType(nextType);
     (nextType === "customer" ? customerRadioRef : adminRadioRef).current?.focus();
   }
 
@@ -788,7 +833,7 @@ export function LoginPage() {
                           role="radio"
                           aria-checked={accountType === "customer"}
                           tabIndex={accountType === "customer" ? 0 : -1}
-                          onClick={() => setAccountType("customer")}
+                          onClick={() => handleSelectAccountType("customer")}
                           onKeyDown={(event) => handleRadioKeyDown(event, "customer")}
                           className={cn(
                             "relative flex cursor-pointer flex-col gap-1.5 rounded-none border p-3.5 text-left transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
@@ -826,7 +871,7 @@ export function LoginPage() {
                           role="radio"
                           aria-checked={accountType === "admin"}
                           tabIndex={accountType === "admin" ? 0 : -1}
-                          onClick={() => setAccountType("admin")}
+                          onClick={() => handleSelectAccountType("admin")}
                           onKeyDown={(event) => handleRadioKeyDown(event, "admin")}
                           className={cn(
                             "relative flex cursor-pointer flex-col gap-1.5 rounded-none border p-3.5 text-left transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
@@ -917,6 +962,47 @@ export function LoginPage() {
                             className="text-xs font-medium text-destructive dark:text-red-400"
                           >
                             {fieldErrors.fullName}
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {mode === "register" && accountType === "admin" && !hasInvite && (
+                      <div className="space-y-1.5 animate-fade-in">
+                        <Label htmlFor="business-name">Nombre del negocio</Label>
+                        <Input
+                          id="business-name"
+                          name="businessName"
+                          autoComplete="organization"
+                          value={businessName}
+                          onChange={(event) => {
+                            setBusinessName(event.target.value);
+                            if (fieldErrors.businessName) {
+                              setFieldErrors((current) => ({
+                                ...current,
+                                businessName: undefined,
+                              }));
+                            }
+                          }}
+                          onBlur={() => {
+                            const msg = validateField("businessName", businessName);
+                            if (msg)
+                              setFieldErrors((current) => ({ ...current, businessName: msg }));
+                          }}
+                          placeholder="Ej. Taquería El Fogón"
+                          aria-invalid={Boolean(fieldErrors.businessName)}
+                          aria-describedby={
+                            fieldErrors.businessName ? "business-name-error" : undefined
+                          }
+                          required
+                        />
+                        {fieldErrors.businessName && (
+                          <p
+                            id="business-name-error"
+                            aria-live="polite"
+                            className="text-xs font-medium text-destructive dark:text-red-400"
+                          >
+                            {fieldErrors.businessName}
                           </p>
                         )}
                       </div>

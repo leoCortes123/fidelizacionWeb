@@ -1,0 +1,519 @@
+/* Tema retro arcade replicado de LandingPage.css para el módulo de clientes (.retro-customer). */
+.retro-customer {
+  --ink: #1e1c1a;
+  --ink-muted: #484237;
+  --ink-soft: #5c5446;
+  --paper: #f6edda;
+  --paper-deep: #eadec5;
+  --cream: #fffdf5;
+  --cream-alt: #fff9ec;
+  --line: #1e1c1a;
+  --shadow-ink: #1e1c1a;
+  --dash-line: #c8bca6;
+  --grid-line: rgba(30, 28, 26, 0.04);
+  --progress-bg: #e5dcc9;
+  --header-bg: rgba(246, 237, 218, 0.95);
+  --nav-bg: rgba(255, 253, 245, 0.95);
+  --red: #e6533f;
+  --red-dark: #b83726;
+  --orange: #f2a541;
+  --gold: #ffd166;
+  --green: #4e8c57;
+  --green-bright: #34d399;
+  --blue: #467299;
+  --cyan: #22d3ee;
+
+  background-color: var(--paper);
+  background-image:
+    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+  background-size: 24px 24px;
+  color: var(--ink);
+  font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  position: relative;
+}
+
+.dark .retro-customer {
+  --ink: #f6edda;
+  --ink-muted: #d5cbb5;
+  --ink-soft: #b2a791;
+  --paper: #141317;
+  --paper-deep: #222029;
+  --cream: #1c1b22;
+  --cream-alt: #25222c;
+  --line: #e7dcc6;
+  --shadow-ink: #060508;
+  --dash-line: #433e4d;
+  --grid-line: rgba(246, 237, 218, 0.045);
+  --progress-bg: #2a2733;
+  --header-bg: rgba(20, 19, 23, 0.94);
+  --nav-bg: rgba(28, 27, 34, 0.95);
+  --red: #ff6b57;
+  --red-dark: #e6533f;
+  --blue: #5282ad;
+}
+
+/* Override de tokens Tailwind dentro del portal cliente para mantener coherencia visual */
+:root[data-portal="customer"] {
+  --background: 40 58% 91%;
+  --foreground: 30 7% 11%;
+  --card: 48 100% 98%;
+  --card-foreground: 30 7% 11%;
+  --popover: 48 100% 98%;
+  --popover-foreground: 30 7% 11%;
+  --primary: 7 77% 57%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 39 45% 85%;
+  --secondary-foreground: 30 7% 11%;
+  --muted: 40 43% 88%;
+  --muted-foreground: 34 11% 36%;
+  --accent: 34 87% 60%;
+  --accent-foreground: 30 7% 11%;
+  --destructive: 7 77% 48%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 30 7% 11%;
+  --input: 30 7% 11%;
+  --ring: 208 37% 44%;
+}
+
+:root.dark[data-portal="customer"] {
+  --background: 255 10% 8%;
+  --foreground: 40 58% 91%;
+  --card: 251 11% 12%;
+  --card-foreground: 40 58% 91%;
+  --popover: 251 11% 12%;
+  --popover-foreground: 40 58% 91%;
+  --primary: 7 90% 65%;
+  --primary-foreground: 255 10% 8%;
+  --secondary: 253 12% 16%;
+  --secondary-foreground: 40 58% 91%;
+  --muted: 253 12% 16%;
+  --muted-foreground: 38 18% 68%;
+  --accent: 34 87% 60%;
+  --accent-foreground: 30 7% 11%;
+  --destructive: 7 82% 58%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 40 35% 84%;
+  --input: 40 35% 84%;
+  --ring: 208 42% 55%;
+}
+
+.retro-customer .retro-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font:
+    10px/1.2 "Press Start 2P",
+    monospace;
+  color: var(--red);
+  background: var(--cream);
+  border: 2px solid var(--line);
+  box-shadow: 3px 3px 0 var(--shadow-ink);
+  padding: 6px 10px;
+  text-transform: uppercase;
+}
+
+.retro-customer .retro-card {
+  background: var(--cream);
+  border: 3px solid var(--line);
+  box-shadow: 5px 5px 0 var(--shadow-ink);
+  transition:
+    transform 0.14s ease,
+    box-shadow 0.14s ease;
+}
+
+.retro-customer .retro-card-dark {
+  background: #1e1c1a;
+  color: #fffdf5;
+}
+
+.dark .retro-customer .retro-card-dark {
+  background: #23212c;
+}
+
+.retro-customer .retro-card-alt {
+  background: var(--cream-alt);
+}
+
+.retro-customer .retro-card-muted {
+  background: var(--paper-deep);
+}
+
+.retro-customer .retro-card-success {
+  background: color-mix(in srgb, var(--green-bright) 22%, var(--cream));
+}
+
+.retro-customer .retro-card-interactive:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 7px 7px 0 var(--shadow-ink);
+}
+
+.retro-customer .retro-card-interactive:active {
+  transform: translate(2px, 2px);
+  box-shadow: 3px 3px 0 var(--shadow-ink);
+}
+
+.retro-customer .retro-card-interactive:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 3px;
+}
+
+.retro-customer .retro-stat-chip {
+  background: var(--cream);
+  border: 2px solid var(--line);
+  box-shadow: 3px 3px 0 var(--shadow-ink);
+  padding: 8px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-family: "DM Mono", ui-monospace, monospace;
+}
+
+.retro-customer .retro-stat-key {
+  background: var(--paper-deep);
+  border: 1.5px solid var(--line);
+  padding: 2px 6px;
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+/* Player Card estilo arcade (.pixel-window) */
+.retro-customer .pixel-window {
+  position: relative;
+  width: 100%;
+  background: var(--cream);
+  border: 3px solid var(--line);
+  box-shadow:
+    inset 3px 3px 0 rgba(255, 255, 255, 0.14),
+    8px 8px 0 var(--shadow-ink);
+}
+
+@media (min-width: 640px) {
+  .retro-customer .pixel-window {
+    border-width: 4px;
+    box-shadow:
+      inset 3px 3px 0 rgba(255, 255, 255, 0.14),
+      10px 10px 0 var(--shadow-ink);
+  }
+}
+
+.retro-customer .window-bar {
+  background: var(--blue);
+  border-bottom: 3px solid var(--line);
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: white;
+  font:
+    9px/1.2 "Press Start 2P",
+    monospace;
+}
+
+@media (min-width: 640px) {
+  .retro-customer .window-bar {
+    border-bottom-width: 4px;
+    padding: 11px 16px;
+    font-size: 10px;
+  }
+}
+
+.retro-customer .window-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.retro-customer .window-led {
+  width: 9px;
+  height: 9px;
+  background: var(--green-bright);
+  border: 2px solid #1e1c1a;
+  display: inline-block;
+  flex: none;
+}
+
+.retro-customer .window-hearts {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: none;
+}
+
+.retro-customer .pixel-heart {
+  width: 15px;
+  height: 14px;
+  display: block;
+}
+
+.retro-customer .window-body {
+  padding: 16px;
+}
+
+@media (min-width: 640px) {
+  .retro-customer .window-body {
+    padding: 20px 22px 22px;
+  }
+}
+
+/* Tabs de negocios en la Player Card */
+.retro-customer .biz-tabs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.retro-customer .biz-tab {
+  border: 2px solid var(--line);
+  background: var(--paper);
+  color: var(--ink);
+  padding: 8px 6px;
+  font:
+    600 11px/1.2 "DM Mono",
+    monospace;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition:
+    background-color 0.12s ease,
+    transform 0.12s ease;
+}
+
+.retro-customer .biz-tab:hover {
+  background: var(--gold);
+  color: #1e1c1a;
+}
+
+.retro-customer .biz-tab:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.retro-customer .biz-tab.active {
+  background: var(--ink);
+  color: var(--paper);
+  box-shadow: 2px 2px 0 var(--red);
+}
+
+.retro-customer .hud-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.retro-customer .points-label {
+  font:
+    8px/1.4 "Press Start 2P",
+    monospace;
+  color: var(--ink-soft);
+}
+
+@media (min-width: 640px) {
+  .retro-customer .points-label {
+    font-size: 9px;
+  }
+}
+
+.retro-customer .level-pill {
+  background: var(--gold);
+  border: 2px solid var(--line);
+  padding: 4px 7px;
+  font:
+    8px/1.2 "Press Start 2P",
+    monospace;
+  color: #1e1c1a;
+}
+
+.retro-customer .level-pill-ready {
+  background: var(--green-bright);
+}
+
+.retro-customer .points-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 12px 0 10px;
+}
+
+.retro-customer .points-coin {
+  image-rendering: pixelated;
+  flex: none;
+  filter: drop-shadow(3px 3px 0 var(--shadow-ink));
+}
+
+.retro-customer .points {
+  font:
+    26px/1.1 "Press Start 2P",
+    monospace;
+  color: var(--red);
+  text-shadow: 2px 2px 0 var(--shadow-ink);
+  overflow-wrap: anywhere;
+}
+
+@media (min-width: 640px) {
+  .retro-customer .points {
+    font-size: 32px;
+  }
+}
+
+.retro-customer .progress-caption {
+  font-family: "DM Mono", ui-monospace, monospace;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+/* Barra de progreso segmentada estilo RPG 8-bit */
+.retro-customer .retro-progress {
+  height: 18px;
+  border: 3px solid var(--line);
+  background: var(--progress-bg);
+  margin: 8px 0 6px;
+  position: relative;
+  overflow: hidden;
+}
+
+.retro-customer .retro-progress span {
+  display: block;
+  height: 100%;
+  background: repeating-linear-gradient(
+    to right,
+    var(--green) 0px,
+    var(--green) 14px,
+    #3d7345 14px,
+    #3d7345 17px
+  );
+  border-right: 3px solid var(--line);
+  transition: width 0.25s steps(6, end);
+}
+
+.retro-customer .retro-progress-sm {
+  height: 12px;
+  border-width: 2px;
+  margin: 4px 0;
+}
+
+.retro-customer .retro-progress-sm span {
+  border-right-width: 2px;
+}
+
+.retro-customer .progress-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-family: "DM Mono", ui-monospace, monospace;
+  font-size: 10px;
+  color: var(--ink-soft);
+}
+
+.retro-customer .reward-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--paper);
+  border: 3px solid var(--line);
+  box-shadow: 4px 4px 0 var(--shadow-ink);
+  padding: 12px;
+  margin-top: 14px;
+}
+
+.retro-customer .gift-box {
+  width: 46px;
+  height: 46px;
+  background: var(--orange);
+  border: 3px solid var(--line);
+  box-shadow: inset 2px 2px 0 rgba(255, 255, 255, 0.35);
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+
+.retro-customer .reward-tag {
+  display: inline-block;
+  font:
+    8px/1.2 "Press Start 2P",
+    monospace;
+  color: var(--red);
+  margin-bottom: 4px;
+}
+
+.retro-customer .retro-btn {
+  border: 3px solid var(--line);
+  padding: 10px 14px;
+  font:
+    600 12px/1.2 "DM Mono",
+    monospace;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow:
+    inset 2px 2px 0 rgba(255, 255, 255, 0.25),
+    3px 3px 0 var(--shadow-ink);
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    background-color 0.12s ease;
+}
+
+.retro-customer .retro-btn:hover:not(:disabled) {
+  transform: translate(1px, 1px);
+  box-shadow:
+    inset 2px 2px 0 rgba(255, 255, 255, 0.3),
+    2px 2px 0 var(--shadow-ink);
+}
+
+.retro-customer .retro-btn:active:not(:disabled) {
+  transform: translate(3px, 3px);
+  box-shadow: none;
+}
+
+.retro-customer .retro-btn:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 2px;
+}
+
+.retro-customer .retro-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.retro-customer .retro-btn-red {
+  background: var(--red);
+  color: #fffdf5;
+}
+
+.retro-customer .retro-btn-dark {
+  background: var(--ink);
+  color: var(--paper);
+  box-shadow:
+    inset 2px 2px 0 rgba(255, 255, 255, 0.14),
+    3px 3px 0 var(--red);
+}
+
+.retro-customer .retro-btn-light {
+  background: var(--cream);
+  color: var(--ink);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .retro-customer .retro-card,
+  .retro-customer .retro-btn,
+  .retro-customer .retro-progress span {
+    transition: none;
+  }
+}

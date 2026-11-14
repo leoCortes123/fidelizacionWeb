@@ -67,6 +67,7 @@ const MESSAGES: Record<string, string> = {
   invalid_qr_expiry_hours: "La vigencia del QR debe estar entre 1 y 168 horas.",
   invalid_business_name: "El nombre del negocio no es válido.",
   invalid_full_name: "Escribe tu nombre completo (2 a 120 caracteres).",
+  invalid_birth_date: "La fecha de cumpleaños no es válida.",
   invalid_nickname:
     "El alias debe tener entre 3 y 24 caracteres: minúsculas, números, punto, guion o guion bajo.",
   nickname_reserved: "Ese alias está reservado. Elige otro.",

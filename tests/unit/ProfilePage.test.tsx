@@ -151,6 +151,29 @@ describe("ProfilePage", () => {
 
     expect(screen.queryByRole("tab", { name: "Negocio" })).not.toBeInTheDocument();
     expect(screen.getByLabelText(/Nombre completo/)).toBeInTheDocument();
+    expect(screen.getByText(/PLAYER PROFILE/i)).toBeInTheDocument();
+  });
+
+  it("permite guardar teléfono y fecha de cumpleaños en /customer/perfil", async () => {
+    const user = userEvent.setup();
+    renderPage("/customer/perfil");
+
+    const phone = screen.getByLabelText(/Número de teléfono/i);
+    const birthDate = screen.getByLabelText(/Fecha de cumpleaños/i);
+
+    await user.type(phone, "+57 300 555 1234");
+    await user.type(birthDate, "1995-08-15");
+
+    await user.click(screen.getByRole("button", { name: /Guardar perfil/i }));
+
+    await waitFor(() => {
+      expect(updateProfile).toHaveBeenCalledWith({
+        fullName: "Carla Cliente",
+        nickname: "carlacliente",
+        phone: "+57 300 555 1234",
+        birthDate: "1995-08-15",
+      });
+    });
   });
 
   it("habilita Guardar perfil al restaurar un borrador personal desde localStorage", async () => {

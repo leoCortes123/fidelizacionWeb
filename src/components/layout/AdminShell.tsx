@@ -120,7 +120,7 @@ export function AdminShell({ children }: { children?: ReactNode }) {
           <Button asChild className="w-full justify-start">
             <Link to="/admin/purchases/new">
               <QrCode aria-hidden="true" />
-              Registrar compra
+              Registrar venta
             </Link>
           </Button>
         </div>
@@ -242,7 +242,7 @@ export function AdminShell({ children }: { children?: ReactNode }) {
               className="flex items-center gap-3 rounded-none border p-3 text-sm font-semibold hover:bg-muted"
             >
               <QrCode className="size-4 text-primary" aria-hidden="true" />
-              Registrar compra
+              Registrar venta
             </Link>
             {moreNav.map((item) => {
               const Icon = item.icon;

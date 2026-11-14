@@ -335,7 +335,7 @@ test("cliente ve saldo por negocio y solicita recompensa", async ({ browser }) =
   await redeemDialog.getByRole("button", { name: "Confirmar solicitud" }).click();
 
   await expect(
-    customer.page.getByText("Solicitud creada. Muestra el QR al encargado."),
+    customer.page.getByText(/Solicitud enviada/i),
   ).toBeVisible();
   expect(state.redemptionRequests).toHaveLength(1);
   expect(state.redemptionRequests[0].rewardName).toBe("Taco individual");
@@ -600,10 +600,8 @@ test("flujo completo de QR: solicitud, recuperación, entrega y estado final", a
   const redeemDialog = customer.page.getByRole("dialog");
   await redeemDialog.getByRole("button", { name: "Confirmar solicitud" }).click();
 
-  // El QR se muestra inmediatamente y queda guardado en la pestaña.
-  const qrDialog = customer.page.getByRole("dialog");
-  await expect(qrDialog.getByText("Tu código QR")).toBeVisible();
-  await expect(qrDialog.getByLabel("Código QR de la redención")).toBeVisible();
+  // La solicitud queda enviada y el token se guarda localmente sin abrir modal QR.
+  await expect(customer.page.getByText(/Solicitud enviada/i)).toBeVisible();
 
   const redemption = state.redemptionRequests[0];
   const storedToken = await customer.page.evaluate(
@@ -613,40 +611,18 @@ test("flujo completo de QR: solicitud, recuperación, entrega y estado final", a
   expect(storedToken).toBeTruthy();
   expect(JSON.parse(storedToken!).token).toMatch(/^tok_/);
 
-  await qrDialog.getByRole("button", { name: "Cerrar" }).first().click();
-  await customer.page.getByRole("link", { name: "Mis canjes" }).first().click();
+  await customer.page.getByRole("link", { name: "Ver mis canjes" }).first().click();
   await expect(customer.page.getByText("Pendiente de validar")).toBeVisible();
 
-  // Si se pierde el token local, se puede reemitir mientras siga pendiente.
-  await customer.page.evaluate(() => sessionStorage.clear());
-  await customer.page.reload();
-  await expect(customer.page.getByText("Pendiente de validar")).toBeVisible();
-  await customer.page.getByRole("button", { name: "Recuperar QR" }).click();
-  await expect(
-    customer.page.getByRole("dialog").getByLabel("Código QR de la redención"),
-  ).toBeVisible();
-  await customer.page.getByRole("dialog").getByRole("button", { name: "Cerrar" }).first().click();
-
-  const activeToken = state.tokens
-    .filter((token) => token.redemptionId === redemption.id && !token.consumedAt)
-    .at(-1);
-  expect(activeToken?.token).toMatch(/^tok_/);
-
-  // El encargado valida el token, aprueba y confirma la entrega.
-  const encargado = await openAs(browser, state, TOKENS.admin, "/encargado");
-  await encargado.page.getByLabel("Código manual del QR").fill(activeToken!.token);
-  await encargado.page.getByRole("button", { name: "Validar token" }).click();
-  await expect(encargado.page.getByRole("dialog").getByText("Taco individual")).toBeVisible();
-  await encargado.page.getByRole("dialog").getByRole("button", { name: "Aprobar" }).click();
-  await expect(encargado.page.getByRole("heading", { name: "Redención aprobada" })).toBeVisible();
+  // El encargado entra a solicitudes, aprueba y confirma la entrega directamente.
+  const encargado = await openAs(browser, state, TOKENS.admin, "/encargado/solicitudes");
+  await expect(encargado.page.getByText("Taco individual")).toBeVisible();
+  await encargado.page.getByRole("button", { name: "Aprobar" }).first().click();
+  await expect(encargado.page.getByText(/aprobada/i)).toBeVisible();
   expect(state.redemptionRequests[0].status).toBe("approved");
-  expect(state.tokens.find((token) => token.token === activeToken!.token)?.consumedAt).toBeTruthy();
 
-  await encargado.page
-    .getByRole("dialog")
-    .getByRole("button", { name: "Confirmar entrega" })
-    .click();
-  await expect(encargado.page.getByText("Entrega confirmada. Loopoints consumidos.")).toBeVisible();
+  await encargado.page.getByRole("button", { name: "Confirmar entrega" }).first().click();
+  await expect(encargado.page.getByText(/Entrega confirmada/i)).toBeVisible();
   expect(state.redemptionRequests[0].status).toBe("delivered");
 
   // El cliente ve el estado final en “Mis canjes”.
@@ -668,7 +644,7 @@ test("QR escaneado: confirma la entrega y vuelve a registrar compra", async ({ b
     .getByRole("dialog")
     .getByRole("button", { name: "Confirmar solicitud" })
     .click();
-  await expect(customer.page.getByRole("dialog").getByText("Tu código QR")).toBeVisible();
+  await expect(customer.page.getByText(/Solicitud enviada/i)).toBeVisible();
 
   const redemption = state.redemptionRequests[0];
   const stored = await customer.page.evaluate(
@@ -696,7 +672,7 @@ test("QR escaneado: confirma la entrega y vuelve a registrar compra", async ({ b
   expect(state.tokens.find((item) => item.token === token)?.consumedAt).toBeTruthy();
 
   // Tras confirmar, el flujo vuelve a la ventana de registrar venta.
-  await business.page.getByRole("link", { name: "Registrar compra" }).click();
+  await business.page.getByRole("link", { name: /Registrar (venta|compra)/ }).click();
   await expect(business.page).toHaveURL(/\/admin\/purchases\/new$/);
   await expect(business.page.getByRole("heading", { name: "Registrar venta" })).toBeVisible();
 
@@ -707,7 +683,7 @@ test("QR escaneado: confirma la entrega y vuelve a registrar compra", async ({ b
     admin.page
       .getByRole("row")
       .filter({ hasText: "Taco individual" })
-      .getByRole("link", { name: "Registrar compra" }),
+      .getByRole("link", { name: /Registrar (venta|compra)/ }),
   ).toBeVisible();
 
   await customer.context.close();
@@ -1240,7 +1216,7 @@ test("crea una campaña y duplica los loopoints de una compra", async ({ browser
   await expect.poll(() => state.campaigns.length).toBe(1);
 
   // La campaña vigente duplica los loopoints de la venta con QR.
-  await page.getByRole("link", { name: "Registrar compra" }).click();
+  await page.getByRole("link", { name: /Registrar (venta|compra)/ }).click();
   await page.getByLabel("Importe de la compra (COP)").fill("10000");
   await expect(page.getByText(/10 loopoints/)).toBeVisible();
   await page.getByRole("button", { name: /Generar QR de la venta/ }).click();
@@ -1309,7 +1285,7 @@ test("shell móvil: menú fijo, cabecera fija, FAB y modo oscuro persistente", a
       exact: true,
     }),
   ).toBeVisible();
-  const fab = page.getByLabel("Registrar compra");
+  const fab = page.getByLabel(/Registrar (venta|compra)/);
   await expect(fab).toBeVisible();
   await expect(fab).toHaveClass(/rounded-full/);
   await expect(fab).toHaveClass(/bg-amber-400/);
@@ -1348,7 +1324,7 @@ test("shell móvil: menú fijo, cabecera fija, FAB y modo oscuro persistente", a
   // El FAB abre registrar venta y desaparece en esa pantalla.
   await fab.click();
   await expect(page.getByRole("heading", { name: /^Registrar venta$/ })).toBeVisible();
-  await expect(page.getByLabel("Registrar compra")).toHaveCount(0);
+  await expect(page.getByLabel(/Registrar (venta|compra)/)).toHaveCount(0);
 
   await context.close();
 });

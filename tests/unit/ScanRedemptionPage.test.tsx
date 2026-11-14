@@ -99,7 +99,7 @@ describe("ScanRedemptionPage", () => {
 
     await waitFor(() => expect(redeem).toHaveBeenCalledWith({ token: "tok_1234567890abcdef" }));
     expect(await screen.findByText("Entrega confirmada")).toBeInTheDocument();
-    const registerLink = screen.getByRole("link", { name: /Registrar compra/ });
+    const registerLink = screen.getByRole("link", { name: /Registrar venta/ });
     expect(registerLink).toHaveAttribute("href", "/admin/purchases/new");
   });
 

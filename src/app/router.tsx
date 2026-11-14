@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useState } from "react";
 import { Link, Navigate, Route, Routes, useSearchParams } from "react-router-dom";
 import { CustomerShell } from "@/components/layout/CustomerShell";
 import { AdminShell } from "@/components/layout/AdminShell";
+import { EncargadoShell } from "@/components/layout/EncargadoShell";
 import {
   RequireAdmin,
   RequireAuth,
@@ -241,9 +242,14 @@ const AdminRedemptionsPage = lazy(() =>
     default: module.RedemptionsPage,
   })),
 );
-const EncargadoPage = lazy(() =>
-  import("@/features/loyalty/EncargadoPage").then((module) => ({
-    default: module.EncargadoPage,
+const EncargadoDashboardPage = lazy(() =>
+  import("@/features/loyalty/EncargadoDashboardPage").then((module) => ({
+    default: module.EncargadoDashboardPage,
+  })),
+);
+const EncargadoRedemptionsPage = lazy(() =>
+  import("@/features/loyalty/EncargadoRedemptionsPage").then((module) => ({
+    default: module.EncargadoRedemptionsPage,
   })),
 );
 const ScanRedemptionPage = lazy(() =>
@@ -317,28 +323,16 @@ export function AppRoutes() {
             <RequireAuth>
               <BusinessLayout>
                 <RequireBusinessRole roles={["admin", "encargado"]}>
-                  <div className="mx-auto w-full max-w-5xl px-0 py-4 sm:px-6 sm:py-8">
-                    <EncargadoPage />
-                  </div>
+                  <EncargadoShell />
                 </RequireBusinessRole>
               </BusinessLayout>
             </RequireAuth>
           }
-        />
-        <Route
-          path="/encargado/venta"
-          element={
-            <RequireAuth>
-              <BusinessLayout>
-                <RequireBusinessRole roles={["admin", "encargado"]}>
-                  <div className="mx-auto w-full max-w-5xl px-0 py-4 sm:px-6 sm:py-8">
-                    <PurchaseRegistrationPage />
-                  </div>
-                </RequireBusinessRole>
-              </BusinessLayout>
-            </RequireAuth>
-          }
-        />
+        >
+          <Route index element={<EncargadoDashboardPage />} />
+          <Route path="venta" element={<PurchaseRegistrationPage />} />
+          <Route path="solicitudes" element={<EncargadoRedemptionsPage />} />
+        </Route>
 
         <Route
           path="/customer"

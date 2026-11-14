@@ -179,8 +179,10 @@ describe("LoginPage", () => {
     await user.click(adminRadio);
     expect(adminRadio).toHaveAttribute("aria-checked", "true");
     expect(customerRadio).toHaveAttribute("aria-checked", "false");
+    expect(screen.getByLabelText(/nombre del negocio/i)).toBeInTheDocument();
 
     await user.type(screen.getByLabelText(/^nombre$/i), "Ana Admin");
+    await user.type(screen.getByLabelText(/nombre del negocio/i), "Taquería Ana");
     await user.type(screen.getByLabelText(/^correo$/i), "ana@negocio.test");
     await user.type(screen.getByLabelText(/^contraseña$/i), "secreto123");
     await user.click(screen.getByRole("button", { name: /crear cuenta de administrador/i }));
@@ -189,8 +191,9 @@ describe("LoginPage", () => {
       email: "ana@negocio.test",
       password: "secreto123",
       fullName: "Ana Admin",
+      businessName: "Taquería Ana",
       accountType: "admin",
-      nextPath: "/admin/onboarding",
+      nextPath: "/admin/onboarding?name=Taquer%C3%ADa+Ana",
     });
   });
 
@@ -206,6 +209,7 @@ describe("LoginPage", () => {
     await user.click(screen.getByRole("button", { name: /regístrate/i }));
     await user.click(screen.getByRole("radio", { name: /administrador/i }));
     await user.type(screen.getByLabelText(/^nombre$/i), "Carlos Admin");
+    await user.type(screen.getByLabelText(/nombre del negocio/i), "Café Carlos");
     await user.type(screen.getByLabelText(/^correo$/i), "carlos@negocio.test");
     await user.type(screen.getByLabelText(/^contraseña$/i), "secreto123");
     await user.click(screen.getByRole("button", { name: /crear cuenta de administrador/i }));
@@ -214,8 +218,9 @@ describe("LoginPage", () => {
       email: "carlos@negocio.test",
       password: "secreto123",
       fullName: "Carlos Admin",
+      businessName: "Café Carlos",
       accountType: "admin",
-      nextPath: "/admin/onboarding",
+      nextPath: "/admin/onboarding?name=Caf%C3%A9+Carlos",
     });
   });
 
@@ -264,6 +269,7 @@ describe("LoginPage", () => {
 
       await user.click(screen.getByRole("radio", { name: /administrador/i }));
       await user.type(screen.getByLabelText(/^nombre$/i), "Laura Admin");
+      await user.type(screen.getByLabelText(/nombre del negocio/i), "Boutique Laura");
       await user.type(screen.getByLabelText(/^correo$/i), "laura@negocio.test");
       await user.type(screen.getByLabelText(/^contraseña$/i), "secreto123");
       await user.click(screen.getByRole("button", { name: /crear cuenta de administrador/i }));
@@ -272,8 +278,9 @@ describe("LoginPage", () => {
         email: "laura@negocio.test",
         password: "secreto123",
         fullName: "Laura Admin",
+        businessName: "Boutique Laura",
         accountType: "admin",
-        nextPath: "/admin/onboarding",
+        nextPath: "/admin/onboarding?name=Boutique+Laura",
       });
 
       auth.state.session = {
@@ -315,7 +322,40 @@ describe("LoginPage", () => {
     await user.click(screen.getByRole("link", { name: "Cambiar a registro admin" }));
 
     expect(screen.getByLabelText(/^nombre$/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/nombre del negocio/i)).toBeInTheDocument();
     expect(screen.getByRole("radio", { name: /administrador/i })).toBeChecked();
+  });
+
+  it("valida que el nombre del negocio sea obligatorio al registrarse como administrador", async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter initialEntries={["/login?mode=register"]}>
+        <LoginPage />
+      </MemoryRouter>,
+    );
+
+    // En modo cliente no aparece el campo de negocio
+    expect(screen.queryByLabelText(/nombre del negocio/i)).not.toBeInTheDocument();
+
+    // Selecciona administrador -> aparece el campo de negocio
+    await user.click(screen.getByRole("radio", { name: /administrador/i }));
+    expect(screen.getByLabelText(/nombre del negocio/i)).toBeInTheDocument();
+
+    // Intenta enviar sin nombre de negocio
+    await user.type(screen.getByLabelText(/^nombre$/i), "Admin Prueba");
+    await user.type(screen.getByLabelText(/^correo$/i), "admin@prueba.com");
+    await user.type(screen.getByLabelText(/^contraseña$/i), "password123");
+    await user.click(screen.getByRole("button", { name: /crear cuenta de administrador/i }));
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      /escribe el nombre de tu negocio para continuar/i,
+    );
+    expect(auth.signUpWithPassword).not.toHaveBeenCalled();
+
+    // Vuelve a cliente -> el campo desaparece y limpia el banner de error
+    await user.click(screen.getByRole("radio", { name: /cliente/i }));
+    expect(screen.queryByLabelText(/nombre del negocio/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
   });
 
   it("oculta las opciones de cliente y administrador en registro con ?invite= y aplica el rol automáticamente", async () => {
