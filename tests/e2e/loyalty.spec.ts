@@ -334,9 +334,7 @@ test("cliente ve saldo por negocio y solicita recompensa", async ({ browser }) =
   await expect(redeemDialog).toBeVisible();
   await redeemDialog.getByRole("button", { name: "Confirmar solicitud" }).click();
 
-  await expect(
-    customer.page.getByText(/Solicitud enviada/i),
-  ).toBeVisible();
+  await expect(customer.page.getByText(/Solicitud enviada/i)).toBeVisible();
   expect(state.redemptionRequests).toHaveLength(1);
   expect(state.redemptionRequests[0].rewardName).toBe("Taco individual");
 
@@ -365,33 +363,37 @@ test("portal cliente multi-negocio: tarjetas, saldos separados y sin Balance", a
 
   const customer = await openAs(browser, state, TOKENS.customer, "/customer");
 
-  await expect(customer.page.getByRole("heading", { name: /¡Hola, Carla!/ })).toBeVisible();
+  await expect(customer.page.getByRole("heading", { name: "Café Central" })).toBeVisible();
   await expect(customer.page.getByTestId("total-points-balance")).toHaveText("60");
+  await expect(customer.page.locator("#cardPointsNumber")).toHaveText("10");
+  const customerNav = customer.page.getByRole("navigation", { name: "Navegación del cliente" });
+  await expect(customerNav.getByRole("link", { name: "Inicio" })).toBeVisible();
+  await expect(customerNav.getByRole("link", { name: "Mis compras" })).toBeVisible();
+  await expect(customerNav.getByRole("link", { name: "Mis canjes" })).toBeVisible();
+  await expect(customerNav.getByRole("link", { name: "Balance" })).toHaveCount(0);
 
-  const tacoCard = customer.page.locator('a[href="/customer/business/biz-test"]');
-  const cafeCard = customer.page.locator('a[href="/customer/business/biz-two"]');
-  const shopCard = customer.page.locator('a[href="/customer/business/biz-three"]');
+  await customer.page.getByRole("button", { name: "Siguiente negocio" }).click();
+  await expect(customer.page.getByRole("heading", { name: "Taquería El Fogón" })).toBeVisible();
+  await expect(customer.page.locator("#cardPointsNumber")).toHaveText("50");
 
-  await expect(tacoCard.getByText("50", { exact: true })).toBeVisible();
-  await expect(tacoCard.getByText("1 lista")).toBeVisible();
-  await expect(cafeCard.getByText("10", { exact: true })).toBeVisible();
-  await expect(cafeCard.getByText("0 listas")).toHaveCount(0);
-  await expect(shopCard.getByText("0", { exact: true })).toBeVisible();
-  await expect(
-    customer.page
-      .getByRole("navigation", { name: "Navegación del cliente" })
-      .getByRole("link", { name: "Balance" }),
-  ).toHaveCount(0);
+  await customer.page.getByRole("button", { name: "Siguiente negocio" }).click();
+  await expect(customer.page.getByRole("heading", { name: "Tienda Verde" })).toBeVisible();
+  await expect(customer.page.locator("#cardPointsNumber")).toHaveText("0");
 
-  await tacoCard.click();
+  await customer.page.getByRole("button", { name: "Negocio anterior" }).click();
+  await expect(customer.page.getByRole("heading", { name: "Taquería El Fogón" })).toBeVisible();
+
+  await customer.page.getByRole("link", { name: /MÁS RECOMPENSAS/i }).click();
   await expect(customer.page).toHaveURL(/\/customer\/business\/biz-test$/);
   await expect(customer.page.getByTestId("points-balance")).toHaveText("50");
   await expect(customer.page.getByText("Taco individual")).toBeVisible();
+  await expect(customer.page.getByRole("tab", { name: "CARTA" })).toBeVisible();
+  await expect(customer.page.getByRole("tab", { name: "MOVIMIENTOS" })).toBeVisible();
 
   // La antigua pantalla de Balance ya no existe: redirige al inicio del portal.
   await customer.page.goto("/customer/balance");
   await expect(customer.page).toHaveURL(/\/customer$/);
-  await expect(customer.page.getByRole("heading", { name: /¡Hola, Carla!/ })).toBeVisible();
+  await expect(customer.page.getByRole("heading", { name: "Café Central" })).toBeVisible();
 
   await customer.context.close();
 });

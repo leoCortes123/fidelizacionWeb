@@ -1,7 +1,12 @@
-/* Tema retro arcade replicado de LandingPage.css para el módulo de clientes (.retro-customer). */
-.retro-customer {
+/* =========================================================================
+   LOOPOINT — OPCIÓN 2: ESTILOS ACTUALES DE LA PÁGINA PUBLICADA (.retro-customer)
+   Basado en mockup-cliente-pixel/styles-actual.css
+   ========================================================================= */
+
+.retro-customer,
+:root[data-portal="customer"] {
   --ink: #1e1c1a;
-  --ink-muted: #484237;
+  --ink-muted: #544c3f;
   --ink-soft: #5c5446;
   --paper: #f6edda;
   --paper-deep: #eadec5;
@@ -9,11 +14,15 @@
   --cream-alt: #fff9ec;
   --line: #1e1c1a;
   --shadow-ink: #1e1c1a;
+  --border-color: #1e1c1a;
+  --shadow-color: #1e1c1a;
   --dash-line: #c8bca6;
-  --grid-line: rgba(30, 28, 26, 0.04);
+  --grid-line: rgba(30, 28, 26, 0.035);
   --progress-bg: #e5dcc9;
-  --header-bg: rgba(246, 237, 218, 0.95);
-  --nav-bg: rgba(255, 253, 245, 0.95);
+  --header-bg: #f6edda;
+  --nav-bg: #f6edda;
+  --text-muted: #544c3f;
+  --input-bg: #ffffff;
   --red: #e6533f;
   --red-dark: #b83726;
   --orange: #f2a541;
@@ -23,34 +32,32 @@
   --blue: #467299;
   --cyan: #22d3ee;
 
-  background-color: var(--paper);
-  background-image:
-    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
-  background-size: 24px 24px;
-  color: var(--ink);
-  font-family: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
-  position: relative;
+  --font-pixel: "Press Start 2P", monospace;
+  --font-mono: "DM Mono", monospace;
+  --font-sans: "Space Grotesk", system-ui, -apple-system, sans-serif;
+  --font-detail: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
 }
 
-.dark .retro-customer {
-  --ink: #f6edda;
-  --ink-muted: #d5cbb5;
+.dark .retro-customer,
+:root.dark[data-portal="customer"] {
+  --ink: #f8f5e6;
+  --ink-muted: #cfc4b4;
   --ink-soft: #b2a791;
-  --paper: #141317;
-  --paper-deep: #222029;
-  --cream: #1c1b22;
-  --cream-alt: #25222c;
-  --line: #e7dcc6;
-  --shadow-ink: #060508;
-  --dash-line: #433e4d;
-  --grid-line: rgba(246, 237, 218, 0.045);
-  --progress-bg: #2a2733;
-  --header-bg: rgba(20, 19, 23, 0.94);
-  --nav-bg: rgba(28, 27, 34, 0.95);
-  --red: #ff6b57;
-  --red-dark: #e6533f;
-  --blue: #5282ad;
+  --paper: #181615;
+  --paper-deep: #24201e;
+  --cream: #231f1d;
+  --cream-alt: #2b2623;
+  --line: #cfc4b4;
+  --shadow-ink: #090807;
+  --border-color: #cfc4b4;
+  --shadow-color: #090807;
+  --dash-line: #544c3f;
+  --grid-line: rgba(255, 253, 245, 0.03);
+  --progress-bg: #36302c;
+  --header-bg: #181615;
+  --nav-bg: #181615;
+  --text-muted: #cfc4b4;
+  --input-bg: #141210;
 }
 
 /* Override de tokens Tailwind dentro del portal cliente para mantener coherencia visual */
@@ -77,34 +84,1224 @@
 }
 
 :root.dark[data-portal="customer"] {
-  --background: 255 10% 8%;
-  --foreground: 40 58% 91%;
-  --card: 251 11% 12%;
-  --card-foreground: 40 58% 91%;
-  --popover: 251 11% 12%;
-  --popover-foreground: 40 58% 91%;
+  --background: 20 7% 9%;
+  --foreground: 48 53% 94%;
+  --card: 20 9% 13%;
+  --card-foreground: 48 53% 94%;
+  --popover: 20 9% 13%;
+  --popover-foreground: 48 53% 94%;
   --primary: 7 90% 65%;
-  --primary-foreground: 255 10% 8%;
-  --secondary: 253 12% 16%;
-  --secondary-foreground: 40 58% 91%;
-  --muted: 253 12% 16%;
-  --muted-foreground: 38 18% 68%;
+  --primary-foreground: 20 7% 9%;
+  --secondary: 20 9% 15%;
+  --secondary-foreground: 48 53% 94%;
+  --muted: 20 9% 15%;
+  --muted-foreground: 36 21% 76%;
   --accent: 34 87% 60%;
   --accent-foreground: 30 7% 11%;
   --destructive: 7 82% 58%;
   --destructive-foreground: 0 0% 100%;
-  --border: 40 35% 84%;
-  --input: 40 35% 84%;
+  --border: 36 21% 76%;
+  --input: 36 21% 76%;
   --ring: 208 42% 55%;
 }
 
+.retro-customer {
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
+  background-color: var(--paper);
+  background-image:
+    radial-gradient(rgba(30, 28, 26, 0.13) 0.75px, transparent 0.75px),
+    linear-gradient(to right, rgba(30, 28, 26, 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(30, 28, 26, 0.035) 1px, transparent 1px);
+  background-size: 6px 6px, 24px 24px, 24px 24px;
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.4;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  transition: background-color 150ms, color 150ms;
+}
+
+.dark .retro-customer {
+  color: #fffdf5;
+  background-image:
+    radial-gradient(rgba(255, 253, 245, 0.08) 0.75px, transparent 0.75px),
+    linear-gradient(to right, rgba(255, 253, 245, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 253, 245, 0.03) 1px, transparent 1px);
+}
+
+.pixel-title {
+  font-family: var(--font-pixel);
+  letter-spacing: 0.4px;
+}
+
+.pixel-highlight {
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+
+/* =========================================================================
+   CAJAS Y BOTONES CON EL ESTILO NEO-RETRO PUBLICADO
+   ========================================================================= */
+.pixel-box {
+  background: var(--cream);
+  border: 3px solid var(--border-color);
+  box-shadow: 6px 6px 0 var(--shadow-color);
+  position: relative;
+}
+
+.pixel-box-dark {
+  background: var(--paper-deep);
+  border: 3px solid var(--border-color);
+  box-shadow: 3px 3px 0 var(--shadow-color);
+}
+
+.pixel-btn {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 1.2;
+  cursor: pointer;
+  border: 3px solid var(--border-color);
+  padding: 10px 14px;
+  position: relative;
+  box-shadow: inset 2px 2px 0 rgba(255, 255, 255, 0.35), 3px 3px 0 var(--shadow-color);
+  transition: transform 100ms ease, box-shadow 100ms ease, background-color 120ms ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.pixel-btn:hover:not(:disabled) {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 var(--shadow-color);
+}
+
+.pixel-btn:active:not(:disabled) {
+  transform: translate(3px, 3px);
+  box-shadow: none;
+}
+
+.pixel-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.pixel-btn-gold {
+  background: var(--gold);
+  color: #1e1c1a;
+  border-color: #1e1c1a;
+}
+
+.pixel-btn-xp {
+  background: var(--green);
+  color: #ffffff;
+}
+
+.pixel-btn-secondary {
+  background: var(--paper-deep);
+  color: var(--ink);
+}
+
+.dark .pixel-btn-secondary {
+  background: #36302c;
+  color: #fffdf5;
+  border-color: #e5dcc9;
+}
+
+.dark .pixel-btn-secondary:hover:not(:disabled) {
+  background: var(--gold);
+  color: #1e1c1a;
+}
+
+.pixel-btn-ruby {
+  background: var(--red);
+  color: #ffffff;
+}
+
+.pixel-btn-dark {
+  background: #1e1c1a;
+  color: #fffdf5;
+  border-color: #1e1c1a;
+  box-shadow: 4px 4px 0 var(--red);
+}
+
+.pixel-btn-dark:hover:not(:disabled) {
+  background: #2f2c28;
+}
+
+.dark .pixel-btn-dark {
+  background: var(--gold);
+  color: #1e1c1a;
+  border-color: #fffdf5;
+  box-shadow: 4px 4px 0 var(--red);
+}
+
+.dark .pixel-btn-dark:hover:not(:disabled) {
+  background: #ffe08a;
+}
+
+/* =========================================================================
+   BARRA SUPERIOR PUBLICADA
+   ========================================================================= */
+.app-navbar {
+  flex-shrink: 0;
+  z-index: 100;
+  background: var(--paper);
+  border-bottom: 3px solid var(--border-color);
+}
+
+.navbar-inner {
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 7px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.brand-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+.brand-logo-box {
+  width: 34px;
+  height: 34px;
+  background: #1e1c1a;
+  border: 3px solid var(--border-color);
+  box-shadow: 3px 3px 0 var(--red);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.brand-name {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 19px;
+  letter-spacing: -0.02em;
+  color: inherit;
+}
+
+.brand-dot {
+  font-family: var(--font-pixel);
+  font-size: 13px;
+  color: var(--red);
+  margin-left: 2px;
+}
+
+.user-menu-cluster {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.navbar-username {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.small-dropdown-btn {
+  width: 32px;
+  height: 32px;
+  background: var(--cream);
+  border: 3px solid var(--border-color);
+  box-shadow: 2px 2px 0 var(--shadow-color);
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.dark .small-dropdown-btn {
+  background: #36302c;
+  color: var(--gold);
+  border-color: var(--gold);
+}
+
+.small-dropdown-btn:hover {
+  background: var(--gold);
+  color: #1e1c1a;
+}
+
+.small-dropdown-btn[aria-expanded="true"] {
+  background: var(--red);
+  color: #fffdf5;
+  border-color: var(--border-color);
+}
+
+.dropdown-caret,
+.dropdown-gear {
+  transition: transform 140ms steps(3);
+}
+
+.small-dropdown-btn[aria-expanded="true"] .dropdown-caret {
+  transform: rotate(180deg);
+}
+
+.small-dropdown-btn[aria-expanded="true"] .dropdown-gear {
+  transform: rotate(45deg);
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 225px;
+  background: var(--cream);
+  border: 3px solid var(--border-color);
+  box-shadow: 6px 6px 0 var(--shadow-color);
+  padding: 8px;
+  display: none;
+  flex-direction: column;
+  gap: 6px;
+  z-index: 150;
+}
+
+.dropdown-menu.open {
+  display: flex;
+  animation: dropIn 100ms ease;
+}
+
+@keyframes dropIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdown-item {
+  width: 100%;
+  background: var(--paper-deep);
+  border: 2px solid var(--border-color);
+  padding: 8px 10px;
+  color: inherit;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 13px;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.dark .dropdown-item {
+  background: #322c28;
+  color: #fffdf5;
+}
+
+.dropdown-item:hover {
+  background: var(--gold);
+  color: #1e1c1a;
+}
+
+.dropdown-item.danger {
+  color: var(--red);
+}
+
+.dark .dropdown-item.danger {
+  color: #ff8fa3;
+}
+
+.dropdown-item.danger:hover {
+  background: var(--red);
+  color: #ffffff;
+}
+
+/* =========================================================================
+   CONTENEDOR CENTRAL FIJADO A PANTALLA
+   ========================================================================= */
+.main-container {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 6px 8px 8px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.main-container.scrollable-page {
+  overflow-y: auto;
+  padding: 12px 12px 28px;
+}
+
+.view-section {
+  display: none;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.view-section.active {
+  display: flex;
+  flex-direction: column;
+  animation: fadeView 120ms ease;
+}
+
+@keyframes fadeView {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* =========================================================================
+   VISTA 1: TARJETA DEL NEGOCIO (SELECTOR CON FLECHAS + 3 RECOMPENSAS)
+   ========================================================================= */
+.arcade-stage-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+}
+
+.business-select-card {
+  width: 100%;
+  height: 100%;
+  margin: 0 auto;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  cursor: default;
+  overflow: hidden;
+  border: 4px solid var(--border-color);
+  box-shadow: 8px 8px 0 var(--shadow-color);
+}
+
+.business-select-card.slide-right {
+  animation: slideRight 150ms ease;
+}
+
+.business-select-card.slide-left {
+  animation: slideLeft 150ms ease;
+}
+
+@keyframes slideRight {
+  0% {
+    transform: translateX(14px);
+    opacity: 0.65;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideLeft {
+  0% {
+    transform: translateX(-14px);
+    opacity: 0.65;
+  }
+  100% {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* 1. Imagen del negocio en la parte superior de la tarjeta */
+.card-hero-stage {
+  width: 100%;
+  height: 30%;
+  min-height: 118px;
+  max-height: 175px;
+  flex-shrink: 0;
+  border-bottom: 4px solid var(--border-color);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background-color: var(--paper-deep);
+}
+
+/* Arriba a la izquierda: Total de puntos en el negocio */
+.hero-points-top-left {
+  position: absolute;
+  top: 8px;
+  left: 10px;
+  background: #1e1c1a;
+  border: 3px solid #1e1c1a;
+  box-shadow: 3px 3px 0 var(--red);
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 15;
+}
+
+.hero-points-value {
+  font-family: var(--font-pixel);
+  font-size: 11px;
+  color: var(--gold);
+}
+
+.hero-points-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: #fffdf5;
+}
+
+/* Arriba a la derecha: Letrero con el tipo de negocio */
+.hero-category-top-right {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 8px;
+  background: var(--gold);
+  border: 3px solid #1e1c1a;
+  box-shadow: 3px 3px 0 #1e1c1a;
+  color: #1e1c1a;
+  text-transform: uppercase;
+  z-index: 15;
+}
+
+/* Abajo a la izquierda: Nombre del negocio */
+.hero-name-bottom-left {
+  position: absolute;
+  bottom: 8px;
+  left: 10px;
+  right: 10px;
+  pointer-events: none;
+  z-index: 15;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.card-biz-title {
+  display: inline-block;
+  font-family: var(--font-pixel);
+  font-size: clamp(11px, 2vw, 15px);
+  color: #fffdf5;
+  background: #1e1c1a;
+  border: 3px solid #1e1c1a;
+  box-shadow: 3px 3px 0 var(--red);
+  padding: 5px 10px;
+  line-height: 1.3;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Flechas flotantes a la altura de la imagen (visibles en modo claro y oscuro) */
+.arcade-arrow-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 58px;
+  background: #fffdf5;
+  border: 3px solid #1e1c1a;
+  box-shadow: inset 2px 2px 0 rgba(255, 255, 255, 0.5), 3px 3px 0 #1e1c1a;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1e1c1a;
+  z-index: 25;
+  transition: transform 80ms ease, background-color 120ms ease;
+}
+
+.dark .arcade-arrow-btn {
+  background: var(--gold);
+  color: #1e1c1a;
+  border-color: #1e1c1a;
+  box-shadow: 3px 3px 0 #000000;
+}
+
+.arcade-arrow-left {
+  left: 8px;
+}
+
+.arcade-arrow-right {
+  right: 8px;
+}
+
+.arcade-arrow-btn:hover {
+  background: var(--gold);
+  color: #1e1c1a;
+}
+
+.dark .arcade-arrow-btn:hover {
+  background: #ffe38f;
+}
+
+.arcade-arrow-btn:active {
+  transform: translateY(calc(-50% + 2px));
+}
+
+.sprite-bobbing {
+  animation: bobbing 1.6s steps(2) infinite;
+  filter: drop-shadow(4px 4px 0 #1e1c1a);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@keyframes bobbing {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+/* 2. Cuerpo inferior debajo de la imagen */
+.card-body-content {
+  flex: 1;
+  min-height: 0;
+  padding: 10px 14px 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px;
+  overflow-y: auto;
+}
+
+.card-biz-description {
+  font-family: var(--font-detail);
+  font-size: clamp(14px, 2vw, 16px);
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.42;
+  padding: 6px 10px 8px;
+  background: var(--paper-deep);
+  border-left: 4px solid var(--red);
+  border-bottom: 2px dashed #b8ab96;
+  flex-shrink: 0;
+}
+
+/* Lista de 3 recompensas con tarjetas más grandes */
+.home-rewards-list {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  align-content: stretch;
+}
+
+@media (min-width: 760px) {
+  .home-rewards-list {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.home-reward-item {
+  background: var(--paper);
+  border: 3px solid var(--border-color);
+  box-shadow: 4px 4px 0 var(--shadow-color);
+  padding: 10px 12px;
+  display: grid;
+  grid-template-columns: 68px 1fr;
+  gap: 12px;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 80ms ease, border-color 120ms ease;
+  text-align: left;
+}
+
+@media (min-width: 760px) {
+  .home-reward-item {
+    grid-template-columns: 1fr;
+    text-align: left;
+    align-content: space-between;
+    padding: 12px;
+  }
+}
+
+.home-reward-item:hover {
+  transform: translate(-1px, -1px);
+  border-color: var(--red);
+}
+
+.home-reward-thumb {
+  width: 68px;
+  height: 68px;
+  background: var(--orange);
+  border: 3px solid #1e1c1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+@media (min-width: 760px) {
+  .home-reward-thumb {
+    width: 100%;
+    height: 82px;
+  }
+}
+
+.home-reward-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.home-reward-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.home-reward-title {
+  font-family: var(--font-detail);
+  font-weight: 800;
+  font-size: 15px;
+  color: inherit;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.home-reward-pts {
+  font-family: var(--font-pixel);
+  font-size: 8px;
+  background: var(--gold);
+  color: #1e1c1a;
+  border: 2px solid #1e1c1a;
+  padding: 3px 6px;
+  white-space: nowrap;
+}
+
+.home-reward-desc {
+  font-family: var(--font-detail);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.xp-bar-track {
+  height: 12px;
+  background: #e5dcc9;
+  border: 2px solid #1e1c1a;
+  overflow: hidden;
+  margin-top: 2px;
+}
+
+.xp-bar-fill {
+  height: 100%;
+  background: var(--green);
+  border-right: 2px solid #1e1c1a;
+  transition: width 220ms ease;
+}
+
+.xp-bar-fill.ready {
+  background: var(--gold);
+}
+
+.btn-see-more-rewards {
+  width: 100%;
+  flex-shrink: 0;
+  padding: 11px 14px;
+  font-size: 13px;
+}
+
+/* =========================================================================
+   VISTA 2: PANTALLA DE DETALLE DEL NEGOCIO (ESTILO PUBLICADO)
+   ========================================================================= */
+.store-topbar-nav {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.store-replicated-card {
+  flex-shrink: 0;
+  padding: 0;
+  margin-bottom: 8px;
+  overflow: hidden;
+  border: 4px solid var(--border-color);
+  box-shadow: 6px 6px 0 var(--shadow-color);
+}
+
+.store-hero-stage {
+  height: clamp(110px, 19vh, 148px);
+  min-height: 110px;
+  max-height: 148px;
+}
+
+.store-card-desc-panel {
+  padding: 8px 12px;
+  background: var(--paper);
+}
+
+.store-card-desc-panel .card-biz-description {
+  border-bottom: none;
+}
+
+.store-body-box {
+  flex: 1;
+  min-height: 0;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.store-tabs-bar {
+  flex-shrink: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 10px;
+  border-bottom: 2px dashed #c8bca6;
+  padding-bottom: 8px;
+}
+
+.store-tab-btn {
+  width: 100%;
+  min-width: 0;
+  background: var(--paper-deep);
+  border: 2px solid var(--border-color);
+  color: var(--ink);
+  font-family: var(--font-pixel);
+  font-size: clamp(7px, 1.8vw, 10px);
+  padding: 9px 4px;
+  cursor: pointer;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dark .store-tab-btn {
+  background: #36302c;
+  color: #fffdf5;
+  border-color: #cfc4b4;
+}
+
+.store-tab-btn:hover {
+  background: var(--gold);
+  color: #1e1c1a;
+}
+
+.store-tab-btn.active {
+  background: #1e1c1a;
+  color: #fffdf5;
+  box-shadow: 2px 2px 0 var(--red);
+}
+
+.dark .store-tab-btn.active {
+  background: var(--gold);
+  color: #1e1c1a;
+  border-color: #fffdf5;
+  box-shadow: 2px 2px 0 var(--red);
+}
+
+.store-tab-panel {
+  display: none;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.store-tab-panel.active {
+  display: block;
+}
+
+.items-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(165px, 1fr));
+  gap: 10px;
+}
+
+@media (min-width: 640px) {
+  .items-grid {
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  }
+}
+
+.item-pixel-card {
+  background: var(--paper);
+  border: 3px solid var(--border-color);
+  box-shadow: 4px 4px 0 var(--shadow-color);
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform 80ms ease;
+}
+
+.item-pixel-card:hover {
+  transform: translate(-1px, -1px);
+  border-color: var(--red);
+}
+
+.item-card-image {
+  width: 100%;
+  height: 90px;
+  border-bottom: 3px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.item-card-body {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  flex: 1;
+  gap: 6px;
+}
+
+.item-card-title {
+  font-family: var(--font-pixel);
+  font-size: 9px;
+  color: inherit;
+  line-height: 1.35;
+}
+
+.item-card-sub {
+  font-family: var(--font-detail);
+  font-size: 13px;
+  color: var(--text-muted);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.item-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  padding-top: 5px;
+  border-top: 2px dashed #c8bca6;
+}
+
+.item-badge-highlight {
+  font-family: var(--font-pixel);
+  font-size: 8px;
+  padding: 3px 5px;
+  background: var(--gold);
+  color: #1e1c1a;
+  border: 2px solid #1e1c1a;
+}
+
+.item-badge-xp {
+  font-family: var(--font-pixel);
+  font-size: 8px;
+  padding: 3px 5px;
+  background: var(--green);
+  color: #ffffff;
+  border: 2px solid #1e1c1a;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.history-row {
+  background: var(--paper);
+  border: 2px solid var(--border-color);
+  box-shadow: 3px 3px 0 var(--shadow-color);
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+/* =========================================================================
+   VISTA 3: PANTALLA DE PERFIL — FORMULARIO DE DATOS BÁSICOS
+   ========================================================================= */
+.profile-view-card {
+  flex: 1;
+  min-height: 0;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+}
+
+.profile-header-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 10px 12px;
+  flex-shrink: 0;
+}
+
+.profile-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.profile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+@media (min-width: 600px) {
+  .form-grid-2 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: inherit;
+}
+
+.form-input {
+  width: 100%;
+  min-height: 42px;
+  padding: 8px 12px;
+  background-color: var(--input-bg);
+  color: inherit;
+  border: 3px solid var(--border-color);
+  border-left: 5px solid var(--blue);
+  box-shadow: inset 0 2px 3px rgba(30, 28, 26, 0.08);
+  font-family: var(--font-detail);
+  font-size: 15px;
+  font-weight: 600;
+  user-select: text;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.form-input:focus {
+  outline: none;
+  border-left-color: var(--red);
+  box-shadow: 3px 3px 0 var(--shadow-color);
+}
+
+.form-input:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.save-toast {
+  display: none;
+  background: var(--green);
+  color: #ffffff;
+  border: 2px solid var(--border-color);
+  box-shadow: 3px 3px 0 var(--shadow-color);
+  padding: 8px 12px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.save-toast.visible {
+  display: block;
+}
+
+/* =========================================================================
+   BARRA DE MENÚ INFERIOR (INICIO | MIS COMPRAS | MIS CANJES)
+   ========================================================================= */
+.bottom-app-bar {
+  flex-shrink: 0;
+  background: var(--paper);
+  border-top: 3px solid var(--border-color);
+  padding-bottom: env(safe-area-inset-bottom);
+  z-index: 100;
+}
+
+.bottom-bar-inner {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 6px 12px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.bottom-nav-btn {
+  background: var(--cream);
+  border: 3px solid var(--border-color);
+  box-shadow: 2px 2px 0 var(--shadow-color);
+  color: var(--ink);
+  padding: 8px 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-family: var(--font-pixel);
+  font-size: 9px;
+  line-height: 1.2;
+  text-decoration: none;
+  text-transform: uppercase;
+  text-align: center;
+  transition: background-color 120ms ease, color 120ms ease, box-shadow 120ms ease;
+}
+
+.dark .bottom-nav-btn {
+  background: #36302c;
+  color: #fffdf5;
+  border-color: #cfc4b4;
+}
+
+.bottom-nav-btn:hover {
+  background: var(--gold);
+  color: #1e1c1a;
+}
+
+.bottom-nav-btn.active {
+  background: #1e1c1a;
+  color: #fffdf5;
+  box-shadow: 3px 3px 0 var(--red);
+}
+
+.dark .bottom-nav-btn.active {
+  background: var(--gold);
+  color: #1e1c1a;
+  border-color: #fffdf5;
+  box-shadow: 3px 3px 0 var(--red);
+}
+
+@media (max-width: 480px) {
+  .bottom-bar-inner {
+    padding: 5px 8px;
+    gap: 6px;
+  }
+
+  .bottom-nav-btn {
+    padding: 7px 4px;
+    gap: 4px;
+    font-size: 7.5px;
+  }
+}
+
+/* =========================================================================
+   MODAL DE DETALLE
+   ========================================================================= */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 14, 13, 0.8);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 14px;
+  z-index: 200;
+}
+
+.modal-overlay.open {
+  display: flex;
+}
+
+.modal-dialog {
+  width: 100%;
+  max-width: 420px;
+  padding: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-hero-img {
+  width: 100%;
+  height: 135px;
+  border-bottom: 3px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.modal-close-floating {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
+.modal-content-pad {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* =========================================================================
+   CLASES RETRO COMPLEMENTARIAS (COMPRAS, CANJES, PLAYER CARD)
+   ========================================================================= */
 .retro-customer .retro-kicker {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font:
-    10px/1.2 "Press Start 2P",
-    monospace;
+  font: 10px/1.2 "Press Start 2P", monospace;
   color: var(--red);
   background: var(--cream);
   border: 2px solid var(--line);
@@ -117,9 +1314,7 @@
   background: var(--cream);
   border: 3px solid var(--line);
   box-shadow: 5px 5px 0 var(--shadow-ink);
-  transition:
-    transform 0.14s ease,
-    box-shadow 0.14s ease;
+  transition: transform 0.14s ease, box-shadow 0.14s ease;
 }
 
 .retro-customer .retro-card-dark {
@@ -180,23 +1375,18 @@
   color: var(--ink-muted);
 }
 
-/* Player Card estilo arcade (.pixel-window) */
 .retro-customer .pixel-window {
   position: relative;
   width: 100%;
   background: var(--cream);
   border: 3px solid var(--line);
-  box-shadow:
-    inset 3px 3px 0 rgba(255, 255, 255, 0.14),
-    8px 8px 0 var(--shadow-ink);
+  box-shadow: inset 3px 3px 0 rgba(255, 255, 255, 0.14), 8px 8px 0 var(--shadow-ink);
 }
 
 @media (min-width: 640px) {
   .retro-customer .pixel-window {
     border-width: 4px;
-    box-shadow:
-      inset 3px 3px 0 rgba(255, 255, 255, 0.14),
-      10px 10px 0 var(--shadow-ink);
+    box-shadow: inset 3px 3px 0 rgba(255, 255, 255, 0.14), 10px 10px 0 var(--shadow-ink);
   }
 }
 
@@ -209,9 +1399,7 @@
   justify-content: space-between;
   gap: 8px;
   color: white;
-  font:
-    9px/1.2 "Press Start 2P",
-    monospace;
+  font: 9px/1.2 "Press Start 2P", monospace;
 }
 
 @media (min-width: 640px) {
@@ -264,7 +1452,6 @@
   }
 }
 
-/* Tabs de negocios en la Player Card */
 .retro-customer .biz-tabs {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
@@ -277,16 +1464,12 @@
   background: var(--paper);
   color: var(--ink);
   padding: 8px 6px;
-  font:
-    600 11px/1.2 "DM Mono",
-    monospace;
+  font: 600 11px/1.2 "DM Mono", monospace;
   cursor: pointer;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  transition:
-    background-color 0.12s ease,
-    transform 0.12s ease;
+  transition: background-color 0.12s ease, transform 0.12s ease;
 }
 
 .retro-customer .biz-tab:hover {
@@ -314,9 +1497,7 @@
 }
 
 .retro-customer .points-label {
-  font:
-    8px/1.4 "Press Start 2P",
-    monospace;
+  font: 8px/1.4 "Press Start 2P", monospace;
   color: var(--ink-soft);
 }
 
@@ -330,9 +1511,7 @@
   background: var(--gold);
   border: 2px solid var(--line);
   padding: 4px 7px;
-  font:
-    8px/1.2 "Press Start 2P",
-    monospace;
+  font: 8px/1.2 "Press Start 2P", monospace;
   color: #1e1c1a;
 }
 
@@ -354,9 +1533,7 @@
 }
 
 .retro-customer .points {
-  font:
-    26px/1.1 "Press Start 2P",
-    monospace;
+  font: 26px/1.1 "Press Start 2P", monospace;
   color: var(--red);
   text-shadow: 2px 2px 0 var(--shadow-ink);
   overflow-wrap: anywhere;
@@ -375,7 +1552,6 @@
   color: var(--ink);
 }
 
-/* Barra de progreso segmentada estilo RPG 8-bit */
 .retro-customer .retro-progress {
   height: 18px;
   border: 3px solid var(--line);
@@ -443,9 +1619,7 @@
 
 .retro-customer .reward-tag {
   display: inline-block;
-  font:
-    8px/1.2 "Press Start 2P",
-    monospace;
+  font: 8px/1.2 "Press Start 2P", monospace;
   color: var(--red);
   margin-bottom: 4px;
 }
@@ -453,28 +1627,19 @@
 .retro-customer .retro-btn {
   border: 3px solid var(--line);
   padding: 10px 14px;
-  font:
-    600 12px/1.2 "DM Mono",
-    monospace;
+  font: 600 12px/1.2 "DM Mono", monospace;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
   cursor: pointer;
-  box-shadow:
-    inset 2px 2px 0 rgba(255, 255, 255, 0.25),
-    3px 3px 0 var(--shadow-ink);
-  transition:
-    transform 0.12s ease,
-    box-shadow 0.12s ease,
-    background-color 0.12s ease;
+  box-shadow: inset 2px 2px 0 rgba(255, 255, 255, 0.25), 3px 3px 0 var(--shadow-ink);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background-color 0.12s ease;
 }
 
 .retro-customer .retro-btn:hover:not(:disabled) {
   transform: translate(1px, 1px);
-  box-shadow:
-    inset 2px 2px 0 rgba(255, 255, 255, 0.3),
-    2px 2px 0 var(--shadow-ink);
+  box-shadow: inset 2px 2px 0 rgba(255, 255, 255, 0.3), 2px 2px 0 var(--shadow-ink);
 }
 
 .retro-customer .retro-btn:active:not(:disabled) {
@@ -500,9 +1665,7 @@
 .retro-customer .retro-btn-dark {
   background: var(--ink);
   color: var(--paper);
-  box-shadow:
-    inset 2px 2px 0 rgba(255, 255, 255, 0.14),
-    3px 3px 0 var(--red);
+  box-shadow: inset 2px 2px 0 rgba(255, 255, 255, 0.14), 3px 3px 0 var(--red);
 }
 
 .retro-customer .retro-btn-light {
@@ -513,7 +1676,9 @@
 @media (prefers-reduced-motion: reduce) {
   .retro-customer .retro-card,
   .retro-customer .retro-btn,
-  .retro-customer .retro-progress span {
+  .retro-customer .retro-progress span,
+  .sprite-bobbing {
     transition: none;
+    animation: none;
   }
 }

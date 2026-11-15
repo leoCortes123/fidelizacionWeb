@@ -2431,6 +2431,12 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
         if (!user) return fail(route, "not_authenticated");
         const businessId = String(body.p_business_id ?? "");
         const onlyActive = body.p_only_active !== false && body.p_only_active !== "false";
+        const membership = state.memberships.find(
+          (m) => m.businessId === businessId && m.userId === user.id,
+        );
+        if (!membership) return fail(route, "forbidden");
+        const isStaffMember = membership.role === "admin" || membership.role === "encargado";
+        if (!onlyActive && !isStaffMember) return fail(route, "forbidden");
         return json(
           route,
           state.products
@@ -2441,7 +2447,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
               name: p.name,
               description: p.description,
               price_cop: p.priceCop,
-              cost_cop: p.costCop,
+              cost_cop: isStaffMember ? p.costCop : null,
               is_active: p.isActive,
               kind: p.kind,
               combo_items: comboItemsFor(state, p),

@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import {
@@ -27,11 +27,15 @@ vi.mock("@/features/loyalty/hooks", async (importOriginal) => {
   return {
     ...actual,
     useCustomerBusinessesSummary: () => summary.current,
+    useBusinessPublic: () => ({ data: null, isLoading: false, isError: false }),
     useCustomerBusinessesClosestRewards: (businesses: CustomerBusinessSummary[]) => {
       const byBusinessId = new Map();
+      const rewardsByBusinessId = new Map<string, LoyaltyRewardAvailable[]>();
       const items = businesses
         .map((biz) => {
-          const info = actual.computeClosestRewardInfo(biz, rewardsByBusiness.current[biz.business_id]);
+          const list = rewardsByBusiness.current[biz.business_id] ?? [];
+          rewardsByBusinessId.set(biz.business_id, list);
+          const info = actual.computeClosestRewardInfo(biz, list);
           byBusinessId.set(biz.business_id, info);
           return info;
         })
@@ -48,7 +52,7 @@ vi.mock("@/features/loyalty/hooks", async (importOriginal) => {
           return b.business.balance - a.business.balance;
         });
 
-      return { items, byBusinessId, isLoading: false };
+      return { items, byBusinessId, rewardsByBusinessId, isLoading: false };
     },
   };
 });
@@ -75,6 +79,27 @@ function row(
   };
 }
 
+function rewardFixture(
+  overrides: Partial<LoyaltyRewardAvailable> & Pick<LoyaltyRewardAvailable, "id" | "name">,
+): LoyaltyRewardAvailable {
+  return {
+    type: "free_product",
+    description: "",
+    points_required: 100,
+    min_purchase_amount: 0,
+    max_discount_amount: null,
+    discount_percentage: null,
+    product_price_cop: null,
+    product_cost_cop: null,
+    balance: 0,
+    remaining: 100,
+    can_redeem: false,
+    valid_from: null,
+    valid_until: null,
+    ...overrides,
+  };
+}
+
 function renderPage(initialEntry = "/customer") {
   return render(
     <MemoryRouter initialEntries={[initialEntry]}>
@@ -86,7 +111,7 @@ function renderPage(initialEntry = "/customer") {
   );
 }
 
-describe("CustomerBusinessesPage", () => {
+describe("CustomerBusinessesPage (Diseño 2 Pixel Art)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     rewardsByBusiness.current = {};
@@ -99,7 +124,8 @@ describe("CustomerBusinessesPage", () => {
     };
   });
 
-  it("muestra una tarjeta por negocio con su saldo y recompensas listas", () => {
+  it("muestra la tarjeta arcade del negocio actual y permite navegar entre negocios con las flechas", async () => {
+    const user = userEvent.setup();
     summary.current.data = [
       row({
         business_id: "biz-1",
@@ -127,23 +153,29 @@ describe("CustomerBusinessesPage", () => {
 
     renderPage();
 
-    expect(screen.getByRole("heading", { name: /¡Hola, Carla!/ })).toBeInTheDocument();
     expect(screen.getByTestId("total-points-balance")).toHaveTextContent("60");
+    expect(screen.getByRole("heading", { name: "Taquería El Fogón" })).toBeInTheDocument();
+    expect(screen.getByText("50")).toBeInTheDocument();
+    expect(screen.getByText("FRECUENTE ACTIVO")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /MÁS RECOMPENSAS/i })).toHaveAttribute(
+      "href",
+      "/customer/business/biz-1",
+    );
 
-    const taco = screen.getByRole("link", { name: /Taquería El Fogón/ });
-    expect(taco).toHaveAttribute("href", "/customer/business/biz-1");
-    expect(taco).toHaveTextContent("50");
-    expect(taco).toHaveTextContent("1 lista");
-    expect(taco).toHaveTextContent("Frecuente activo");
-    expect(taco).toHaveTextContent("Última compra registrada");
+    await user.click(screen.getByRole("button", { name: "Siguiente negocio" }));
+    expect(screen.getByRole("heading", { name: "Café Central" })).toBeInTheDocument();
+    expect(screen.getByText("10")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /MÁS RECOMPENSAS/i })).toHaveAttribute(
+      "href",
+      "/customer/business/biz-2",
+    );
 
-    const cafe = screen.getByRole("link", { name: /Café Central/ });
-    expect(cafe).toHaveAttribute("href", "/customer/business/biz-2");
-    expect(cafe).toHaveTextContent("10");
+    await user.click(screen.getByRole("button", { name: "Siguiente negocio" }));
+    expect(screen.getByRole("heading", { name: "Tienda Verde" })).toBeInTheDocument();
+    expect(screen.getAllByText(/PROGRAMA INACTIVO/i).length).toBeGreaterThan(0);
 
-    const shop = screen.getByRole("link", { name: /Tienda Verde/ });
-    expect(shop).toHaveTextContent("Programa inactivo");
-    expect(shop).toHaveTextContent("Sin compras todavía");
+    await user.click(screen.getByRole("button", { name: "Negocio anterior" }));
+    expect(screen.getByRole("heading", { name: "Café Central" })).toBeInTheDocument();
   });
 
   it("muestra el estado vacío y abre una invitación por enlace o código", async () => {
@@ -171,78 +203,62 @@ describe("CustomerBusinessesPage", () => {
     expect(parseInvitationSlug("")).toBeNull();
   });
 
-  it("muestra la Player Card ordenada por recompensas más cercanas y permite cambiar de pestaña", async () => {
+  it("muestra hasta 3 recompensas del negocio y abre el modal de detalle al seleccionar una", async () => {
     const user = userEvent.setup();
     summary.current.data = [
       row({
         business_id: "biz-1",
-        name: "Masa & Miel",
-        slug: "masa-y-miel",
-        balance: 200,
-      }),
-      row({
-        business_id: "biz-2",
-        name: "Café Aurora",
-        slug: "cafe-aurora",
-        balance: 90,
+        name: "La Forja Burger",
+        slug: "la-forja-burger",
+        balance: 950,
       }),
     ];
-function rewardFixture(
-  overrides: Partial<LoyaltyRewardAvailable> & Pick<LoyaltyRewardAvailable, "id" | "name">,
-): LoyaltyRewardAvailable {
-  return {
-    type: "free_product",
-    description: "",
-    points_required: 100,
-    min_purchase_amount: 0,
-    max_discount_amount: null,
-    discount_percentage: null,
-    product_price_cop: null,
-    product_cost_cop: null,
-    balance: 0,
-    remaining: 100,
-    can_redeem: false,
-    valid_from: null,
-    valid_until: null,
-    ...overrides,
-  };
-}
 
     rewardsByBusiness.current = {
       "biz-1": [
         rewardFixture({
           id: "rew-1",
-          name: "Croissant",
-          description: "Croissant artesanal",
-          points_required: 1000,
-          balance: 200,
-          remaining: 800,
+          name: "Papas Rústicas",
+          description: "Porción grande de papas en cascos",
+          points_required: 600,
+          balance: 950,
+          remaining: 0,
+          can_redeem: true,
         }),
-      ],
-      "biz-2": [
         rewardFixture({
           id: "rew-2",
-          name: "Café gratis",
-          description: "Americano o latte",
-          points_required: 100,
-          balance: 90,
-          remaining: 10,
+          name: "Malteada 8-Bits",
+          description: "Malteada cremosa de vainilla",
+          points_required: 950,
+          balance: 950,
+          remaining: 0,
+          can_redeem: true,
+        }),
+        rewardFixture({
+          id: "rew-3",
+          name: "Combo Forjador",
+          description: "Hamburguesa doble carne + papas",
+          points_required: 1500,
+          balance: 950,
+          remaining: 550,
+          can_redeem: false,
         }),
       ],
     };
 
     renderPage();
 
-    const region = screen.getByRole("region", {
-      name: /Player Card de recompensas más cercanas/i,
-    });
-    expect(region).toHaveTextContent("Café Aurora");
-    expect(region).toHaveTextContent("90%");
-    expect(region).toHaveTextContent("Café gratis");
+    expect(screen.getByText("Papas Rústicas")).toBeInTheDocument();
+    expect(screen.getByText("600 PTS")).toBeInTheDocument();
+    expect(screen.getByText("Malteada 8-Bits")).toBeInTheDocument();
+    expect(screen.getByText("Combo Forjador")).toBeInTheDocument();
 
-    const masaTab = screen.getByRole("tab", { name: "Masa & Miel" });
-    await user.click(masaTab);
-    expect(region).toHaveTextContent("Croissant");
-    expect(region).toHaveTextContent("20%");
+    await user.click(screen.getByRole("button", { name: /Papas Rústicas/i }));
+    const dialog = within(screen.getByRole("dialog"));
+    expect(dialog.getByText("Papas Rústicas")).toBeInTheDocument();
+    expect(dialog.getByRole("link", { name: /CANJEAR RECOMPENSA/i })).toHaveAttribute(
+      "href",
+      "/customer/business/biz-1",
+    );
   });
 });

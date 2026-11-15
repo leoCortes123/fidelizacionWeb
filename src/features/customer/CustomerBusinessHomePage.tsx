@@ -1,59 +1,38 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import {
-  ArrowLeft,
-  ArrowRight,
-  Building2,
-  Check,
-  Gift,
-  LockKeyhole,
-  ReceiptText,
-  TicketCheck,
-  TrendingUp,
-} from "lucide-react";
+import { Building2, Gift, ReceiptText } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/features/auth/AuthProvider";
 import {
+  useBusinessPublic,
   useCustomerBusinessesSummary,
   useLoyaltyPointAccount,
   useLoyaltyPointTransactions,
+  useLoyaltyProgram,
   useLoyaltyRewardsAvailable,
+  useProducts,
   useRequestRedemption,
 } from "@/features/loyalty/hooks";
 import { useBusinessContext } from "@/features/loyalty/businessContext";
 import { useMyPurchasesPage } from "@/features/purchases/hooks";
 import { PurchaseDetailDialog } from "@/features/purchases/PurchaseDetailDialog";
 import { errorMessage } from "@/lib/errors";
-import {
-  formatCOP,
-  formatDateBogota,
-  formatLoopoints,
-  formatNumber,
-  formatPoints,
-} from "@/lib/format";
+import { formatCOP, formatDateBogota, formatPoints } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { PageHeader } from "@/components/shared/PageHeader";
-import {
-  EmptyState,
-  ErrorState,
-  ListSkeleton,
-  LoadingScreen,
-  CardSkeleton,
-} from "@/components/shared/States";
-import { FrequencyBadge } from "@/components/shared/StatusBadge";
+import { EmptyState, ErrorState, ListSkeleton, LoadingScreen } from "@/components/shared/States";
 import { saveRedemptionToken } from "@/features/loyalty/redemptionTokens";
-import type { LoyaltyRewardAvailable, RedemptionRequestResult } from "@/types";
-import { PixelHeartIcon } from "./PlayerCard";
+import type { LoyaltyRewardAvailable, Product, RedemptionRequestResult } from "@/types";
+import {
+  getBusinessStageVisual,
+  getProductVisual,
+  getRewardVisual,
+  HeroCoinSvg,
+  PixelItemSvg,
+} from "./pixelSprites";
+
+type StoreTabId = "tabRewards" | "tabMenu" | "tabActivity";
 
 export function CustomerBusinessHomePage() {
   const { businessId = "" } = useParams();
@@ -64,8 +43,6 @@ export function CustomerBusinessHomePage() {
 
   const business = businesses.find((item) => item.id === businessId) ?? null;
 
-  // El negocio de la URL manda: sincroniza el contexto para que los hooks
-  // existentes (y el selector de la cabecera) apunten al mismo negocio.
   useEffect(() => {
     if (!business) return;
     if (selectedBusiness?.id === business.id) return;
@@ -73,16 +50,39 @@ export function CustomerBusinessHomePage() {
   }, [business, selectedBusiness?.id, setSelectedBusiness]);
 
   const activeBusinessId = business?.id ?? "";
+  const publicBiz = useBusinessPublic(business?.slug ?? "");
   const account = useLoyaltyPointAccount(activeBusinessId, customerId);
   const transactions = useLoyaltyPointTransactions(activeBusinessId, customerId);
   const rewards = useLoyaltyRewardsAvailable(activeBusinessId, customerId);
+  const products = useProducts(activeBusinessId, true);
+  const program = useLoyaltyProgram(activeBusinessId);
   const purchases = useMyPurchasesPage(activeBusinessId, 0, 5, Boolean(activeBusinessId));
   const requestRedemption = useRequestRedemption();
 
-  const [redeemDialog, setRedeemDialog] = useState<LoyaltyRewardAvailable | null>(null);
+  const [activeTab, setActiveTab] = useState<StoreTabId>("tabRewards");
+  const [redeemDialog, setRedeemDialog] = useState<{
+    reward: LoyaltyRewardAvailable;
+    index: number;
+  } | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<{
+    product: Product;
+    points: number;
+    index: number;
+  } | null>(null);
   const [idempotencyKey, setIdempotencyKey] = useState("");
   const [createdRedemption, setCreatedRedemption] = useState<RedemptionRequestResult | null>(null);
   const [detailId, setDetailId] = useState<string | null>(null);
+
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        if (redeemDialog) setRedeemDialog(null);
+        if (selectedProduct) setSelectedProduct(null);
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [redeemDialog, selectedProduct]);
 
   if (!business) {
     return (
@@ -96,9 +96,9 @@ export function CustomerBusinessHomePage() {
           title="No participas en este negocio"
           description="Vuelve a tus negocios para elegir uno de tus programas activos."
           icon={Building2}
-          className="retro-card"
+          className="pixel-box"
           action={
-            <Button asChild className="retro-btn retro-btn-dark">
+            <Button asChild className="pixel-btn pixel-btn-dark">
               <Link to="/customer">Ver mis negocios</Link>
             </Button>
           }
@@ -127,33 +127,49 @@ export function CustomerBusinessHomePage() {
 
   const balance = account.data?.balance ?? 0;
   const available = rewards.data ?? [];
-  const readyRewards = available.filter((reward) => reward.can_redeem).length;
-  const closestUpcoming = available
-    .filter((reward) => !reward.can_redeem && reward.points_required > 0)
-    .sort((a, b) => a.remaining - b.remaining)[0];
-  const heroProgressPct =
-    readyRewards > 0
-      ? 100
-      : closestUpcoming
-        ? Math.min(99, Math.max(0, Math.floor((balance / closestUpcoming.points_required) * 100)))
-        : 0;
+  const activeProducts = products.data ?? [];
 
-  function requestReward(reward: LoyaltyRewardAvailable) {
+  const stageVisual = getBusinessStageVisual(business.name, business.slug, 0);
+  const categoryBadge = summaryRow?.is_frequent_active
+    ? "FRECUENTE ACTIVO"
+    : summaryRow?.is_frequent
+      ? "FRECUENTE"
+      : stageVisual.category;
+
+  const logoUrl = summaryRow?.logo_url ?? publicBiz.data?.logo_url ?? null;
+  const defaultBio = `Saldo, recompensas, carta y compras en @${business.slug}.`;
+  const bizDescription = publicBiz.data?.description?.trim() || defaultBio;
+
+  function computeProductPoints(priceCop: number): number {
+    const copPerUnit = program.data?.cop_per_point_unit ?? 1000;
+    if (copPerUnit <= 0) return 0;
+    return Math.min(1_000_000, Math.max(0, Math.floor(priceCop / copPerUnit)));
+  }
+
+  function openRewardModal(reward: LoyaltyRewardAvailable, index: number) {
+    setRedeemDialog({ reward, index });
+    setIdempotencyKey(`redeem-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`);
+  }
+
+  function requestReward(reward: LoyaltyRewardAvailable, index: number) {
     if (!reward.can_redeem) {
       toast.error("No tienes loopoints suficientes para esta recompensa.");
       return;
     }
-    setRedeemDialog(reward);
-    setIdempotencyKey(`redeem-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`);
+    openRewardModal(reward, index);
   }
 
   async function confirmRedemption(event: React.FormEvent) {
     event.preventDefault();
     if (!redeemDialog || !business) return;
+    if (!redeemDialog.reward.can_redeem) {
+      setRedeemDialog(null);
+      return;
+    }
     try {
       const result = await requestRedemption.mutateAsync({
         businessId: business.id,
-        rewardId: redeemDialog.id,
+        rewardId: redeemDialog.reward.id,
         idempotencyKey: idempotencyKey || crypto.randomUUID(),
       });
       setRedeemDialog(null);
@@ -176,423 +192,545 @@ export function CustomerBusinessHomePage() {
     }
   }
 
+  const rewardModalVisual = redeemDialog
+    ? getRewardVisual(redeemDialog.reward.name, redeemDialog.index)
+    : null;
+  const productModalVisual = selectedProduct
+    ? getProductVisual(selectedProduct.product.name, selectedProduct.index)
+    : null;
+
   return (
-    <div className="space-y-5 sm:space-y-6 animate-fade-in">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <Link
-          to="/customer"
-          className="retro-btn retro-btn-light px-3 py-1.5 text-xs"
-        >
-          <ArrowLeft className="size-3.5" aria-hidden="true" />
-          Mis negocios
-        </Link>
-        <Link
-          to="/customer/redemptions"
-          className="retro-btn retro-btn-light px-3 py-1.5 text-xs"
-        >
-          <TicketCheck className="size-3.5" aria-hidden="true" />
-          Mis canjes
-        </Link>
-      </div>
-
-      {businesses.length > 1 && (
-        <nav
-          aria-label="Mis negocios"
-          className="flex snap-x gap-2 overflow-x-auto pb-1.5"
-        >
-          {businesses.map((item) => {
-            const active = item.id === business.id;
-            const logoUrl = summary.data?.find((row) => row.business_id === item.id)?.logo_url;
-            return (
-              <Link
-                key={item.id}
-                to={`/customer/business/${item.id}`}
-                aria-current={active ? "page" : undefined}
-                className={cn(
-                  "flex min-h-10 shrink-0 snap-start items-center gap-2 border-2 border-[var(--line)] px-3 py-1.5 font-mono text-xs font-bold transition-all",
-                  active
-                    ? "bg-[var(--ink)] text-[var(--paper)] shadow-[3px_3px_0_var(--red)]"
-                    : "bg-[var(--cream)] text-[var(--ink)] hover:bg-[var(--gold)] hover:text-[#1e1c1a] shadow-[2px_2px_0_var(--shadow-ink)]",
-                )}
-              >
-                <span
-                  className={cn(
-                    "grid size-6 place-items-center overflow-hidden border border-[var(--line)]",
-                    active ? "bg-[var(--paper)] text-[var(--ink)]" : "bg-[var(--paper-deep)]",
-                  )}
-                >
-                  {logoUrl ? (
-                    <img src={logoUrl} alt="" className="size-full object-cover" />
-                  ) : (
-                    <Building2 className="size-3.5" aria-hidden="true" />
-                  )}
-                </span>
-                {item.name}
-              </Link>
-            );
-          })}
-        </nav>
-      )}
-
-      <div className="space-y-2">
-        <h1 className="font-display text-3xl font-bold tracking-tight text-[var(--ink)] sm:text-4xl">
-          {business.name}
-        </h1>
-        <p className="font-mono text-xs text-[var(--ink-muted)] sm:text-sm">
-          Saldo, recompensas y compras en @{business.slug}.
-        </p>
-        <div className="flex flex-wrap items-center gap-2 pt-1">
-          <FrequencyBadge
-            isFrequent={summaryRow?.is_frequent ?? false}
-            isActive={summaryRow?.is_frequent_active ?? false}
-          />
-          {(summaryRow?.pending_redemptions ?? 0) > 0 && (
-            <span className="border-2 border-[var(--line)] bg-[#ffd166] px-2 py-0.5 font-mono text-xs font-bold text-[#1e1c1a]">
-              {summaryRow?.pending_redemptions} canje(s) en curso
-            </span>
-          )}
-          {summaryRow?.last_purchase_at && (
-            <span className="font-mono text-xs text-[var(--ink-soft)]">
-              Última compra: {formatDateBogota(summaryRow.last_purchase_at)}
-            </span>
-          )}
-        </div>
-      </div>
-
-      {createdRedemption && (
-        <div className="retro-card retro-card-success flex flex-wrap items-center justify-between gap-3 p-4 text-sm text-[var(--ink)]">
-          <p>
-            Solicitud de <strong>{createdRedemption.reward_name}</strong> enviada. El encargado la
-            revisará y aprobará en caja.
-          </p>
-          <Link to="/customer/redemptions" className="retro-btn retro-btn-dark text-xs">
-            Ver mis canjes
+    <>
+      <section
+        className="view-section active"
+        id="viewStoreProfile"
+        aria-label="Detalle del negocio"
+      >
+        <div className="store-topbar-nav">
+          <Link to="/customer" className="pixel-btn pixel-btn-secondary" id="btnBackToSelector">
+            <span>◀ VOLVER</span>
           </Link>
         </div>
-      )}
 
-      {/* Player Card del negocio */}
-      <section className="pixel-window" aria-label={`Tarjeta de jugador en ${business.name}`}>
-        <div className="window-bar">
-          <span className="window-title">
-            <span className="window-led" aria-hidden="true" />
-            PLAYER CARD · {business.name.toUpperCase()}
-          </span>
-          <span className="window-hearts" aria-hidden="true">
-            <PixelHeartIcon />
-            <PixelHeartIcon />
-            <PixelHeartIcon />
-          </span>
-        </div>
-
-        <div className="window-body space-y-5">
-          <div className="hud-meta">
-            <span className="points-label">TUS LOOPOINTS EN {business.name.toUpperCase()}</span>
-            <span className={cn("level-pill", readyRewards > 0 && "level-pill-ready")}>
-              {summaryRow?.is_frequent ? "NIVEL FRECUENTE" : "JUGADOR ACTIVO"}
-            </span>
+        {createdRedemption && (
+          <div className="pixel-box mb-2 flex flex-wrap items-center justify-between gap-2 bg-[var(--paper-deep)] p-2.5 text-xs text-[var(--ink)]">
+            <p>
+              Solicitud de <strong>{createdRedemption.reward_name}</strong> enviada. El encargado la
+              revisará y aprobará en caja.
+            </p>
+            <Link
+              to="/customer/redemptions"
+              className="pixel-btn pixel-btn-dark py-1.5 text-[11px]"
+            >
+              Ver mis canjes
+            </Link>
           </div>
+        )}
 
-          <div className="points-row">
-            <img
-              src="/loopoint-coin.png"
-              alt=""
-              width={44}
-              height={44}
-              className="points-coin"
-              aria-hidden="true"
-            />
-            <div>
-              <p
+        {/* Panel superior que replica la tarjeta del negocio */}
+        <article className="pixel-box store-replicated-card" id="profileHeroBanner">
+          <div
+            className="card-hero-stage store-hero-stage"
+            id="profileHeroStage"
+            style={{ background: stageVisual.stageBg }}
+          >
+            {/* Arriba a la izquierda: Total de puntos */}
+            <div className="hero-points-top-left">
+              <HeroCoinSvg size={15} />
+              <span
                 data-testid="points-balance"
-                className="points"
+                className="hero-points-value"
+                id="profilePointsNumber"
               >
                 {balance}
-              </p>
-              <p className="mt-1 font-mono text-xs text-[var(--ink-soft)]">
-                {formatLoopoints(balance)} disponibles
-              </p>
+              </span>
+              <span className="hero-points-label">PTS</span>
+            </div>
+
+            {/* Arriba a la derecha: Letrero con el tipo de negocio */}
+            <span className="hero-category-top-right" id="profileCategoryBadge">
+              {categoryBadge}
+            </span>
+
+            {/* Ilustración central del negocio */}
+            <div className="sprite-bobbing" id="profileSpriteBox">
+              {logoUrl ? (
+                <img
+                  src={logoUrl}
+                  alt={`Logo de ${business.name}`}
+                  className="size-16 border-[3px] border-[#1e1c1a] bg-[#fffdf5] object-cover"
+                />
+              ) : (
+                <PixelItemSvg sprite={stageVisual.spriteKey} size={80} />
+              )}
+            </div>
+
+            {/* Abajo a la izquierda: Nombre del negocio */}
+            <div className="hero-name-bottom-left">
+              <h1 className="card-biz-title" id="profileStoreName">
+                {business.name}
+              </h1>
             </div>
           </div>
 
-          {(readyRewards > 0 || closestUpcoming) && (
-            <div>
-              <div className="progress-caption">
-                {readyRewards > 0
-                  ? `¡TIENES ${readyRewards} ${readyRewards === 1 ? "RECOMPENSA LISTA" : "RECOMPENSAS LISTAS"}!`
-                  : `PRÓXIMO PREMIO: ${closestUpcoming?.name.toUpperCase()}`}
-              </div>
-              <div className="retro-progress" aria-hidden="true">
-                <span style={{ width: `${heroProgressPct}%` }} />
-              </div>
-              <div className="progress-footer">
-                <span>
-                  {readyRewards > 0
-                    ? "SOLICITA TU PREMIO ABAJO"
-                    : `FALTAN ${formatNumber(closestUpcoming?.remaining ?? 0)} PTS`}
-                </span>
-                <strong>{heroProgressPct}%</strong>
-              </div>
-            </div>
-          )}
-
-          <div className="grid grid-cols-2 gap-3 border-t-2 border-dashed border-[var(--dash-line)] pt-4">
-            <div className="border-2 border-[var(--line)] bg-[var(--paper)] p-3">
-              <p className="font-pixel text-lg text-[#4e8c57] dark:text-[#34d399]">{readyRewards}</p>
-              <p className="mt-1 font-mono text-xs text-[var(--ink-muted)]">recompensas disponibles</p>
-            </div>
-            <div className="border-2 border-[var(--line)] bg-[var(--paper)] p-3">
-              <p className="font-pixel text-lg text-[var(--blue)]">
-                {summaryRow?.pending_redemptions ?? 0}
-              </p>
-              <p className="mt-1 font-mono text-xs text-[var(--ink-muted)]">canjes en curso</p>
-            </div>
+          <div className="store-card-desc-panel">
+            <p className="card-biz-description" id="profileStoreBio">
+              {bizDescription}
+            </p>
           </div>
-        </div>
-      </section>
+        </article>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <section className="retro-card p-4 sm:p-5 lg:col-span-2" aria-labelledby="rewards-heading">
-          <div className="mb-4 flex items-center gap-2 border-b-2 border-dashed border-[var(--dash-line)] pb-3">
-            <Gift className="size-4 text-[var(--red)]" aria-hidden="true" />
-            <h2 id="rewards-heading" className="font-display text-lg font-bold text-[var(--ink)]">
-              Recompensas disponibles
-            </h2>
+        {/* Pestañas en una sola línea: RECOMPENSAS | CARTA | MOVIMIENTOS */}
+        <div className="pixel-box store-body-box">
+          <div className="store-tabs-bar" role="tablist" aria-label="Secciones del negocio">
+            <button
+              type="button"
+              id="store-tab-rewards"
+              role="tab"
+              aria-selected={activeTab === "tabRewards"}
+              aria-controls="tabRewards"
+              className={cn("store-tab-btn", activeTab === "tabRewards" && "active")}
+              onClick={() => setActiveTab("tabRewards")}
+            >
+              RECOMPENSAS
+            </button>
+            <button
+              type="button"
+              id="store-tab-menu"
+              role="tab"
+              aria-selected={activeTab === "tabMenu"}
+              aria-controls="tabMenu"
+              className={cn("store-tab-btn", activeTab === "tabMenu" && "active")}
+              onClick={() => setActiveTab("tabMenu")}
+            >
+              CARTA
+            </button>
+            <button
+              type="button"
+              id="store-tab-activity"
+              role="tab"
+              aria-selected={activeTab === "tabActivity"}
+              aria-controls="tabActivity"
+              className={cn("store-tab-btn", activeTab === "tabActivity" && "active")}
+              onClick={() => setActiveTab("tabActivity")}
+            >
+              MOVIMIENTOS
+            </button>
           </div>
 
-          {available.length === 0 ? (
-            <EmptyState
-              title="Catálogo en preparación"
-              description="Todavía no hay recompensas publicadas en este negocio. Vuelve pronto."
-              icon={Gift}
-              className="border-0 bg-transparent py-8"
-            />
-          ) : (
-            <div className="grid gap-4 sm:grid-cols-2">
-              {available.map((reward) => {
-                const progress = Math.min((balance / reward.points_required) * 100, 100);
-                return (
-                  <article
-                    key={reward.id}
-                    className={cn(
-                      "flex flex-col justify-between gap-3 border-[3px] border-[var(--line)] p-4 shadow-[4px_4px_0_var(--shadow-ink)]",
-                      reward.can_redeem ? "bg-[var(--cream-alt)]" : "bg-[var(--paper)]",
-                    )}
-                  >
-                    <div className="space-y-3">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <h3 className="font-bold leading-tight text-[var(--ink)]">{reward.name}</h3>
-                          <p className="mt-1 line-clamp-2 text-xs text-[var(--ink-muted)]">
+          {/* Panel 1: Recompensas con imagen y detalle al seleccionar */}
+          <div
+            className={cn("store-tab-panel", activeTab === "tabRewards" && "active")}
+            id="tabRewards"
+            role="tabpanel"
+            aria-labelledby="store-tab-rewards"
+          >
+            {available.length === 0 ? (
+              <EmptyState
+                title="Catálogo en preparación"
+                description="Todavía no hay recompensas publicadas en este negocio. Vuelve pronto."
+                icon={Gift}
+                className="border-0 bg-transparent py-6"
+              />
+            ) : (
+              <div className="items-grid" id="profileRewardsGrid">
+                {available.map((reward, idx) => {
+                  const visual = getRewardVisual(reward.name, idx);
+                  return (
+                    <article
+                      key={reward.id}
+                      className="item-pixel-card"
+                      tabIndex={0}
+                      onClick={() => openRewardModal(reward, idx)}
+                      onKeyDown={(event) => {
+                        if (
+                          event.target === event.currentTarget &&
+                          (event.key === "Enter" || event.key === " ")
+                        ) {
+                          event.preventDefault();
+                          openRewardModal(reward, idx);
+                        }
+                      }}
+                    >
+                      <div className="item-card-image" style={{ background: visual.bg }}>
+                        <PixelItemSvg sprite={visual.spriteKey} size={56} />
+                      </div>
+                      <div className="item-card-body">
+                        <div>
+                          <h3 className="item-card-title">{reward.name}</h3>
+                          <p className="item-card-sub" style={{ marginTop: 4 }}>
                             {reward.description}
                           </p>
                         </div>
-                        {reward.can_redeem ? (
-                          <Badge variant="success" className="shrink-0 border border-[var(--line)]">
-                            <Check className="mr-1 size-3" aria-hidden="true" />
-                            Disponible
-                          </Badge>
+                        <div className="item-card-footer">
+                          <span className="item-badge-highlight">{reward.points_required} PTS</span>
+                          <span
+                            style={{
+                              fontSize: 11,
+                              fontWeight: 700,
+                              color: reward.can_redeem ? "var(--green)" : "var(--text-muted)",
+                            }}
+                          >
+                            {reward.can_redeem ? "Disponible" : "Bloqueado"}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            requestReward(reward, idx);
+                          }}
+                          disabled={!reward.can_redeem}
+                          className={cn(
+                            "pixel-btn mt-1 w-full py-1.5 text-[11px]",
+                            reward.can_redeem ? "pixel-btn-xp" : "pixel-btn-secondary",
+                          )}
+                        >
+                          {reward.can_redeem ? "Solicitar" : "No disponible"}
+                        </button>
+                      </div>
+                    </article>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Panel 2: Carta con imagen y detalle al seleccionar */}
+          <div
+            className={cn("store-tab-panel", activeTab === "tabMenu" && "active")}
+            id="tabMenu"
+            role="tabpanel"
+            aria-labelledby="store-tab-menu"
+          >
+            {products.isLoading ? (
+              <ListSkeleton rows={3} />
+            ) : activeProducts.length === 0 ? (
+              <EmptyState
+                title="Carta en preparación"
+                description="Este negocio aún no tiene productos publicados en su carta."
+                icon={Building2}
+                className="border-0 bg-transparent py-6"
+              />
+            ) : (
+              <div className="items-grid" id="profileProductsGrid">
+                {activeProducts.map((product, idx) => {
+                  const visual = getProductVisual(product.name, idx);
+                  const pts = computeProductPoints(product.price_cop);
+                  return (
+                    <article
+                      key={product.id}
+                      className="item-pixel-card"
+                      role="button"
+                      tabIndex={0}
+                      onClick={() =>
+                        setSelectedProduct({
+                          product,
+                          points: pts,
+                          index: idx,
+                        })
+                      }
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          setSelectedProduct({
+                            product,
+                            points: pts,
+                            index: idx,
+                          });
+                        }
+                      }}
+                    >
+                      <div className="item-card-image" style={{ background: visual.bg }}>
+                        {product.image_url ? (
+                          <img
+                            src={product.image_url}
+                            alt={product.name}
+                            className="size-full object-cover"
+                          />
                         ) : (
-                          <Badge variant="muted" className="shrink-0 border border-[var(--line)]">
-                            <LockKeyhole className="mr-1 size-3" aria-hidden="true" />
-                            Faltan {reward.remaining}
-                          </Badge>
+                          <PixelItemSvg sprite={visual.spriteKey} size={56} />
                         )}
                       </div>
-
-                      <div className="space-y-1">
-                        <div className="flex items-center justify-between font-mono text-xs">
-                          <span className="font-bold text-[var(--ink)]">
-                            {formatPoints(reward.points_required)}
-                          </span>
-                          <span className="text-[var(--ink-soft)]">
-                            {reward.can_redeem
-                              ? "Puedes solicitarla"
-                              : `${Math.floor(progress)}% de avance`}
-                          </span>
+                      <div className="item-card-body">
+                        <div>
+                          <h3 className="item-card-title">{product.name}</h3>
+                          <p className="item-card-sub" style={{ marginTop: 4 }}>
+                            {product.description ||
+                              (product.kind === "combo"
+                                ? "Combo especial de la carta"
+                                : "Producto de la carta")}
+                          </p>
                         </div>
-                        <div className="retro-progress retro-progress-sm" aria-hidden="true">
-                          <span style={{ width: `${progress}%` }} />
+                        <div className="item-card-footer">
+                          <span className="item-badge-highlight">
+                            {formatCOP(product.price_cop)}
+                          </span>
+                          <span className="item-badge-xp">+{pts} PTS</span>
                         </div>
                       </div>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => requestReward(reward)}
-                      disabled={!reward.can_redeem}
-                      className={cn(
-                        "retro-btn w-full text-xs",
-                        reward.can_redeem ? "retro-btn-red" : "retro-btn-light",
-                      )}
-                    >
-                      {reward.can_redeem ? "Solicitar" : "No disponible"}
-                    </button>
-                  </article>
-                );
-              })}
-            </div>
-          )}
-        </section>
-
-        <section className="retro-card p-4 sm:p-5" aria-labelledby="movements-heading">
-          <div className="mb-4 border-b-2 border-dashed border-[var(--dash-line)] pb-3">
-            <h2 id="movements-heading" className="font-display text-lg font-bold text-[var(--ink)]">
-              Movimientos recientes
-            </h2>
+                    </article>
+                  );
+                })}
+              </div>
+            )}
           </div>
-          {transactions.isLoading ? (
-            <ListSkeleton rows={3} />
-          ) : transactions.isError ? (
-            <ErrorState error={transactions.error} onRetry={() => void transactions.refetch()} />
-          ) : !transactions.data || transactions.data.length === 0 ? (
-            <p className="font-mono text-xs text-[var(--ink-soft)]">Sin movimientos todavía.</p>
-          ) : (
-            <ul className="space-y-2.5">
-              {transactions.data.slice(0, 10).map((movement) => (
-                <li
-                  key={movement.id}
-                  className="flex items-center justify-between gap-3 border-b-2 border-dashed border-[var(--dash-line)] py-2 last:border-0"
-                >
-                  <div className="min-w-0">
-                    <p className="text-sm font-bold text-[var(--ink)]">
-                      {movement.movement_type === "purchase_credit"
-                        ? "Compra acreditada"
-                        : movement.movement_type === "redemption_debit"
-                          ? "Canje"
-                          : movement.movement_type === "bonus_credit"
-                            ? "Bono"
-                            : movement.movement_type === "expiry_debit"
-                              ? "Loopoints vencidos"
-                              : movement.movement_type}
-                    </p>
-                    <p className="truncate font-mono text-xs text-[var(--ink-soft)]">
-                      {movement.reason ?? ""}
-                    </p>
-                  </div>
-                  <p
-                    className={cn(
-                      "shrink-0 font-mono text-sm font-bold",
-                      movement.points > 0 ? "text-[#4e8c57] dark:text-[#34d399]" : "text-[var(--red)]",
-                    )}
-                  >
-                    {movement.points > 0 ? "+" : ""}
-                    {movement.points}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      </div>
 
-      <section className="retro-card p-4 sm:p-5" aria-labelledby="purchases-heading">
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border-b-2 border-dashed border-[var(--dash-line)] pb-3">
-          <h2 id="purchases-heading" className="font-display text-lg font-bold text-[var(--ink)]">
-            Compras recientes
-          </h2>
-          <Link to="/customer/purchases" className="retro-btn retro-btn-light px-3 py-1.5 text-xs">
-            Ver historial
-            <ArrowRight className="size-3.5" aria-hidden="true" />
-          </Link>
+          {/* Panel 3: Movimientos */}
+          <div
+            className={cn("store-tab-panel", activeTab === "tabActivity" && "active")}
+            id="tabActivity"
+            role="tabpanel"
+            aria-labelledby="store-tab-activity"
+          >
+            <div className="history-list" id="profileHistoryList">
+              {transactions.isLoading ? (
+                <ListSkeleton rows={3} />
+              ) : transactions.isError ? (
+                <ErrorState
+                  error={transactions.error}
+                  onRetry={() => void transactions.refetch()}
+                />
+              ) : (!transactions.data || transactions.data.length === 0) &&
+                (!purchases.data || purchases.data.length === 0) ? (
+                <EmptyState
+                  title="Sin movimientos todavía"
+                  description="Pide en caja que generen el QR de tu compra y escanéalo para acumular tus primeros loopoints."
+                  icon={ReceiptText}
+                  className="border-0 bg-transparent py-6"
+                />
+              ) : (
+                <>
+                  {(transactions.data ?? []).slice(0, 10).map((movement) => (
+                    <div key={movement.id} className="history-row">
+                      <div className="min-w-0">
+                        <div className="text-sm font-bold">
+                          {movement.movement_type === "purchase_credit"
+                            ? "Compra acreditada"
+                            : movement.movement_type === "redemption_debit"
+                              ? "Canje"
+                              : movement.movement_type === "bonus_credit"
+                                ? "Bono"
+                                : movement.movement_type === "expiry_debit"
+                                  ? "Loopoints vencidos"
+                                  : movement.movement_type}
+                        </div>
+                        <div className="mt-0.5 truncate text-xs text-[var(--text-muted)]">
+                          {movement.reason
+                            ? `${movement.reason} • ${formatDateBogota(movement.created_at)}`
+                            : formatDateBogota(movement.created_at)}
+                        </div>
+                      </div>
+                      <span
+                        className="pixel-title shrink-0"
+                        style={{
+                          fontSize: 10,
+                          color: movement.points > 0 ? "var(--green)" : "var(--red)",
+                        }}
+                      >
+                        {movement.points > 0 ? "+" : ""}
+                        {movement.points} PTS
+                      </span>
+                    </div>
+                  ))}
+
+                  {(purchases.data ?? []).slice(0, 5).map((purchase) => (
+                    <div key={purchase.id} className="history-row">
+                      <div className="min-w-0">
+                        <div className="text-sm font-bold">
+                          Compra: {formatCOP(purchase.amount_cop)}
+                        </div>
+                        <div className="mt-0.5 text-xs text-[var(--text-muted)]">
+                          {formatDateBogota(purchase.claimed_at ?? purchase.created_at)}
+                          {purchase.items_count > 0 ? ` • ${purchase.items_count} producto(s)` : ""}
+                        </div>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2">
+                        <span
+                          className="pixel-title"
+                          style={{ fontSize: 10, color: "var(--green)" }}
+                        >
+                          +{purchase.points_awarded} PTS
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setDetailId(purchase.id)}
+                          className="pixel-btn pixel-btn-secondary px-2.5 py-1 text-[11px]"
+                        >
+                          Ver detalle
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </>
+              )}
+            </div>
+          </div>
         </div>
-
-        {purchases.isLoading ? (
-          <CardSkeleton className="border-0 p-0" />
-        ) : purchases.isError ? (
-          <ErrorState error={purchases.error} onRetry={() => void purchases.refetch()} />
-        ) : !purchases.data || purchases.data.length === 0 ? (
-          <EmptyState
-            title="Aún no tienes compras aquí"
-            description="Pide en caja que generen el QR de tu compra y escanéalo con este teléfono."
-            icon={ReceiptText}
-            className="border-0 bg-transparent py-6"
-          />
-        ) : (
-          <ul className="divide-y-2 divide-dashed divide-[var(--dash-line)]">
-            {purchases.data.slice(0, 5).map((purchase) => (
-              <li
-                key={purchase.id}
-                className="flex flex-wrap items-center justify-between gap-3 py-3 first:pt-0 last:pb-0"
-              >
-                <div>
-                  <p className="font-bold text-[var(--ink)]">{formatCOP(purchase.amount_cop)}</p>
-                  <p className="font-mono text-xs text-[var(--ink-soft)]">
-                    {formatDateBogota(purchase.claimed_at ?? purchase.created_at)}
-                    {purchase.items_count > 0 ? ` · ${purchase.items_count} producto(s)` : ""}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="border-2 border-[var(--line)] bg-[#34d399] px-2 py-0.5 font-mono text-xs font-bold text-[#1e1c1a]">
-                    +{purchase.points_awarded} pts
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => setDetailId(purchase.id)}
-                    className="retro-btn retro-btn-light px-3 py-1.5 text-xs"
-                  >
-                    Ver detalle
-                  </button>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
       </section>
 
-      <div className="retro-card retro-card-muted border-dashed p-4 sm:p-5">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
-          <span className="grid size-10 shrink-0 place-items-center border-2 border-[var(--line)] bg-[#ffd166] text-[#1e1c1a]">
-            <TrendingUp className="size-4" aria-hidden="true" />
-          </span>
-          <div className="space-y-1 text-sm">
-            <p className="font-bold text-[var(--ink)]">¿Cómo sumo más loopoints?</p>
-            <p className="text-[var(--ink-muted)]">
-              Pide en caja que registren tu compra y escanea el QR con este teléfono. Para canjear,
-              solicita la recompensa aquí y el encargado la aprobará en mostrador.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <Dialog open={redeemDialog !== null} onOpenChange={() => setRedeemDialog(null)}>
-        <DialogContent className="border-[3px] border-[var(--line)] bg-[var(--cream)] shadow-[6px_6px_0_var(--shadow-ink)]">
-          <DialogHeader>
-            <DialogTitle className="font-display text-xl font-bold text-[var(--ink)]">
-              Solicitar recompensa
-            </DialogTitle>
-            <DialogDescription className="text-[var(--ink-muted)]">
-              Canjear <strong>{redeemDialog?.name}</strong> por{" "}
-              <strong>{formatPoints(redeemDialog?.points_required ?? 0)}</strong>.
-            </DialogDescription>
-          </DialogHeader>
-          <form onSubmit={confirmRedemption} className="space-y-4">
-            <p className="text-sm text-[var(--ink-muted)]">
-              Se reservarán los loopoints de {business.name} y el encargado podrá aprobar la
-              solicitud directamente desde su panel.
-            </p>
-            <DialogFooter>
-              <Button
+      {/* Modal de detalle / solicitud de recompensa */}
+      {redeemDialog && rewardModalVisual && (
+        <div
+          className="modal-overlay open"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="appModalTitle"
+          onClick={(event) => {
+            if (event.target === event.currentTarget && !requestRedemption.isPending) {
+              setRedeemDialog(null);
+            }
+          }}
+        >
+          <div className="pixel-box modal-dialog">
+            <div className="modal-hero-img" style={{ background: rewardModalVisual.bg }}>
+              <PixelItemSvg sprite={rewardModalVisual.spriteKey} size={84} />
+              <button
                 type="button"
-                variant="outline"
+                className="pixel-btn pixel-btn-ruby modal-close-floating"
+                style={{ padding: "5px 9px" }}
+                aria-label="Cerrar modal"
                 onClick={() => setRedeemDialog(null)}
                 disabled={requestRedemption.isPending}
-                className="border-2 border-[var(--line)]"
               >
-                Cancelar
-              </Button>
-              <Button
-                type="submit"
-                loading={requestRedemption.isPending}
-                disabled={!redeemDialog?.can_redeem}
-                className="retro-btn retro-btn-red border-2 border-[var(--line)]"
+                X
+              </button>
+            </div>
+            <div className="modal-content-pad">
+              <div className="flex items-start justify-between gap-2">
+                <h2
+                  className="pixel-title"
+                  id="appModalTitle"
+                  style={{ fontSize: 12, lineHeight: 1.35 }}
+                >
+                  {redeemDialog.reward.name}
+                </h2>
+                <span className="item-badge-highlight">
+                  {redeemDialog.reward.points_required} PTS
+                </span>
+              </div>
+              <p className="text-[15px] leading-[1.45] text-[var(--text-muted)]">
+                {redeemDialog.reward.description ||
+                  `Canjear ${redeemDialog.reward.name} por ${formatPoints(redeemDialog.reward.points_required)}.`}
+              </p>
+              <div className="pixel-box-dark p-2.5 text-[13px] text-[var(--text-muted)]">
+                Se reservarán {formatPoints(redeemDialog.reward.points_required)} en {business.name}{" "}
+                y el encargado podrá aprobar la solicitud directamente en caja.
+              </div>
+              {redeemDialog.reward.can_redeem ? (
+                <form onSubmit={confirmRedemption} className="flex flex-col gap-2">
+                  <div className="flex flex-wrap justify-end gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setRedeemDialog(null)}
+                      disabled={requestRedemption.isPending}
+                      className="pixel-btn pixel-btn-secondary"
+                    >
+                      Cancelar
+                    </Button>
+                    <Button
+                      type="submit"
+                      loading={requestRedemption.isPending}
+                      disabled={!redeemDialog.reward.can_redeem}
+                      className="pixel-btn pixel-btn-xp flex-1"
+                    >
+                      Confirmar solicitud
+                    </Button>
+                  </div>
+                </form>
+              ) : (
+                <button
+                  type="button"
+                  className="pixel-btn pixel-btn-secondary w-full"
+                  style={{ padding: 11 }}
+                  onClick={() => setRedeemDialog(null)}
+                >
+                  TE FALTAN {Math.max(0, redeemDialog.reward.remaining)} PTS
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de detalle de producto de la carta */}
+      {selectedProduct && productModalVisual && (
+        <div
+          className="modal-overlay open"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="productModalTitle"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) {
+              setSelectedProduct(null);
+            }
+          }}
+        >
+          <div className="pixel-box modal-dialog">
+            <div className="modal-hero-img" style={{ background: productModalVisual.bg }}>
+              {selectedProduct.product.image_url ? (
+                <img
+                  src={selectedProduct.product.image_url}
+                  alt={selectedProduct.product.name}
+                  className="size-full object-cover"
+                />
+              ) : (
+                <PixelItemSvg sprite={productModalVisual.spriteKey} size={84} />
+              )}
+              <button
+                type="button"
+                className="pixel-btn pixel-btn-ruby modal-close-floating"
+                style={{ padding: "5px 9px" }}
+                aria-label="Cerrar modal"
+                onClick={() => setSelectedProduct(null)}
               >
-                Confirmar solicitud
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+                X
+              </button>
+            </div>
+            <div className="modal-content-pad">
+              <div className="flex items-start justify-between gap-2">
+                <h2
+                  className="pixel-title"
+                  id="productModalTitle"
+                  style={{ fontSize: 12, lineHeight: 1.35 }}
+                >
+                  {selectedProduct.product.name}
+                </h2>
+                <span className="item-badge-highlight">
+                  {formatCOP(selectedProduct.product.price_cop)}
+                </span>
+              </div>
+              <p className="text-[15px] leading-[1.45] text-[var(--text-muted)]">
+                {selectedProduct.product.description ||
+                  "Producto disponible en el establecimiento."}
+              </p>
+              <div className="pixel-box-dark flex items-center justify-between p-2.5">
+                <span className="text-[13px] text-[var(--text-muted)]">Puntos que acumulas:</span>
+                <span className="pixel-title" style={{ fontSize: 10, color: "var(--green)" }}>
+                  +{selectedProduct.points} PTS
+                </span>
+              </div>
+              {selectedProduct.product.combo_items?.length > 0 && (
+                <div className="text-xs text-[var(--text-muted)]">
+                  <strong>Incluye: </strong>
+                  {selectedProduct.product.combo_items
+                    .map((item) => `${item.quantity}× ${item.name}`)
+                    .join(", ")}
+                </div>
+              )}
+              <button
+                type="button"
+                className="pixel-btn pixel-btn-gold w-full"
+                style={{ padding: 11 }}
+                onClick={() => setSelectedProduct(null)}
+              >
+                ENTENDIDO
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <PurchaseDetailDialog
         open={Boolean(detailId)}
@@ -602,6 +740,6 @@ export function CustomerBusinessHomePage() {
         purchaseId={detailId}
         mode="customer"
       />
-    </div>
+    </>
   );
 }

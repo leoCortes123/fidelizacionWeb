@@ -34,9 +34,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Field } from "@/components/shared/Field";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { ErrorState, LoadingScreen } from "@/components/shared/States";
-
+import { ProfileAvatarSvg } from "@/features/customer/pixelSprites";
+import "@/features/customer/customerRetro.css";
 import { cn } from "@/lib/utils";
-import { PixelHeartIcon } from "@/features/customer/PlayerCard";
 
 const profileTabs = [
   { value: "negocio", label: "Negocio", icon: Building2 },
@@ -244,12 +244,16 @@ export function ProfilePage() {
   }
 
   const personalForm = (
-    <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+    <form
+      onSubmit={handleSubmit}
+      className={cn(isCustomerPortal ? "profile-form" : "space-y-4")}
+      noValidate
+    >
       <div
         className={cn(
           "p-3.5 text-sm sm:p-4",
           isCustomerPortal
-            ? "border-2 border-[var(--line)] bg-[var(--paper)]"
+            ? "pixel-box-dark"
             : "rounded-none border border-slate-200 bg-muted/50 dark:border-slate-800",
         )}
       >
@@ -260,56 +264,55 @@ export function ProfilePage() {
         </p>
       </div>
 
-      <Field
-        id="full-name"
-        label={showBusinessTabs ? "Nombre de administrador" : "Nombre completo"}
-        hint="Así te verá el negocio en su equipo y en las listas internas."
-        error={errors.fullName}
-        required
-      >
-        <Input
+      <div className={cn(isCustomerPortal ? "form-grid-2" : "space-y-4")}>
+        <Field
           id="full-name"
-          value={form?.fullName ?? ""}
-          onChange={(event) => update("fullName", event.target.value)}
-          autoComplete="name"
-          className={isCustomerPortal ? "border-2 border-[var(--line)] bg-[var(--paper)]" : undefined}
-          aria-invalid={Boolean(errors.fullName)}
-        />
-      </Field>
-
-      <Field
-        id="nickname"
-        label={showBusinessTabs ? "Alias de administrador" : "Alias público"}
-        hint={
-          canChangeNickname
-            ? `Te quedan ${data.nickname_changes_left} de 2 cambios. El alias no aparece en los QR ni en datos de canje.`
-            : "Ya usaste tus 2 cambios de alias. El alias actual se mantiene."
-        }
-        help="Se usa para identificarte en las listas del negocio. Solo minúsculas, números, punto, guion y guion bajo."
-        error={errors.nickname}
-      >
-        <div className="relative">
-          <AtSign
-            className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
-            aria-hidden="true"
-          />
+          label={showBusinessTabs ? "Nombre de administrador" : "Nombre completo"}
+          hint="Así te verá el negocio en su equipo y en las listas internas."
+          error={errors.fullName}
+          required
+        >
           <Input
-            id="nickname"
-            className={cn(
-              "pl-8",
-              isCustomerPortal && "border-2 border-[var(--line)] bg-[var(--paper)]",
-            )}
-            value={form?.nickname ?? ""}
-            onChange={(event) => update("nickname", event.target.value.toLowerCase())}
-            disabled={!canChangeNickname}
-            maxLength={24}
-            autoCapitalize="none"
-            autoCorrect="off"
-            spellCheck={false}
-            aria-invalid={Boolean(errors.nickname)}
+            id="full-name"
+            value={form?.fullName ?? ""}
+            onChange={(event) => update("fullName", event.target.value)}
+            autoComplete="name"
+            className={isCustomerPortal ? "form-input" : undefined}
+            aria-invalid={Boolean(errors.fullName)}
           />
-        </div>
-      </Field>
+        </Field>
+
+        <Field
+          id="nickname"
+          label={showBusinessTabs ? "Alias de administrador" : "Alias público"}
+          hint={
+            canChangeNickname
+              ? `Te quedan ${data.nickname_changes_left} de 2 cambios. El alias no aparece en los QR ni en datos de canje.`
+              : "Ya usaste tus 2 cambios de alias. El alias actual se mantiene."
+          }
+          help="Se usa para identificarte en las listas del negocio. Solo minúsculas, números, punto, guion y guion bajo."
+          error={errors.nickname}
+        >
+          <div className="relative">
+            <AtSign
+              className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+              aria-hidden="true"
+            />
+            <Input
+              id="nickname"
+              className={cn("pl-8", isCustomerPortal && "form-input")}
+              value={form?.nickname ?? ""}
+              onChange={(event) => update("nickname", event.target.value.toLowerCase())}
+              disabled={!canChangeNickname}
+              maxLength={24}
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+              aria-invalid={Boolean(errors.nickname)}
+            />
+          </div>
+        </Field>
+      </div>
 
       {canChangeNickname && nicknameChanged && normalizedNickname.length >= 3 && (
         <div
@@ -340,7 +343,7 @@ export function ProfilePage() {
         </div>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2">
+      <div className={cn(isCustomerPortal ? "form-grid-2" : "grid gap-4 sm:grid-cols-2")}>
         <Field
           id="phone"
           label="Número de teléfono"
@@ -355,10 +358,7 @@ export function ProfilePage() {
             <Input
               id="phone"
               type="tel"
-              className={cn(
-                "pl-8",
-                isCustomerPortal && "border-2 border-[var(--line)] bg-[var(--paper)]",
-              )}
+              className={cn("pl-8", isCustomerPortal && "form-input")}
               value={form?.phone ?? ""}
               onChange={(event) => update("phone", event.target.value)}
               placeholder="+57 300 123 4567"
@@ -383,10 +383,7 @@ export function ProfilePage() {
             <Input
               id="birth-date"
               type="date"
-              className={cn(
-                "pl-8",
-                isCustomerPortal && "border-2 border-[var(--line)] bg-[var(--paper)]",
-              )}
+              className={cn("pl-8", isCustomerPortal && "form-input")}
               value={form?.birthDate ?? ""}
               onChange={(event) => update("birthDate", event.target.value)}
               max={todayBogota()}
@@ -402,7 +399,7 @@ export function ProfilePage() {
           type="submit"
           loading={updateProfile.isPending}
           disabled={!dirty}
-          className={isCustomerPortal ? "retro-btn retro-btn-red" : undefined}
+          className={isCustomerPortal ? "pixel-btn pixel-btn-xp" : undefined}
         >
           <Save aria-hidden="true" />
           Guardar perfil
@@ -411,22 +408,42 @@ export function ProfilePage() {
     </form>
   );
 
-  const personalCard = isCustomerPortal ? (
-    <section className="pixel-window" aria-label="Datos personales">
-      <div className="window-bar">
-        <span className="window-title">
-          <span className="window-led" aria-hidden="true" />
-          PLAYER PROFILE · DATOS PERSONALES
-        </span>
-        <span className="window-hearts" aria-hidden="true">
-          <PixelHeartIcon />
-          <PixelHeartIcon />
-          <PixelHeartIcon />
-        </span>
-      </div>
-      <div className="window-body">{personalForm}</div>
-    </section>
-  ) : (
+  if (isCustomerPortal) {
+    return (
+      <section className="view-section active" id="viewUserProfile" aria-label="Perfil del usuario">
+        <div className="store-topbar-nav">
+          <Link to="/customer" className="pixel-btn pixel-btn-secondary" id="btnBackFromProfile">
+            <span>◀ VOLVER</span>
+          </Link>
+          <span className="item-badge-highlight">@{data.nickname ?? "sin-alias"}</span>
+        </div>
+
+        <div className="pixel-box profile-view-card">
+          <div className="pixel-box-dark profile-header-box">
+            <div className="profile-header-left">
+              <div className="brand-logo-box" style={{ width: 48, height: 48 }} aria-hidden="true">
+                <ProfileAvatarSvg size={30} />
+              </div>
+              <div>
+                <span className="pixel-title block text-[10px] text-[var(--red)]">
+                  PLAYER PROFILE · DATOS BÁSICOS
+                </span>
+                <h1 className="font-display text-xl font-bold text-[var(--ink)]">Mi perfil</h1>
+                <p className="text-xs text-[var(--text-muted)]">
+                  Actualiza tu información de cliente
+                </p>
+              </div>
+            </div>
+            <span className="item-badge-highlight">CLIENTE ACTIVO</span>
+          </div>
+
+          {personalForm}
+        </div>
+      </section>
+    );
+  }
+
+  const personalCard = (
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-base">
@@ -451,52 +468,30 @@ export function ProfilePage() {
           <BackLink />
         </div>
       )}
-      {isCustomerPortal ? (
-        <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div className="space-y-2">
-            <span className="retro-kicker">
-              <span className="text-[var(--gold)]" aria-hidden="true">
-                ★
-              </span>
-              CUENTA PERSONAL
-            </span>
-            <h1 className="font-display text-3xl font-bold tracking-tight text-[var(--ink)] sm:text-4xl">
-              Mi perfil
-            </h1>
-            <p className="max-w-2xl text-sm leading-relaxed text-[var(--ink-muted)]">
-              Tu nombre, alias público, teléfono y fecha de cumpleaños en Loopoint.
-            </p>
+      <PageHeader
+        kicker={showBusinessTabs ? "PERFIL Y AJUSTES DEL NEGOCIO" : "CUENTA PERSONAL"}
+        title="Mi perfil"
+        description={
+          showBusinessTabs
+            ? "Administra tu cuenta personal y configura la identidad del negocio, las reglas del programa de loopoints y tus datos económicos opcionales."
+            : "Tu nombre, alias público, teléfono y cumpleaños en Loopoint."
+        }
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge variant="secondary">
+              <AtSign aria-hidden="true" />@{data.nickname ?? "sin-alias"}
+            </Badge>
+            {showBusinessTabs && (
+              <Button variant="outline" size="sm" asChild>
+                <Link to="/admin/onboarding">
+                  <Rocket aria-hidden="true" />
+                  Asistente
+                </Link>
+              </Button>
+            )}
           </div>
-          <span className="inline-flex w-fit items-center gap-1 border-2 border-[var(--line)] bg-[var(--gold)] px-3 py-1 font-mono text-xs font-bold text-[#1e1c1a] shadow-[3px_3px_0_var(--shadow-ink)]">
-            <AtSign className="size-3.5" aria-hidden="true" />@{data.nickname ?? "sin-alias"}
-          </span>
-        </header>
-      ) : (
-        <PageHeader
-          kicker={showBusinessTabs ? "PERFIL Y AJUSTES DEL NEGOCIO" : "CUENTA PERSONAL"}
-          title="Mi perfil"
-          description={
-            showBusinessTabs
-              ? "Administra tu cuenta personal y configura la identidad del negocio, las reglas del programa de loopoints y tus datos económicos opcionales."
-              : "Tu nombre, alias público, teléfono y cumpleaños en Loopoint."
-          }
-          actions={
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="secondary">
-                <AtSign aria-hidden="true" />@{data.nickname ?? "sin-alias"}
-              </Badge>
-              {showBusinessTabs && (
-                <Button variant="outline" size="sm" asChild>
-                  <Link to="/admin/onboarding">
-                    <Rocket aria-hidden="true" />
-                    Asistente
-                  </Link>
-                </Button>
-              )}
-            </div>
-          }
-        />
-      )}
+        }
+      />
 
       {showBusinessTabs ? (
         <Tabs value={tab} onValueChange={changeTab}>

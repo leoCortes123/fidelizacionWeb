@@ -633,9 +633,11 @@ export function useCustomerBusinessesClosestRewards(
   });
 
   const infoByBusinessId = new Map<string, BusinessClosestRewardInfo>();
+  const rewardsByBusinessId = new Map<string, LoyaltyRewardAvailable[]>();
   businesses.forEach((biz) => {
     const activeIndex = activeBusinesses.findIndex((item) => item.business_id === biz.business_id);
     const rewards = activeIndex >= 0 ? queries[activeIndex]?.data : undefined;
+    rewardsByBusinessId.set(biz.business_id, rewards ?? []);
     infoByBusinessId.set(biz.business_id, computeClosestRewardInfo(biz, rewards));
   });
 
@@ -657,6 +659,7 @@ export function useCustomerBusinessesClosestRewards(
   return {
     items: sortedForPlayerCard,
     byBusinessId: infoByBusinessId,
+    rewardsByBusinessId,
     isLoading: queries.some((q) => q.isLoading),
   };
 }

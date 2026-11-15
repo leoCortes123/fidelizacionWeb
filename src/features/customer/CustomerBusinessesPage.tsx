@@ -1,29 +1,27 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import {
-  ArrowRight,
-  Building2,
-  Coins,
-  Gift,
-  Link2,
-  Sparkles,
-  Store,
-  TicketCheck,
-} from "lucide-react";
+import { Building2, Link2 } from "lucide-react";
 import { useAuth } from "@/features/auth/AuthProvider";
 import {
+  useBusinessPublic,
   useCustomerBusinessesClosestRewards,
   useCustomerBusinessesSummary,
 } from "@/features/loyalty/hooks";
-import { formatLoopoints, formatNumber } from "@/lib/format";
+import { formatCOP, formatNumber } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { EmptyState, ErrorState, CardSkeleton } from "@/components/shared/States";
-import { FrequencyBadge } from "@/components/shared/StatusBadge";
-import { PlayerCard } from "./PlayerCard";
+import type { LoyaltyRewardAvailable } from "@/types";
+import {
+  ArcadeArrowLeftSvg,
+  ArcadeArrowRightSvg,
+  getBusinessStageVisual,
+  getRewardVisual,
+  HeroCoinSvg,
+  PixelItemSvg,
+} from "./pixelSprites";
 
 const SLUG_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
@@ -37,18 +35,59 @@ export function parseInvitationSlug(value: string): string | null {
 }
 
 export function CustomerBusinessesPage() {
-  const { displayName, user } = useAuth();
+  const { user } = useAuth();
   const summary = useCustomerBusinessesSummary();
   const navigate = useNavigate();
   const [invitation, setInvitation] = useState("");
   const [invitationError, setInvitationError] = useState<string | null>(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [slideDir, setSlideDir] = useState<"right" | "left">("right");
+  const [selectedReward, setSelectedReward] = useState<{
+    reward: LoyaltyRewardAvailable;
+    index: number;
+  } | null>(null);
 
-  const firstName = displayName.trim().split(/\s+/)[0] ?? "";
   const rows = summary.data ?? [];
   const closest = useCustomerBusinessesClosestRewards(rows, user?.id ?? "");
   const total = rows.reduce((sum, row) => sum + row.balance, 0);
-  const ready = rows.reduce((sum, row) => sum + row.ready_rewards, 0);
-  const pendingTotal = rows.reduce((sum, row) => sum + row.pending_redemptions, 0);
+
+  const safeIndex = rows.length > 0 ? currentIndex % rows.length : 0;
+  const activeBiz = rows[safeIndex] ?? null;
+  const publicBiz = useBusinessPublic(activeBiz?.slug ?? "");
+
+  useEffect(() => {
+    function handleKeyDown(event: KeyboardEvent) {
+      if (selectedReward) {
+        if (event.key === "Escape") {
+          setSelectedReward(null);
+        }
+        return;
+      }
+      if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
+        return;
+      }
+      const target = event.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.tagName === "SELECT" ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+      if (rows.length <= 1) return;
+      if (event.key === "ArrowLeft") {
+        setSlideDir("left");
+        setCurrentIndex((prev) => (prev - 1 + rows.length) % rows.length);
+      } else if (event.key === "ArrowRight") {
+        setSlideDir("right");
+        setCurrentIndex((prev) => (prev + 1) % rows.length);
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [rows.length, selectedReward]);
 
   function openInvitation(event: React.FormEvent) {
     event.preventDefault();
@@ -63,11 +102,23 @@ export function CustomerBusinessesPage() {
     navigate(`/join/${slug}`);
   }
 
+  function handlePrevBiz() {
+    if (rows.length === 0) return;
+    setSlideDir("left");
+    setCurrentIndex((prev) => (prev - 1 + rows.length) % rows.length);
+  }
+
+  function handleNextBiz() {
+    if (rows.length === 0) return;
+    setSlideDir("right");
+    setCurrentIndex((prev) => (prev + 1) % rows.length);
+  }
+
   if (summary.isLoading) {
     return (
-      <div className="space-y-5">
+      <div className="space-y-4 p-2">
         <CardSkeleton className="h-44" />
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-3">
           <CardSkeleton />
           <CardSkeleton />
           <CardSkeleton />
@@ -80,38 +131,23 @@ export function CustomerBusinessesPage() {
     return <ErrorState error={summary.error} onRetry={() => void summary.refetch()} />;
   }
 
-  return (
-    <div className="space-y-6 animate-fade-in">
-      <header className="space-y-2">
-        <span className="retro-kicker">
-          <span className="text-[var(--gold)]" aria-hidden="true">
-            ★
-          </span>
-          TU BILLETERA DE PUNTOS
-        </span>
-        <h1 className="font-display text-3xl font-bold tracking-tight text-[var(--ink)] sm:text-4xl">
-          {firstName ? `¡Hola, ${firstName}!` : "¡Hola!"}
-        </h1>
-        <p className="max-w-2xl text-sm leading-relaxed text-[var(--ink-muted)] sm:text-base">
-          Tus loopoints, recompensas más cercanas y negocios afiliados en un solo lugar.
-        </p>
-      </header>
-
-      {rows.length === 0 ? (
-        <div className="space-y-5">
+  if (rows.length === 0 || !activeBiz) {
+    return (
+      <section className="view-section active" aria-label="Negocios afiliados">
+        <div className="my-auto space-y-5 py-4">
           <EmptyState
             title="Aún no participas en ningún negocio"
             description="Escanea el QR de invitación del negocio o abre su enlace para empezar a sumar loopoints."
             icon={Building2}
-            className="retro-card"
+            className="pixel-box"
           />
-          <div className="retro-card mx-auto max-w-md p-4 sm:p-5">
+          <div className="pixel-box mx-auto max-w-md p-4 sm:p-5">
             <div className="space-y-3">
               <div className="space-y-1">
                 <Label htmlFor="invitation-link" className="font-mono text-xs font-bold uppercase">
                   Enlace o código del negocio
                 </Label>
-                <p className="font-mono text-xs text-[var(--ink-soft)]">
+                <p className="font-mono text-xs text-[var(--text-muted)]">
                   Ejemplo: https://loopoint.app/join/mi-negocio
                 </p>
               </div>
@@ -124,234 +160,278 @@ export function CustomerBusinessesPage() {
                     setInvitationError(null);
                   }}
                   placeholder="mi-negocio"
-                  className="border-2 border-[var(--line)] bg-[var(--paper)] text-[var(--ink)]"
+                  className="form-input"
                   aria-invalid={invitationError ? true : undefined}
                   aria-describedby={invitationError ? "invitation-link-error" : undefined}
                 />
-                <Button
-                  type="submit"
-                  className="retro-btn retro-btn-dark shrink-0 border-2 border-[var(--line)]"
-                >
+                <Button type="submit" className="pixel-btn pixel-btn-dark shrink-0">
                   <Link2 aria-hidden="true" />
                   Abrir invitación
                 </Button>
               </form>
               {invitationError && (
-                <p id="invitation-link-error" role="alert" className="text-xs font-semibold text-[var(--red)]">
+                <p
+                  id="invitation-link-error"
+                  role="alert"
+                  className="text-xs font-semibold text-[var(--red)]"
+                >
                   {invitationError}
                 </p>
               )}
             </div>
           </div>
         </div>
-      ) : (
-        <>
-          {/* Hero Arcade: Resumen + Player Card con recompensas más cercanas */}
-          <section
-            aria-label="Resumen y recompensas más cercanas"
-            className="grid gap-6 lg:grid-cols-12 lg:items-start"
+      </section>
+    );
+  }
+
+  const stageVisual = getBusinessStageVisual(activeBiz.name, activeBiz.slug, safeIndex);
+  const categoryBadge = !activeBiz.loyalty_active
+    ? "PROGRAMA INACTIVO"
+    : activeBiz.is_frequent_active
+      ? "FRECUENTE ACTIVO"
+      : activeBiz.is_frequent
+        ? "FRECUENTE"
+        : stageVisual.category;
+
+  const bizRewards = closest.rewardsByBusinessId.get(activeBiz.business_id) ?? [];
+  const threeRewards = bizRewards.slice(0, 3);
+
+  const defaultBio = !activeBiz.loyalty_active
+    ? `Programa temporalmente inactivo en ${activeBiz.name} (@${activeBiz.slug}).`
+    : activeBiz.ready_rewards > 0
+      ? `Tienes ${activeBiz.ready_rewards} ${activeBiz.ready_rewards === 1 ? "recompensa lista" : "recompensas listas"} para reclamar en ${activeBiz.name} (@${activeBiz.slug}).`
+      : `Acumula loopoints con cada compra en ${activeBiz.name} (@${activeBiz.slug}) y canjéalos por recompensas del programa.`;
+  const bizDescription = publicBiz.data?.description?.trim() || defaultBio;
+
+  const modalVisual = selectedReward
+    ? getRewardVisual(selectedReward.reward.name, selectedReward.index)
+    : null;
+
+  return (
+    <>
+      <section className="view-section active" id="viewSelector" aria-label="Negocios afiliados">
+        <div className="arcade-stage-wrapper">
+          <article
+            key={activeBiz.business_id}
+            className={cn(
+              "pixel-box business-select-card",
+              slideDir === "right" ? "slide-right" : "slide-left",
+            )}
+            id="businessSelectCard"
           >
-            <div className="space-y-3 lg:col-span-5">
-              <div className="retro-card retro-card-dark p-5">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-[#ffd166]">
-                    Loopoints totales
-                  </p>
-                  <Coins className="size-4 text-[#ffd166]" aria-hidden="true" />
-                </div>
-                <p
-                  data-testid="total-points-balance"
-                  className="mt-2 break-all font-pixel text-3xl leading-tight text-[#ffd166] sm:text-4xl"
-                >
+            {/* 1. Imagen del negocio con Puntos arriba-izq, Categoría arriba-der, Flechas laterales y Nombre abajo-izq */}
+            <div
+              className="card-hero-stage"
+              id="cardHeroStage"
+              style={{ background: stageVisual.stageBg }}
+            >
+              {/* Arriba a la izquierda: Total de puntos en el negocio */}
+              <div className="hero-points-top-left">
+                <HeroCoinSvg size={15} />
+                <span className="hero-points-value" id="cardPointsNumber">
+                  {formatNumber(activeBiz.balance)}
+                </span>
+                <span className="hero-points-label">PTS</span>
+                <span className="sr-only" data-testid="total-points-balance">
                   {formatNumber(total)}
-                </p>
-                <p className="mt-2 font-mono text-xs text-[#eadec5]">
-                  {formatLoopoints(total)} en {rows.length}{" "}
-                  {rows.length === 1 ? "negocio" : "negocios"}
-                </p>
+                </span>
               </div>
 
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-1">
-                <div className="retro-stat-chip">
-                  <div className="flex items-center gap-2.5">
-                    <span className="grid size-9 shrink-0 place-items-center border-2 border-[var(--line)] bg-[#34d399] text-[#1e1c1a]">
-                      <Sparkles className="size-4" aria-hidden="true" />
-                    </span>
-                    <div>
-                      <span className="retro-stat-key">Listas</span>
-                      <p className="mt-0.5 text-xs text-[var(--ink-muted)]">
-                        {ready === 1 ? "recompensa por reclamar" : "recompensas por reclamar"}
-                      </p>
-                    </div>
-                  </div>
-                  <strong className="font-pixel text-lg text-[var(--ink)]">{ready}</strong>
-                </div>
+              {/* Arriba a la derecha: Letrero con el tipo/estado de negocio */}
+              <span className="hero-category-top-right" id="cardCategoryBadge">
+                {categoryBadge}
+              </span>
 
-                <div className="retro-stat-chip">
-                  <div className="flex items-center gap-2.5">
-                    <span className="grid size-9 shrink-0 place-items-center border-2 border-[var(--line)] bg-[#22d3ee] text-[#1e1c1a]">
-                      <TicketCheck className="size-4" aria-hidden="true" />
-                    </span>
-                    <div>
-                      <span className="retro-stat-key">Canjes</span>
-                      <p className="mt-0.5 text-xs text-[var(--ink-muted)]">canjes en curso</p>
-                    </div>
-                  </div>
-                  <strong className="font-pixel text-lg text-[var(--ink)]">{pendingTotal}</strong>
-                </div>
+              {/* Flecha Flotante Izquierda */}
+              <button
+                type="button"
+                className="arcade-arrow-btn arcade-arrow-left"
+                id="btnPrevBiz"
+                aria-label="Negocio anterior"
+                title="Negocio anterior"
+                onClick={handlePrevBiz}
+              >
+                <ArcadeArrowLeftSvg />
+              </button>
+
+              {/* Ilustración central del negocio */}
+              <div className="sprite-bobbing" id="cardSpriteBox">
+                {activeBiz.logo_url ? (
+                  <img
+                    src={activeBiz.logo_url}
+                    alt={`Logo de ${activeBiz.name}`}
+                    className="size-20 border-[3px] border-[#1e1c1a] bg-[#fffdf5] object-cover"
+                  />
+                ) : (
+                  <PixelItemSvg sprite={stageVisual.spriteKey} size={80} />
+                )}
               </div>
 
-              <div className="flex flex-wrap gap-2.5 pt-1">
-                <Link to="/customer/purchases" className="retro-btn retro-btn-light flex-1 text-xs">
-                  <Store className="size-3.5" aria-hidden="true" />
-                  Compras
-                </Link>
-                <Link
-                  to="/customer/redemptions"
-                  className="retro-btn retro-btn-light flex-1 text-xs"
-                >
-                  <TicketCheck className="size-3.5" aria-hidden="true" />
-                  Mis canjes
-                </Link>
-              </div>
-            </div>
+              {/* Flecha Flotante Derecha */}
+              <button
+                type="button"
+                className="arcade-arrow-btn arcade-arrow-right"
+                id="btnNextBiz"
+                aria-label="Siguiente negocio"
+                title="Siguiente negocio"
+                onClick={handleNextBiz}
+              >
+                <ArcadeArrowRightSvg />
+              </button>
 
-            <div className="lg:col-span-7">
-              <PlayerCard items={closest.items} />
-            </div>
-          </section>
-
-          {/* Lista de negocios del cliente */}
-          <section className="space-y-4" aria-labelledby="businesses-title">
-            <div className="flex flex-wrap items-end justify-between gap-3">
-              <div>
-                <h2
-                  id="businesses-title"
-                  className="font-display text-2xl font-bold tracking-tight text-[var(--ink)]"
-                >
-                  Mis negocios
-                </h2>
-                <p className="text-sm text-[var(--ink-muted)]">
-                  Selecciona o navega con Tab a un negocio para ver su historial, puntos y canjear
-                  recompensas.
-                </p>
+              {/* Abajo a la izquierda: Nombre del negocio */}
+              <div className="hero-name-bottom-left">
+                <h1 className="card-biz-title" id="cardBizTitle">
+                  {activeBiz.name}
+                </h1>
+                {rows.length > 1 && (
+                  <span className="border-2 border-[#1e1c1a] bg-[var(--cream)] px-2 py-0.5 font-mono text-[11px] font-bold text-[#1e1c1a] shadow-[2px_2px_0_#1e1c1a]">
+                    {safeIndex + 1} / {rows.length}
+                  </span>
+                )}
               </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {rows.map((row) => {
-                const info = closest.byBusinessId.get(row.business_id);
-                const nextReward = info?.nextReward;
-                const progressPct = info?.progressPct ?? 0;
+            {/* 2. Cuerpo debajo de la imagen: Descripción + 3 recompensas + Botón MÁS RECOMPENSAS */}
+            <div className="card-body-content">
+              <p className="card-biz-description" id="cardBizDescription">
+                {bizDescription}
+              </p>
 
-                return (
-                  <Link
-                    key={row.business_id}
-                    to={`/customer/business/${row.business_id}`}
-                    className="group block focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-[3px] focus-visible:outline-[var(--blue)]"
-                  >
-                    <article
-                      className={cn(
-                        "retro-card retro-card-interactive flex h-full flex-col gap-4 p-4 sm:p-5",
-                        row.ready_rewards > 0 && "retro-card-alt",
-                      )}
-                    >
-                      <div className="flex items-start gap-3">
-                        <span className="grid size-12 shrink-0 place-items-center overflow-hidden border-2 border-[var(--line)] bg-[var(--paper-deep)] text-[var(--ink)]">
-                          {row.logo_url ? (
-                            <img
-                              src={row.logo_url}
-                              alt={`Logo de ${row.name}`}
-                              className="size-full object-cover"
-                            />
-                          ) : (
-                            <Building2 className="size-5" aria-hidden="true" />
-                          )}
-                        </span>
-                        <div className="min-w-0 flex-1">
-                          <h3 className="truncate font-bold leading-tight text-[var(--ink)]">
-                            {row.name}
-                          </h3>
-                          <p className="truncate font-mono text-xs text-[var(--ink-soft)]">
-                            @{row.slug}
+              {/* 3 recompensas del negocio */}
+              <div className="home-rewards-list" id="homeRewardsList">
+                {threeRewards.length > 0 ? (
+                  threeRewards.map((reward, idx) => {
+                    const pct =
+                      reward.points_required > 0
+                        ? Math.min(
+                            100,
+                            Math.round((activeBiz.balance / reward.points_required) * 100),
+                          )
+                        : 0;
+                    const visual = getRewardVisual(reward.name, idx);
+                    return (
+                      <button
+                        type="button"
+                        key={reward.id}
+                        className="home-reward-item"
+                        title={`Ver detalle de ${reward.name}`}
+                        onClick={() => setSelectedReward({ reward, index: idx })}
+                      >
+                        <div className="home-reward-thumb" style={{ background: visual.bg }}>
+                          <PixelItemSvg sprite={visual.spriteKey} size={48} />
+                        </div>
+                        <div className="home-reward-info">
+                          <div className="home-reward-top">
+                            <span className="home-reward-title">{reward.name}</span>
+                            <span className="home-reward-pts">{reward.points_required} PTS</span>
+                          </div>
+                          <p className="home-reward-desc">
+                            {reward.description || "Recompensa disponible en tienda"}
                           </p>
-                          <div className="mt-1.5 flex flex-wrap gap-1">
-                            <FrequencyBadge
-                              isFrequent={row.is_frequent}
-                              isActive={row.is_frequent_active}
+                          <div className="xp-bar-track" aria-hidden="true">
+                            <div
+                              className={cn("xp-bar-fill", pct >= 100 && "ready")}
+                              style={{ width: `${pct}%` }}
                             />
-                            {!row.loyalty_active && (
-                              <Badge variant="muted">Programa inactivo</Badge>
-                            )}
                           </div>
                         </div>
-                      </div>
+                      </button>
+                    );
+                  })
+                ) : (
+                  <div className="pixel-box-dark col-span-full flex flex-col items-center justify-center gap-1 p-4 text-center">
+                    <span className="pixel-title text-[10px] text-[var(--ink)]">
+                      {activeBiz.loyalty_active
+                        ? "EXPLORA EL CATÁLOGO DEL NEGOCIO"
+                        : "PROGRAMA INACTIVO"}
+                    </span>
+                    <p className="text-xs text-[var(--text-muted)]">
+                      {activeBiz.last_purchase_at
+                        ? "Última compra registrada · Entra para ver tu carta y movimientos."
+                        : "Sin compras todavía · Entra para consultar las recompensas y carta."}
+                    </p>
+                  </div>
+                )}
+              </div>
 
-                      <div className="mt-auto space-y-2.5">
-                        <div className="flex items-end justify-between gap-3">
-                          <div>
-                            <p className="font-pixel text-2xl leading-none text-[var(--red)]">
-                              {row.balance}
-                            </p>
-                            <p className="mt-1.5 font-mono text-[11px] uppercase text-[var(--ink-soft)]">
-                              loopoints disponibles
-                            </p>
-                          </div>
-                          {row.ready_rewards > 0 ? (
-                            <span className="inline-flex shrink-0 items-center gap-1 border-2 border-[var(--line)] bg-[#34d399] px-2 py-1 font-mono text-[11px] font-bold text-[#1e1c1a]">
-                              <Gift className="size-3.5" aria-hidden="true" />
-                              {row.ready_rewards} {row.ready_rewards === 1 ? "lista" : "listas"}
-                            </span>
-                          ) : row.pending_redemptions > 0 ? (
-                            <span className="inline-flex shrink-0 items-center border-2 border-[var(--line)] bg-[#ffd166] px-2 py-1 font-mono text-[11px] font-bold text-[#1e1c1a]">
-                              {row.pending_redemptions} en curso
-                            </span>
-                          ) : null}
-                        </div>
-
-                        {nextReward && (
-                          <div className="space-y-1 border-t-2 border-dashed border-[var(--dash-line)] pt-2.5">
-                            <div className="flex items-center justify-between gap-2 font-mono text-[11px] text-[var(--ink-muted)]">
-                              <span className="truncate font-semibold">{nextReward.name}</span>
-                              <span className="shrink-0 font-bold">{progressPct}%</span>
-                            </div>
-                            <div className="retro-progress retro-progress-sm" aria-hidden="true">
-                              <span style={{ width: `${progressPct}%` }} />
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      <div className="flex items-center justify-between border-t-2 border-[var(--dash-line)] pt-3 font-mono text-xs text-[var(--ink-soft)]">
-                        <span>
-                          {row.last_purchase_at
-                            ? "Última compra registrada"
-                            : "Sin compras todavía"}
-                        </span>
-                        <span className="inline-flex items-center gap-1 font-bold text-[var(--ink)] group-hover:text-[var(--red)]">
-                          Entrar
-                          <ArrowRight
-                            className="size-3.5 transition-transform group-hover:translate-x-0.5"
-                            aria-hidden="true"
-                          />
-                        </span>
-                      </div>
-                    </article>
-                  </Link>
-                );
-              })}
+              {/* Botón para ir al detalle del negocio */}
+              <Link
+                to={`/customer/business/${activeBiz.business_id}`}
+                className="pixel-btn pixel-btn-dark btn-see-more-rewards"
+                id="btnSeeMoreRewards"
+              >
+                <span>MÁS RECOMPENSAS</span>
+              </Link>
             </div>
-          </section>
+          </article>
+        </div>
+      </section>
 
-          <div className="retro-card retro-card-muted border-dashed p-4 text-sm sm:p-5">
-            <p className="font-bold text-[var(--ink)]">¿Quieres sumar otro negocio?</p>
-            <p className="mt-1 text-[var(--ink-muted)]">
-              Pide en caja el enlace de invitación o escanea su QR. Tus loopoints de cada negocio se
-              mantienen separados y siempre disponibles aquí.
-            </p>
+      {/* Modal de detalle de recompensa desde el inicio */}
+      {selectedReward && modalVisual && (
+        <div
+          className="modal-overlay open"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="homeModalTitle"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) setSelectedReward(null);
+          }}
+        >
+          <div className="pixel-box modal-dialog">
+            <div className="modal-hero-img" style={{ background: modalVisual.bg }}>
+              <PixelItemSvg sprite={modalVisual.spriteKey} size={84} />
+              <button
+                type="button"
+                className="pixel-btn pixel-btn-ruby modal-close-floating"
+                style={{ padding: "5px 9px" }}
+                aria-label="Cerrar detalle"
+                onClick={() => setSelectedReward(null)}
+              >
+                X
+              </button>
+            </div>
+            <div className="modal-content-pad">
+              <div className="flex items-start justify-between gap-2">
+                <h2
+                  className="pixel-title"
+                  id="homeModalTitle"
+                  style={{ fontSize: 12, lineHeight: 1.35 }}
+                >
+                  {selectedReward.reward.name}
+                </h2>
+                <span className="item-badge-highlight">
+                  {selectedReward.reward.points_required} PTS
+                </span>
+              </div>
+              <p className="text-[15px] leading-[1.45] text-[var(--text-muted)]">
+                {selectedReward.reward.description ||
+                  "Válido presentando tu solicitud de canje en caja."}
+              </p>
+              <div className="pixel-box-dark p-2.5 text-[13px] text-[var(--text-muted)]">
+                {selectedReward.reward.min_purchase_amount > 0
+                  ? `Compra mínima requerida: ${formatCOP(selectedReward.reward.min_purchase_amount)}.`
+                  : "Válido presentando tu código de canje en caja."}
+              </div>
+              <Link
+                to={`/customer/business/${activeBiz.business_id}`}
+                className={cn(
+                  "pixel-btn w-full",
+                  selectedReward.reward.can_redeem ? "pixel-btn-xp" : "pixel-btn-secondary",
+                )}
+                style={{ padding: 11 }}
+                onClick={() => setSelectedReward(null)}
+              >
+                {selectedReward.reward.can_redeem
+                  ? "CANJEAR RECOMPENSA"
+                  : `TE FALTAN ${Math.max(0, selectedReward.reward.remaining)} PTS`}
+              </Link>
+            </div>
           </div>
-        </>
+        </div>
       )}
-    </div>
+    </>
   );
 }
