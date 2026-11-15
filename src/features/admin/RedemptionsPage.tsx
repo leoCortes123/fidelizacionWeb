@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   Check,
+  Gift,
   PackageCheck,
   RefreshCw,
   ReceiptText,
@@ -21,6 +22,7 @@ import { useBusinessContext } from "@/features/loyalty/businessContext";
 import { errorMessage } from "@/lib/errors";
 import { formatDateTimeBogota, formatPoints } from "@/lib/format";
 import { Button } from "@/components/ui/button";
+import { EntityAvatar } from "@/components/shared/EntityAvatar";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
@@ -326,19 +328,40 @@ function RedemptionsSection({ business }: { business: Business }) {
               {rows.map((redemption) => (
                 <tr key={redemption.id}>
                   <td className="px-4 py-3">
-                    <p className="font-medium">
-                      {redemption.customer_nickname
-                        ? `@${redemption.customer_nickname}`
-                        : redemption.customer_email}
-                    </p>
-                    <p className="text-xs text-muted-foreground">{redemption.customer_email}</p>
-                    <p className="font-mono text-xs text-muted-foreground">{redemption.code}</p>
+                    <div className="flex items-center gap-2.5">
+                      <EntityAvatar
+                        src={redemption.customer_avatar_url}
+                        alt={redemption.customer_nickname || redemption.customer_email}
+                        fallbackText={redemption.customer_nickname || redemption.customer_email}
+                        sizeClassName="size-8"
+                      />
+                      <div className="min-w-0">
+                        <p className="font-medium">
+                          {redemption.customer_nickname
+                            ? `@${redemption.customer_nickname}`
+                            : redemption.customer_email}
+                        </p>
+                        <p className="text-xs text-muted-foreground">{redemption.customer_email}</p>
+                        <p className="font-mono text-xs text-muted-foreground">{redemption.code}</p>
+                      </div>
+                    </div>
                   </td>
                   <td className="px-4 py-3">
-                    <p className="font-semibold">{redemption.reward_name}</p>
-                    <Badge variant="outline" className="mt-1 text-[10px]">
-                      {redemption.reward_type}
-                    </Badge>
+                    <div className="flex items-center gap-2.5">
+                      <EntityAvatar
+                        src={redemption.reward_image_url}
+                        alt={redemption.reward_name}
+                        icon={Gift}
+                        sizeClassName="size-8"
+                        roundedClassName="rounded-none"
+                      />
+                      <div className="min-w-0">
+                        <p className="font-semibold">{redemption.reward_name}</p>
+                        <Badge variant="outline" className="mt-1 text-[10px]">
+                          {redemption.reward_type}
+                        </Badge>
+                      </div>
+                    </div>
                   </td>
                   <td className="px-4 py-3 text-right tabular-nums">
                     {formatPoints(redemption.points_spent)}

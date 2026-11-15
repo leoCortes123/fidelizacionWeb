@@ -74,3 +74,23 @@ export function useUpdateProfile() {
     },
   });
 }
+
+export function useSetProfileAvatar() {
+  const queryClient = useQueryClient();
+  return useMutation<
+    { id: string; avatar_url: string | null },
+    Error,
+    { avatarUrl: string | null }
+  >({
+    mutationFn: (params) =>
+      rpc<{ id: string; avatar_url: string | null }>("profile_avatar_set", {
+        p_avatar_url: params.avatarUrl,
+      }),
+    onSuccess: (data) => {
+      queryClient.setQueryData<MyProfile>(queryKeys.profile, (current) =>
+        current ? { ...current, avatar_url: data.avatar_url } : current,
+      );
+      void queryClient.invalidateQueries({ queryKey: queryKeys.profile });
+    },
+  });
+}

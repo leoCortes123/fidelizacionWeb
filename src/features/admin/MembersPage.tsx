@@ -33,6 +33,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { EntityAvatar } from "@/components/shared/EntityAvatar";
 import { EmptyState, ErrorState, ListSkeleton, LoadingScreen } from "@/components/shared/States";
 import type { BusinessRole, MemberInviteCreateResult } from "@/types";
 
@@ -212,9 +213,12 @@ export function MembersPage() {
           {membershipsData.map((member) => (
             <Card key={member.id} className="flex flex-wrap items-center justify-between gap-3 p-4">
               <div className="flex min-w-0 items-center gap-3">
-                <div className="grid size-10 shrink-0 place-items-center rounded-full bg-secondary text-secondary-foreground">
-                  {(member.full_name || member.email || "?").charAt(0).toUpperCase()}
-                </div>
+                <EntityAvatar
+                  src={member.avatar_url}
+                  alt={member.full_name || member.email}
+                  fallbackText={member.full_name || member.email}
+                  sizeClassName="size-10"
+                />
                 <div className="min-w-0">
                   <p className="truncate font-semibold">{member.full_name}</p>
                   <p className="truncate text-xs text-muted-foreground">{member.email}</p>

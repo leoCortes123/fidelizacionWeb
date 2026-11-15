@@ -32,6 +32,7 @@ vi.mock("@/features/profile/hooks", () => ({
     isFetching: false,
   }),
   useUpdateProfile: () => ({ mutateAsync: updateProfile, isPending: false }),
+  useSetProfileAvatar: () => ({ mutateAsync: vi.fn(), isPending: false }),
 }));
 
 vi.mock("@/features/auth/AuthProvider", () => ({

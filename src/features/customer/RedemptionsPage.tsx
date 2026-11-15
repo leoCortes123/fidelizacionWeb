@@ -119,7 +119,13 @@ export function RedemptionsPage() {
               >
                 <div className="flex items-start gap-3.5">
                   <span className="grid size-12 shrink-0 place-items-center overflow-hidden border-[3px] border-[var(--border-color)] bg-[var(--paper-deep)] text-[var(--ink)] shadow-[2px_2px_0_var(--shadow-color)]">
-                    {redemption.business_logo_url ? (
+                    {redemption.reward_image_url ? (
+                      <img
+                        src={redemption.reward_image_url}
+                        alt={redemption.reward_name}
+                        className="size-full object-cover"
+                      />
+                    ) : redemption.business_logo_url ? (
                       <img
                         src={redemption.business_logo_url}
                         alt={`Logo de ${redemption.business_name}`}

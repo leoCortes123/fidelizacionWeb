@@ -48,6 +48,71 @@ export function CustomerShell() {
     navigate("/", { replace: true });
   }
 
+  function renderNavLinks(idPrefix: string, linkClass: string) {
+    return (
+      <>
+        <NavLink
+          to="/customer"
+          end
+          id={`${idPrefix}Home`}
+          className={({ isActive }) =>
+            cn(linkClass, (isActive || pathname.startsWith("/customer/business/")) && "active")
+          }
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 12 12"
+            shapeRendering="crispEdges"
+            aria-hidden="true"
+          >
+            <polygon points="6,1 1,5 2,5 2,11 10,11 10,5 11,5" fill="currentColor" />
+          </svg>
+          <span>Inicio</span>
+        </NavLink>
+
+        <NavLink
+          to="/customer/purchases"
+          id={`${idPrefix}Purchases`}
+          className={({ isActive }) => cn(linkClass, isActive && "active")}
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 12 12"
+            shapeRendering="crispEdges"
+            aria-hidden="true"
+          >
+            <path
+              d="M2 1h8v10H2V1zm2 3h4v1H4V4zm0 3h4v1H4V7z"
+              fill="currentColor"
+              fillRule="evenodd"
+            />
+          </svg>
+          <span>Compras</span>
+        </NavLink>
+
+        <NavLink
+          to="/customer/redemptions"
+          id={`${idPrefix}Redemptions`}
+          className={({ isActive }) => cn(linkClass, isActive && "active")}
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 12 12"
+            shapeRendering="crispEdges"
+            aria-hidden="true"
+          >
+            <rect x="1" y="3" width="10" height="6" fill="currentColor" />
+            <rect x="5" y="4" width="2" height="4" fill="var(--gold)" />
+          </svg>
+          <span>Canjes</span>
+        </NavLink>
+      </>
+    );
+  }
+
   return (
     <div className="retro-customer">
       <header data-testid="app-header" className="app-navbar no-print">
@@ -60,6 +125,10 @@ export function CustomerShell() {
               loopoint<span className="brand-dot">.</span>
             </span>
           </Link>
+
+          <nav className="desktop-nav-bar" aria-label="Navegación del cliente">
+            {renderNavLinks("desktopNavBtn", "desktop-nav-btn")}
+          </nav>
 
           <div className="user-menu-cluster" ref={dropdownRef}>
             {isAdmin && (
@@ -85,7 +154,7 @@ export function CustomerShell() {
               <SettingsGearSvg size={16} />
             </button>
 
-            <nav
+            <div
               className={cn("dropdown-menu", menuOpen && "open")}
               id="navDropdownMenu"
               role="menu"
@@ -157,7 +226,7 @@ export function CustomerShell() {
                 </svg>
                 <span>Cerrar sesión</span>
               </button>
-            </nav>
+            </div>
           </div>
         </div>
       </header>
@@ -170,69 +239,7 @@ export function CustomerShell() {
       </main>
 
       <nav className="bottom-app-bar no-print" aria-label="Navegación del cliente">
-        <div className="bottom-bar-inner">
-          <NavLink
-            to="/customer"
-            end
-            id="navBtnHome"
-            className={({ isActive }) =>
-              cn(
-                "bottom-nav-btn",
-                (isActive || pathname.startsWith("/customer/business/")) && "active",
-              )
-            }
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 12 12"
-              shapeRendering="crispEdges"
-              aria-hidden="true"
-            >
-              <polygon points="6,1 1,5 2,5 2,11 10,11 10,5 11,5" fill="currentColor" />
-            </svg>
-            <span>Inicio</span>
-          </NavLink>
-
-          <NavLink
-            to="/customer/purchases"
-            id="navBtnPurchases"
-            className={({ isActive }) => cn("bottom-nav-btn", isActive && "active")}
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 12 12"
-              shapeRendering="crispEdges"
-              aria-hidden="true"
-            >
-              <path
-                d="M2 1h8v10H2V1zm2 3h4v1H4V4zm0 3h4v1H4V7z"
-                fill="currentColor"
-                fillRule="evenodd"
-              />
-            </svg>
-            <span>Mis compras</span>
-          </NavLink>
-
-          <NavLink
-            to="/customer/redemptions"
-            id="navBtnRedemptions"
-            className={({ isActive }) => cn("bottom-nav-btn", isActive && "active")}
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 12 12"
-              shapeRendering="crispEdges"
-              aria-hidden="true"
-            >
-              <rect x="1" y="3" width="10" height="6" fill="currentColor" />
-              <rect x="5" y="4" width="2" height="4" fill="var(--gold)" />
-            </svg>
-            <span>Mis canjes</span>
-          </NavLink>
-        </div>
+        <div className="bottom-bar-inner">{renderNavLinks("navBtn", "bottom-nav-btn")}</div>
       </nav>
     </div>
   );

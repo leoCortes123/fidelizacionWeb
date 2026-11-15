@@ -133,8 +133,8 @@ export function CustomerBusinessesPage() {
 
   if (rows.length === 0 || !activeBiz) {
     return (
-      <section className="view-section active" aria-label="Negocios afiliados">
-        <div className="my-auto space-y-5 py-4">
+      <section className="view-section active overflow-y-auto" aria-label="Negocios afiliados">
+        <div className="my-auto space-y-4 py-2">
           <EmptyState
             title="Aún no participas en ningún negocio"
             description="Escanea el QR de invitación del negocio o abre su enlace para empezar a sumar loopoints."
@@ -226,6 +226,19 @@ export function CustomerBusinessesPage() {
               id="cardHeroStage"
               style={{ background: stageVisual.stageBg }}
             >
+              {/* Fondo de imagen completo o sprite pixel art */}
+              {activeBiz.logo_url ? (
+                <img
+                  src={activeBiz.logo_url}
+                  alt={`Logo de ${activeBiz.name}`}
+                  className="card-hero-bg-img"
+                />
+              ) : (
+                <div className="sprite-bobbing" id="cardSpriteBox">
+                  <PixelItemSvg sprite={stageVisual.spriteKey} size={80} />
+                </div>
+              )}
+
               {/* Arriba a la izquierda: Total de puntos en el negocio */}
               <div className="hero-points-top-left">
                 <HeroCoinSvg size={15} />
@@ -255,19 +268,6 @@ export function CustomerBusinessesPage() {
                 <ArcadeArrowLeftSvg />
               </button>
 
-              {/* Ilustración central del negocio */}
-              <div className="sprite-bobbing" id="cardSpriteBox">
-                {activeBiz.logo_url ? (
-                  <img
-                    src={activeBiz.logo_url}
-                    alt={`Logo de ${activeBiz.name}`}
-                    className="size-20 border-[3px] border-[#1e1c1a] bg-[#fffdf5] object-cover"
-                  />
-                ) : (
-                  <PixelItemSvg sprite={stageVisual.spriteKey} size={80} />
-                )}
-              </div>
-
               {/* Flecha Flotante Derecha */}
               <button
                 type="button"
@@ -285,15 +285,10 @@ export function CustomerBusinessesPage() {
                 <h1 className="card-biz-title" id="cardBizTitle">
                   {activeBiz.name}
                 </h1>
-                {rows.length > 1 && (
-                  <span className="border-2 border-[#1e1c1a] bg-[var(--cream)] px-2 py-0.5 font-mono text-[11px] font-bold text-[#1e1c1a] shadow-[2px_2px_0_#1e1c1a]">
-                    {safeIndex + 1} / {rows.length}
-                  </span>
-                )}
               </div>
             </div>
 
-            {/* 2. Cuerpo debajo de la imagen: Descripción + 3 recompensas + Botón MÁS RECOMPENSAS */}
+            {/* 2. Cuerpo debajo de la imagen: Descripción + 3 recompensas + Botón VER MÁS */}
             <div className="card-body-content">
               <p className="card-biz-description" id="cardBizDescription">
                 {bizDescription}
@@ -320,7 +315,15 @@ export function CustomerBusinessesPage() {
                         onClick={() => setSelectedReward({ reward, index: idx })}
                       >
                         <div className="home-reward-thumb" style={{ background: visual.bg }}>
-                          <PixelItemSvg sprite={visual.spriteKey} size={48} />
+                          {reward.image_url ? (
+                            <img
+                              src={reward.image_url}
+                              alt={reward.name}
+                              className="size-full object-cover"
+                            />
+                          ) : (
+                            <PixelItemSvg sprite={visual.spriteKey} size={48} />
+                          )}
                         </div>
                         <div className="home-reward-info">
                           <div className="home-reward-top">
@@ -341,7 +344,7 @@ export function CustomerBusinessesPage() {
                     );
                   })
                 ) : (
-                  <div className="pixel-box-dark col-span-full flex flex-col items-center justify-center gap-1 p-4 text-center">
+                  <div className="pixel-box-dark col-span-full row-span-full flex flex-col items-center justify-center gap-1 p-4 text-center">
                     <span className="pixel-title text-[10px] text-[var(--ink)]">
                       {activeBiz.loyalty_active
                         ? "EXPLORA EL CATÁLOGO DEL NEGOCIO"
@@ -362,7 +365,7 @@ export function CustomerBusinessesPage() {
                 className="pixel-btn pixel-btn-dark btn-see-more-rewards"
                 id="btnSeeMoreRewards"
               >
-                <span>MÁS RECOMPENSAS</span>
+                <span>VER MÁS</span>
               </Link>
             </div>
           </article>
@@ -382,7 +385,15 @@ export function CustomerBusinessesPage() {
         >
           <div className="pixel-box modal-dialog">
             <div className="modal-hero-img" style={{ background: modalVisual.bg }}>
-              <PixelItemSvg sprite={modalVisual.spriteKey} size={84} />
+              {selectedReward.reward.image_url ? (
+                <img
+                  src={selectedReward.reward.image_url}
+                  alt={selectedReward.reward.name}
+                  className="size-full object-cover"
+                />
+              ) : (
+                <PixelItemSvg sprite={modalVisual.spriteKey} size={84} />
+              )}
               <button
                 type="button"
                 className="pixel-btn pixel-btn-ruby modal-close-floating"

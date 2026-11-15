@@ -120,3 +120,22 @@ export async function uploadBusinessAssetImage(options: {
   const { data } = supabase.storage.from("business-assets").getPublicUrl(path);
   return data.publicUrl;
 }
+
+/**
+ * Comprime y sube la foto de perfil del usuario al bucket `business-assets`
+ * dentro de su carpeta (`avatars/<userId>/...`) y retorna su URL pública.
+ */
+export async function uploadUserAvatarImage(userId: string, file: File): Promise<string> {
+  const prepared = await prepareImage(file);
+  const nonce = Math.random().toString(36).slice(2, 8);
+  const path = `avatars/${userId}/avatar-${Date.now()}-${nonce}.${prepared.extension}`;
+  const { error } = await supabase.storage.from("business-assets").upload(path, prepared.blob, {
+    contentType: prepared.contentType,
+    cacheControl: "3600",
+    upsert: false,
+  });
+  if (error) throw error;
+
+  const { data } = supabase.storage.from("business-assets").getPublicUrl(path);
+  return data.publicUrl;
+}

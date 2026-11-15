@@ -38,7 +38,15 @@ export function BusinessSwitcher({
 
   return (
     <div className={cn("flex min-w-0 items-center gap-2", className)}>
-      <Building2 className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+      {selectedBusiness?.logo_url ? (
+        <img
+          src={selectedBusiness.logo_url}
+          alt={selectedBusiness.name}
+          className="size-6 shrink-0 rounded-none border border-border object-cover"
+        />
+      ) : (
+        <Building2 className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+      )}
       <Select
         value={value}
         onValueChange={(id) => {

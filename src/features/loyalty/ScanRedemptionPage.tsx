@@ -19,6 +19,7 @@ import { useCountdown } from "@/features/loyalty/useCountdown";
 import { usePortalTheme } from "@/components/theme/ThemeProvider";
 import { Brand } from "@/components/shared/Brand";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { EntityAvatar } from "@/components/shared/EntityAvatar";
 import { LoadingScreen } from "@/components/shared/States";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -152,7 +153,13 @@ function ScanDetails({
 
             <div className="rounded-none border bg-muted/30 p-3.5 sm:p-4">
               <div className="flex items-start gap-3">
-                <Gift className="mt-0.5 size-5 shrink-0 text-primary" aria-hidden="true" />
+                <EntityAvatar
+                  src={data.reward_image_url}
+                  alt={data.reward_name}
+                  icon={Gift}
+                  sizeClassName="size-12"
+                  roundedClassName="rounded-none"
+                />
                 <div className="min-w-0 flex-1">
                   <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                     Recompensa
@@ -172,9 +179,17 @@ function ScanDetails({
                   <User className="size-3.5" aria-hidden="true" />
                   Cliente
                 </p>
-                <p className="mt-1 font-semibold">
-                  {data.customer_nickname ? `@${data.customer_nickname}` : "Cliente afiliado"}
-                </p>
+                <div className="mt-1.5 flex items-center gap-2">
+                  <EntityAvatar
+                    src={data.customer_avatar_url}
+                    alt={data.customer_nickname ? `@${data.customer_nickname}` : "Cliente afiliado"}
+                    fallbackText={data.customer_nickname || "C"}
+                    sizeClassName="size-7"
+                  />
+                  <p className="font-semibold">
+                    {data.customer_nickname ? `@${data.customer_nickname}` : "Cliente afiliado"}
+                  </p>
+                </div>
               </div>
               <div className="rounded-none border p-3">
                 <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -254,8 +269,7 @@ function ScanDetails({
 function ScanSuccess({ result }: { result: RedemptionRedeemResult }) {
   const registerPurchasePath =
     result.role === "admin" ? "/admin/purchases/new" : "/encargado/venta";
-  const requestsPath =
-    result.role === "admin" ? "/admin/redemptions" : "/encargado/solicitudes";
+  const requestsPath = result.role === "admin" ? "/admin/redemptions" : "/encargado/solicitudes";
   const businessHome = result.role === "admin" ? "/admin/dashboard" : "/encargado";
 
   return (

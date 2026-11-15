@@ -1,10 +1,4 @@
-import {
-  Calendar,
-  Mail,
-  ReceiptText,
-  TicketCheck,
-  UserRound,
-} from "lucide-react";
+import { Calendar, Mail, ReceiptText, TicketCheck, UserRound } from "lucide-react";
 import { useAdminCustomer } from "@/features/admin/hooks";
 import { formatCOP, formatDateTimeBogota, formatPoints } from "@/lib/format";
 import type { CustomerDetail } from "@/types";
@@ -20,6 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { EmptyState, ErrorState, LoadingScreen } from "@/components/shared/States";
+import { EntityAvatar } from "@/components/shared/EntityAvatar";
 import {
   FrequencyBadge,
   PurchaseStatusBadge,
@@ -84,32 +79,44 @@ function CustomerDetailContent({ data }: { data: CustomerDetail }) {
       <Card className="border-0 bg-foreground text-background shadow-md">
         <CardContent className="p-5 space-y-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div className="space-y-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <h3 className="text-xl font-black font-display text-background">
-                  {profile.full_name || "Cliente sin nombre"}
-                </h3>
-                {profile.nickname && (
-                  <Badge variant="outline" className="border-background/30 text-background/90 font-mono text-xs">
-                    @{profile.nickname}
-                  </Badge>
-                )}
-                <FrequencyBadge
-                  isFrequent={Boolean(data.is_frequent)}
-                  isActive={Boolean(data.is_frequent_active)}
-                  isRecovering={Boolean(data.is_recovering)}
-                />
-              </div>
+            <div className="flex items-start gap-3">
+              <EntityAvatar
+                src={profile.avatar_url}
+                alt={profile.full_name || profile.email}
+                fallbackText={profile.full_name || profile.email}
+                sizeClassName="size-12"
+                className="border-background/30 bg-background/15 text-background"
+              />
+              <div className="space-y-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="text-xl font-black font-display text-background">
+                    {profile.full_name || "Cliente sin nombre"}
+                  </h3>
+                  {profile.nickname && (
+                    <Badge
+                      variant="outline"
+                      className="border-background/30 text-background/90 font-mono text-xs"
+                    >
+                      @{profile.nickname}
+                    </Badge>
+                  )}
+                  <FrequencyBadge
+                    isFrequent={Boolean(data.is_frequent)}
+                    isActive={Boolean(data.is_frequent_active)}
+                    isRecovering={Boolean(data.is_recovering)}
+                  />
+                </div>
 
-              <div className="flex flex-wrap items-center gap-3 text-xs text-background/80 pt-1">
-                <span className="flex items-center gap-1">
-                  <Mail className="size-3.5" aria-hidden="true" />
-                  {profile.email}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Calendar className="size-3.5" aria-hidden="true" />
-                  Cliente desde {formatDateTimeBogota(profile.created_at)}
-                </span>
+                <div className="flex flex-wrap items-center gap-3 text-xs text-background/80 pt-1">
+                  <span className="flex items-center gap-1">
+                    <Mail className="size-3.5" aria-hidden="true" />
+                    {profile.email}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Calendar className="size-3.5" aria-hidden="true" />
+                    Cliente desde {formatDateTimeBogota(profile.created_at)}
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -120,9 +127,7 @@ function CustomerDetailContent({ data }: { data: CustomerDetail }) {
               <p className="font-display text-4xl font-extrabold text-amber-300 leading-none mt-1">
                 {data.points_balance}
               </p>
-              <p className="text-xs text-background/70 mt-1">
-                loopoints acumulados
-              </p>
+              <p className="text-xs text-background/70 mt-1">loopoints acumulados</p>
             </div>
           </div>
 
@@ -218,9 +223,7 @@ function CustomerDetailContent({ data }: { data: CustomerDetail }) {
                 >
                   <div className="min-w-0 space-y-0.5">
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-semibold text-foreground">
-                        {redemption.reward_name}
-                      </p>
+                      <p className="font-semibold text-foreground">{redemption.reward_name}</p>
                       <RedemptionStatusBadge status={redemption.status} />
                     </div>
                     <p className="text-xs text-muted-foreground truncate">
@@ -234,7 +237,10 @@ function CustomerDetailContent({ data }: { data: CustomerDetail }) {
                         : ""}
                     </p>
                   </div>
-                  <Badge variant="secondary" className="self-start sm:self-auto shrink-0 font-mono text-xs">
+                  <Badge
+                    variant="secondary"
+                    className="self-start sm:self-auto shrink-0 font-mono text-xs"
+                  >
                     -{formatPoints(redemption.points_spent)}
                   </Badge>
                 </div>

@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Gift, Plus, Pencil, Trash2, BadgeCheck } from "lucide-react";
+import { Camera, Gift, Loader2, Plus, Pencil, Trash2, BadgeCheck } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import {
@@ -11,6 +11,7 @@ import {
 } from "@/features/loyalty/hooks";
 import { useBusinessContext } from "@/features/loyalty/businessContext";
 import { errorMessage } from "@/lib/errors";
+import { uploadBusinessAssetImage } from "@/lib/image";
 import { formatCOP, formatPoints, formatDateBogota, parseCopInput } from "@/lib/format";
 import { useFormDraft } from "@/lib/useFormDraft";
 import { Button } from "@/components/ui/button";
@@ -61,6 +62,7 @@ interface RewardFormState {
   redemptionPeriodDays: string;
   totalRedemptionLimit: string;
   isActive: boolean;
+  imageUrl: string | null;
 }
 
 const EMPTY_FORM: RewardFormState = {
@@ -79,6 +81,7 @@ const EMPTY_FORM: RewardFormState = {
   redemptionPeriodDays: "",
   totalRedemptionLimit: "",
   isActive: true,
+  imageUrl: null,
 };
 
 const optionalInteger = (label: string, min: number, max: number) =>
@@ -212,6 +215,7 @@ function fromReward(reward: LoyaltyReward): RewardFormState {
     totalRedemptionLimit:
       reward.total_redemption_limit === null ? "" : String(reward.total_redemption_limit),
     isActive: reward.is_active,
+    imageUrl: reward.image_url ?? null,
   };
 }
 
@@ -294,6 +298,8 @@ function RewardsSection({ business }: { business: Business }) {
   const [editing, setEditing] = useState<LoyaltyReward | null>(null);
   const [form, setForm] = useState<RewardFormState>(EMPTY_FORM);
   const [errors, setErrors] = useState<Partial<Record<keyof RewardFormState, string>>>({});
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const newRewardDraft = useFormDraft<RewardFormState>({
     key: `admin:new-reward:${business.id}`,
   });
@@ -337,6 +343,30 @@ function RewardsSection({ business }: { business: Business }) {
   function update<K extends keyof RewardFormState>(key: K, value: RewardFormState[K]) {
     setForm((previous) => ({ ...previous, [key]: value }));
     setErrors((previous) => ({ ...previous, [key]: undefined }));
+  }
+
+  async function handleImageUpload(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      toast.error("Usa una imagen JPEG, PNG o WebP.");
+      return;
+    }
+    setUploadingImage(true);
+    try {
+      const publicUrl = await uploadBusinessAssetImage({
+        businessId: business.id,
+        folder: "rewards",
+        file,
+      });
+      update("imageUrl", publicUrl);
+      toast.success("Foto de la recompensa cargada.");
+    } catch (error) {
+      toast.error(errorMessage(error) || "No pudimos subir la foto de la recompensa.");
+    } finally {
+      setUploadingImage(false);
+    }
   }
 
   async function saveReward(event: React.FormEvent) {
@@ -393,6 +423,7 @@ function RewardsSection({ business }: { business: Business }) {
           values.maxRedemptionsPerPeriod === null ? null : values.redemptionPeriodDays,
         totalRedemptionLimit: values.totalRedemptionLimit,
         isActive: values.isActive,
+        imageUrl: form.imageUrl ?? null,
       });
       if (!editing) newRewardDraft.clear();
       toast.success(editing ? "Recompensa actualizada" : "Recompensa creada");
@@ -424,6 +455,7 @@ function RewardsSection({ business }: { business: Business }) {
         redemptionPeriodDays: reward.redemption_period_days,
         totalRedemptionLimit: reward.total_redemption_limit,
         isActive: !reward.is_active,
+        imageUrl: reward.image_url ?? null,
       });
       toast.success(reward.is_active ? "Recompensa desactivada" : "Recompensa activada");
       return true;
@@ -496,56 +528,69 @@ function RewardsSection({ business }: { business: Business }) {
                 key={reward.id}
                 className="py-3 sm:flex sm:items-center sm:justify-between sm:gap-4"
               >
-                <div className="min-w-0">
-                  <div className="mb-1 flex flex-wrap items-center gap-2">
-                    <p className="font-semibold">{reward.name}</p>
-                    <Badge variant={reward.is_active ? "success" : "muted"}>
-                      {reward.is_active ? "Activa" : "Inactiva"}
-                    </Badge>
-                    <Badge variant="secondary" className="text-xs">
-                      {rewardTypeLabels[reward.type]}
-                    </Badge>
+                <div className="flex min-w-0 items-start gap-3">
+                  <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden border border-primary/20 bg-background/80 text-primary dark:border-primary/30 dark:bg-card/80">
+                    {reward.image_url ? (
+                      <img
+                        src={reward.image_url}
+                        alt={reward.name}
+                        className="size-full object-cover"
+                      />
+                    ) : (
+                      <Gift className="size-5" aria-hidden="true" />
+                    )}
                   </div>
-                  {reward.description && (
-                    <p className="text-xs text-muted-foreground">{reward.description}</p>
-                  )}
-                  <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
-                    <span className="font-semibold text-foreground">
-                      {formatPoints(reward.points_required)}
-                    </span>
-                    {reward.type === "free_product" && reward.product_id && (
-                      <span>
-                        Producto: {productById.get(reward.product_id)?.name ?? "No encontrado"}
+                  <div className="min-w-0">
+                    <div className="mb-1 flex flex-wrap items-center gap-2">
+                      <p className="font-semibold">{reward.name}</p>
+                      <Badge variant={reward.is_active ? "success" : "muted"}>
+                        {reward.is_active ? "Activa" : "Inactiva"}
+                      </Badge>
+                      <Badge variant="secondary" className="text-xs">
+                        {rewardTypeLabels[reward.type]}
+                      </Badge>
+                    </div>
+                    {reward.description && (
+                      <p className="text-xs text-muted-foreground">{reward.description}</p>
+                    )}
+                    <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                      <span className="font-semibold text-foreground">
+                        {formatPoints(reward.points_required)}
                       </span>
-                    )}
-                    {reward.min_purchase_amount > 0 && (
-                      <span>Compra mínima: {formatCOP(reward.min_purchase_amount)}</span>
-                    )}
-                    {reward.max_discount_amount !== null && reward.max_discount_amount > 0 && (
-                      <span>Tope: {formatCOP(reward.max_discount_amount)}</span>
-                    )}
-                    {reward.discount_percentage !== null && (
-                      <span>{reward.discount_percentage} % de descuento</span>
-                    )}
-                    {(reward.valid_from || reward.valid_until) && (
-                      <span>
-                        Vigencia: {formatDateBogota(reward.valid_from)} —{" "}
-                        {formatDateBogota(reward.valid_until)}
-                      </span>
-                    )}
-                    {reward.max_redemptions_per_customer !== null && (
-                      <span>Máx. {reward.max_redemptions_per_customer} por cliente</span>
-                    )}
-                    {reward.max_redemptions_per_period !== null && (
-                      <span>
-                        Máx. {reward.max_redemptions_per_period} cada{" "}
-                        {reward.redemption_period_days ?? "—"} días
-                      </span>
-                    )}
-                    {reward.total_redemption_limit !== null && (
-                      <span>Límite total: {reward.total_redemption_limit}</span>
-                    )}
-                    {reward.times_redeemed > 0 && <span>Canjeadas: {reward.times_redeemed}</span>}
+                      {reward.type === "free_product" && reward.product_id && (
+                        <span>
+                          Producto: {productById.get(reward.product_id)?.name ?? "No encontrado"}
+                        </span>
+                      )}
+                      {reward.min_purchase_amount > 0 && (
+                        <span>Compra mínima: {formatCOP(reward.min_purchase_amount)}</span>
+                      )}
+                      {reward.max_discount_amount !== null && reward.max_discount_amount > 0 && (
+                        <span>Tope: {formatCOP(reward.max_discount_amount)}</span>
+                      )}
+                      {reward.discount_percentage !== null && (
+                        <span>{reward.discount_percentage} % de descuento</span>
+                      )}
+                      {(reward.valid_from || reward.valid_until) && (
+                        <span>
+                          Vigencia: {formatDateBogota(reward.valid_from)} —{" "}
+                          {formatDateBogota(reward.valid_until)}
+                        </span>
+                      )}
+                      {reward.max_redemptions_per_customer !== null && (
+                        <span>Máx. {reward.max_redemptions_per_customer} por cliente</span>
+                      )}
+                      {reward.max_redemptions_per_period !== null && (
+                        <span>
+                          Máx. {reward.max_redemptions_per_period} cada{" "}
+                          {reward.redemption_period_days ?? "—"} días
+                        </span>
+                      )}
+                      {reward.total_redemption_limit !== null && (
+                        <span>Límite total: {reward.total_redemption_limit}</span>
+                      )}
+                      {reward.times_redeemed > 0 && <span>Canjeadas: {reward.times_redeemed}</span>}
+                    </div>
                   </div>
                 </div>
                 <div className="mt-2 flex gap-2 sm:mt-0">
@@ -616,6 +661,58 @@ function RewardsSection({ business }: { business: Business }) {
                   {errors.description}
                 </p>
               )}
+            </div>
+            <div className="space-y-2">
+              <Label>Foto de la recompensa</Label>
+              <div className="flex flex-wrap items-center gap-3 rounded-none border border-border bg-muted/30 p-3">
+                <div className="flex size-14 shrink-0 items-center justify-center overflow-hidden border border-border bg-background text-muted-foreground">
+                  {form.imageUrl ? (
+                    <img
+                      src={form.imageUrl}
+                      alt={form.name || "Foto de la recompensa"}
+                      className="size-full object-cover"
+                    />
+                  ) : (
+                    <Gift className="size-5" aria-hidden="true" />
+                  )}
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <input
+                    ref={imageInputRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    className="sr-only"
+                    aria-label="Subir foto de la recompensa"
+                    onChange={(event) => void handleImageUpload(event)}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={uploadingImage}
+                    onClick={() => imageInputRef.current?.click()}
+                  >
+                    {uploadingImage ? (
+                      <Loader2 className="animate-spin" aria-hidden="true" />
+                    ) : (
+                      <Camera aria-hidden="true" />
+                    )}
+                    {form.imageUrl ? "Cambiar foto" : "Cargar foto"}
+                  </Button>
+                  {form.imageUrl && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      disabled={uploadingImage}
+                      onClick={() => update("imageUrl", null)}
+                    >
+                      <Trash2 aria-hidden="true" />
+                      Quitar
+                    </Button>
+                  )}
+                </div>
+              </div>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
@@ -919,8 +1016,12 @@ function RewardCard({
           aria-label={`Ver detalle de ${reward.name}`}
           className="flex w-full min-w-0 items-start gap-3 p-4 text-left transition-colors hover:bg-primary/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring dark:hover:bg-primary/[0.14]"
         >
-          <div className="flex size-14 shrink-0 items-center justify-center border border-primary/20 bg-background/80 text-primary dark:border-primary/30 dark:bg-card/80">
-            <Gift className="size-5" aria-hidden="true" />
+          <div className="flex size-14 shrink-0 items-center justify-center overflow-hidden border border-primary/20 bg-background/80 text-primary dark:border-primary/30 dark:bg-card/80">
+            {reward.image_url ? (
+              <img src={reward.image_url} alt={reward.name} className="size-full object-cover" />
+            ) : (
+              <Gift className="size-5" aria-hidden="true" />
+            )}
           </div>
           <div className="min-w-0 flex-1 space-y-1.5">
             <div className="flex items-start justify-between gap-2">

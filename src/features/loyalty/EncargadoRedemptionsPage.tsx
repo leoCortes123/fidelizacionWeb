@@ -4,6 +4,7 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
+  Gift,
   PackageCheck,
   ReceiptText,
   Search,
@@ -30,10 +31,8 @@ import { Input } from "@/components/ui/input";
 import { CustomerDetailDialog } from "@/features/loyalty/CustomerDetailDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EmptyState, ErrorState, ListSkeleton } from "@/components/shared/States";
-import {
-  FrequencyBadge,
-  RedemptionRequestStatusBadge,
-} from "@/components/shared/StatusBadge";
+import { EntityAvatar } from "@/components/shared/EntityAvatar";
+import { FrequencyBadge, RedemptionRequestStatusBadge } from "@/components/shared/StatusBadge";
 import type { Business, LoyaltyRedemptionWithCustomer } from "@/types";
 
 const CUSTOMERS_PAGE_SIZE = 20;
@@ -155,7 +154,9 @@ function EncargadoRedemptionsSection({ business }: { business: Business }) {
         redemptionId: redemption.id,
         approve: true,
       });
-      toast.success(`Solicitud de ${redemption.reward_name} aprobada. Puedes confirmar la entrega.`);
+      toast.success(
+        `Solicitud de ${redemption.reward_name} aprobada. Puedes confirmar la entrega.`,
+      );
       void pending.refetch();
       void approved.refetch();
     } catch (error) {
@@ -212,7 +213,8 @@ function EncargadoRedemptionsSection({ business }: { business: Business }) {
             Solicitudes de recompensa
           </h1>
           <p className="text-sm text-muted-foreground">
-            Aprueba las solicitudes de tus clientes y revisa la lista de clientes con más puntos acumulados.
+            Aprueba las solicitudes de tus clientes y revisa la lista de clientes con más puntos
+            acumulados.
           </p>
         </div>
 
@@ -250,9 +252,7 @@ function EncargadoRedemptionsSection({ business }: { business: Business }) {
               </Badge>
             )}
           </TabsTrigger>
-          <TabsTrigger value="clientes">
-            Clientes
-          </TabsTrigger>
+          <TabsTrigger value="clientes">Clientes</TabsTrigger>
         </TabsList>
 
         {/* PESTAÑA 1: SOLICITUDES PENDIENTES */}
@@ -267,7 +267,8 @@ function EncargadoRedemptionsSection({ business }: { business: Business }) {
                     Solicitudes pendientes de aprobación
                   </CardTitle>
                   <CardDescription>
-                    Canjes solicitados por los clientes desde su cuenta. No requieren código QR: apruébalos directamente desde aquí.
+                    Canjes solicitados por los clientes desde su cuenta. No requieren código QR:
+                    apruébalos directamente desde aquí.
                   </CardDescription>
                 </div>
                 <Badge variant="outline" className="font-mono text-xs">
@@ -294,26 +295,45 @@ function EncargadoRedemptionsSection({ business }: { business: Business }) {
                       key={redemption.id}
                       className="flex flex-col gap-3 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
                     >
-                      <div className="min-w-0 space-y-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="font-bold text-foreground sm:text-base">
-                            {redemption.reward_name}
-                          </p>
-                          <Badge variant="secondary" className="font-mono text-xs">
-                            -{formatPoints(redemption.points_spent)}
-                          </Badge>
-                          <RedemptionRequestStatusBadge status={redemption.status} />
+                      <div className="flex min-w-0 items-start gap-3">
+                        <EntityAvatar
+                          src={redemption.reward_image_url}
+                          alt={redemption.reward_name}
+                          icon={Gift}
+                          sizeClassName="size-10"
+                          roundedClassName="rounded-none"
+                        />
+                        <div className="min-w-0 space-y-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="font-bold text-foreground sm:text-base">
+                              {redemption.reward_name}
+                            </p>
+                            <Badge variant="secondary" className="font-mono text-xs">
+                              -{formatPoints(redemption.points_spent)}
+                            </Badge>
+                            <RedemptionRequestStatusBadge status={redemption.status} />
+                          </div>
+                          <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+                            <EntityAvatar
+                              src={redemption.customer_avatar_url}
+                              alt={redemption.customer_nickname || redemption.customer_email}
+                              fallbackText={
+                                redemption.customer_nickname || redemption.customer_email
+                              }
+                              sizeClassName="size-5"
+                            />
+                            <span>
+                              Cliente:{" "}
+                              <strong className="font-medium text-foreground">
+                                {redemption.customer_nickname
+                                  ? `@${redemption.customer_nickname}`
+                                  : redemption.customer_email}
+                              </strong>{" "}
+                              · Código: <span className="font-mono">{redemption.code}</span> ·{" "}
+                              {formatDateTimeBogota(redemption.created_at)}
+                            </span>
+                          </div>
                         </div>
-                        <p className="text-xs text-muted-foreground">
-                          Cliente:{" "}
-                          <strong className="font-medium text-foreground">
-                            {redemption.customer_nickname
-                              ? `@${redemption.customer_nickname}`
-                              : redemption.customer_email}
-                          </strong>{" "}
-                          · Código: <span className="font-mono">{redemption.code}</span> ·{" "}
-                          {formatDateTimeBogota(redemption.created_at)}
-                        </p>
                       </div>
 
                       {canAct && (
@@ -353,7 +373,10 @@ function EncargadoRedemptionsSection({ business }: { business: Business }) {
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="text-base font-bold flex items-center gap-2">
-                    <PackageCheck className="size-4 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+                    <PackageCheck
+                      className="size-4 text-emerald-600 dark:text-emerald-400"
+                      aria-hidden="true"
+                    />
                     Aprobadas listas para entrega en mostrador
                   </CardTitle>
                   <CardDescription>
@@ -439,7 +462,10 @@ function EncargadoRedemptionsSection({ business }: { business: Business }) {
                   </CardDescription>
                 </div>
                 <div className="relative w-full sm:w-64">
-                  <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" aria-hidden="true" />
+                  <Search
+                    className="absolute left-2.5 top-2.5 size-4 text-muted-foreground"
+                    aria-hidden="true"
+                  />
                   <Input
                     aria-label="Buscar cliente"
                     placeholder="Buscar cliente…"
@@ -514,30 +540,42 @@ function EncargadoRedemptionsSection({ business }: { business: Business }) {
                                 </div>
                               </div>
 
-                              <div>
-                                <div className="flex flex-wrap items-center gap-1.5">
-                                  <p className="font-bold text-foreground group-hover:text-primary transition-colors truncate">
-                                    {customer.full_name || "Sin nombre"}
+                              <div className="flex items-start gap-3">
+                                <EntityAvatar
+                                  src={customer.avatar_url}
+                                  alt={customer.full_name || customer.email}
+                                  fallbackText={customer.full_name || customer.email}
+                                  sizeClassName="size-10"
+                                />
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex flex-wrap items-center gap-1.5">
+                                    <p className="font-bold text-foreground group-hover:text-primary transition-colors truncate">
+                                      {customer.full_name || "Sin nombre"}
+                                    </p>
+                                    {customer.nickname && (
+                                      <Badge
+                                        variant="outline"
+                                        className="text-[11px] py-0 px-1.5 font-mono"
+                                      >
+                                        @{customer.nickname}
+                                      </Badge>
+                                    )}
+                                    <FrequencyBadge
+                                      isFrequent={Boolean(customer.is_frequent)}
+                                      isActive={Boolean(customer.is_frequent_active)}
+                                    />
+                                  </div>
+                                  <p className="text-xs text-muted-foreground truncate mt-0.5">
+                                    {customer.email}
                                   </p>
-                                  {customer.nickname && (
-                                    <Badge variant="outline" className="text-[11px] py-0 px-1.5 font-mono">
-                                      @{customer.nickname}
-                                    </Badge>
-                                  )}
-                                  <FrequencyBadge
-                                    isFrequent={Boolean(customer.is_frequent)}
-                                    isActive={Boolean(customer.is_frequent_active)}
-                                  />
                                 </div>
-                                <p className="text-xs text-muted-foreground truncate mt-0.5">
-                                  {customer.email}
-                                </p>
                               </div>
                             </div>
 
                             <div className="border-t border-border/70 pt-2.5 flex items-center justify-between text-xs text-muted-foreground">
                               <span>
-                                {customer.purchase_count} compra(s) · {formatCOP(customer.total_spent)}
+                                {customer.purchase_count} compra(s) ·{" "}
+                                {formatCOP(customer.total_spent)}
                               </span>
                               <span className="flex items-center gap-0.5 text-primary font-semibold group-hover:underline">
                                 Ver detalle

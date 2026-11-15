@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { EntityAvatar } from "@/components/shared/EntityAvatar";
 import { FrequencyBadge, RedemptionStatusBadge } from "@/components/shared/StatusBadge";
 import { EmptyState, ErrorState, LoadingScreen } from "@/components/shared/States";
 
@@ -88,17 +89,26 @@ export function CustomerDetailPage() {
 
       <Card className="border-0 bg-foreground text-background shadow-lg">
         <CardContent className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-background/60">
-              Saldo disponible
-            </p>
-            <p
-              data-testid="customer-points-balance"
-              className="mt-1 break-all font-display text-6xl font-extrabold leading-none text-amber-300"
-            >
-              {balance}
-            </p>
-            <p className="mt-2 text-sm text-background/70">{formatPoints(balance)}</p>
+          <div className="flex items-center gap-4">
+            <EntityAvatar
+              src={data.profile.avatar_url}
+              alt={data.profile.full_name || data.profile.email}
+              fallbackText={data.profile.full_name || data.profile.email}
+              sizeClassName="size-16"
+              className="border-background/30 bg-background/15 text-base text-background"
+            />
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-background/60">
+                Saldo disponible
+              </p>
+              <p
+                data-testid="customer-points-balance"
+                className="mt-1 break-all font-display text-6xl font-extrabold leading-none text-amber-300"
+              >
+                {balance}
+              </p>
+              <p className="mt-2 text-sm text-background/70">{formatPoints(balance)}</p>
+            </div>
           </div>
           <div className="space-y-1 text-sm text-background/80 sm:text-right">
             <p className="flex items-center gap-1.5 break-all sm:justify-end">

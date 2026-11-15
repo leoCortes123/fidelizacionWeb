@@ -368,8 +368,8 @@ test("portal cliente multi-negocio: tarjetas, saldos separados y sin Balance", a
   await expect(customer.page.locator("#cardPointsNumber")).toHaveText("10");
   const customerNav = customer.page.getByRole("navigation", { name: "Navegación del cliente" });
   await expect(customerNav.getByRole("link", { name: "Inicio" })).toBeVisible();
-  await expect(customerNav.getByRole("link", { name: "Mis compras" })).toBeVisible();
-  await expect(customerNav.getByRole("link", { name: "Mis canjes" })).toBeVisible();
+  await expect(customerNav.getByRole("link", { name: "Compras" })).toBeVisible();
+  await expect(customerNav.getByRole("link", { name: "Canjes" })).toBeVisible();
   await expect(customerNav.getByRole("link", { name: "Balance" })).toHaveCount(0);
 
   await customer.page.getByRole("button", { name: "Siguiente negocio" }).click();
@@ -383,7 +383,7 @@ test("portal cliente multi-negocio: tarjetas, saldos separados y sin Balance", a
   await customer.page.getByRole("button", { name: "Negocio anterior" }).click();
   await expect(customer.page.getByRole("heading", { name: "Taquería El Fogón" })).toBeVisible();
 
-  await customer.page.getByRole("link", { name: /MÁS RECOMPENSAS/i }).click();
+  await customer.page.getByRole("link", { name: /VER MÁS/i }).click();
   await expect(customer.page).toHaveURL(/\/customer\/business\/biz-test$/);
   await expect(customer.page.getByTestId("points-balance")).toHaveText("50");
   await expect(customer.page.getByText("Taco individual")).toBeVisible();

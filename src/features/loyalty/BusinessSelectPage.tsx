@@ -65,7 +65,15 @@ export function BusinessSelectPage() {
               }}
             >
               <CardContent className="p-4 text-center sm:p-6">
-                <Building2 className="mx-auto size-12 text-primary mb-3" aria-hidden="true" />
+                {business.logo_url ? (
+                  <img
+                    src={business.logo_url}
+                    alt={`Logo de ${business.name}`}
+                    className="mx-auto mb-3 size-14 rounded-none border border-border object-cover"
+                  />
+                ) : (
+                  <Building2 className="mx-auto mb-3 size-12 text-primary" aria-hidden="true" />
+                )}
                 <h3 className="font-semibold">{business.name}</h3>
                 <p className="text-xs text-muted-foreground">
                   {business.slug} · {business.timezone}

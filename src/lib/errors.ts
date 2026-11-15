@@ -84,6 +84,11 @@ const MESSAGES: Record<string, string> = {
   invalid_product_image_url:
     "La foto del producto debe ser una URL pública del almacenamiento de Loopoint.",
   product_image_outside_business: "La foto del producto debe pertenecer a este negocio.",
+  invalid_reward_image_url:
+    "La foto de la recompensa debe ser una URL pública del almacenamiento de Loopoint.",
+  reward_image_outside_business: "La foto de la recompensa debe pertenecer a este negocio.",
+  invalid_avatar_url: "La foto de perfil debe ser una URL pública del almacenamiento de Loopoint.",
+  avatar_outside_user: "La foto de perfil debe pertenecer a tu cuenta.",
   invalid_frequent_min_purchases:
     "El número de compras para ser frecuente debe estar entre 1 y 100.",
   invalid_frequent_period_days: "La ventana de frecuencia debe estar entre 7 y 3.650 días.",

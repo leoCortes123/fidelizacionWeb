@@ -157,7 +157,8 @@ describe("CustomerBusinessesPage (Diseño 2 Pixel Art)", () => {
     expect(screen.getByRole("heading", { name: "Taquería El Fogón" })).toBeInTheDocument();
     expect(screen.getByText("50")).toBeInTheDocument();
     expect(screen.getByText("FRECUENTE ACTIVO")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /MÁS RECOMPENSAS/i })).toHaveAttribute(
+    expect(screen.queryByText("1 / 3")).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /VER MÁS/i })).toHaveAttribute(
       "href",
       "/customer/business/biz-1",
     );
@@ -165,7 +166,8 @@ describe("CustomerBusinessesPage (Diseño 2 Pixel Art)", () => {
     await user.click(screen.getByRole("button", { name: "Siguiente negocio" }));
     expect(screen.getByRole("heading", { name: "Café Central" })).toBeInTheDocument();
     expect(screen.getByText("10")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /MÁS RECOMPENSAS/i })).toHaveAttribute(
+    expect(screen.queryByText("2 / 3")).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /VER MÁS/i })).toHaveAttribute(
       "href",
       "/customer/business/biz-2",
     );
@@ -260,5 +262,24 @@ describe("CustomerBusinessesPage (Diseño 2 Pixel Art)", () => {
       "href",
       "/customer/business/biz-1",
     );
+  });
+
+  it("muestra la imagen del negocio ocupando el fondo de cardHeroStage cuando tiene logo", () => {
+    summary.current.data = [
+      row({
+        business_id: "biz-1",
+        name: "La Forja Burger",
+        slug: "la-forja-burger",
+        logo_url: "https://cdn.example.com/forja.png",
+        balance: 200,
+      }),
+    ];
+
+    renderPage();
+
+    const heroStage = document.getElementById("cardHeroStage");
+    expect(heroStage).toBeInTheDocument();
+    const logoImg = within(heroStage!).getByRole("img", { name: "Logo de La Forja Burger" });
+    expect(logoImg).toHaveClass("card-hero-bg-img");
   });
 });

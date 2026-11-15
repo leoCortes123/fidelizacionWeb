@@ -34,6 +34,7 @@ export interface MyProfile {
   nickname_changes_left: number;
   phone?: string | null;
   birth_date?: string | null;
+  avatar_url?: string | null;
   business_count: number;
   created_at: string;
 }
@@ -145,6 +146,7 @@ export interface StaffCustomer {
   full_name: string;
   email: string;
   nickname: string | null;
+  avatar_url?: string | null;
   points_balance: number;
   purchase_count: number;
   total_spent: number;
@@ -190,6 +192,7 @@ export interface CustomerDetail {
     full_name: string;
     email: string;
     nickname?: string | null;
+    avatar_url?: string | null;
     created_at: string;
   };
   business_id?: string | null;
@@ -303,6 +306,7 @@ export interface Business {
   id: string;
   name: string;
   slug: string;
+  logo_url?: string | null;
   timezone: string;
   operating_days: number[];
   is_active: boolean;
@@ -328,6 +332,7 @@ export interface BusinessMembership {
 export interface BusinessMembershipWithProfile extends BusinessMembership {
   full_name: string;
   email: string;
+  avatar_url?: string | null;
 }
 
 export interface MemberInviteCreateResult {
@@ -421,6 +426,7 @@ export interface LoyaltyReward {
   max_redemptions_per_period: number | null;
   redemption_period_days: number | null;
   total_redemption_limit: number | null;
+  image_url?: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -443,6 +449,7 @@ export interface LoyaltyRewardAvailable {
   can_redeem: boolean;
   valid_from: string | null;
   valid_until: string | null;
+  image_url?: string | null;
 }
 
 export type ProductKind = "simple" | "combo";
@@ -612,6 +619,7 @@ export interface LoyaltyRedemption {
   reward_id: string;
   reward_name: string;
   reward_type: LoyaltyRewardType;
+  reward_image_url?: string | null;
   points_spent: number;
   code: string;
   status: RedemptionRequestStatus;
@@ -630,6 +638,8 @@ export interface LoyaltyRedemptionWithCustomer extends LoyaltyRedemption {
   customer_id: string;
   customer_email: string;
   customer_nickname: string | null;
+  customer_avatar_url?: string | null;
+  reward_image_url?: string | null;
 }
 
 export type RedemptionOrigin = "manual" | "qr_scan";
@@ -644,9 +654,11 @@ export interface RedemptionScanContext {
   code: string;
   reward_name: string;
   reward_type: LoyaltyRewardType;
+  reward_image_url?: string | null;
   points_spent: number;
   customer_id: string;
   customer_nickname: string | null;
+  customer_avatar_url?: string | null;
   status: RedemptionRequestStatus;
   origin: RedemptionOrigin;
   created_at: string;
@@ -676,6 +688,7 @@ export interface RedemptionTokenValidateResult {
   redemption_id: string;
   reward_name: string;
   reward_type: LoyaltyRewardType;
+  reward_image_url?: string | null;
   points_spent: number;
   status: RedemptionRequestStatus;
   customer_id: string;
@@ -877,6 +890,7 @@ export interface ProfileLookup {
   user_id: string;
   full_name: string;
   email: string;
+  avatar_url?: string | null;
   already_member: boolean;
 }
 
@@ -904,6 +918,7 @@ export interface MyLoyaltyRedemption {
   business_logo_url?: string | null;
   reward_name: string;
   reward_type: LoyaltyRewardType;
+  reward_image_url?: string | null;
   points_spent: number;
   code: string;
   status: RedemptionRequestStatus;

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useSearchParams } from "react-router-dom";
 import {
   ArrowLeft,
@@ -7,18 +7,21 @@ import {
   Banknote,
   Building2,
   Cake,
+  Camera,
   CircleAlert,
   Loader2,
   Phone,
   Rocket,
   Save,
   Settings2,
+  Trash2,
   UserRound,
 } from "lucide-react";
 import { toast } from "sonner";
 import { z } from "zod";
 import { useAuth } from "@/features/auth/AuthProvider";
-import { useMyProfile, useNicknameAvailable, useUpdateProfile } from "./hooks";
+import { useMyProfile, useNicknameAvailable, useSetProfileAvatar, useUpdateProfile } from "./hooks";
+import { uploadUserAvatarImage } from "@/lib/image";
 import { BusinessGate } from "@/features/admin/BusinessGate";
 import { BusinessProfileForm } from "@/features/admin/BusinessProfileForm";
 import { ProgramPage } from "@/features/admin/ProgramPage";
@@ -100,6 +103,9 @@ interface ProfileFormState {
 export function ProfilePage() {
   const profile = useMyProfile();
   const updateProfile = useUpdateProfile();
+  const setAvatar = useSetProfileAvatar();
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const { user } = useAuth();
   const { pathname } = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -171,6 +177,39 @@ export function ProfilePage() {
   }
 
   const data = profile.data;
+  const currentAvatarUrl = data.avatar_url ?? null;
+
+  async function handleAvatarChange(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file || !user) return;
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      toast.error("Usa una imagen JPEG, PNG o WebP.");
+      return;
+    }
+    setUploadingAvatar(true);
+    try {
+      const publicUrl = await uploadUserAvatarImage(user.id, file);
+      await setAvatar.mutateAsync({ avatarUrl: publicUrl });
+      toast.success("Foto de perfil actualizada.");
+    } catch (error) {
+      toast.error(errorMessage(error) || "No pudimos subir tu foto de perfil.");
+    } finally {
+      setUploadingAvatar(false);
+    }
+  }
+
+  async function handleAvatarRemove() {
+    setUploadingAvatar(true);
+    try {
+      await setAvatar.mutateAsync({ avatarUrl: null });
+      toast.success("Foto de perfil eliminada.");
+    } catch (error) {
+      toast.error(errorMessage(error) || "No pudimos quitar tu foto de perfil.");
+    } finally {
+      setUploadingAvatar(false);
+    }
+  }
 
   function changeTab(value: string) {
     const next = new URLSearchParams(searchParams);
@@ -251,17 +290,69 @@ export function ProfilePage() {
     >
       <div
         className={cn(
-          "p-3.5 text-sm sm:p-4",
+          "flex flex-wrap items-center justify-between gap-3 p-3.5 text-sm sm:p-4",
           isCustomerPortal
             ? "pixel-box-dark"
             : "rounded-none border border-slate-200 bg-muted/50 dark:border-slate-800",
         )}
       >
-        <p className="font-bold">{data.full_name || "Sin nombre"}</p>
-        <p className="break-all font-mono text-xs text-muted-foreground">{data.email}</p>
-        <p className="mt-1 text-xs text-muted-foreground">
-          {data.business_count} negocio(s) · en Loopoint desde {formatDateBogota(data.created_at)}
-        </p>
+        <div className="flex min-w-0 items-center gap-3">
+          {currentAvatarUrl ? (
+            <img
+              src={currentAvatarUrl}
+              alt={data.full_name || data.email}
+              className="size-14 shrink-0 rounded-full border border-border object-cover"
+            />
+          ) : (
+            <div className="grid size-14 shrink-0 place-items-center rounded-full border border-border bg-muted text-muted-foreground">
+              <UserRound className="size-6" aria-hidden="true" />
+            </div>
+          )}
+          <div className="min-w-0">
+            <p className="truncate font-bold">{data.full_name || "Sin nombre"}</p>
+            <p className="break-all font-mono text-xs text-muted-foreground">{data.email}</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {data.business_count} negocio(s) · en Loopoint desde{" "}
+              {formatDateBogota(data.created_at)}
+            </p>
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            ref={avatarInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            className="sr-only"
+            aria-label="Subir foto de perfil"
+            onChange={(event) => void handleAvatarChange(event)}
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={uploadingAvatar}
+            onClick={() => avatarInputRef.current?.click()}
+          >
+            {uploadingAvatar ? (
+              <Loader2 className="animate-spin" aria-hidden="true" />
+            ) : (
+              <Camera aria-hidden="true" />
+            )}
+            {currentAvatarUrl ? "Cambiar foto" : "Subir foto"}
+          </Button>
+          {currentAvatarUrl && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              disabled={uploadingAvatar}
+              onClick={() => void handleAvatarRemove()}
+            >
+              <Trash2 aria-hidden="true" />
+              Quitar
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className={cn(isCustomerPortal ? "form-grid-2" : "space-y-4")}>
@@ -411,7 +502,7 @@ export function ProfilePage() {
   if (isCustomerPortal) {
     return (
       <section className="view-section active" id="viewUserProfile" aria-label="Perfil del usuario">
-        <div className="store-topbar-nav">
+        <div className="store-topbar-nav profile-topbar-nav">
           <Link to="/customer" className="pixel-btn pixel-btn-secondary" id="btnBackFromProfile">
             <span>◀ VOLVER</span>
           </Link>
@@ -421,8 +512,16 @@ export function ProfilePage() {
         <div className="pixel-box profile-view-card">
           <div className="pixel-box-dark profile-header-box">
             <div className="profile-header-left">
-              <div className="brand-logo-box" style={{ width: 48, height: 48 }} aria-hidden="true">
-                <ProfileAvatarSvg size={30} />
+              <div className="brand-logo-box overflow-hidden" style={{ width: 48, height: 48 }}>
+                {currentAvatarUrl ? (
+                  <img
+                    src={currentAvatarUrl}
+                    alt={data.full_name || "Mi foto de perfil"}
+                    className="size-full object-cover"
+                  />
+                ) : (
+                  <ProfileAvatarSvg size={30} />
+                )}
               </div>
               <div>
                 <span className="pixel-title block text-[10px] text-[var(--red)]">

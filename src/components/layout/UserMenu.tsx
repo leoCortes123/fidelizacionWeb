@@ -52,9 +52,17 @@ export function UserMenu({ compact = false, className, align = "end" }: UserMenu
           )}
           aria-label="Abrir menú de usuario"
         >
-          <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
-            {initials(displayName || user?.email || "?")}
-          </span>
+          {profile.data?.avatar_url ? (
+            <img
+              src={profile.data.avatar_url}
+              alt={displayName || user?.email || "Foto de perfil"}
+              className="size-9 shrink-0 rounded-full border border-border object-cover"
+            />
+          ) : (
+            <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+              {initials(displayName || user?.email || "?")}
+            </span>
+          )}
           {!compact && (
             <span className="min-w-0 flex-1 leading-tight">
               <span className="block truncate text-sm font-semibold">

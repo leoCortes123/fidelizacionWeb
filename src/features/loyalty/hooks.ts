@@ -687,6 +687,7 @@ export function useUpsertLoyaltyReward() {
       redemptionPeriodDays?: number | null;
       totalRedemptionLimit?: number | null;
       isActive: boolean;
+      imageUrl?: string | null;
     }
   >({
     mutationFn: (params) =>
@@ -708,6 +709,7 @@ export function useUpsertLoyaltyReward() {
         p_redemption_period_days: params.redemptionPeriodDays ?? null,
         p_total_redemption_limit: params.totalRedemptionLimit ?? null,
         p_is_active: params.isActive,
+        p_image_url: params.imageUrl ?? null,
       }),
     onSuccess: (_, vars) => {
       void queryClient.invalidateQueries({

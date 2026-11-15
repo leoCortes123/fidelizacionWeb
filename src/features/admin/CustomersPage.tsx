@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/table";
 import { FrequencyBadge } from "@/components/shared/StatusBadge";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { EntityAvatar } from "@/components/shared/EntityAvatar";
 import { EmptyState, ErrorState, ListSkeleton } from "@/components/shared/States";
 
 const PAGE_SIZE = 15;
@@ -185,23 +186,33 @@ export function CustomersPage() {
               <Card key={customer.id}>
                 <CardContent className="space-y-3 p-4">
                   <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0 space-y-1">
-                      <p className="truncate font-semibold">{customer.full_name || "Sin nombre"}</p>
-                      {customer.nickname && (
-                        <Badge variant="outline" className="max-w-full truncate font-normal">
-                          @{customer.nickname}
-                        </Badge>
-                      )}
-                      <p className="truncate text-xs text-muted-foreground">{customer.email}</p>
-                      <FrequencyBadge
-                        isFrequent={customer.is_frequent}
-                        isActive={customer.is_frequent_active}
+                    <div className="flex min-w-0 items-start gap-3">
+                      <EntityAvatar
+                        src={customer.avatar_url}
+                        alt={customer.full_name || customer.email}
+                        fallbackText={customer.full_name || customer.email}
+                        sizeClassName="size-10"
                       />
-                      {customer.last_purchase_at && (
-                        <p className="text-[11px] text-muted-foreground">
-                          Última compra: {formatDateTimeBogota(customer.last_purchase_at)}
+                      <div className="min-w-0 space-y-1">
+                        <p className="truncate font-semibold">
+                          {customer.full_name || "Sin nombre"}
                         </p>
-                      )}
+                        {customer.nickname && (
+                          <Badge variant="outline" className="max-w-full truncate font-normal">
+                            @{customer.nickname}
+                          </Badge>
+                        )}
+                        <p className="truncate text-xs text-muted-foreground">{customer.email}</p>
+                        <FrequencyBadge
+                          isFrequent={customer.is_frequent}
+                          isActive={customer.is_frequent_active}
+                        />
+                        {customer.last_purchase_at && (
+                          <p className="text-[11px] text-muted-foreground">
+                            Última compra: {formatDateTimeBogota(customer.last_purchase_at)}
+                          </p>
+                        )}
+                      </div>
                     </div>
                     <div className="shrink-0 text-right">
                       <p className="font-display text-2xl font-extrabold text-primary">
@@ -247,16 +258,26 @@ export function CustomersPage() {
                   {customers.data.map((customer) => (
                     <TableRow key={customer.id}>
                       <TableCell>
-                        <p className="font-semibold">{customer.full_name || "Sin nombre"}</p>
-                        {customer.nickname && (
-                          <p className="text-xs text-muted-foreground">@{customer.nickname}</p>
-                        )}
-                        <p className="text-xs text-muted-foreground">{customer.email}</p>
-                        <div className="mt-1">
-                          <FrequencyBadge
-                            isFrequent={customer.is_frequent}
-                            isActive={customer.is_frequent_active}
+                        <div className="flex items-center gap-3">
+                          <EntityAvatar
+                            src={customer.avatar_url}
+                            alt={customer.full_name || customer.email}
+                            fallbackText={customer.full_name || customer.email}
+                            sizeClassName="size-9"
                           />
+                          <div className="min-w-0">
+                            <p className="font-semibold">{customer.full_name || "Sin nombre"}</p>
+                            {customer.nickname && (
+                              <p className="text-xs text-muted-foreground">@{customer.nickname}</p>
+                            )}
+                            <p className="text-xs text-muted-foreground">{customer.email}</p>
+                            <div className="mt-1">
+                              <FrequencyBadge
+                                isFrequent={customer.is_frequent}
+                                isActive={customer.is_frequent_active}
+                              />
+                            </div>
+                          </div>
                         </div>
                       </TableCell>
                       <TableCell className="font-semibold">

@@ -839,9 +839,16 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           nickname_changes_left: 2 - (user?.nicknameChanges ?? 0),
           phone: user?.phone ?? null,
           birth_date: user?.birthDate ?? null,
+          avatar_url: (user as { avatarUrl?: string | null } | undefined)?.avatarUrl ?? null,
           business_count: state.memberships.filter((m) => m.userId === user?.id).length,
           created_at: user?.createdAt,
         });
+      case "profile_avatar_set": {
+        if (!user) return fail(route, "not_authenticated");
+        const nextAvatar = body.p_avatar_url ? String(body.p_avatar_url).trim() : null;
+        (user as { avatarUrl?: string | null }).avatarUrl = nextAvatar || null;
+        return json(route, { id: user.id, avatar_url: nextAvatar || null });
+      }
       case "profile_set_account_type": {
         if (!user) return fail(route, "not_authenticated");
         const nextType = String(body.p_account_type ?? "").toLowerCase();
@@ -2576,6 +2583,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
               max_redemptions_per_period: r.maxRedemptionsPerPeriod,
               redemption_period_days: r.redemptionPeriodDays,
               total_redemption_limit: r.totalRedemptionLimit,
+              image_url: (r as { imageUrl?: string | null }).imageUrl ?? null,
               created_at: now(),
               updated_at: now(),
               times_redeemed: state.redemptionRequests.filter(
@@ -2610,6 +2618,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
               product_id: r.productId,
               valid_from: r.validFrom,
               valid_until: r.validUntil,
+              image_url: (r as { imageUrl?: string | null }).imageUrl ?? null,
             })),
         );
       }
@@ -2640,7 +2649,8 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           redemptionPeriodDays: body.p_redemption_period_days ?? null,
           totalRedemptionLimit: body.p_total_redemption_limit ?? null,
           isActive: Boolean(body.p_is_active ?? true),
-        };
+          imageUrl: body.p_image_url ? String(body.p_image_url) : null,
+        } as FakeLoyaltyReward;
         if (existing) Object.assign(existing, reward);
         else state.loyaltyRewards.push(reward);
         return json(route, reward);
