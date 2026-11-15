@@ -76,13 +76,13 @@ export function CustomerBusinessHomePage() {
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
-        if (redeemDialog) setRedeemDialog(null);
+        if (redeemDialog && !requestRedemption.isPending) setRedeemDialog(null);
         if (selectedProduct) setSelectedProduct(null);
       }
     }
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [redeemDialog, selectedProduct]);
+  }, [redeemDialog, selectedProduct, requestRedemption.isPending]);
 
   if (!business) {
     return (
@@ -235,6 +235,10 @@ export function CustomerBusinessHomePage() {
               id="profileHeroStage"
               style={{ background: stageVisual.stageBg }}
             >
+              {logoUrl && (
+                <img src={logoUrl} alt={`Logo de ${business.name}`} className="card-hero-bg-img" />
+              )}
+
               {/* Arriba a la izquierda: Total de puntos */}
               <div className="hero-points-top-left">
                 <HeroCoinSvg size={15} />
@@ -254,17 +258,11 @@ export function CustomerBusinessHomePage() {
               </span>
 
               {/* Ilustración central del negocio */}
-              <div className="sprite-bobbing" id="profileSpriteBox">
-                {logoUrl ? (
-                  <img
-                    src={logoUrl}
-                    alt={`Logo de ${business.name}`}
-                    className="size-16 border-[3px] border-[#1e1c1a] bg-[#fffdf5] object-cover"
-                  />
-                ) : (
+              {!logoUrl && (
+                <div className="sprite-bobbing" id="profileSpriteBox">
                   <PixelItemSvg sprite={stageVisual.spriteKey} size={80} />
-                )}
-              </div>
+                </div>
+              )}
 
               {/* Abajo a la izquierda: Nombre del negocio */}
               <div className="hero-name-bottom-left">
@@ -608,7 +606,7 @@ export function CustomerBusinessHomePage() {
                 <img
                   src={redeemDialog.reward.image_url}
                   alt={redeemDialog.reward.name}
-                  className="size-full object-cover"
+                  className="card-hero-bg-img"
                 />
               ) : (
                 <PixelItemSvg sprite={rewardModalVisual.spriteKey} size={84} />
@@ -701,7 +699,7 @@ export function CustomerBusinessHomePage() {
                 <img
                   src={selectedProduct.product.image_url}
                   alt={selectedProduct.product.name}
-                  className="size-full object-cover"
+                  className="card-hero-bg-img"
                 />
               ) : (
                 <PixelItemSvg sprite={productModalVisual.spriteKey} size={84} />

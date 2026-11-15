@@ -4,7 +4,7 @@ import { Wrench } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { usePortalTheme, useTheme } from "@/components/theme/ThemeProvider";
-import { LoopointCoinSvg, SettingsGearSvg } from "@/features/customer/pixelSprites";
+import { LoopointCoinSvg, PixelUserSvg } from "@/features/customer/pixelSprites";
 import "@/features/customer/customerRetro.css";
 import { cn } from "@/lib/utils";
 
@@ -151,7 +151,7 @@ export function CustomerShell() {
               aria-controls="navDropdownMenu"
               onClick={() => setMenuOpen((prev) => !prev)}
             >
-              <SettingsGearSvg size={16} />
+              <PixelUserSvg size={16} />
             </button>
 
             <div
@@ -170,16 +170,7 @@ export function CustomerShell() {
                   navigate("/customer/perfil");
                 }}
               >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 12 12"
-                  shapeRendering="crispEdges"
-                  aria-hidden="true"
-                >
-                  <rect x="4" y="1" width="4" height="4" fill="currentColor" />
-                  <rect x="2" y="6" width="8" height="5" fill="currentColor" />
-                </svg>
+                <PixelUserSvg size={16} />
                 <span>Perfil</span>
               </button>
 

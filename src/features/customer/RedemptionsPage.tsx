@@ -207,50 +207,61 @@ export function RedemptionsPage() {
             </DialogDescription>
           </DialogHeader>
           {detail && (
-            <dl className="grid grid-cols-[auto,1fr] gap-x-4 gap-y-2 text-sm">
-              <dt className="font-mono text-xs font-bold uppercase text-[var(--text-muted)]">
-                Estado
-              </dt>
-              <dd>
-                <RedemptionRequestStatusBadge status={detail.status} />
-              </dd>
-              <dt className="font-mono text-xs font-bold uppercase text-[var(--text-muted)]">
-                Loopoints
-              </dt>
-              <dd className="font-mono font-bold">{formatPoints(detail.points_spent)}</dd>
-              <dt className="font-mono text-xs font-bold uppercase text-[var(--text-muted)]">
-                Código
-              </dt>
-              <dd className="min-w-0 break-all font-mono text-xs">{detail.code}</dd>
-              <dt className="font-mono text-xs font-bold uppercase text-[var(--text-muted)]">
-                Solicitado
-              </dt>
-              <dd>{formatDateTimeBogota(detail.created_at)}</dd>
-              {detail.approved_at && (
-                <>
-                  <dt className="font-mono text-xs font-bold uppercase text-[var(--text-muted)]">
-                    Aprobado
-                  </dt>
-                  <dd>{formatDateTimeBogota(detail.approved_at)}</dd>
-                </>
+            <div className="space-y-4">
+              {(detail.reward_image_url || detail.business_logo_url) && (
+                <div className="modal-hero-img border-[3px] border-[var(--border-color)] bg-[var(--paper-deep)]">
+                  <img
+                    src={(detail.reward_image_url || detail.business_logo_url)!}
+                    alt={detail.reward_image_url ? detail.reward_name : detail.business_name}
+                    className="card-hero-bg-img"
+                  />
+                </div>
               )}
-              {detail.delivered_at && (
-                <>
-                  <dt className="font-mono text-xs font-bold uppercase text-[var(--text-muted)]">
-                    Entregado
-                  </dt>
-                  <dd>{formatDateTimeBogota(detail.delivered_at)}</dd>
-                </>
-              )}
-              {detail.cancelled_at && (
-                <>
-                  <dt className="font-mono text-xs font-bold uppercase text-[var(--text-muted)]">
-                    Cancelado
-                  </dt>
-                  <dd>{formatDateTimeBogota(detail.cancelled_at)}</dd>
-                </>
-              )}
-            </dl>
+              <dl className="grid grid-cols-[auto,1fr] gap-x-4 gap-y-2 text-sm">
+                <dt className="font-mono text-xs font-bold uppercase text-[var(--text-muted)]">
+                  Estado
+                </dt>
+                <dd>
+                  <RedemptionRequestStatusBadge status={detail.status} />
+                </dd>
+                <dt className="font-mono text-xs font-bold uppercase text-[var(--text-muted)]">
+                  Loopoints
+                </dt>
+                <dd className="font-mono font-bold">{formatPoints(detail.points_spent)}</dd>
+                <dt className="font-mono text-xs font-bold uppercase text-[var(--text-muted)]">
+                  Código
+                </dt>
+                <dd className="min-w-0 break-all font-mono text-xs">{detail.code}</dd>
+                <dt className="font-mono text-xs font-bold uppercase text-[var(--text-muted)]">
+                  Solicitado
+                </dt>
+                <dd>{formatDateTimeBogota(detail.created_at)}</dd>
+                {detail.approved_at && (
+                  <>
+                    <dt className="font-mono text-xs font-bold uppercase text-[var(--text-muted)]">
+                      Aprobado
+                    </dt>
+                    <dd>{formatDateTimeBogota(detail.approved_at)}</dd>
+                  </>
+                )}
+                {detail.delivered_at && (
+                  <>
+                    <dt className="font-mono text-xs font-bold uppercase text-[var(--text-muted)]">
+                      Entregado
+                    </dt>
+                    <dd>{formatDateTimeBogota(detail.delivered_at)}</dd>
+                  </>
+                )}
+                {detail.cancelled_at && (
+                  <>
+                    <dt className="font-mono text-xs font-bold uppercase text-[var(--text-muted)]">
+                      Cancelado
+                    </dt>
+                    <dd>{formatDateTimeBogota(detail.cancelled_at)}</dd>
+                  </>
+                )}
+              </dl>
+            </div>
           )}
           <DialogFooter>
             <button

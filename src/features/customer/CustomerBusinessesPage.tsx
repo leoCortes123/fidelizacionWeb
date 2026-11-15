@@ -389,7 +389,7 @@ export function CustomerBusinessesPage() {
                 <img
                   src={selectedReward.reward.image_url}
                   alt={selectedReward.reward.name}
-                  className="size-full object-cover"
+                  className="card-hero-bg-img"
                 />
               ) : (
                 <PixelItemSvg sprite={modalVisual.spriteKey} size={84} />
