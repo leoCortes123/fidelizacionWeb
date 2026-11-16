@@ -556,4 +556,25 @@ describe("LoginPage", () => {
     });
     expect(auth.signUpWithPassword).not.toHaveBeenCalled();
   });
+
+  it("aplica los estilos neo-retro del módulo de clientes y activa el tema del portal cliente", () => {
+    const { container, unmount } = render(
+      <MemoryRouter initialEntries={["/login"]}>
+        <LoginPage />
+      </MemoryRouter>,
+    );
+
+    expect(document.documentElement.dataset.portal).toBe("customer");
+    expect(container.querySelector(".retro-customer")).not.toBeNull();
+    expect(container.querySelector(".app-navbar")).not.toBeNull();
+    expect(container.querySelector(".pixel-box")).not.toBeNull();
+    expect(container.querySelector("#tab-login.store-tab-btn.active")).not.toBeNull();
+    expect(container.querySelector("#email.form-input")).not.toBeNull();
+    expect(
+      container.querySelector("button[type='submit'].pixel-btn.pixel-btn-dark"),
+    ).not.toBeNull();
+
+    unmount();
+    expect(document.documentElement.dataset.portal).toBeUndefined();
+  });
 });

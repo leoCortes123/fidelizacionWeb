@@ -967,8 +967,14 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 6px;
   margin-bottom: 10px;
-  border-bottom: 2px dashed #c8bca6;
+  border-bottom: 2px dashed var(--dash-line);
   padding-bottom: 8px;
+}
+
+.store-tabs-bar.login-tabs-bar {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-bottom: 16px;
+  padding-bottom: 10px;
 }
 
 .store-tab-btn {
@@ -1204,7 +1210,9 @@
   color: inherit;
 }
 
-.form-input {
+.form-input,
+.retro-customer .form-input,
+.dark .retro-customer .form-input {
   width: 100%;
   min-height: 42px;
   padding: 8px 12px;
@@ -1220,15 +1228,44 @@
   transition: border-color 120ms ease, box-shadow 120ms ease;
 }
 
-.form-input:focus {
+.retro-customer .form-input:hover,
+.dark .retro-customer .form-input:hover {
+  border-color: var(--border-color);
+  border-left-color: var(--blue);
+}
+
+.form-input:focus,
+.retro-customer .form-input:focus,
+.retro-customer .form-input:focus-visible,
+.dark .retro-customer .form-input:focus,
+.dark .retro-customer .form-input:focus-visible {
   outline: none;
+  border-color: var(--border-color);
   border-left-color: var(--red);
   box-shadow: 3px 3px 0 var(--shadow-color);
 }
 
-.form-input:disabled {
+.retro-customer .form-input[aria-invalid="true"],
+.dark .retro-customer .form-input[aria-invalid="true"] {
+  border-color: var(--border-color);
+  border-left-color: var(--red-dark);
+}
+
+.form-input:disabled,
+.retro-customer .form-input:disabled {
   opacity: 0.65;
   cursor: not-allowed;
+}
+
+.form-input.form-input-with-trailing,
+.retro-customer .form-input.form-input-with-trailing {
+  padding-right: 42px;
+}
+
+.retro-customer [role].retro-alert,
+.dark .retro-customer [role].retro-alert {
+  border: 3px solid var(--border-color);
+  box-shadow: 3px 3px 0 var(--shadow-color);
 }
 
 .save-toast {
@@ -1417,12 +1454,16 @@
   align-items: center;
   gap: 6px;
   font: 10px/1.2 "Press Start 2P", monospace;
-  color: var(--red);
+  color: var(--red-dark);
   background: var(--cream);
   border: 2px solid var(--line);
   box-shadow: 3px 3px 0 var(--shadow-ink);
   padding: 6px 10px;
   text-transform: uppercase;
+}
+
+.dark .retro-customer .retro-kicker {
+  color: #ff8573;
 }
 
 .retro-customer .retro-card {
