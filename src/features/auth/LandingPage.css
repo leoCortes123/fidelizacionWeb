@@ -1,17 +1,18 @@
 /* Landing retro pixel-art adaptada a Loopoint. Alcance limitado a .retro-landing. */
 .retro-landing {
+  /* Paleta estricta 60/30/10: 60% papel (#f6edda), 30% tinta/crema (#1e1c1a / #fffdf5), 10% acento (#e6533f) */
   --ink: #1e1c1a;
   --paper: #f6edda;
   --paper-deep: #eadec5;
   --cream: #fffdf5;
   --red: #e6533f;
   --red-dark: #b83726;
-  --orange: #f2a541;
-  --gold: #ffd166;
-  --green: #4e8c57;
-  --green-bright: #34d399;
-  --blue: #467299;
-  --cyan: #22d3ee;
+  --orange: #eadec5;
+  --gold: #eadec5;
+  --green: #1e1c1a;
+  --green-bright: #e6533f;
+  --blue: #1e1c1a;
+  --cyan: #eadec5;
   --line: #1e1c1a;
 
   background-color: var(--paper);
@@ -198,22 +199,27 @@
 }
 
 .retro-landing .btn-dark {
-  background: var(--ink);
-  color: var(--cream);
+  background: var(--cream);
+  color: var(--ink);
   box-shadow:
-    inset 2px 2px 0 rgba(255, 255, 255, 0.18),
-    4px 4px 0 var(--red);
+    inset 2px 2px 0 rgba(255, 255, 255, 0.35),
+    4px 4px 0 var(--ink);
 }
 
 .retro-landing .btn-dark:hover {
+  background: var(--paper-deep);
   box-shadow:
-    inset 2px 2px 0 rgba(255, 255, 255, 0.22),
-    2px 2px 0 var(--red);
+    inset 2px 2px 0 rgba(255, 255, 255, 0.35),
+    2px 2px 0 var(--ink);
 }
 
 .retro-landing .btn-red {
   background: var(--red);
-  color: white;
+  color: #ffffff;
+}
+
+.retro-landing .btn-red:hover {
+  background: var(--red-dark);
 }
 
 .retro-landing .btn-light {
@@ -1436,5 +1442,89 @@
 @media (max-width: 480px) {
   .retro-landing .account-type-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+/* Reglas Mobile-First: 3 tamaños tipográficos (24px / 16px / 13px), 30-50 ch, touch >= 44px y grilla 8pt */
+@media (max-width: 768px) {
+  .retro-landing .wrap {
+    padding: 0 16px;
+  }
+
+  .retro-landing .nav {
+    height: auto;
+    min-height: 64px;
+    padding: 8px 0;
+    gap: 8px;
+  }
+
+  .retro-landing h1,
+  .retro-landing h2,
+  .retro-landing .cta h2,
+  .retro-landing .audience h2 {
+    font-size: 24px;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+
+  .retro-landing .hero-copy .lead,
+  .retro-landing .section-head p,
+  .retro-landing .step p,
+  .retro-landing .feature p,
+  .retro-landing .audience p,
+  .retro-landing .cta p,
+  .retro-landing .pixel-list li,
+  .retro-landing .step h3,
+  .retro-landing .feature h3 {
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  .retro-landing .hero-copy .lead,
+  .retro-landing .section-head p,
+  .retro-landing .step p,
+  .retro-landing .feature p,
+  .retro-landing .audience p,
+  .retro-landing .cta p {
+    max-width: 42ch;
+  }
+
+  .retro-landing .eyebrow,
+  .retro-landing .kicker,
+  .retro-landing .step-bar,
+  .retro-landing .stat-chip,
+  .retro-landing .stat-chip strong,
+  .retro-landing .stat-chip-key,
+  .retro-landing .window-footnote,
+  .retro-landing .reward-tag,
+  .retro-landing .reward-info small,
+  .retro-landing .progress-footer,
+  .retro-landing .feature-slot,
+  .retro-landing .audience-top,
+  .retro-landing .retro-footer,
+  .retro-landing .footer-links {
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  .retro-landing .btn {
+    min-height: 44px;
+    padding: 12px 16px;
+    font-size: 16px;
+  }
+
+  .retro-landing .nav-actions .btn {
+    min-height: 44px;
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+
+  .retro-landing .hero-buttons,
+  .retro-landing .cta-buttons {
+    gap: 16px;
+  }
+
+  .retro-landing .retro-section {
+    padding: 40px 0;
   }
 }

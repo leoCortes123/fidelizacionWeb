@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { Wrench } from "lucide-react";
+import { Gift, Home, ReceiptText, Wrench } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { usePortalTheme, useTheme } from "@/components/theme/ThemeProvider";
@@ -48,66 +48,46 @@ export function CustomerShell() {
     navigate("/", { replace: true });
   }
 
-  function renderNavLinks(idPrefix: string, linkClass: string) {
+  function renderNavLinks(idPrefix: string, linkClass: string, iconOnly = false) {
+    const iconClass = iconOnly ? "size-[22px]" : "size-4";
+    const labelClass = iconOnly ? "sr-only" : undefined;
+
     return (
       <>
         <NavLink
           to="/customer"
           end
           id={`${idPrefix}Home`}
+          aria-label="Inicio"
+          title="Inicio"
           className={({ isActive }) =>
             cn(linkClass, (isActive || pathname.startsWith("/customer/business/")) && "active")
           }
         >
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 12 12"
-            shapeRendering="crispEdges"
-            aria-hidden="true"
-          >
-            <polygon points="6,1 1,5 2,5 2,11 10,11 10,5 11,5" fill="currentColor" />
-          </svg>
-          <span>Inicio</span>
+          <Home className={iconClass} strokeWidth={2.25} aria-hidden="true" />
+          <span className={labelClass}>Inicio</span>
         </NavLink>
 
         <NavLink
           to="/customer/purchases"
           id={`${idPrefix}Purchases`}
+          aria-label="Compras"
+          title="Compras"
           className={({ isActive }) => cn(linkClass, isActive && "active")}
         >
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 12 12"
-            shapeRendering="crispEdges"
-            aria-hidden="true"
-          >
-            <path
-              d="M2 1h8v10H2V1zm2 3h4v1H4V4zm0 3h4v1H4V7z"
-              fill="currentColor"
-              fillRule="evenodd"
-            />
-          </svg>
-          <span>Compras</span>
+          <ReceiptText className={iconClass} strokeWidth={2.25} aria-hidden="true" />
+          <span className={labelClass}>Compras</span>
         </NavLink>
 
         <NavLink
           to="/customer/redemptions"
           id={`${idPrefix}Redemptions`}
+          aria-label="Canjes"
+          title="Canjes"
           className={({ isActive }) => cn(linkClass, isActive && "active")}
         >
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 12 12"
-            shapeRendering="crispEdges"
-            aria-hidden="true"
-          >
-            <rect x="1" y="3" width="10" height="6" fill="currentColor" />
-            <rect x="5" y="4" width="2" height="4" fill="var(--gold)" />
-          </svg>
-          <span>Canjes</span>
+          <Gift className={iconClass} strokeWidth={2.25} aria-hidden="true" />
+          <span className={labelClass}>Canjes</span>
         </NavLink>
       </>
     );
@@ -230,7 +210,7 @@ export function CustomerShell() {
       </main>
 
       <nav className="bottom-app-bar no-print" aria-label="Navegación del cliente">
-        <div className="bottom-bar-inner">{renderNavLinks("navBtn", "bottom-nav-btn")}</div>
+        <div className="bottom-bar-inner">{renderNavLinks("navBtn", "bottom-nav-btn", true)}</div>
       </nav>
     </div>
   );

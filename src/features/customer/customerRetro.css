@@ -25,12 +25,12 @@
   --input-bg: #ffffff;
   --red: #e6533f;
   --red-dark: #b83726;
-  --orange: #f2a541;
-  --gold: #ffd166;
-  --green: #4e8c57;
-  --green-bright: #34d399;
-  --blue: #467299;
-  --cyan: #22d3ee;
+  --orange: #eadec5;
+  --gold: #eadec5;
+  --green: #e6533f;
+  --green-bright: #e6533f;
+  --blue: #1e1c1a;
+  --cyan: #eadec5;
 
   --font-pixel: "Press Start 2P", monospace;
   --font-mono: "DM Mono", monospace;
@@ -58,6 +58,14 @@
   --nav-bg: #181615;
   --text-muted: #cfc4b4;
   --input-bg: #141210;
+  --red: #f06452;
+  --red-dark: #e6533f;
+  --orange: #24201e;
+  --gold: #2b2623;
+  --green: #f06452;
+  --green-bright: #f06452;
+  --blue: #f8f5e6;
+  --cyan: #24201e;
 }
 
 /* Override de tokens Tailwind dentro del portal cliente para mantener coherencia visual */
@@ -207,18 +215,22 @@
 }
 
 .pixel-btn-gold {
-  background: var(--gold);
-  color: #1e1c1a;
-  border-color: #1e1c1a;
+  background: var(--red);
+  color: #ffffff;
+  border-color: var(--border-color);
 }
 
 .pixel-btn-xp {
-  background: var(--green);
+  background: var(--red);
   color: #ffffff;
 }
 
+.pixel-btn-xp:hover:not(:disabled) {
+  background: var(--red-dark);
+}
+
 .pixel-btn-secondary {
-  background: var(--paper-deep);
+  background: var(--cream);
   color: var(--ink);
 }
 
@@ -229,8 +241,8 @@
 }
 
 .dark .pixel-btn-secondary:hover:not(:disabled) {
-  background: var(--gold);
-  color: #1e1c1a;
+  background: #24201e;
+  color: #fffdf5;
 }
 
 .pixel-btn-ruby {
@@ -239,25 +251,25 @@
 }
 
 .pixel-btn-dark {
-  background: var(--blue);
-  color: #fffdf5;
+  background: var(--red);
+  color: #ffffff;
   border-color: var(--border-color);
   box-shadow: 4px 4px 0 var(--shadow-color);
 }
 
 .pixel-btn-dark:hover:not(:disabled) {
-  background: #395e80;
+  background: var(--red-dark);
 }
 
 .dark .pixel-btn-dark {
-  background: var(--gold);
-  color: #1e1c1a;
+  background: var(--red);
+  color: #181615;
   border-color: #fffdf5;
-  box-shadow: 4px 4px 0 var(--red);
+  box-shadow: 4px 4px 0 var(--shadow-color);
 }
 
 .dark .pixel-btn-dark:hover:not(:disabled) {
-  background: #ffe08a;
+  background: #ff7a68;
 }
 
 /* =========================================================================
@@ -983,9 +995,13 @@
   background: var(--paper-deep);
   border: 2px solid var(--border-color);
   color: var(--ink);
-  font-family: var(--font-pixel);
-  font-size: clamp(7px, 1.8vw, 10px);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: clamp(10px, 2.8vw, 12px);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
   padding: 9px 4px;
+  min-height: 40px;
   cursor: pointer;
   text-align: center;
   white-space: nowrap;
@@ -1966,5 +1982,64 @@
 
   .profile-view-card {
     padding: 20px 24px;
+  }
+}
+
+/* Reglas Mobile-First: app nativa sin desbordamiento ni scroll externo, 3 tamaños tipográficos y touch >= 44px */
+@media (max-width: 768px) {
+  .retro-customer {
+    height: 100dvh;
+    max-height: 100dvh;
+    overflow: hidden;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  .retro-customer h1,
+  .retro-customer .login-card-title {
+    font-size: 24px;
+    line-height: 1.2;
+  }
+
+  .retro-customer p,
+  .retro-customer .form-input,
+  .retro-customer .pixel-btn-dark,
+  .retro-customer .pixel-btn-xp,
+  .retro-customer .pixel-btn-gold {
+    font-size: 16px;
+  }
+
+  .retro-customer p {
+    max-width: 42ch;
+  }
+
+  .retro-customer .retro-kicker,
+  .retro-customer .form-label,
+  .retro-customer .pixel-btn-secondary,
+  .retro-customer .navbar-username {
+    font-size: 13px;
+    line-height: 1.3;
+  }
+
+  .retro-customer .store-tab-btn {
+    font-size: clamp(10px, 2.8vw, 12px);
+    min-height: 40px;
+    padding: 8px 4px;
+  }
+
+  .retro-customer .pixel-btn,
+  .retro-customer .bottom-nav-btn,
+  .retro-customer .small-dropdown-btn,
+  .retro-customer .form-input {
+    min-height: 44px;
+  }
+
+  .retro-customer .small-dropdown-btn {
+    min-width: 44px;
+  }
+
+  .retro-customer .bottom-nav-btn {
+    padding: 8px;
+    gap: 0;
   }
 }

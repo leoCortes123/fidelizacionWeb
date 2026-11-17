@@ -614,7 +614,7 @@ export function LandingPage() {
             <h2>Tu próxima compra puede tener premio.</h2>
             <p>Regístrate como cliente o crea el programa de fidelización de tu negocio.</p>
             <div className="hero-buttons cta-buttons">
-              <Link className="btn btn-dark" to="/login?mode=register">
+              <Link className="btn btn-red" to="/login?mode=register">
                 Crear cuenta
               </Link>
               <Link className="btn btn-light" to="/admin/onboarding?new=1">
