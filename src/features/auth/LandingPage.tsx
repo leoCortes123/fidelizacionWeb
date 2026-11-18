@@ -2,6 +2,7 @@ import { useState, type ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { InstallPwaButton } from "@/components/pwa/InstallPwaButton";
 import { useAuth } from "./AuthProvider";
 import { brandName, brandTagline, defaultPathForRoles, isSupabaseConfigured } from "@/lib/config";
 import { resolvePostLoginPath } from "@/lib/postLogin";
@@ -361,6 +362,7 @@ export function LandingPage() {
               <a className="btn btn-light" href="#como-funciona">
                 Así funciona ↓
               </a>
+              <InstallPwaButton className="btn btn-light" />
             </div>
 
             <div className="hero-stats" aria-label="Características clave">
