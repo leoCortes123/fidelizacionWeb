@@ -1,345 +1,225 @@
-import { useState, type ReactNode } from "react";
+import {
+  Suspense,
+  lazy,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type KeyboardEvent,
+} from "react";
 import { Link, useNavigate } from "react-router-dom";
+import {
+  ArrowRight,
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  ClipboardList,
+  Download,
+  Gift,
+  Megaphone,
+  Pause,
+  PiggyBank,
+  Play,
+  QrCode,
+  SlidersHorizontal,
+  Smartphone,
+  Timer,
+  Users,
+  X,
+  Zap,
+  type LucideIcon,
+} from "lucide-react";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { InstallPwaButton } from "@/components/pwa/InstallPwaButton";
+import {
+  adminFeatures,
+  businessTypes,
+  comparisonRows,
+  faqs,
+  manualSteps,
+  setupSteps,
+} from "@/features/landing/landingContent";
 import { useAuth } from "./AuthProvider";
-import { brandName, brandTagline, defaultPathForRoles, isSupabaseConfigured } from "@/lib/config";
+import { brandName, defaultPathForRoles, isSupabaseConfigured } from "@/lib/config";
 import { resolvePostLoginPath } from "@/lib/postLogin";
 import "./LandingPage.css";
 
-function PixelQrIcon() {
-  return (
-    <svg viewBox="0 0 16 16" className="pixel-svg" shapeRendering="crispEdges" aria-hidden="true">
-      {/* Esquinas QR */}
-      <path
-        fill="currentColor"
-        d="M1 1h6v6H1V1zm1 1v4h4V2H2zm1 1h2v2H3V3zm6-2h6v6H9V1zm1 1v4h4V2h-4zm1 1h2v2h-2V3zM1 9h6v6H1V9zm1 1v4h4v-4H2zm1 1h2v2H3v-2z"
-      />
-      {/* Datos internos */}
-      <path
-        fill="currentColor"
-        d="M9 9h2v2H9V9zm4 0h2v2h-2V9zm-2 2h2v2h-2v-2zm-2 2h2v2H9v-2zm4 0h2v2h-2v-2z"
-      />
-      {/* Línea láser de escaneo */}
-      <rect x="0" y="7" width="16" height="2" fill="#e6533f" />
-    </svg>
-  );
-}
+// La animación (GSAP + CSS) se carga en un chunk aparte para no retrasar el primer render.
+const ProcessAnimation = lazy(() => import("@/features/landing/ProcessAnimation"));
 
-function PixelCoinStackIcon() {
-  return (
-    <svg viewBox="0 0 16 16" className="pixel-svg" shapeRendering="crispEdges" aria-hidden="true">
-      {/* Moneda trasera */}
-      <rect x="2" y="9" width="12" height="4" fill="#0891b2" />
-      <rect x="1" y="10" width="14" height="2" fill="#22d3ee" />
-      <rect x="3" y="10" width="10" height="1" fill="#a5f3fc" />
-      {/* Moneda media */}
-      <rect x="2" y="5" width="12" height="4" fill="#d97706" />
-      <rect x="1" y="6" width="14" height="2" fill="#f2a541" />
-      <rect x="3" y="6" width="10" height="1" fill="#fef08a" />
-      {/* Moneda superior */}
-      <rect x="3" y="1" width="10" height="4" fill="#0891b2" />
-      <rect x="2" y="2" width="12" height="2" fill="#22d3ee" />
-      <rect x="4" y="2" width="8" height="1" fill="#cffafe" />
-      <rect x="7" y="2" width="2" height="2" fill="#facc15" />
-    </svg>
-  );
-}
-
-function PixelTrophyIcon() {
-  return (
-    <svg viewBox="0 0 16 16" className="pixel-svg" shapeRendering="crispEdges" aria-hidden="true">
-      <rect x="4" y="1" width="8" height="2" fill="#facc15" />
-      <rect x="2" y="2" width="2" height="4" fill="#d97706" />
-      <rect x="12" y="2" width="2" height="4" fill="#d97706" />
-      <rect x="4" y="3" width="8" height="5" fill="#f2a541" />
-      <rect x="5" y="3" width="2" height="4" fill="#fef08a" />
-      <rect x="6" y="8" width="4" height="3" fill="#d97706" />
-      <rect x="4" y="11" width="8" height="2" fill="#facc15" />
-      <rect x="3" y="13" width="10" height="2" fill="#24221f" />
-    </svg>
-  );
-}
-
-function PixelWalletIcon() {
-  return (
-    <svg viewBox="0 0 16 16" className="pixel-svg" shapeRendering="crispEdges" aria-hidden="true">
-      <rect x="2" y="2" width="11" height="3" fill="#547b9c" />
-      <rect x="3" y="3" width="9" height="2" fill="#22d3ee" />
-      <rect x="1" y="5" width="14" height="9" fill="#24221f" />
-      <rect x="2" y="6" width="12" height="7" fill="#e6533f" />
-      <rect x="3" y="6" width="10" height="1" fill="#fca5a5" />
-      <rect x="10" y="8" width="5" height="3" fill="#24221f" />
-      <rect x="11" y="9" width="2" height="1" fill="#facc15" />
-    </svg>
-  );
-}
-
-function PixelHourglassIcon() {
-  return (
-    <svg viewBox="0 0 16 16" className="pixel-svg" shapeRendering="crispEdges" aria-hidden="true">
-      <rect x="2" y="1" width="12" height="2" fill="#24221f" />
-      <rect x="3" y="3" width="10" height="3" fill="#cffafe" />
-      <rect x="5" y="4" width="6" height="2" fill="#f2a541" />
-      <rect x="5" y="6" width="6" height="2" fill="#cffafe" />
-      <rect x="7" y="7" width="2" height="2" fill="#f2a541" />
-      <rect x="5" y="8" width="6" height="2" fill="#cffafe" />
-      <rect x="3" y="10" width="10" height="3" fill="#cffafe" />
-      <rect x="4" y="11" width="8" height="2" fill="#f2a541" />
-      <rect x="2" y="13" width="12" height="2" fill="#24221f" />
-    </svg>
-  );
-}
-
-function PixelGiftIcon() {
-  return (
-    <svg viewBox="0 0 16 16" className="pixel-svg" shapeRendering="crispEdges" aria-hidden="true">
-      <rect x="4" y="1" width="3" height="2" fill="#e6533f" />
-      <rect x="9" y="1" width="3" height="2" fill="#e6533f" />
-      <rect x="6" y="2" width="4" height="2" fill="#b91c1c" />
-      <rect x="1" y="4" width="14" height="3" fill="#f2a541" />
-      <rect x="2" y="7" width="12" height="7" fill="#d97706" />
-      <rect x="3" y="7" width="10" height="6" fill="#facc15" />
-      <rect x="7" y="4" width="2" height="10" fill="#e6533f" />
-      <rect x="2" y="9" width="12" height="2" fill="#e6533f" />
-    </svg>
-  );
-}
-
-function PixelScrollIcon() {
-  return (
-    <svg viewBox="0 0 16 16" className="pixel-svg" shapeRendering="crispEdges" aria-hidden="true">
-      <rect x="3" y="1" width="10" height="2" fill="#d97706" />
-      <rect x="3" y="3" width="10" height="10" fill="#fff9ec" />
-      <rect x="2" y="2" width="1" height="12" fill="#24221f" />
-      <rect x="13" y="2" width="1" height="12" fill="#24221f" />
-      <rect x="5" y="5" width="6" height="1" fill="#e6533f" />
-      <rect x="5" y="7" width="6" height="1" fill="#24221f" />
-      <rect x="5" y="9" width="4" height="1" fill="#5e8c62" />
-      <rect x="5" y="11" width="5" height="1" fill="#24221f" />
-      <rect x="3" y="13" width="10" height="2" fill="#d97706" />
-    </svg>
-  );
-}
-
-function PixelHeartIcon() {
-  return (
-    <svg viewBox="0 0 12 11" className="pixel-heart" shapeRendering="crispEdges" aria-hidden="true">
-      <path fill="#e6533f" d="M2 1h3v1h2V1h3v1h1v3h-1v2H9v1H8v1H7v1H5V9H4V8H3V7H2V5H1V2h1V1z" />
-      <rect x="2" y="2" width="2" height="1" fill="#fecaca" />
-    </svg>
-  );
-}
-
-function PixelCoffeeIcon() {
-  return (
-    <svg viewBox="0 0 16 16" className="pixel-svg" shapeRendering="crispEdges" aria-hidden="true">
-      {/* Vapor */}
-      <rect x="5" y="1" width="1" height="2" fill="#9ca3af" />
-      <rect x="8" y="2" width="1" height="2" fill="#9ca3af" />
-      <rect x="10" y="1" width="1" height="2" fill="#9ca3af" />
-      {/* Taza */}
-      <rect x="3" y="5" width="9" height="7" fill="#fff9ec" />
-      <rect x="4" y="6" width="7" height="2" fill="#78350f" />
-      <rect x="12" y="6" width="2" height="4" fill="#e6533f" />
-      <rect x="4" y="9" width="7" height="2" fill="#e6533f" />
-      <rect x="2" y="12" width="11" height="2" fill="#24221f" />
-    </svg>
-  );
-}
-
-interface DemoBusiness {
-  id: string;
-  name: string;
-  badge: string;
-  points: string;
-  progressPct: number;
-  remainingText: string;
-  rewardTitle: string;
-  rewardCost: string;
-  bonusToast: string;
-  rewardIcon: ReactNode;
-}
-
-const demoBusinesses: DemoBusiness[] = [
-  {
-    id: "cafe",
-    name: "Café Aurora",
-    badge: "LVL 04 · HABITUAL",
-    points: "1.250 PTS",
-    progressPct: 72,
-    remainingText: "750 PTS PARA EL SIGUIENTE PREMIO",
-    rewardTitle: "Café gratis",
-    rewardCost: "Canjea con 2.000 loopoints",
-    bonusToast: "+150 PTS · COMPRA ESCANEADA",
-    rewardIcon: <PixelCoffeeIcon />,
-  },
-  {
-    id: "taqueria",
-    name: "Taquería El Fogón",
-    badge: "LVL 06 · VIP",
-    points: "840 PTS",
-    progressPct: 90,
-    remainingText: "60 PTS PARA DESBLOQUEAR COMBO",
-    rewardTitle: "Tacos al pastor ×3",
-    rewardCost: "Canjea con 900 loopoints",
-    bonusToast: "+120 PTS · BONUS FRECUENTE",
-    rewardIcon: <PixelGiftIcon />,
-  },
-  {
-    id: "panaderia",
-    name: "Masa & Miel",
-    badge: "LVL 02 · NUEVO",
-    points: "450 PTS",
-    progressPct: 45,
-    remainingText: "550 PTS PARA TU RECOMPENSA",
-    rewardTitle: "Croissant de almendra",
-    rewardCost: "Canjea con 1.000 loopoints",
-    bonusToast: "+90 PTS · PRIMERA VISITA",
-    rewardIcon: <PixelTrophyIcon />,
-  },
+const REGISTER_BUSINESS = "/admin/onboarding?new=1";
+const featureIcons: LucideIcon[] = [
+  Gift,
+  SlidersHorizontal,
+  Megaphone,
+  Users,
+  PiggyBank,
+  ClipboardList,
 ];
 
-const steps: Array<{
-  num: string;
-  xp: string;
-  icon: ReactNode;
-  title: string;
-  text: string;
-}> = [
-  {
-    num: "01 / COMPRA",
-    xp: "STAGE 1 · SCAN",
-    icon: <PixelQrIcon />,
-    title: "Escanea el QR",
-    text: "Compra en un negocio afiliado y escanea el código QR de tu venta desde tu celular.",
-  },
-  {
-    num: "02 / ACUMULA",
-    xp: "STAGE 2 · +PTS",
-    icon: <PixelCoinStackIcon />,
-    title: "Suma tus puntos",
-    text: "Confirma tu compra al instante y recibe loopoints según las reglas del negocio.",
-  },
-  {
-    num: "03 / DISFRUTA",
-    xp: "STAGE 3 · LOOT",
-    icon: <PixelTrophyIcon />,
-    title: "Canjea recompensas",
-    text: "Elige un premio disponible en el catálogo y presenta tu QR para reclamarlo en caja.",
-  },
-];
+function AnimationFallback() {
+  return <div className="anim-fallback" aria-hidden="true" />;
+}
 
-const features: Array<{
-  slot: string;
-  ico: ReactNode;
-  title: string;
-  text: string;
-}> = [
-  {
-    slot: "SLOT 01",
-    ico: <PixelWalletIcon />,
-    title: "Saldo por negocio",
-    text: "Consulta cada saldo en su propia billetera sin mezclar puntos.",
-  },
-  {
-    slot: "SLOT 02",
-    ico: <PixelHourglassIcon />,
-    title: "Vencimientos",
-    text: "Revisa la vigencia de tus loopoints para canjearlos a tiempo.",
-  },
-  {
-    slot: "SLOT 03",
-    ico: <PixelGiftIcon />,
-    title: "Recompensas",
-    text: "Explora premios desbloqueables y los puntos necesarios.",
-  },
-  {
-    slot: "SLOT 04",
-    ico: <PixelScrollIcon />,
-    title: "Historial",
-    text: "Consulta tus compras registradas, puntos ganados y canjes.",
-  },
-];
+function Brand({ brand, size = 26 }: { brand: string; size?: number }) {
+  return (
+    <Link className="brand" to="/" aria-label={`${brand}, ir al inicio`}>
+      <span className="brand-mark" aria-hidden="true">
+        <img src="/fideliapp-coin.png" alt="" width={size} height={size} className="brand-coin" />
+      </span>
+      <span className="brand-text">
+        {brand.toLowerCase()}
+        <span className="brand-dot">.</span>
+      </span>
+    </Link>
+  );
+}
 
 export function LandingPage() {
   const { session, roles, rolesLoading = false, rolesLoaded = true } = useAuth();
   const navigate = useNavigate();
-  const [selectedBizIndex, setSelectedBizIndex] = useState(0);
   const [navigatingAccount, setNavigatingAccount] = useState(false);
+  const [activeStep, setActiveStep] = useState(0);
+  const [animationsPaused, setAnimationsPaused] = useState(false);
+  const tabListRef = useRef<HTMLDivElement | null>(null);
+  const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
+  const panelStackRef = useRef<HTMLDivElement | null>(null);
+  const panelRefs = useRef<Array<HTMLElement | null>>([]);
 
-  const brand = brandName || "Loopoint";
-  const activeBiz = demoBusinesses[selectedBizIndex] ?? demoBusinesses[0];
+  const brand = brandName || "Fideliapp";
+  const step = manualSteps[activeStep] ?? manualSteps[0];
+  const lastStep = manualSteps.length - 1;
+
+  // React 19 serializa `hidden="until-found"` como booleano (`hidden=""`).
+  // Lo actualizamos en el atributo DOM para que Ctrl+F encuentre los 5 pasos del manual.
+  useLayoutEffect(() => {
+    panelRefs.current.forEach((panel, idx) => {
+      if (!panel) return;
+      if (idx === activeStep) {
+        panel.removeAttribute("hidden");
+      } else {
+        panel.setAttribute("hidden", "until-found");
+      }
+    });
+  }, [activeStep]);
+
+  // Si Ctrl+F coincide dentro de un paso oculto (`hidden="until-found"`), sincroniza la pestaña y la animación.
+  useEffect(() => {
+    const stack = panelStackRef.current;
+    if (!stack) return;
+    const onBeforeMatch = (event: Event) => {
+      const target = event.target as HTMLElement | null;
+      const panel = target?.closest<HTMLElement>("[data-step-index]");
+      const idx = panel ? Number(panel.dataset.stepIndex) : Number.NaN;
+      if (!Number.isNaN(idx) && idx >= 0 && idx <= lastStep) {
+        setActiveStep(idx);
+      }
+    };
+    stack.addEventListener("beforematch", onBeforeMatch);
+    return () => stack.removeEventListener("beforematch", onBeforeMatch);
+  }, [lastStep]);
+
+  const goToStep = (index: number, focus = false) => {
+    const next = Math.max(0, Math.min(lastStep, index));
+    setActiveStep(next);
+    const nextTab = tabRefs.current[next];
+    if (focus) nextTab?.focus();
+    const tabList = tabListRef.current;
+    if (tabList && nextTab && tabList.scrollWidth > tabList.clientWidth) {
+      // Desplaza solo el carrusel horizontal de pestañas sin saltar el scroll vertical de la página.
+      const targetLeft = nextTab.offsetLeft - (tabList.clientWidth - nextTab.offsetWidth) / 2;
+      const prefersReduced =
+        typeof window !== "undefined" &&
+        window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
+      tabList.scrollTo?.({
+        left: Math.max(0, targetLeft),
+        behavior: prefersReduced ? "auto" : "smooth",
+      });
+    }
+  };
+
+  const onTabKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
+    const keyMap: Record<string, number> = {
+      ArrowRight: activeStep + 1,
+      ArrowDown: activeStep + 1,
+      ArrowLeft: activeStep - 1,
+      ArrowUp: activeStep - 1,
+      Home: 0,
+      End: lastStep,
+    };
+    if (event.key in keyMap) {
+      event.preventDefault();
+      goToStep(keyMap[event.key], true);
+    }
+  };
+
+  const goToAccount = () => {
+    if (rolesLoading || !rolesLoaded || navigatingAccount) return;
+    setNavigatingAccount(true);
+    void resolvePostLoginPath(roles)
+      .then((destination) => navigate(destination))
+      .catch(() => navigate(defaultPathForRoles(roles)))
+      .finally(() => setNavigatingAccount(false));
+  };
 
   return (
-    <div className="retro-landing">
+    <div className={`retro-landing ${animationsPaused ? "is-paused" : ""}`}>
+      <a className="skip-link" href="#contenido">
+        Saltar al contenido
+      </a>
+
       <header className="retro-header">
         <div className="wrap nav">
-          <Link className="brand" to="/" aria-label={`${brand}, ir al inicio`}>
-            <span className="brand-mark" aria-hidden="true">
-              <img src="/loopoint-coin.png" alt="" width={26} height={26} className="brand-coin" />
-            </span>
-            <span className="brand-text">
-              {brand.toLowerCase()}
-              <span className="brand-dot">.</span>
-            </span>
-          </Link>
-          <nav className="navlinks" aria-label="Navegación de la página">
+          <Brand brand={brand} size={34} />
+          <nav className="navlinks" aria-label="Secciones de la página">
             <a href="#como-funciona">Cómo funciona</a>
-            <a href="#clientes">Clientes</a>
+            <a href="#funciones">Funciones</a>
+            <a href="#app">La app</a>
             <a href="#negocios">Negocios</a>
+            <a href="#preguntas">Preguntas</a>
           </nav>
           <div className="nav-actions">
+            <InstallPwaButton
+              className="btn btn-download btn-xs nav-download"
+              label="Descargar app"
+            />
             {session ? (
               <button
-                className="btn btn-dark"
+                className="btn btn-dark btn-xs"
                 type="button"
                 disabled={navigatingAccount || rolesLoading || !rolesLoaded}
-                onClick={() => {
-                  if (rolesLoading || !rolesLoaded || navigatingAccount) return;
-                  setNavigatingAccount(true);
-                  void resolvePostLoginPath(roles)
-                    .then((destination) => navigate(destination))
-                    .catch(() => navigate(defaultPathForRoles(roles)))
-                    .finally(() => setNavigatingAccount(false));
-                }}
+                onClick={goToAccount}
               >
                 Ir a mi cuenta ↗
               </button>
             ) : (
-              <>
-                <Link className="btn btn-light" to="/login">
-                  Iniciar sesión
-                </Link>
-                <Link className="btn btn-dark" to="/login?mode=register">
-                  Crear cuenta ↗
-                </Link>
-              </>
+              <Link className="btn btn-light btn-xs" to="/login">
+                Ingresar
+              </Link>
             )}
           </div>
         </div>
       </header>
 
-      <main>
-        <section className="wrap hero">
+      <main id="contenido">
+        {/* HERO: qué es, para quién y por qué (respuesta rápida para buscadores e IA) */}
+        <section className="wrap hero" aria-labelledby="hero-title">
           <div className="hero-copy">
-            <div className="eyebrow">
+            <p className="eyebrow">
               <span className="eyebrow-dot" aria-hidden="true">
                 ★
-              </span>{" "}
-              Cada compra cuenta
-            </div>
-            <h1>
-              Compra.
-              <br />
-              Acumula.
-              <br />
-              <span className="highlight">Gana más.</span>
+              </span>
+              Software de fidelización para negocios
+            </p>
+            <h1 id="hero-title">
+              Programa de puntos <span className="highlight">para tu negocio.</span>
             </h1>
             <p className="lead">
-              {brandTagline}. Convierte tus compras de todos los días en loopoints y recompensas.
-              Encuentra tus negocios favoritos y disfruta cada visita.
+              <strong>{brand}</strong> es una app de fidelización de clientes para cafeterías,
+              restaurantes y comercios locales. Registras cada venta con un QR, tus clientes suman
+              monedas en su celular y las canjean por recompensas que tú defines. Sin tarjetas de
+              papel, sin hardware extra y con control de presupuesto.
             </p>
 
             {!isSupabaseConfigured && (
@@ -356,272 +236,394 @@ export function LandingPage() {
             )}
 
             <div className="hero-buttons">
-              <Link className="btn btn-red" to="/login?mode=register">
-                Quiero registrarme →
+              <Link className="btn btn-red btn-lg" to={REGISTER_BUSINESS}>
+                Crear mi programa de puntos <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
-              <a className="btn btn-light" href="#como-funciona">
-                Así funciona ↓
-              </a>
-              <InstallPwaButton className="btn btn-light" />
             </div>
+            <a className="text-link" href="#como-funciona">
+              Ver cómo funciona paso a paso ↓
+            </a>
 
-            <div className="hero-stats" aria-label="Características clave">
-              <div className="stat-chip">
-                <span className="stat-chip-key">MODO</span>
-                <strong>MULTI-NEGOCIO</strong>
-              </div>
-              <div className="stat-chip">
-                <span className="stat-chip-key">CANJE</span>
-                <strong>CÓDIGO QR</strong>
-              </div>
-              <div className="stat-chip">
-                <span className="stat-chip-key">COSTO CLIENTE</span>
-                <strong>100% GRATIS</strong>
-              </div>
-            </div>
-
-            <div className="micro">
-              UN SOLO LUGAR · MUCHOS NEGOCIOS · TUS LOOPOINTS POR SEPARADO
-            </div>
+            <ul className="hero-proof" aria-label="Ventajas principales">
+              <li>
+                <QrCode aria-hidden="true" /> QR único por venta
+              </li>
+              <li>
+                <Smartphone aria-hidden="true" /> Celular o tablet
+              </li>
+              <li>
+                <Timer aria-hidden="true" /> Listo en 3 pasos
+              </li>
+            </ul>
           </div>
 
           <div className="hero-art">
-            <div className="sun" aria-hidden="true" />
-            <div className="pixel-star" aria-hidden="true">
-              ✦
+            <div className="hero-frame">
+              <Suspense fallback={<AnimationFallback />}>
+                <ProcessAnimation
+                  paused={animationsPaused}
+                  label="Animación del ciclo de fidelización: venta, escaneo, progreso, canje y recompensa"
+                />
+              </Suspense>
             </div>
-
-            <div className="floating-toast" aria-hidden="true">
-              <img src="/loopoint-coin.png" alt="" width={20} height={20} className="toast-coin" />
-              <span>{activeBiz.bonusToast}</span>
-            </div>
-
-            <div
-              className="pixel-window"
-              role="region"
-              aria-label="Vista previa de tarjeta de jugador"
-            >
-              <div className="window-bar">
-                <span className="window-title">
-                  <span className="window-led" aria-hidden="true" /> PLAYER CARD
-                </span>
-                <span className="window-hearts" aria-hidden="true">
-                  <PixelHeartIcon />
-                  <PixelHeartIcon />
-                  <PixelHeartIcon />
-                </span>
-              </div>
-
-              <div className="window-body">
-                <div className="biz-tabs" role="tablist" aria-label="Negocios de ejemplo">
-                  {demoBusinesses.map((biz, idx) => (
-                    <button
-                      key={biz.id}
-                      id={`biz-tab-${biz.id}`}
-                      type="button"
-                      role="tab"
-                      aria-selected={idx === selectedBizIndex}
-                      aria-controls="biz-tabpanel"
-                      className={`biz-tab ${idx === selectedBizIndex ? "active" : ""}`}
-                      onClick={() => setSelectedBizIndex(idx)}
-                    >
-                      {biz.name}
-                    </button>
-                  ))}
-                </div>
-
-                <div id="biz-tabpanel" role="tabpanel" aria-labelledby={`biz-tab-${activeBiz.id}`}>
-                  <div className="hud-meta">
-                    <span className="points-label">TU SALDO EN {activeBiz.name.toUpperCase()}</span>
-                    <span className="level-pill">{activeBiz.badge}</span>
-                  </div>
-
-                  <div className="points-row">
-                    <img
-                      src="/loopoint-coin.png"
-                      alt=""
-                      width={42}
-                      height={42}
-                      className="points-coin"
-                      aria-hidden="true"
-                    />
-                    <div className="points">{activeBiz.points}</div>
-                  </div>
-
-                  <div className="mono progress-caption">¡ESTÁS CERCA DE TU PREMIO!</div>
-                  <div className="progress" aria-hidden="true">
-                    <span style={{ width: `${activeBiz.progressPct}%` }} />
-                  </div>
-                  <div className="progress-footer mono">
-                    <span>{activeBiz.remainingText}</span>
-                    <strong>{activeBiz.progressPct}%</strong>
-                  </div>
-
-                  <div className="reward">
-                    <div className="gift" aria-hidden="true">
-                      {activeBiz.rewardIcon}
-                    </div>
-                    <div className="reward-info">
-                      <span className="reward-tag">PRÓXIMO CANJE</span>
-                      <strong>{activeBiz.rewardTitle}</strong>
-                      <small>{activeBiz.rewardCost}</small>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mono window-footnote">
-                  Ejemplo interactivo. Tus puntos reales aparecen al iniciar sesión.
-                </div>
-              </div>
+            <div className="motion-controls" role="group" aria-label="Controles de animación">
+              <button
+                type="button"
+                className="motion-btn"
+                aria-label="Pausar animación"
+                aria-pressed={animationsPaused}
+                onClick={() => setAnimationsPaused(true)}
+              >
+                <Pause className="h-3.5 w-3.5" aria-hidden="true" /> Pausar
+              </button>
+              <button
+                type="button"
+                className="motion-btn"
+                aria-label="Reproducir animación"
+                aria-pressed={!animationsPaused}
+                onClick={() => setAnimationsPaused(false)}
+              >
+                <Play className="h-3.5 w-3.5" aria-hidden="true" /> Reproducir
+              </button>
             </div>
           </div>
         </section>
 
         <div className="ticker" aria-hidden="true">
           <div className="ticker-track">
-            <span>★ SUMA PUNTOS</span>
-            <span>✦ DESCUBRE PREMIOS</span>
-            <span>★ VUELVE A COMPRAR</span>
-            <span>✦ SALDO POR NEGOCIO</span>
-            <span>★ CANJEA CON QR</span>
-            <span>✦ SUMA PUNTOS</span>
-            <span>★ DESCUBRE PREMIOS</span>
-            <span>✦ VUELVE A COMPRAR</span>
+            {[0, 1].map((dup) => (
+              <span className="ticker-group" key={dup}>
+                <span>★ PROGRAMA DE PUNTOS</span>
+                <span>✦ TARJETA DE FIDELIZACIÓN DIGITAL</span>
+                <span>★ CANJE CON QR</span>
+                <span>✦ CAMPAÑAS Y BONOS</span>
+                <span>★ CONTROL DE PRESUPUESTO</span>
+                <span>✦ CLIENTES QUE VUELVEN</span>
+              </span>
+            ))}
           </div>
         </div>
 
-        <section id="como-funciona" className="wrap retro-section">
+        {/* MANUAL DE USO: una pestaña por escena de la animación */}
+        <section id="como-funciona" className="wrap retro-section" aria-labelledby="manual-title">
           <div className="section-head">
-            <div className="kicker">TRES PASOS · CERO COMPLICACIONES</div>
-            <h2>
-              Tu próxima recompensa
-              <br />
-              está más cerca.
-            </h2>
+            <p className="kicker">MANUAL DE USO · 5 PASOS</p>
+            <h2 id="manual-title">¿Cómo funciona {brand}?</h2>
             <p>
-              Usa el QR de tu compra para sumar puntos. Consulta tu saldo y canjea premios desde tu
-              cuenta.
+              Así se ve un ciclo completo de fidelización, desde la venta en caja hasta la entrega
+              del premio. Selecciona cada paso para ver la escena y qué hace cada persona.
             </p>
           </div>
-          <div className="steps">
-            {steps.map((step) => (
-              <article className="step" key={step.num}>
-                <div className="step-bar">
-                  <span className="step-num">{step.num}</span>
-                  <span className="step-xp">{step.xp}</span>
+
+          <div className="manual">
+            <div
+              className="manual-tabs"
+              ref={tabListRef}
+              role="tablist"
+              aria-label="Pasos del proceso"
+            >
+              {manualSteps.map((s, idx) => (
+                <button
+                  key={s.moment}
+                  ref={(el) => {
+                    tabRefs.current[idx] = el;
+                  }}
+                  id={`paso-tab-${s.moment}`}
+                  type="button"
+                  role="tab"
+                  aria-selected={idx === activeStep}
+                  tabIndex={idx === activeStep ? 0 : -1}
+                  className="manual-tab"
+                  onClick={() => goToStep(idx)}
+                  onKeyDown={onTabKeyDown}
+                >
+                  <span className="manual-tab-num">0{s.moment}</span>
+                  <span className="manual-tab-label">{s.tab}</span>
+                </button>
+              ))}
+            </div>
+
+            <div className="manual-body">
+              <div className="manual-stage">
+                <Suspense fallback={<AnimationFallback />}>
+                  <ProcessAnimation
+                    moment={step.moment}
+                    showCaption={false}
+                    paused={animationsPaused}
+                    label={`Escena del paso ${step.moment}: ${step.title}`}
+                  />
+                </Suspense>
+              </div>
+
+              <div className="manual-panels">
+                <div className="manual-panel-stack" ref={panelStackRef}>
+                  {manualSteps.map((s, idx) => (
+                    <article
+                      key={s.moment}
+                      ref={(el) => {
+                        panelRefs.current[idx] = el;
+                      }}
+                      id={`paso-panel-${s.moment}`}
+                      data-step-index={idx}
+                      role="tabpanel"
+                      aria-labelledby={`paso-tab-${s.moment}`}
+                      tabIndex={idx === activeStep ? 0 : undefined}
+                      hidden={idx !== activeStep}
+                      className="manual-panel"
+                    >
+                      <div className="manual-panel-card">
+                        <div className="manual-meta">
+                          <span className="manual-step">
+                            PASO 0{s.moment} DE 0{manualSteps.length}
+                          </span>
+                          <span
+                            className={`actor actor-${s.actor === "Cliente" ? "client" : "staff"}`}
+                          >
+                            {s.actor}
+                          </span>
+                        </div>
+                        <h3>{s.title}</h3>
+                        <p className="manual-summary">{s.summary}</p>
+                        <ul className="check-list">
+                          {s.details.map((d) => (
+                            <li key={d}>
+                              <Check aria-hidden="true" />
+                              <span>{d}</span>
+                            </li>
+                          ))}
+                        </ul>
+                        <p className="manual-tip">
+                          <strong>Consejo:</strong> {s.tip}
+                        </p>
+                      </div>
+                    </article>
+                  ))}
                 </div>
-                <div className="step-icon-box" aria-hidden="true">
-                  {step.icon}
+
+                <div className="manual-nav">
+                  <button
+                    type="button"
+                    className="btn btn-light btn-sm"
+                    onClick={() => goToStep(activeStep - 1)}
+                    disabled={activeStep === 0}
+                  >
+                    <ChevronLeft className="h-4 w-4" aria-hidden="true" /> Anterior
+                  </button>
+                  <span className="manual-dots" aria-hidden="true">
+                    {manualSteps.map((s, idx) => (
+                      <span key={s.moment} className={idx === activeStep ? "on" : ""} />
+                    ))}
+                  </span>
+                  <button
+                    type="button"
+                    className="btn btn-light btn-sm"
+                    onClick={() => goToStep(activeStep + 1)}
+                    disabled={activeStep === lastStep}
+                  >
+                    Siguiente <ChevronRight className="h-4 w-4" aria-hidden="true" />
+                  </button>
                 </div>
-                <h3>{step.title}</h3>
-                <p>{step.text}</p>
-              </article>
-            ))}
+              </div>
+            </div>
           </div>
         </section>
 
-        <section className="dual retro-section" id="clientes">
+        {/* PUESTA EN MARCHA */}
+        <section className="setup retro-section" aria-labelledby="setup-title">
           <div className="wrap">
             <div className="section-head">
-              <div className="kicker">SELECT YOUR MODE · DOS FORMAS DE SUMAR</div>
-              <h2>
-                Una plataforma.
-                <br />
-                Dos experiencias.
-              </h2>
-              <p>Participa como cliente o crea un programa para tu negocio.</p>
+              <p className="kicker">PUESTA EN MARCHA</p>
+              <h2 id="setup-title">¿Cómo crear un programa de puntos para mi negocio?</h2>
+              <p>
+                El asistente de configuración te guía en tres pasos. Lo completas desde el celular y
+                al terminar ya puedes registrar tu primera venta.
+              </p>
             </div>
-            <div className="audience-grid">
-              <article className="audience customer">
-                <div className="audience-top">
-                  <span className="tag">PARA CLIENTES</span>
-                  <span className="player-tag">PLAYER 1</span>
-                </div>
-                <h2>Que cada compra te dé algo más.</h2>
-                <p>
-                  Reúne tus puntos en una sola cuenta. Mantén separado el saldo de cada negocio.
-                </p>
-                <ul className="pixel-list">
-                  <li>Consulta puntos y vencimientos.</li>
-                  <li>Revisa compras y movimientos.</li>
-                  <li>Canjea premios con un QR.</li>
-                </ul>
-                <Link className="btn" to="/login?mode=register">
-                  Crear cuenta de cliente ↗
-                </Link>
-                <div className="decor" aria-hidden="true">
-                  ★
-                </div>
-              </article>
-
-              <article className="audience business" id="negocios">
-                <div className="audience-top">
-                  <span className="tag">PARA NEGOCIOS</span>
-                  <span className="player-tag">PLAYER 2</span>
-                </div>
-                <h2>Haz que quieran volver.</h2>
-                <p>Crea un programa de fidelización con reglas y recompensas propias.</p>
-                <ul className="pixel-list">
-                  <li>Configura puntos y vencimientos.</li>
-                  <li>Publica premios y campañas.</li>
-                  <li>Controla canjes y presupuesto.</li>
-                </ul>
-                <Link className="btn" to="/admin/onboarding?new=1">
-                  Registrar mi negocio ↗
-                </Link>
-                <div className="decor" aria-hidden="true">
-                  ❖
-                </div>
-              </article>
+            <ol className="setup-steps">
+              {setupSteps.map((s, idx) => (
+                <li className="setup-step" key={s.title}>
+                  <span className="setup-num" aria-hidden="true">
+                    {idx + 1}
+                  </span>
+                  <div>
+                    <h3>{s.title}</h3>
+                    <p>{s.text}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+            <div className="center-cta">
+              <Link className="btn btn-red btn-lg" to={REGISTER_BUSINESS}>
+                Registrar mi negocio <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Link>
             </div>
           </div>
         </section>
 
-        <section className="wrap retro-section">
+        {/* FUNCIONES PARA ADMINISTRADORES */}
+        <section id="funciones" className="wrap retro-section" aria-labelledby="features-title">
           <div className="section-head">
-            <div className="kicker">INVENTARIO · TODO EN TU CUENTA</div>
-            <h2>
-              Más control.
-              <br />
-              Mejores recompensas.
-            </h2>
-            <p>Consulta la información de tus programas desde un solo lugar.</p>
+            <p className="kicker">PANEL DE ADMINISTRACIÓN</p>
+            <h2 id="features-title">Todo lo que necesitas para fidelizar clientes</h2>
+            <p>Configura el programa a tu manera y mide si está funcionando.</p>
           </div>
           <div className="features">
-            {features.map((feature) => (
-              <article className="feature" key={feature.title}>
-                <div className="feature-top">
-                  <div className="ico" aria-hidden="true">
-                    {feature.ico}
+            {adminFeatures.map((feature, idx) => {
+              const Icon = featureIcons[idx] ?? Gift;
+              return (
+                <article className="feature" key={feature.title}>
+                  <span className="ico" aria-hidden="true">
+                    <Icon />
+                  </span>
+                  <h3>{feature.title}</h3>
+                  <p>{feature.text}</p>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* COMPARATIVA */}
+        <section className="wrap retro-section" aria-labelledby="compare-title">
+          <div className="section-head">
+            <p className="kicker">PAPEL VS. DIGITAL</p>
+            <h2 id="compare-title">Tarjeta de sellos de papel vs. {brand}</h2>
+          </div>
+          <div className="compare-wrap" tabIndex={0} role="region" aria-labelledby="compare-title">
+            <table className="compare">
+              <caption className="sr-only">
+                Comparativa entre tarjeta de sellos de papel y {brand}
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col">Aspecto</th>
+                  <th scope="col">Tarjeta de papel</th>
+                  <th scope="col">{brand}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {comparisonRows.map((row) => (
+                  <tr key={row.aspect}>
+                    <th scope="row">{row.aspect}</th>
+                    <td className="compare-paper" data-label="Tarjeta de papel">
+                      <X aria-hidden="true" /> <span>{row.paper}</span>
+                    </td>
+                    <td className="compare-app" data-label={brand}>
+                      <Check aria-hidden="true" /> <span>{row.app}</span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        {/* TIPOS DE NEGOCIO */}
+        <section id="negocios" className="wrap retro-section" aria-labelledby="biz-title">
+          <div className="section-head">
+            <p className="kicker">IDEAL PARA</p>
+            <h2 id="biz-title">Fidelización de clientes para negocios locales</h2>
+            <p>
+              Funciona en cualquier negocio con clientes que repiten: el programa de puntos se
+              adapta a tickets pequeños y grandes.
+            </p>
+          </div>
+          <ul className="biz-chips">
+            {businessTypes.map((t) => (
+              <li key={t}>{t}</li>
+            ))}
+          </ul>
+        </section>
+
+        {/* APP DESTACADA */}
+        <section id="app" className="wrap retro-section" aria-labelledby="app-title">
+          <div className="app-band">
+            <div className="app-band-copy">
+              <p className="kicker kicker-light">VENTAJA CLAVE · APP INSTALABLE</p>
+              <h2 id="app-title">Descarga la app y lleva {brand} en el bolsillo</h2>
+              <p className="app-band-lead">
+                Tanto tu equipo en caja como tus clientes pueden instalar {brand} como aplicación en
+                el celular, tablet o computador, directo desde el navegador y sin pasar por tiendas.
+              </p>
+              <ul className="app-perks">
+                <li>
+                  <span className="app-perk-ico" aria-hidden="true">
+                    <Download />
+                  </span>
+                  <div>
+                    <strong>Instalación inmediata</strong>
+                    <span>Sin descargas pesadas ni aprobaciones de tiendas de aplicaciones.</span>
                   </div>
-                  <span className="feature-slot">{feature.slot}</span>
-                </div>
-                <h3>{feature.title}</h3>
-                <p>{feature.text}</p>
-              </article>
+                </li>
+                <li>
+                  <span className="app-perk-ico" aria-hidden="true">
+                    <Zap />
+                  </span>
+                  <div>
+                    <strong>Más rápido en caja</strong>
+                    <span>
+                      Abre el panel con un toque para generar QR y aprobar canjes en segundos.
+                    </span>
+                  </div>
+                </li>
+                <li>
+                  <span className="app-perk-ico" aria-hidden="true">
+                    <Smartphone />
+                  </span>
+                  <div>
+                    <strong>Siempre visible para tu cliente</strong>
+                    <span>
+                      Tu negocio queda en la pantalla de inicio con sus monedas y recompensas.
+                    </span>
+                  </div>
+                </li>
+              </ul>
+            </div>
+            <div className="app-band-panel">
+              <p className="app-band-badge">★ LISTO EN ANDROID, IOS Y PC ★</p>
+              <div className="app-band-actions">
+                <InstallPwaButton className="btn btn-download btn-lg" label="Descargar app" />
+                <Link className="btn btn-light btn-lg" to="/login?mode=register">
+                  Soy cliente: crear cuenta
+                </Link>
+              </div>
+              <p className="app-band-note">
+                Si ya la instalaste en este dispositivo, ábrela desde tu pantalla de inicio.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* PREGUNTAS FRECUENTES (replicadas como FAQPage JSON-LD en index.html) */}
+        <section id="preguntas" className="wrap retro-section" aria-labelledby="faq-title">
+          <div className="section-head">
+            <p className="kicker">PREGUNTAS FRECUENTES</p>
+            <h2 id="faq-title">Resolvemos tus dudas</h2>
+          </div>
+          <div className="faq">
+            {faqs.map((f) => (
+              <details className="faq-item" key={f.question}>
+                <summary>{f.question}</summary>
+                <p>{f.answer}</p>
+              </details>
             ))}
           </div>
         </section>
 
+        {/* CTA FINAL */}
         <section className="wrap retro-section">
           <div className="cta">
-            <div className="cta-screws" aria-hidden="true">
-              <span />
-              <span />
-            </div>
             <div className="cta-coin-wrap" aria-hidden="true">
-              <img src="/loopoint-coin.png" alt="" width={48} height={48} className="cta-coin" />
+              <img src="/fideliapp-coin.png" alt="" width={48} height={48} className="cta-coin" />
             </div>
-            <div className="kicker cta-kicker">► INSERT COIN TO START ◄</div>
-            <h2>Tu próxima compra puede tener premio.</h2>
-            <p>Regístrate como cliente o crea el programa de fidelización de tu negocio.</p>
+            <p className="kicker cta-kicker">► INSERT COIN TO START ◄</p>
+            <h2>Haz que tus clientes quieran volver.</h2>
+            <p>Crea tu programa de fidelización hoy y registra tu primera venta en minutos.</p>
             <div className="hero-buttons cta-buttons">
-              <Link className="btn btn-red" to="/login?mode=register">
-                Crear cuenta
+              <Link className="btn btn-red btn-lg" to={REGISTER_BUSINESS}>
+                Registrar mi negocio
               </Link>
-              <Link className="btn btn-light" to="/admin/onboarding?new=1">
-                Soy un negocio
-              </Link>
+              <InstallPwaButton className="btn btn-download btn-lg" label="Descargar app" />
             </div>
           </div>
         </section>
@@ -629,23 +631,24 @@ export function LandingPage() {
 
       <footer className="retro-footer">
         <div className="wrap footer-inner">
-          <Link className="brand" to="/" aria-label={`${brand}, ir al inicio`}>
-            <span className="brand-mark" aria-hidden="true">
-              <img src="/loopoint-coin.png" alt="" width={24} height={24} className="brand-coin" />
-            </span>
-            <span className="brand-text">
-              {brand.toLowerCase()}
-              <span className="brand-dot">.</span>
-            </span>
-          </Link>
-          <span>© 2026 {brand.toUpperCase()} · SISTEMA DE FIDELIZACIÓN</span>
-          <div className="footer-links">
+          <Brand brand={brand} size={24} />
+          <span>© 2026 {brand.toUpperCase()} · SOFTWARE DE FIDELIZACIÓN DE CLIENTES</span>
+          <nav className="footer-links" aria-label="Enlaces del pie de página">
             <a href="#como-funciona">Cómo funciona</a>
+            <a href="#preguntas">Preguntas</a>
             <Link to="/login">Iniciar sesión</Link>
-            <Link to="/admin/onboarding?new=1">Negocios</Link>
-          </div>
+            <Link to="/login?mode=register">Soy cliente</Link>
+          </nav>
         </div>
       </footer>
+
+      {/* Barra fija inferior en móvil: acceso permanente a descargar la app y registrarse */}
+      <div className="mobile-cta" role="region" aria-label="Acciones rápidas">
+        <InstallPwaButton className="btn btn-download" label="Descargar app" />
+        <Link className="btn btn-red" to={REGISTER_BUSINESS}>
+          Crear programa
+        </Link>
+      </div>
     </div>
   );
 }
