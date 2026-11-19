@@ -81,7 +81,7 @@ describe("BusinessJoinPage", () => {
     renderPage();
 
     expect(screen.getByRole("heading", { name: "Taquería El Fogón" })).toBeInTheDocument();
-    expect(screen.getByText("Programa de loopoints activo")).toBeInTheDocument();
+    expect(screen.getByText("Programa de monedas activo")).toBeInTheDocument();
     const link = screen.getByRole("link", { name: /Entrar y unirme/i });
     expect(link).toHaveAttribute("href", "/login?next=%2Fjoin%2Ftaqueria-el-fogon");
     const loginLink = screen.getByRole("link", { name: /Inicia sesión/i });

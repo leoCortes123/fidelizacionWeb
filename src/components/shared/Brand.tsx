@@ -17,7 +17,7 @@ export function Brand({ className, compact = false, linkTo = "/", name, tagline 
   const content = (
     <span className={cn("flex min-w-0 items-center gap-2.5", className)}>
       <img
-        src="/loopoint-coin.png"
+        src="/fideliapp-coin.png"
         alt=""
         width={40}
         height={40}

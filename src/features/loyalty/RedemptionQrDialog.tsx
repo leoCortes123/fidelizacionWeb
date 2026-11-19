@@ -71,7 +71,7 @@ export function RedemptionQrDialog({
           <DialogDescription>
             Muestra este código al encargado de {businessName ?? "el negocio"} para recibir{" "}
             <strong>{rewardName}</strong>. El encargado lo escanea y confirma la entrega desde
-            Loopoint. No contiene datos personales.
+            Fideliapp. No contiene datos personales.
           </DialogDescription>
         </DialogHeader>
 

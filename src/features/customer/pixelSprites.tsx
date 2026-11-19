@@ -214,40 +214,343 @@ export function PixelItemSvg({
   }
 }
 
+/** Sprites pixel art retro de 32x32 con contorno, sombras y brillos para la tarjeta del negocio. */
+export function PixelBusiness32Svg({
+  sprite,
+  size = 96,
+}: {
+  sprite: PixelSpriteKey;
+  size?: number;
+}): ReactNode {
+  switch (sprite) {
+    case "coffee":
+      return (
+        <svg
+          width={size}
+          height={size}
+          viewBox="0 0 32 32"
+          shapeRendering="crispEdges"
+          aria-hidden="true"
+        >
+          {/* Vapor */}
+          <rect x="11" y="3" width="2" height="2" fill="#fffdf5" />
+          <rect x="12" y="5" width="2" height="2" fill="#eadec5" />
+          <rect x="17" y="2" width="2" height="2" fill="#fffdf5" />
+          <rect x="18" y="4" width="2" height="3" fill="#eadec5" />
+          {/* Contorno taza */}
+          <rect x="6" y="9" width="16" height="1" fill="#1e1c1a" />
+          <rect x="5" y="10" width="1" height="11" fill="#1e1c1a" />
+          <rect x="22" y="10" width="1" height="11" fill="#1e1c1a" />
+          <rect x="6" y="21" width="16" height="1" fill="#1e1c1a" />
+          {/* Asa */}
+          <rect x="23" y="11" width="3" height="1" fill="#1e1c1a" />
+          <rect x="26" y="12" width="1" height="6" fill="#1e1c1a" />
+          <rect x="23" y="18" width="3" height="1" fill="#1e1c1a" />
+          <rect x="23" y="12" width="3" height="6" fill="#fffdf5" />
+          <rect x="23" y="13" width="2" height="4" fill="#467299" />
+          {/* Cuerpo taza */}
+          <rect x="6" y="10" width="16" height="11" fill="#fffdf5" />
+          <rect x="18" y="10" width="4" height="11" fill="#eadec5" />
+          {/* Café y crema */}
+          <rect x="7" y="11" width="14" height="3" fill="#6F4E37" />
+          <rect x="8" y="11" width="6" height="1" fill="#f2a541" />
+          {/* Banda decorativa */}
+          <rect x="6" y="16" width="16" height="3" fill="#e6533f" />
+          <rect x="12" y="16" width="4" height="3" fill="#ffd166" />
+          {/* Plato */}
+          <rect x="3" y="22" width="22" height="1" fill="#1e1c1a" />
+          <rect x="4" y="23" width="20" height="2" fill="#e6533f" />
+          <rect x="5" y="25" width="18" height="1" fill="#1e1c1a" />
+          <rect x="7" y="23" width="10" height="1" fill="#fffdf5" />
+        </svg>
+      );
+    case "pizza":
+      return (
+        <svg
+          width={size}
+          height={size}
+          viewBox="0 0 32 32"
+          shapeRendering="crispEdges"
+          aria-hidden="true"
+        >
+          {/* Contorno superior corteza */}
+          <rect x="6" y="4" width="20" height="1" fill="#1e1c1a" />
+          <rect x="4" y="5" width="2" height="2" fill="#1e1c1a" />
+          <rect x="26" y="5" width="2" height="2" fill="#1e1c1a" />
+          <rect x="5" y="7" width="22" height="1" fill="#1e1c1a" />
+          {/* Corteza */}
+          <rect x="6" y="5" width="20" height="2" fill="#f2a541" />
+          <rect x="7" y="5" width="12" height="1" fill="#ffd166" />
+          {/* Triángulo queso + contorno */}
+          <rect x="6" y="8" width="20" height="3" fill="#ffd166" />
+          <rect x="7" y="11" width="18" height="3" fill="#ffd166" />
+          <rect x="8" y="14" width="16" height="3" fill="#ffd166" />
+          <rect x="10" y="17" width="12" height="3" fill="#ffd166" />
+          <rect x="12" y="20" width="8" height="3" fill="#ffd166" />
+          <rect x="14" y="23" width="4" height="3" fill="#ffd166" />
+          <rect x="15" y="26" width="2" height="2" fill="#ffd166" />
+          {/* Bordes laterales */}
+          <rect x="5" y="8" width="1" height="3" fill="#1e1c1a" />
+          <rect x="26" y="8" width="1" height="3" fill="#1e1c1a" />
+          <rect x="6" y="11" width="1" height="3" fill="#1e1c1a" />
+          <rect x="25" y="11" width="1" height="3" fill="#1e1c1a" />
+          <rect x="7" y="14" width="1" height="3" fill="#1e1c1a" />
+          <rect x="24" y="14" width="1" height="3" fill="#1e1c1a" />
+          <rect x="9" y="17" width="1" height="3" fill="#1e1c1a" />
+          <rect x="22" y="17" width="1" height="3" fill="#1e1c1a" />
+          <rect x="11" y="20" width="1" height="3" fill="#1e1c1a" />
+          <rect x="20" y="20" width="1" height="3" fill="#1e1c1a" />
+          <rect x="13" y="23" width="1" height="3" fill="#1e1c1a" />
+          <rect x="18" y="23" width="1" height="3" fill="#1e1c1a" />
+          <rect x="14" y="26" width="1" height="2" fill="#1e1c1a" />
+          <rect x="17" y="26" width="1" height="2" fill="#1e1c1a" />
+          <rect x="15" y="28" width="2" height="1" fill="#1e1c1a" />
+          {/* Pepperoni y albahaca */}
+          <rect x="9" y="10" width="4" height="3" fill="#e6533f" />
+          <rect x="10" y="10" width="1" height="1" fill="#fffdf5" />
+          <rect x="18" y="11" width="4" height="3" fill="#e6533f" />
+          <rect x="19" y="11" width="1" height="1" fill="#fffdf5" />
+          <rect x="13" y="16" width="4" height="3" fill="#e6533f" />
+          <rect x="15" y="21" width="3" height="2" fill="#e6533f" />
+          <rect x="14" y="10" width="2" height="2" fill="#4e8c57" />
+          <rect x="19" y="16" width="2" height="2" fill="#4e8c57" />
+        </svg>
+      );
+    case "gelato":
+      return (
+        <svg
+          width={size}
+          height={size}
+          viewBox="0 0 32 32"
+          shapeRendering="crispEdges"
+          aria-hidden="true"
+        >
+          {/* Cereza */}
+          <rect x="14" y="2" width="4" height="1" fill="#1e1c1a" />
+          <rect x="13" y="3" width="6" height="3" fill="#e6533f" />
+          <rect x="14" y="3" width="1" height="1" fill="#fffdf5" />
+          <rect x="15" y="1" width="2" height="1" fill="#4e8c57" />
+          {/* Bola superior */}
+          <rect x="10" y="6" width="12" height="1" fill="#1e1c1a" />
+          <rect x="9" y="7" width="14" height="5" fill="#22d3ee" />
+          <rect x="11" y="8" width="3" height="2" fill="#fffdf5" />
+          <rect x="8" y="8" width="1" height="4" fill="#1e1c1a" />
+          <rect x="23" y="8" width="1" height="4" fill="#1e1c1a" />
+          {/* Bola inferior */}
+          <rect x="8" y="12" width="16" height="4" fill="#ffd166" />
+          <rect x="7" y="12" width="1" height="4" fill="#1e1c1a" />
+          <rect x="24" y="12" width="1" height="4" fill="#1e1c1a" />
+          <rect x="8" y="16" width="16" height="1" fill="#1e1c1a" />
+          {/* Cono */}
+          <rect x="9" y="17" width="14" height="3" fill="#f2a541" />
+          <rect x="11" y="20" width="10" height="3" fill="#f2a541" />
+          <rect x="13" y="23" width="6" height="3" fill="#f2a541" />
+          <rect x="14" y="26" width="4" height="3" fill="#d97706" />
+          <rect x="15" y="29" width="2" height="1" fill="#1e1c1a" />
+          {/* Trama waffle */}
+          <rect x="12" y="18" width="2" height="2" fill="#b45309" />
+          <rect x="17" y="18" width="2" height="2" fill="#b45309" />
+          <rect x="14" y="21" width="2" height="2" fill="#b45309" />
+          {/* Contorno cono */}
+          <rect x="8" y="17" width="1" height="3" fill="#1e1c1a" />
+          <rect x="23" y="17" width="1" height="3" fill="#1e1c1a" />
+          <rect x="10" y="20" width="1" height="3" fill="#1e1c1a" />
+          <rect x="21" y="20" width="1" height="3" fill="#1e1c1a" />
+          <rect x="12" y="23" width="1" height="3" fill="#1e1c1a" />
+          <rect x="19" y="23" width="1" height="3" fill="#1e1c1a" />
+          <rect x="13" y="26" width="1" height="3" fill="#1e1c1a" />
+          <rect x="18" y="26" width="1" height="3" fill="#1e1c1a" />
+        </svg>
+      );
+    case "fries":
+      return (
+        <svg
+          width={size}
+          height={size}
+          viewBox="0 0 32 32"
+          shapeRendering="crispEdges"
+          aria-hidden="true"
+        >
+          {/* Papas */}
+          <rect x="8" y="5" width="3" height="10" fill="#ffd166" />
+          <rect x="12" y="3" width="3" height="12" fill="#FFF3B0" />
+          <rect x="16" y="4" width="3" height="11" fill="#ffd166" />
+          <rect x="20" y="6" width="3" height="9" fill="#f2a541" />
+          <rect x="10" y="8" width="2" height="7" fill="#f2a541" />
+          <rect x="19" y="7" width="2" height="8" fill="#FFF3B0" />
+          {/* Caja roja */}
+          <rect x="6" y="14" width="20" height="1" fill="#1e1c1a" />
+          <rect x="5" y="15" width="1" height="12" fill="#1e1c1a" />
+          <rect x="26" y="15" width="1" height="12" fill="#1e1c1a" />
+          <rect x="6" y="27" width="20" height="1" fill="#1e1c1a" />
+          <rect x="6" y="15" width="20" height="12" fill="#e6533f" />
+          <rect x="22" y="15" width="4" height="12" fill="#b83726" />
+          {/* Emblema dorado */}
+          <rect x="11" y="18" width="10" height="6" fill="#ffd166" />
+          <rect x="13" y="20" width="6" height="2" fill="#f2a541" />
+        </svg>
+      );
+    case "shake":
+      return (
+        <svg
+          width={size}
+          height={size}
+          viewBox="0 0 32 32"
+          shapeRendering="crispEdges"
+          aria-hidden="true"
+        >
+          {/* Pitillo */}
+          <rect x="19" y="2" width="2" height="9" fill="#e6533f" />
+          <rect x="21" y="2" width="3" height="2" fill="#fffdf5" />
+          {/* Crema */}
+          <rect x="10" y="7" width="12" height="1" fill="#1e1c1a" />
+          <rect x="9" y="8" width="14" height="4" fill="#fffdf5" />
+          <rect x="14" y="5" width="4" height="2" fill="#e6533f" />
+          {/* Vaso */}
+          <rect x="8" y="12" width="16" height="1" fill="#1e1c1a" />
+          <rect x="8" y="13" width="1" height="13" fill="#1e1c1a" />
+          <rect x="23" y="13" width="1" height="13" fill="#1e1c1a" />
+          <rect x="9" y="13" width="14" height="13" fill="#f2a541" />
+          <rect x="11" y="14" width="3" height="10" fill="#ffd166" />
+          <rect x="19" y="13" width="4" height="13" fill="#d97706" />
+          {/* Base */}
+          <rect x="9" y="26" width="14" height="2" fill="#22d3ee" />
+          <rect x="8" y="28" width="16" height="1" fill="#1e1c1a" />
+        </svg>
+      );
+    case "cookie":
+      return (
+        <svg
+          width={size}
+          height={size}
+          viewBox="0 0 32 32"
+          shapeRendering="crispEdges"
+          aria-hidden="true"
+        >
+          <rect x="10" y="5" width="12" height="1" fill="#1e1c1a" />
+          <rect x="8" y="6" width="16" height="2" fill="#f2a541" />
+          <rect x="6" y="8" width="20" height="4" fill="#f2a541" />
+          <rect x="5" y="12" width="22" height="8" fill="#f2a541" />
+          <rect x="6" y="20" width="20" height="4" fill="#f2a541" />
+          <rect x="8" y="24" width="16" height="2" fill="#d97706" />
+          <rect x="10" y="26" width="12" height="1" fill="#1e1c1a" />
+          {/* Contornos */}
+          <rect x="4" y="12" width="1" height="8" fill="#1e1c1a" />
+          <rect x="27" y="12" width="1" height="8" fill="#1e1c1a" />
+          <rect x="5" y="8" width="1" height="4" fill="#1e1c1a" />
+          <rect x="26" y="8" width="1" height="4" fill="#1e1c1a" />
+          <rect x="5" y="20" width="1" height="4" fill="#1e1c1a" />
+          <rect x="26" y="20" width="1" height="4" fill="#1e1c1a" />
+          {/* Brillo */}
+          <rect x="9" y="8" width="6" height="2" fill="#ffd166" />
+          {/* Chispas */}
+          <rect x="10" y="11" width="3" height="3" fill="#4a2c18" />
+          <rect x="18" y="10" width="3" height="3" fill="#4a2c18" />
+          <rect x="14" y="15" width="3" height="3" fill="#1e1c1a" />
+          <rect x="9" y="18" width="3" height="3" fill="#4a2c18" />
+          <rect x="19" y="18" width="4" height="3" fill="#1e1c1a" />
+        </svg>
+      );
+    case "beer":
+      return (
+        <svg
+          width={size}
+          height={size}
+          viewBox="0 0 32 32"
+          shapeRendering="crispEdges"
+          aria-hidden="true"
+        >
+          {/* Espuma */}
+          <rect x="8" y="5" width="12" height="1" fill="#1e1c1a" />
+          <rect x="7" y="6" width="14" height="5" fill="#fffdf5" />
+          <rect x="6" y="7" width="1" height="4" fill="#1e1c1a" />
+          <rect x="21" y="7" width="1" height="4" fill="#1e1c1a" />
+          {/* Tarro */}
+          <rect x="6" y="11" width="1" height="15" fill="#1e1c1a" />
+          <rect x="21" y="11" width="1" height="15" fill="#1e1c1a" />
+          <rect x="7" y="26" width="14" height="1" fill="#1e1c1a" />
+          <rect x="7" y="11" width="14" height="15" fill="#f2a541" />
+          <rect x="9" y="12" width="3" height="12" fill="#ffd166" />
+          <rect x="17" y="11" width="4" height="15" fill="#d97706" />
+          {/* Asa */}
+          <rect x="22" y="13" width="4" height="1" fill="#1e1c1a" />
+          <rect x="26" y="14" width="1" height="8" fill="#1e1c1a" />
+          <rect x="22" y="22" width="4" height="1" fill="#1e1c1a" />
+          <rect x="22" y="14" width="4" height="8" fill="#eadec5" />
+          <rect x="22" y="16" width="2" height="4" fill="#467299" />
+        </svg>
+      );
+    case "burger":
+    default:
+      return (
+        <svg
+          width={size}
+          height={size}
+          viewBox="0 0 32 32"
+          shapeRendering="crispEdges"
+          aria-hidden="true"
+        >
+          {/* Contorno pan superior */}
+          <rect x="8" y="6" width="16" height="1" fill="#1e1c1a" />
+          <rect x="6" y="7" width="2" height="2" fill="#1e1c1a" />
+          <rect x="24" y="7" width="2" height="2" fill="#1e1c1a" />
+          <rect x="5" y="9" width="1" height="4" fill="#1e1c1a" />
+          <rect x="26" y="9" width="1" height="4" fill="#1e1c1a" />
+          {/* Pan superior */}
+          <rect x="8" y="7" width="16" height="2" fill="#f2a541" />
+          <rect x="6" y="9" width="20" height="4" fill="#f2a541" />
+          <rect x="8" y="8" width="10" height="2" fill="#ffd166" />
+          {/* Semillas de ajonjolí */}
+          <rect x="10" y="9" width="2" height="1" fill="#fffdf5" />
+          <rect x="16" y="8" width="2" height="1" fill="#fffdf5" />
+          <rect x="21" y="10" width="2" height="1" fill="#fffdf5" />
+          {/* Lechuga */}
+          <rect x="4" y="13" width="24" height="2" fill="#4e8c57" />
+          <rect x="6" y="13" width="4" height="1" fill="#70b77e" />
+          <rect x="15" y="14" width="5" height="1" fill="#70b77e" />
+          {/* Queso derretido */}
+          <rect x="5" y="15" width="22" height="2" fill="#ffd166" />
+          <rect x="9" y="17" width="3" height="2" fill="#ffd166" />
+          <rect x="19" y="17" width="3" height="1" fill="#ffd166" />
+          {/* Carne */}
+          <rect x="5" y="17" width="22" height="4" fill="#6D3B28" />
+          <rect x="6" y="18" width="14" height="1" fill="#8b4d35" />
+          <rect x="4" y="17" width="1" height="4" fill="#1e1c1a" />
+          <rect x="27" y="17" width="1" height="4" fill="#1e1c1a" />
+          {/* Pan inferior */}
+          <rect x="6" y="21" width="20" height="4" fill="#f2a541" />
+          <rect x="5" y="21" width="1" height="3" fill="#1e1c1a" />
+          <rect x="26" y="21" width="1" height="3" fill="#1e1c1a" />
+          <rect x="6" y="25" width="20" height="1" fill="#1e1c1a" />
+          <rect x="8" y="23" width="16" height="2" fill="#d97706" />
+        </svg>
+      );
+  }
+}
+
 export function LoopointCoinSvg({ size = 20 }: { size?: number }) {
   return (
-    <svg
+    <img
+      src="/fideliapp-coin.png"
+      alt=""
       width={size}
       height={size}
-      viewBox="0 0 16 16"
-      shapeRendering="crispEdges"
+      className="inline-block shrink-0 select-none object-contain [image-rendering:pixelated]"
       aria-hidden="true"
-    >
-      <rect x="5" y="1" width="6" height="1" fill="#083344" />
-      <rect x="3" y="2" width="10" height="1" fill="#06b6d4" />
-      <rect x="2" y="3" width="12" height="10" fill="#22d3ee" />
-      <rect x="3" y="13" width="10" height="1" fill="#06b6d4" />
-      <rect x="5" y="14" width="6" height="1" fill="#083344" />
-      <rect x="4" y="3" width="8" height="1" fill="#a5f3fc" />
-      <rect x="6" y="5" width="2" height="6" fill="#facc15" />
-      <rect x="6" y="9" width="5" height="2" fill="#facc15" />
-    </svg>
+    />
   );
 }
 
 export function HeroCoinSvg({ size = 15 }: { size?: number }) {
   return (
-    <svg
+    <img
+      src="/fideliapp-coin.png"
+      alt=""
       width={size}
       height={size}
-      viewBox="0 0 16 16"
-      shapeRendering="crispEdges"
+      className="inline-block shrink-0 select-none object-contain [image-rendering:pixelated]"
       aria-hidden="true"
-    >
-      <rect x="3" y="2" width="10" height="12" fill="#22d3ee" />
-      <rect x="6" y="5" width="2" height="6" fill="#facc15" />
-      <rect x="6" y="9" width="5" height="2" fill="#facc15" />
-    </svg>
+    />
   );
 }
 

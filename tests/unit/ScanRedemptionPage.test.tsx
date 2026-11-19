@@ -85,6 +85,7 @@ describe("ScanRedemptionPage", () => {
 
     expect(screen.getByText("Taquería El Fogón")).toBeInTheDocument();
     expect(screen.getByText("Taco gratis")).toBeInTheDocument();
+    expect(screen.getByText("40 monedas")).toBeInTheDocument();
     expect(screen.getByText("@carla")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Confirmar entrega" })).toBeEnabled();
   });

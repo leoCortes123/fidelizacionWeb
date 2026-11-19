@@ -150,7 +150,7 @@ export function BusinessJoinPage() {
             )}
             <div className="mt-4 flex flex-wrap gap-2">
               <Badge variant={data.loyalty_active ? "success" : "warning"}>
-                {data.loyalty_active ? "Programa de loopoints activo" : "Programa en preparación"}
+                {data.loyalty_active ? "Programa de monedas activo" : "Programa en preparación"}
               </Badge>
             </div>
           </div>
@@ -163,8 +163,8 @@ export function BusinessJoinPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Afíliate con tu cuenta para acumular loopoints en tus compras y canjear recompensas.
-              No necesitas tarjeta física.
+              Afíliate con tu cuenta para acumular monedas en tus compras y canjear recompensas. No
+              necesitas tarjeta física.
             </p>
 
             <div className="space-y-2 rounded-none border bg-muted/30 p-3 text-sm">
@@ -233,7 +233,7 @@ export function BusinessJoinPage() {
                 <AlertTitle>El programa aún no está activo</AlertTitle>
                 <AlertDescription>
                   Puedes afiliarte desde ya. Cuando el negocio active su programa, tus compras
-                  empezarán a sumar loopoints automáticamente.
+                  empezarán a sumar monedas automáticamente.
                 </AlertDescription>
               </Alert>
             )}
@@ -258,15 +258,15 @@ export function BusinessJoinPage() {
             )}
 
             <p className="text-center text-xs text-muted-foreground">
-              Al unirte aceptas que el negocio asocie tu nombre y correo a tu cuenta de loopoints.
-              No compartimos datos con otros negocios.
+              Al unirte aceptas que el negocio asocie tu nombre y correo a tu cuenta de monedas. No
+              compartimos datos con otros negocios.
             </p>
           </CardContent>
         </Card>
 
         {!session && (
           <p className="px-4 text-center text-xs text-muted-foreground sm:px-0">
-            ¿Ya tienes loopoints?{" "}
+            ¿Ya tienes monedas?{" "}
             <Link
               to={`${loginHref}&mode=login`}
               className="font-semibold text-primary underline-offset-4 hover:underline"

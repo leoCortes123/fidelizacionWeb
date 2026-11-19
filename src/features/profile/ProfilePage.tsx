@@ -312,7 +312,7 @@ export function ProfilePage() {
             <p className="truncate font-bold">{data.full_name || "Sin nombre"}</p>
             <p className="break-all font-mono text-xs text-muted-foreground">{data.email}</p>
             <p className="mt-1 text-xs text-muted-foreground">
-              {data.business_count} negocio(s) · en Loopoint desde{" "}
+              {data.business_count} negocio(s) · en Fideliapp desde{" "}
               {formatDateBogota(data.created_at)}
             </p>
           </div>
@@ -572,8 +572,8 @@ export function ProfilePage() {
         title="Mi perfil"
         description={
           showBusinessTabs
-            ? "Administra tu cuenta personal y configura la identidad del negocio, las reglas del programa de loopoints y tus datos económicos opcionales."
-            : "Tu nombre, alias público, teléfono y cumpleaños en Loopoint."
+            ? "Administra tu cuenta personal y configura la identidad del negocio, las reglas del programa de monedas y tus datos económicos opcionales."
+            : "Tu nombre, alias público, teléfono y cumpleaños en Fideliapp."
         }
         actions={
           <div className="flex flex-wrap items-center gap-2">

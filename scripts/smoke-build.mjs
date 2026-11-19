@@ -47,8 +47,8 @@ async function waitForServer(timeoutMs = 30_000) {
 }
 
 const routes = [
-  { path: "/", expected: /Cada compra cuenta/i },
-  { path: "/login", expected: /Entra a tus loopoints/i },
+  { path: "/", expected: /Programa de puntos para tu negocio/i },
+  { path: "/login", expected: /Entra a tus monedas/i },
   { path: "/ruta-inexistente", expected: /Página no encontrada/i },
 ];
 

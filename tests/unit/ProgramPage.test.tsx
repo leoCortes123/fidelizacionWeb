@@ -110,18 +110,18 @@ describe("ProgramPage", () => {
     renderPage();
 
     expect(screen.getByText("El programa aún no está configurado")).toBeInTheDocument();
-    expect(screen.getByLabelText("COP por loopoint ganado")).toHaveValue("1000");
-    expect(screen.getByLabelText("Loopoints que equivalen a $1.000")).toHaveValue("100");
-    expect(screen.getByLabelText("Vencimiento de loopoints (días)")).toHaveValue("365");
+    expect(screen.getByLabelText("COP por moneda ganada")).toHaveValue("1000");
+    expect(screen.getByLabelText("Monedas que equivalen a $1.000")).toHaveValue("100");
+    expect(screen.getByLabelText("Vencimiento de monedas (días)")).toHaveValue("365");
     expect(screen.getByLabelText("Vigencia del QR (horas)")).toHaveValue("24");
-    expect(screen.getAllByText(/1 loopoint = \$/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/1 moneda = \$/).length).toBeGreaterThan(0);
   });
 
   it("guarda el programa con la tasa convertida y activo", async () => {
     const user = userEvent.setup();
     renderPage();
 
-    const copInput = screen.getByLabelText("COP por loopoint ganado");
+    const copInput = screen.getByLabelText("COP por moneda ganada");
     await user.clear(copInput);
     await user.type(copInput, "2000");
 
@@ -150,7 +150,7 @@ describe("ProgramPage", () => {
     const user = userEvent.setup();
     renderPage();
 
-    const expiry = screen.getByLabelText("Vencimiento de loopoints (días)");
+    const expiry = screen.getByLabelText("Vencimiento de monedas (días)");
     await user.clear(expiry);
     await user.type(expiry, "0");
     await user.click(screen.getByRole("button", { name: "Guardar programa" }));
@@ -159,11 +159,11 @@ describe("ProgramPage", () => {
     expect(configure).not.toHaveBeenCalled();
   });
 
-  it("interpreta separadores de miles y coma decimal y calcula loopoints según la tasa", async () => {
+  it("interpreta separadores de miles y coma decimal y calcula monedas según la tasa", async () => {
     const user = userEvent.setup();
     renderPage();
 
-    const copInput = screen.getByLabelText("COP por loopoint ganado");
+    const copInput = screen.getByLabelText("COP por moneda ganada");
     await user.clear(copInput);
     await user.type(copInput, "2.000");
 
@@ -172,9 +172,9 @@ describe("ProgramPage", () => {
     await user.type(budget, "2,5");
 
     await user.click(
-      screen.getByRole("button", { name: /Calcular según tasa de presupuesto \(20 loopoints\)/i }),
+      screen.getByRole("button", { name: /Calcular según tasa de presupuesto \(20 monedas\)/i }),
     );
-    expect(screen.getByLabelText("Loopoints que equivalen a $1.000")).toHaveValue("20");
+    expect(screen.getByLabelText("Monedas que equivalen a $1.000")).toHaveValue("20");
 
     await user.click(screen.getByRole("button", { name: "Guardar programa" }));
 
@@ -237,16 +237,16 @@ describe("ProgramPage", () => {
       ),
     ).toBeInTheDocument();
 
-    const copInput = screen.getByLabelText("COP por loopoint ganado");
+    const copInput = screen.getByLabelText("COP por moneda ganada");
     await user.clear(copInput);
     await user.type(copInput, "3000");
 
-    const pointsInput = screen.getByLabelText("Loopoints que equivalen a $1.000");
+    const pointsInput = screen.getByLabelText("Monedas que equivalen a $1.000");
     await user.clear(pointsInput);
     await user.type(pointsInput, "5000");
 
     expect(screen.getAllByText(/0,20/).length).toBeGreaterThan(0);
-    expect(screen.getByText(/0,33 loopoint\(s\)/)).toBeInTheDocument();
+    expect(screen.getByText(/0,33 moneda\(s\)/)).toBeInTheDocument();
 
     await user.clear(pointsInput);
     await user.type(pointsInput, "100");

@@ -491,7 +491,7 @@ export function LoginPage() {
     (nextType === "customer" ? customerRadioRef : adminRadioRef).current?.focus();
   }
 
-  const brand = brandName || "Loopoint";
+  const brand = brandName || "Fideliapp";
   const isBusinessRegister = !hasInvite && mode === "register" && accountType === "admin";
   const inviteUnavailableReason =
     invitePreviewError ?? inviteStatusMessage(invitePreview?.status) ?? null;
@@ -577,7 +577,7 @@ export function LoginPage() {
               <div className="window-bar">
                 <span className="window-title">
                   <span className="window-led" aria-hidden="true" />
-                  {isBusinessRegister ? "PORTAL NEGOCIO" : "LOOPOINT · CLIENTE"}
+                  {isBusinessRegister ? "PORTAL NEGOCIO" : "FIDELIAPP · CLIENTE"}
                 </span>
                 <span className="inline-flex items-center gap-1 text-[9px]">
                   <HeroCoinSvg size={13} />
@@ -600,7 +600,7 @@ export function LoginPage() {
                     <h2 className="font-['Space_Grotesk'] text-2xl font-bold leading-tight tracking-tight text-[var(--ink)] xl:text-[28px]">
                       {isBusinessRegister
                         ? "Convierte cada venta en clientes que vuelven."
-                        : "Cada compra suma loopoints y te acerca a un premio."}
+                        : "Cada compra suma monedas y te acerca a un premio."}
                     </h2>
                     <p className="text-sm leading-relaxed text-[var(--ink-muted)]">
                       {isBusinessRegister
@@ -633,7 +633,7 @@ export function LoginPage() {
                       <div className="grid grid-cols-2 gap-2.5">
                         <div className="retro-stat-chip flex-col items-start gap-1">
                           <span className="retro-stat-key">Regla sugerida</span>
-                          <strong className="text-xs text-[var(--ink)]">1 PTO / $1.000</strong>
+                          <strong className="text-xs text-[var(--ink)]">1 MONEDA / $1.000</strong>
                         </div>
                         <div className="retro-stat-chip flex-col items-start gap-1">
                           <span className="retro-stat-key">Acreditación</span>
@@ -653,7 +653,7 @@ export function LoginPage() {
                               Saldo disponible
                             </p>
                             <p className="font-['Space_Grotesk'] text-lg font-bold tabular-nums text-[var(--ink)]">
-                              1.250 loopoints
+                              1.250 monedas
                             </p>
                           </div>
                         </div>
@@ -665,7 +665,7 @@ export function LoginPage() {
                       <div className="flex items-center justify-between font-['DM_Mono'] text-[11px] font-bold text-[var(--ink-muted)]">
                         <span>Próximo premio: Café gratis</span>
                         <span className="text-[var(--ink)] dark:text-[var(--green-bright)]">
-                          2.000 PTS
+                          2.000 MONEDAS
                         </span>
                       </div>
                     </>
@@ -759,7 +759,7 @@ export function LoginPage() {
                             ? "Inicia sesión para unirte"
                             : "Crea tu cuenta para unirte"
                           : mode === "login"
-                            ? "Entra a tus loopoints"
+                            ? "Entra a tus monedas"
                             : "Crea tu cuenta"}
                       </h1>
                       <p className="text-sm leading-relaxed text-[var(--ink-muted)]">
@@ -892,7 +892,7 @@ export function LoginPage() {
                                 Cliente
                               </span>
                               <span className="text-xs leading-snug text-[var(--ink-muted)]">
-                                Acumula loopoints y canjea premios
+                                Acumula monedas y canjea premios
                               </span>
                             </button>
 

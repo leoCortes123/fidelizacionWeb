@@ -41,7 +41,7 @@ export function PurchaseDetailDialog({
             <ReceiptText className="size-5 text-muted-foreground" aria-hidden="true" />
             Detalle de la venta
           </DialogTitle>
-          <DialogDescription>Líneas, loopoints y datos de la venta.</DialogDescription>
+          <DialogDescription>Líneas, monedas y datos de la venta.</DialogDescription>
         </DialogHeader>
 
         {query.isLoading ? (
@@ -82,7 +82,7 @@ export function PurchaseDetailBody({ detail }: { detail: PurchaseDetail }) {
         <div className="min-w-0 rounded-none border p-3">
           <p className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
             <Package className="size-3.5" aria-hidden="true" />
-            Loopoints
+            Monedas
           </p>
           <p className="mt-1 font-semibold">{formatPoints(purchase.points_awarded)}</p>
         </div>

@@ -241,7 +241,7 @@ test("gestión de recompensas como administrador", async ({ browser }) => {
   await admin.page.getByRole("button", { name: /Nueva recompensa/ }).click();
   const dialog = admin.page.getByRole("dialog");
   await dialog.getByLabel("Nombre").fill("Quesadilla de prueba");
-  await dialog.getByLabel("Loopoints requeridos").fill("15");
+  await dialog.getByLabel("Monedas requeridas").fill("15");
   await dialog.getByRole("button", { name: "Guardar" }).click();
 
   await expect(list.getByText("Quesadilla de prueba")).toBeVisible();
@@ -262,10 +262,10 @@ test("configura programa, carta y recompensas y persiste tras recargar", async (
 
   const { page, context } = await openAs(browser, state, TOKENS.admin, "/admin/program");
 
-  await expect(page.getByRole("heading", { name: /Programa de loopoints/ })).toBeVisible();
+  await expect(page.getByRole("heading", { name: /Programa de monedas/ })).toBeVisible();
   await expect(page.getByText("El programa aún no está configurado")).toBeVisible();
 
-  await page.getByLabel("COP por loopoint ganado").fill("2000");
+  await page.getByLabel("COP por moneda ganada").fill("2000");
   await page.getByLabel("Tasa de presupuesto (%)").fill("2");
   await page.getByLabel("Programa activo").check();
   await page.getByRole("button", { name: "Guardar y activar" }).click();
@@ -293,7 +293,7 @@ test("configura programa, carta y recompensas y persiste tras recargar", async (
   await page.getByRole("button", { name: /Nueva recompensa/ }).click();
   const rewardDialog = page.getByRole("dialog");
   await rewardDialog.getByLabel("Nombre").fill("Quesadilla gratis");
-  await rewardDialog.getByLabel("Loopoints requeridos").fill("30");
+  await rewardDialog.getByLabel("Monedas requeridas").fill("30");
   await rewardDialog.getByRole("combobox", { name: /Producto que se entrega/ }).click();
   await page.getByRole("option", { name: /^Quesadilla/ }).click();
   await rewardDialog.getByRole("button", { name: "Guardar" }).click();
@@ -311,7 +311,7 @@ test("configura programa, carta y recompensas y persiste tras recargar", async (
   await expect(page.getByRole("table").getByText("Quesadilla", { exact: true })).toBeVisible();
   await sidebar.getByRole("link", { name: "Mi perfil", exact: true }).click();
   await page.getByRole("tab", { name: "Programa" }).click();
-  await expect(page.getByLabel("COP por loopoint ganado")).toHaveValue("2000");
+  await expect(page.getByLabel("COP por moneda ganada")).toHaveValue("2000");
   await expect(page.getByLabel("Tasa de presupuesto (%)")).toHaveValue("2");
 
   await context.close();
@@ -383,7 +383,7 @@ test("portal cliente multi-negocio: tarjetas, saldos separados y sin Balance", a
   await customer.page.getByRole("button", { name: "Negocio anterior" }).click();
   await expect(customer.page.getByRole("heading", { name: "Taquería El Fogón" })).toBeVisible();
 
-  await customer.page.getByRole("link", { name: /VER MÁS/i }).click();
+  await customer.page.getByRole("link", { name: /Recompensas y carta/i }).click();
   await expect(customer.page).toHaveURL(/\/customer\/business\/biz-test$/);
   await expect(customer.page.getByTestId("points-balance")).toHaveText("50");
   await expect(customer.page.getByText("Taco individual")).toBeVisible();
@@ -760,15 +760,15 @@ test("admin aprueba, entrega y cancela solicitudes con motivo", async ({ browser
   await carlaRow.getByRole("button", { name: "Confirmar entrega" }).click();
   const deliverDialog = page.getByRole("dialog");
   await deliverDialog.getByRole("button", { name: "Confirmar entrega" }).click();
-  await expect(page.getByText("Entrega confirmada. Loopoints consumidos.")).toBeVisible();
+  await expect(page.getByText("Entrega confirmada. Monedas consumidas.")).toBeVisible();
 
   // Cancelar la solicitud de Diego con motivo obligatorio.
   const diegoRow = page.getByRole("row", { name: /diego@example.test/ });
   await diegoRow.getByRole("button", { name: "Cancelar" }).click();
   const cancelDialog = page.getByRole("dialog");
   await cancelDialog.getByLabel("Motivo de la cancelación").fill("El cliente no se presentó");
-  await cancelDialog.getByRole("button", { name: "Cancelar y devolver loopoints" }).click();
-  await expect(page.getByText("Solicitud cancelada y loopoints devueltos.")).toBeVisible();
+  await cancelDialog.getByRole("button", { name: "Cancelar y devolver monedas" }).click();
+  await expect(page.getByText("Solicitud cancelada y monedas devueltas.")).toBeVisible();
 
   expect(state.redemptionRequests.find((r) => r.id === "red-carla")?.status).toBe("delivered");
   expect(state.redemptionRequests.find((r) => r.id === "red-diego")?.status).toBe("cancelled");
@@ -942,10 +942,10 @@ test("genera una venta con QR, el cliente la reclama y queda auditada", async ({
   await expect(page.getByRole("heading", { name: /^Registrar venta$/ })).toBeVisible();
 
   await page.getByLabel("Importe de la compra (COP)").fill("15500");
-  await expect(page.getByText(/15 loopoints/)).toBeVisible();
+  await expect(page.getByText(/15 monedas/)).toBeVisible();
 
   await page.getByRole("button", { name: /Generar QR de la venta/ }).click();
-  await expect(page.getByText(/Escanéalo para sumar loopoints/i)).toBeVisible();
+  await expect(page.getByText(/Escanéalo para sumar monedas/i)).toBeVisible();
 
   const claimUrl = await page.getByTestId("claim-url").textContent();
   expect(claimUrl).toContain("https://fidelizacion01.vercel.app/claim/");
@@ -959,8 +959,8 @@ test("genera una venta con QR, el cliente la reclama y queda auditada", async ({
   // El cliente escanea el QR y confirma desde su cuenta.
   const customer = await openAs(browser, state, TOKENS.customer, `/claim/${token}`);
   await expect(customer.page.getByRole("heading", { name: "Taquería El Fogón" })).toBeVisible();
-  await customer.page.getByRole("button", { name: /Confirmar y sumar loopoints/ }).click();
-  await expect(customer.page.getByText(/¡Loopoints acreditados!/)).toBeVisible();
+  await customer.page.getByRole("button", { name: /Confirmar y sumar monedas/ }).click();
+  await expect(customer.page.getByText(/¡Monedas acreditadas!/)).toBeVisible();
   await expect.poll(() => state.purchaseCredits["user-customer"]).toBe(15);
   expect(state.purchases[0].status).toBe("claimed");
   await customer.context.close();
@@ -1060,13 +1060,13 @@ test("auditoría legible: etiquetas, detalle formateado y filtros", async ({ bro
   await expect(table.getByText("Ana Admin").first()).toBeVisible();
   await expect(table.getByText("Regina Caja", { exact: true })).toBeVisible();
 
-  // Detalle legible: importes y loopoints formateados; el JSON es opcional.
+  // Detalle legible: importes y monedas formateados; el JSON es opcional.
   await table.getByRole("button", { name: "Ver detalle de Compra registrada" }).click();
   const dialog = page.getByRole("dialog");
   await expect(dialog.getByText("Valor de la compra", { exact: true })).toBeVisible();
   await expect(dialog.getByText(/15\.500/).first()).toBeVisible();
-  await expect(dialog.getByText("Loopoints sumados", { exact: true })).toBeVisible();
-  await expect(dialog.getByText(/15 loopoints/).first()).toBeVisible();
+  await expect(dialog.getByText("Monedas sumadas", { exact: true })).toBeVisible();
+  await expect(dialog.getByText(/15 monedas/).first()).toBeVisible();
   await expect(dialog.getByText("amount_cop")).toHaveCount(0);
   await dialog.getByRole("button", { name: "Ver JSON" }).click();
   await expect(dialog.getByText(/"amount_cop"/)).toBeVisible();
@@ -1149,7 +1149,7 @@ test("auditoría legible en móvil: tarjetas y detalle", async ({ browser }) => 
   const dialog = page.getByRole("dialog");
   await expect(dialog.getByText("Resumen", { exact: true })).toBeVisible();
   await expect(dialog.getByText(/15\.500/).first()).toBeVisible();
-  await expect(dialog.getByText("15 loopoints", { exact: true }).first()).toBeVisible();
+  await expect(dialog.getByText("15 monedas", { exact: true }).first()).toBeVisible();
 
   await context.close();
 });
@@ -1171,7 +1171,7 @@ test("wizard de configuración inicial: tres pasos y activación", async ({ brow
   await page.getByRole("button", { name: /Saltar por ahora/ }).click();
   await expect(page.getByRole("heading", { name: /Paso 3 · Programa y activación/ })).toBeVisible();
 
-  await expect(page.getByLabel("Loopoints para Taco de guisado")).toHaveValue("80");
+  await expect(page.getByLabel("Monedas para Taco de guisado")).toHaveValue("80");
   await page.getByRole("button", { name: /Activar programa/ }).click();
 
   await expect(page).toHaveURL(/\/admin\/dashboard/);
@@ -1199,7 +1199,7 @@ test("dashboard enlaza a completar la configuración si el programa está inacti
   await context.close();
 });
 
-test("crea una campaña y duplica los loopoints de una compra", async ({ browser }) => {
+test("crea una campaña y duplica las monedas de una compra", async ({ browser }) => {
   const state = createFakeState();
   seedBusiness(state);
 
@@ -1208,29 +1208,29 @@ test("crea una campaña y duplica los loopoints de una compra", async ({ browser
   await expect(page.getByRole("heading", { name: /Campañas/ })).toBeVisible();
   await page.getByRole("button", { name: /Nueva campaña/ }).click();
   const dialog = page.getByRole("dialog");
-  await dialog.getByLabel("Nombre").fill("Doble loopoints");
+  await dialog.getByLabel("Nombre").fill("Doble monedas");
   await dialog.getByLabel("Multiplicador").fill("2");
   await dialog.getByRole("button", { name: "Guardar" }).click();
 
   const campaignsTable = page.getByRole("table");
-  await expect(campaignsTable.getByText("Doble loopoints")).toBeVisible();
+  await expect(campaignsTable.getByText("Doble monedas")).toBeVisible();
   await expect(campaignsTable.getByText("En vigencia")).toBeVisible();
   await expect.poll(() => state.campaigns.length).toBe(1);
 
-  // La campaña vigente duplica los loopoints de la venta con QR.
+  // La campaña vigente duplica las monedas de la venta con QR.
   await page.getByRole("link", { name: /Registrar (venta|compra)/ }).click();
   await page.getByLabel("Importe de la compra (COP)").fill("10000");
-  await expect(page.getByText(/10 loopoints/)).toBeVisible();
+  await expect(page.getByText(/10 monedas/)).toBeVisible();
   await page.getByRole("button", { name: /Generar QR de la venta/ }).click();
-  await expect(page.getByText(/Escanéalo para sumar loopoints/i)).toBeVisible();
-  await expect(page.getByText(/20 loopoints estimados/i)).toBeVisible();
+  await expect(page.getByText(/Escanéalo para sumar monedas/i)).toBeVisible();
+  await expect(page.getByText(/20 monedas estimadas/i)).toBeVisible();
 
   const claimUrl = await page.getByTestId("claim-url").textContent();
   const token = claimUrl!.split("/claim/")[1];
 
   const customer = await openAs(browser, state, TOKENS.customer, `/claim/${token}`);
-  await customer.page.getByRole("button", { name: /Confirmar y sumar loopoints/ }).click();
-  await expect(customer.page.getByText(/¡Loopoints acreditados!/)).toBeVisible();
+  await customer.page.getByRole("button", { name: /Confirmar y sumar monedas/ }).click();
+  await expect(customer.page.getByText(/¡Monedas acreditadas!/)).toBeVisible();
   await expect.poll(() => state.purchaseCredits["user-customer"]).toBe(20);
   await customer.context.close();
 
@@ -1246,7 +1246,7 @@ test("guarda un snapshot mensual del panel económico", async ({ browser }) => {
   await page.getByRole("button", { name: /Guardar snapshot del mes/ }).click();
 
   await expect.poll(() => state.budgetSnapshots.length).toBe(1);
-  await expect(page.getByText(/Loopoints \(emitidos \/ canjeados\)/i)).toBeVisible();
+  await expect(page.getByText(/Monedas \(emitidas \/ canjeadas\)/i)).toBeVisible();
 
   await context.close();
 });
@@ -1257,13 +1257,13 @@ test("conserva el borrador de configuración al recargar la página", async ({ b
 
   const { page, context } = await openAs(browser, state, TOKENS.admin, "/admin/program");
 
-  const copInput = page.getByLabel("COP por loopoint ganado");
+  const copInput = page.getByLabel("COP por moneda ganada");
   await copInput.fill("1750");
   await expect(page.getByText("Borrador guardado")).toBeVisible();
 
   await page.reload();
 
-  await expect(page.getByLabel("COP por loopoint ganado")).toHaveValue("1750");
+  await expect(page.getByLabel("COP por moneda ganada")).toHaveValue("1750");
   await expect(page.getByText("Borrador guardado")).toBeVisible();
 
   await context.close();
@@ -1302,12 +1302,12 @@ test("shell móvil: menú fijo, cabecera fija, FAB y modo oscuro persistente", a
   await page.reload();
   await expect(page.locator("html")).toHaveClass(/dark/);
 
-  // La cabecera muestra el nombre del negocio en lugar de Loopoint y permanece fija al hacer scroll en móvil.
+  // La cabecera muestra el nombre del negocio en lugar de Fideliapp y permanece fija al hacer scroll en móvil.
   const header = page.getByTestId("app-header");
   const main = page.locator("#contenido-principal");
   await expect(header).toBeVisible();
   await expect(header).toContainText("Taquería El Fogón");
-  await expect(header).not.toContainText("Loopoint");
+  await expect(header).not.toContainText("Fideliapp");
   await expect(header).not.toHaveClass(/-translate-y-full/);
   await main.evaluate((element) => {
     element.scrollTop = 700;
@@ -1467,7 +1467,7 @@ test("perfil de administrador y menú lateral: Negocio, Programa y Económico en
     .click();
   await admin.page.getByRole("tab", { name: "Programa" }).click();
   await expect(admin.page).toHaveURL(/tab=programa/);
-  await expect(admin.page.getByRole("heading", { name: /Programa de loopoints/i })).toBeVisible();
+  await expect(admin.page.getByRole("heading", { name: /Programa de monedas/i })).toBeVisible();
   await admin.page.reload();
   await expect(admin.page.getByRole("tab", { name: "Programa" })).toHaveAttribute(
     "aria-selected",
@@ -1475,11 +1475,11 @@ test("perfil de administrador y menú lateral: Negocio, Programa y Económico en
   );
 
   // El borrador sobrevive al cambiar de pestaña en Mi perfil.
-  const cop = admin.page.getByLabel(/COP por loopoint ganado/);
+  const cop = admin.page.getByLabel(/COP por moneda ganada/);
   await cop.fill("1250");
   await admin.page.getByRole("tab", { name: "Económico" }).click();
   await admin.page.getByRole("tab", { name: "Programa" }).click();
-  await expect(admin.page.getByLabel(/COP por loopoint ganado/)).toHaveValue("1250");
+  await expect(admin.page.getByLabel(/COP por moneda ganada/)).toHaveValue("1250");
 
   await admin.context.close();
 });
@@ -1497,7 +1497,7 @@ test("perfil móvil de administrador: sin scroll horizontal y pestañas utilizab
   await expect(admin.page.getByRole("heading", { name: "Mi perfil", exact: true })).toBeVisible();
   await admin.page.getByRole("tab", { name: "Programa" }).click();
   await expect(
-    admin.page.getByRole("heading", { name: /Programa de loopoints/i }).first(),
+    admin.page.getByRole("heading", { name: /Programa de monedas/i }).first(),
   ).toBeVisible();
 
   const overflow = await admin.page.evaluate(() => {
@@ -1545,7 +1545,7 @@ test("compra con carta y combos: total, líneas y detalle en ambos portales", as
   await admin.page.getByRole("button", { name: /Generar QR de la venta/ }).click();
   const qrDialog = admin.page.getByRole("dialog", { name: /QR de la venta/i });
   await expect(qrDialog).toBeVisible();
-  await expect(qrDialog.getByText(/Escanéalo para sumar loopoints/)).toBeVisible();
+  await expect(qrDialog.getByText(/Escanéalo para sumar monedas/)).toBeVisible();
 
   await expect.poll(() => state.purchases.length).toBe(1);
   expect(state.purchases[0].amount_cop).toBe(12500);
@@ -1558,8 +1558,8 @@ test("compra con carta y combos: total, líneas y detalle en ambos portales", as
   const token = claimUrl!.split("/claim/")[1];
 
   const customer = await openAs(browser, state, TOKENS.customer, `/claim/${token}`);
-  await customer.page.getByRole("button", { name: /Confirmar y sumar loopoints/ }).click();
-  await expect(customer.page.getByText(/Loopoints acreditados/)).toBeVisible();
+  await customer.page.getByRole("button", { name: /Confirmar y sumar monedas/ }).click();
+  await expect(customer.page.getByText(/Monedas acreditadas/)).toBeVisible();
   await customer.context.close();
 
   // Detalle desde el panel del negocio.
@@ -1582,7 +1582,7 @@ test("compra con carta y combos: total, líneas y detalle en ambos portales", as
 
   // Inicio: métricas reales, sin placeholders.
   const dashboard = await openAs(browser, state, TOKENS.admin, "/admin/dashboard");
-  await expect(dashboard.page.getByText("Loopoints en circulación")).toBeVisible();
+  await expect(dashboard.page.getByText("Monedas en circulación")).toBeVisible();
   await expect(dashboard.page.getByText("Ventas de hoy")).toBeVisible();
   await expect(dashboard.page.getByText(/12\.500/).first()).toBeVisible();
   await expect(dashboard.page.getByText("—", { exact: true })).toHaveCount(0);
@@ -1596,7 +1596,7 @@ test("compra manual: el detalle indica que no hay productos", async ({ browser }
 
   await admin.page.getByLabel("Importe de la compra (COP)").fill("3000");
   await admin.page.getByRole("button", { name: /Generar QR de la venta/ }).click();
-  await expect(admin.page.getByText(/Escanéalo para sumar loopoints/)).toBeVisible();
+  await expect(admin.page.getByText(/Escanéalo para sumar monedas/)).toBeVisible();
 
   await admin.page.goto("/admin/purchases");
   await admin.page.getByRole("button", { name: "Ver detalle" }).first().click();
@@ -1888,7 +1888,7 @@ test("en responsive la carta muestra tarjetas con foto, abre el detalle al selec
     id: "camp-mobile",
     businessId: "biz-test",
     name: "Jueves doble",
-    description: "Duplica tus loopoints los jueves",
+    description: "Duplica tus monedas los jueves",
     multiplier: 2,
     bonusPoints: 15,
     minPurchaseAmount: 10000,
@@ -1904,7 +1904,7 @@ test("en responsive la carta muestra tarjetas con foto, abre el detalle al selec
   await expect(campaignCards).toBeVisible();
   await expect(campaignCards.getByText("Jueves doble")).toBeVisible();
   await expect(campaignCards.getByText("x2")).toBeVisible();
-  await expect(campaignCards.getByText("+15 loopoints")).toBeVisible();
+  await expect(campaignCards.getByText("+15 monedas")).toBeVisible();
   await page.getByRole("button", { name: /Nueva campaña/ }).click();
   const campaignDialog = await assertDialogWithinViewport();
   await campaignDialog.getByRole("button", { name: "Cancelar" }).click();

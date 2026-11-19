@@ -45,7 +45,7 @@ export function CustomerDetailDialog({
             Detalle del cliente
           </DialogTitle>
           <DialogDescription>
-            Datos personales, puntos acumulados e historial de actividad en el negocio.
+            Datos personales, monedas acumuladas e historial de actividad en el negocio.
           </DialogDescription>
         </DialogHeader>
 
@@ -122,12 +122,12 @@ function CustomerDetailContent({ data }: { data: CustomerDetail }) {
 
             <div className="sm:text-right">
               <p className="text-[11px] font-semibold uppercase tracking-wider text-background/60">
-                Puntos acumulados
+                Monedas acumuladas
               </p>
               <p className="font-display text-4xl font-extrabold text-amber-300 leading-none mt-1">
                 {data.points_balance}
               </p>
-              <p className="text-xs text-background/70 mt-1">loopoints acumulados</p>
+              <p className="text-xs text-background/70 mt-1">monedas acumuladas</p>
             </div>
           </div>
 

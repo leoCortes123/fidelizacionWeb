@@ -31,6 +31,7 @@ import { Input } from "@/components/ui/input";
 import { CustomerDetailDialog } from "@/features/loyalty/CustomerDetailDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EmptyState, ErrorState, ListSkeleton } from "@/components/shared/States";
+import { HelpHint } from "@/components/shared/HelpHint";
 import { EntityAvatar } from "@/components/shared/EntityAvatar";
 import { FrequencyBadge, RedemptionRequestStatusBadge } from "@/components/shared/StatusBadge";
 import type { Business, LoyaltyRedemptionWithCustomer } from "@/types";
@@ -174,7 +175,7 @@ function EncargadoRedemptionsSection({ business }: { business: Business }) {
         redemptionId: redemption.id,
         approve: false,
       });
-      toast.success(`Solicitud rechazada. Los loopoints fueron devueltos al cliente.`);
+      toast.success(`Solicitud rechazada. Las monedas fueron devueltas al cliente.`);
       void pending.refetch();
       void approved.refetch();
     } catch (error) {
@@ -191,7 +192,7 @@ function EncargadoRedemptionsSection({ business }: { business: Business }) {
         businessId: business.id,
         redemptionId: redemption.id,
       });
-      toast.success(`Entrega confirmada para ${redemption.reward_name}. Loopoints consumidos.`);
+      toast.success(`Entrega confirmada para ${redemption.reward_name}. Monedas consumidas.`);
       void pending.refetch();
       void approved.refetch();
     } catch (error) {
@@ -213,8 +214,8 @@ function EncargadoRedemptionsSection({ business }: { business: Business }) {
             Solicitudes de recompensa
           </h1>
           <p className="text-sm text-muted-foreground">
-            Aprueba las solicitudes de tus clientes y revisa la lista de clientes con más puntos
-            acumulados.
+            Aprueba las solicitudes de tus clientes y revisa la lista de clientes con más monedas
+            acumuladas.
           </p>
         </div>
 
@@ -336,29 +337,40 @@ function EncargadoRedemptionsSection({ business }: { business: Business }) {
                         </div>
                       </div>
 
-                      {canAct && (
-                        <div className="flex shrink-0 items-center gap-2">
-                          <Button
-                            size="sm"
-                            onClick={() => void handleApprove(redemption)}
-                            loading={acting?.id === redemption.id && acting.action === "approve"}
-                            disabled={acting?.id === redemption.id}
-                          >
-                            <Check className="mr-1.5 size-4" />
-                            Aprobar
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="text-destructive hover:bg-destructive/10"
-                            onClick={() => void handleReject(redemption)}
-                            loading={acting?.id === redemption.id && acting.action === "reject"}
-                            disabled={acting?.id === redemption.id}
-                          >
-                            <X className="mr-1.5 size-4" />
-                            Rechazar
-                          </Button>
+                      {redemption.status === "expired" ? (
+                        <div className="flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground">
+                          <span>Solicitud vencida</span>
+                          <HelpHint
+                            label="Por qué no se puede aprobar esta solicitud vencida"
+                            text="Esta solicitud venció y no es posible aprobarla. Las monedas reservadas fueron devueltas al cliente."
+                          />
                         </div>
+                      ) : (
+                        canAct &&
+                        redemption.status === "pending" && (
+                          <div className="flex shrink-0 items-center gap-2">
+                            <Button
+                              size="sm"
+                              onClick={() => void handleApprove(redemption)}
+                              loading={acting?.id === redemption.id && acting.action === "approve"}
+                              disabled={acting?.id === redemption.id}
+                            >
+                              <Check className="mr-1.5 size-4" />
+                              Aprobar
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-destructive hover:bg-destructive/10"
+                              onClick={() => void handleReject(redemption)}
+                              loading={acting?.id === redemption.id && acting.action === "reject"}
+                              disabled={acting?.id === redemption.id}
+                            >
+                              <X className="mr-1.5 size-4" />
+                              Rechazar
+                            </Button>
+                          </div>
+                        )
                       )}
                     </div>
                   ))}
@@ -447,7 +459,7 @@ function EncargadoRedemptionsSection({ business }: { business: Business }) {
           </Card>
         </TabsContent>
 
-        {/* PESTAÑA 2: CLIENTES POR PUNTOS ACUMULADOS */}
+        {/* PESTAÑA 2: CLIENTES POR MONEDAS ACUMULADAS */}
         <TabsContent value="clientes" className="space-y-4">
           <Card>
             <CardHeader className="pb-3">
@@ -455,10 +467,10 @@ function EncargadoRedemptionsSection({ business }: { business: Business }) {
                 <div>
                   <CardTitle className="text-base font-bold flex items-center gap-2">
                     <Users className="size-4 text-primary" aria-hidden="true" />
-                    Clientes ordenados por puntos acumulados
+                    Clientes ordenados por monedas acumuladas
                   </CardTitle>
                   <CardDescription>
-                    Ranking de clientes del negocio según su saldo actual de loopoints.
+                    Ranking de clientes del negocio según su saldo actual de monedas.
                   </CardDescription>
                 </div>
                 <div className="relative w-full sm:w-64">

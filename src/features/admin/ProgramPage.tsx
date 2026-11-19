@@ -60,9 +60,9 @@ const requiredInteger = (label: string, min: number, max: number) =>
 
 const programSchema = z
   .object({
-    copPerPointUnit: requiredInteger("COP por loopoint", 100, 1_000_000),
-    pointsPerCopUnit: requiredInteger("Loopoints por $1.000", 1, 1_000_000),
-    pointsExpiryDays: requiredInteger("Vencimiento de loopoints", 1, 3650),
+    copPerPointUnit: requiredInteger("COP por moneda", 100, 1_000_000),
+    pointsPerCopUnit: requiredInteger("Monedas por $1.000", 1, 1_000_000),
+    pointsExpiryDays: requiredInteger("Vencimiento de monedas", 1, 3650),
     budgetRatePercent: z
       .union([z.string(), z.number()])
       .transform((value) => (typeof value === "number" ? value : parseProgramDecimal(value)))
@@ -80,7 +80,7 @@ const programSchema = z
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["pointsExpiryDays"],
-        message: "Un programa activo necesita una vigencia de loopoints válida.",
+        message: "Un programa activo necesita una vigencia de monedas válida.",
       });
     }
   });
@@ -124,9 +124,9 @@ export function ProgramPage({ headingAs = "h1" }: { headingAs?: "h1" | "h2" }) {
     <BusinessGate
       headingAs={headingAs}
       title="Sin negocios"
-      description="Elige el negocio cuyo programa de loopoints deseas configurar."
+      description="Elige el negocio cuyo programa de monedas deseas configurar."
       icon={Settings2}
-      emptyDescription="Registra un negocio para configurar su programa de loopoints."
+      emptyDescription="Registra un negocio para configurar su programa de monedas."
     >
       {(business) => <ProgramSection key={business.id} business={business} headingAs={headingAs} />}
     </BusinessGate>
@@ -137,7 +137,7 @@ function ProgramSection({ business, headingAs }: { business: Business; headingAs
   const program = useLoyaltyProgram(business.id);
   const economic = useBusinessEconomicProfile(business.id);
 
-  if (program.isLoading) return <LoadingScreen label="Cargando programa de loopoints…" />;
+  if (program.isLoading) return <LoadingScreen label="Cargando programa de monedas…" />;
   if (program.isError) {
     return <ErrorState error={program.error} onRetry={() => void program.refetch()} />;
   }
@@ -313,12 +313,12 @@ function ProgramForm({
       const result = await expirePoints.mutateAsync({ businessId: business.id });
       if (result.points_expired > 0) {
         toast.success(
-          `Se vencieron ${formatNumber(result.points_expired)} loopoints de ${formatNumber(
+          `Se vencieron ${formatNumber(result.points_expired)} monedas de ${formatNumber(
             result.lots_expired,
           )} lote(s) en ${formatNumber(result.accounts_affected)} cuenta(s).`,
         );
       } else {
-        toast.info("No había loopoints vencidos por procesar.");
+        toast.info("No había monedas vencidas por procesar.");
       }
     } catch (error) {
       toast.error(errorMessage(error));
@@ -329,8 +329,8 @@ function ProgramForm({
     <div className="space-y-4 sm:space-y-5 animate-fade-in">
       <PageHeader
         as={headingAs}
-        title="Programa de loopoints"
-        description="Configura cuántos loopoints acumulan tus clientes por cada compra, cuánto valen al canjearlos y qué parte de tus ventas destinas a premios."
+        title="Programa de monedas"
+        description="Configura cuántas monedas acumulan tus clientes por cada compra, cuánto valen al canjearlas y qué parte de tus ventas destinas a premios."
         actions={
           <div className="flex flex-wrap items-center gap-2">
             {draft.hasDraft && <Badge variant="muted">Borrador guardado</Badge>}
@@ -348,7 +348,7 @@ function ProgramForm({
             <p className="font-semibold">El programa aún no está configurado</p>
             <p className="text-amber-800">
               Hemos cargado valores sugeridos. Revísalos, guárdalos y activa el programa para que
-              tus clientes puedan acumular y canjear loopoints.
+              tus clientes puedan acumular y canjear monedas.
             </p>
           </div>
         </div>
@@ -392,13 +392,13 @@ function ProgramForm({
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field
                   id="cop-per-point"
-                  label="COP por loopoint ganado"
+                  label="COP por moneda ganada"
                   hint={
                     Number.isInteger(copPerPoint) && copPerPoint > 0
-                      ? `¿Cuánto debe comprar un cliente para sumar 1 loopoint? Ahora mismo gana 1 loopoint por cada ${formatCOP(copPerPoint)} elegibles.`
-                      : "¿Cuánto debe comprar un cliente para sumar 1 loopoint? Ejemplo: con 1.000, una compra de $50.000 genera 50 loopoints."
+                      ? `¿Cuánto debe comprar un cliente para sumar 1 moneda? Ahora mismo gana 1 moneda por cada ${formatCOP(copPerPoint)} elegibles.`
+                      : "¿Cuánto debe comprar un cliente para sumar 1 moneda? Ejemplo: con 1.000, una compra de $50.000 genera 50 monedas."
                   }
-                  help="Mientras más bajo sea este valor, más rápido acumulan loopoints tus clientes en caja."
+                  help="Mientras más bajo sea este valor, más rápido acumulan monedas tus clientes en caja."
                   error={errors.copPerPointUnit}
                 >
                   <Input
@@ -412,13 +412,13 @@ function ProgramForm({
                 <div className="space-y-1.5">
                   <Field
                     id="points-per-cop"
-                    label="Loopoints que equivalen a $1.000"
+                    label="Monedas que equivalen a $1.000"
                     hint={
                       validNumbers
-                        ? `Con ${formatNumber(pointsPerThousand)} loopoints para $1.000, cada loopoint equivale a ${formatPointValueCOP(pointValueCop)} al canjear.`
-                        : "Cantidad de loopoints necesarios para cubrir $1.000 en premios."
+                        ? `Con ${formatNumber(pointsPerThousand)} monedas para $1.000, cada moneda equivale a ${formatPointValueCOP(pointValueCop)} al canjear.`
+                        : "Cantidad de monedas necesarias para cubrir $1.000 en premios."
                     }
-                    help="Define cuánto vale cada loopoint al canjear. Puedes ajustarlo manualmente o calcularlo según tu tasa de presupuesto."
+                    help="Define cuánto vale cada moneda al canjear. Puedes ajustarlo manualmente o calcularlo según tu tasa de presupuesto."
                     error={errors.pointsPerCopUnit}
                   >
                     <Input
@@ -439,14 +439,14 @@ function ProgramForm({
                         className="cursor-pointer text-left text-xs font-semibold text-primary underline-offset-2 hover:underline"
                       >
                         Calcular según tasa de presupuesto (
-                        {formatNumber(recommendedPointsPerThousand)} loopoints)
+                        {formatNumber(recommendedPointsPerThousand)} monedas)
                       </button>
                     )}
                 </div>
                 <Field
                   id="points-expiry-days"
-                  label="Vencimiento de loopoints (días)"
-                  hint="Plazo en días antes de que caduquen los loopoints desde la compra que los generó (ej. 365 días = 1 año)."
+                  label="Vencimiento de monedas (días)"
+                  hint="Plazo en días antes de que caduquen las monedas desde la compra que las generó (ej. 365 días = 1 año)."
                   help="Incentiva visitas frecuentes. Cada compra crea un lote con su fecha; al vencer se descuentan primero los más antiguos."
                   error={errors.pointsExpiryDays}
                 >
@@ -533,7 +533,7 @@ function ProgramForm({
                       Simulación rápida en caja
                     </span>
                     <span className="font-mono text-xs font-bold text-primary">
-                      Compra de {formatCOP(50000)} = {formatNumber(examplePurchasePoints)} loopoints
+                      Compra de {formatCOP(50000)} = {formatNumber(examplePurchasePoints)} monedas
                       {validNumbers &&
                         examplePurchaseCostCop !== null &&
                         ` (costo est. ${formatCOP(examplePurchaseCostCop)})`}
@@ -542,15 +542,14 @@ function ProgramForm({
                   {exampleAvgTicketPoints !== null && economic.avgTicket !== null && (
                     <p className="text-xs text-muted-foreground">
                       En tu ticket promedio ({formatCOP(economic.avgTicket)}), el cliente sumaría{" "}
-                      <strong>{formatNumber(exampleAvgTicketPoints)} loopoint(s)</strong> por
-                      visita.
+                      <strong>{formatNumber(exampleAvgTicketPoints)} moneda(s)</strong> por visita.
                     </p>
                   )}
                 </div>
               )}
 
               <div className="space-y-3">
-                <h3 className="text-sm font-semibold">Bonos en loopoints</h3>
+                <h3 className="text-sm font-semibold">Bonos en monedas</h3>
                 <div className="grid gap-4 sm:grid-cols-3">
                   <Field
                     id="first-purchase-bonus"
@@ -589,8 +588,8 @@ function ProgramForm({
                   </Field>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Los bonos suman loopoints extra en hitos clave (primera compra, recurrencia o
-                  referidos), además de los ganados por compra. Usa 0 para desactivarlos.
+                  Los bonos suman monedas extra en hitos clave (primera compra, recurrencia o
+                  referidos), además de las ganadas por compra. Usa 0 para desactivarlos.
                 </p>
               </div>
 
@@ -604,7 +603,7 @@ function ProgramForm({
                 <span className="space-y-1">
                   <span className="block text-sm font-semibold">Programa activo</span>
                   <span className="block text-xs text-muted-foreground">
-                    Al activarlo, tus clientes afiliados podrán acumular loopoints en cada compra y
+                    Al activarlo, tus clientes afiliados podrán acumular monedas en cada compra y
                     solicitar recompensas.
                   </span>
                 </span>
@@ -632,14 +631,14 @@ function ProgramForm({
             <CardContent className="space-y-3 text-sm">
               <SummaryRow
                 label="Acumulación"
-                value={validNumbers ? `1 loopoint por cada ${formatCOP(copPerPoint)}` : "—"}
+                value={validNumbers ? `1 moneda por cada ${formatCOP(copPerPoint)}` : "—"}
               />
               <SummaryRow
                 label="Valor al canjear"
-                value={validNumbers ? `1 loopoint = ${formatPointValueCOP(pointValueCop)}` : "—"}
+                value={validNumbers ? `1 moneda = ${formatPointValueCOP(pointValueCop)}` : "—"}
               />
               <SummaryRow
-                label="Cien loopoints"
+                label="Cien monedas"
                 value={validNumbers ? formatCOP(pointValueCop * 100) : "—"}
               />
               <SummaryRow
@@ -727,13 +726,13 @@ function ProgramForm({
                 <p>
                   El costo estimado de canje ({(estimatedCostRate * 100).toFixed(1)} %) supera el
                   presupuesto declarado ({(budgetRate * 100).toFixed(1)} %). Ajusta la acumulación,
-                  el valor del loopoint o usa el cálculo automático según tu tasa.
+                  el valor de la moneda o usa el cálculo automático según tu tasa.
                 </p>
               </div>
             ) : (
               <p className="px-4 text-xs text-muted-foreground sm:px-0">
-                Con {formatCompactNumber(pointsPer1000Spent)} loopoint(s) por cada $1.000 gastados y
-                un loopoint de {formatPointValueCOP(pointValueCop)}, el costo de canje estimado es{" "}
+                Con {formatCompactNumber(pointsPer1000Spent)} moneda(s) por cada $1.000 gastados y
+                una moneda de {formatPointValueCOP(pointValueCop)}, el costo de canje estimado es{" "}
                 {(estimatedCostRate * 100).toFixed(1)} % de las ventas. Es una estimación comercial,
                 no un costo contable.
               </p>
@@ -744,8 +743,8 @@ function ProgramForm({
               <CardTitle className="text-base">Cómo funciona</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-xs text-muted-foreground">
-              <p>• Los loopoints se acumulan al registrar una compra del cliente.</p>
-              <p>• Al solicitar una recompensa se reservan los loopoints y se emite un QR.</p>
+              <p>• Las monedas se acumulan al registrar una compra del cliente.</p>
+              <p>• Al solicitar una recompensa se reservan las monedas y se emite un QR.</p>
               <p>• El encargado valida el QR, aprueba y confirma la entrega.</p>
               <p>• Cada cambio en esta configuración queda auditado.</p>
             </CardContent>
@@ -755,13 +754,13 @@ function ProgramForm({
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-base">
                 <TimerReset className="size-4 text-muted-foreground" aria-hidden="true" />
-                Vencimiento de loopoints
+                Vencimiento de monedas
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-xs text-muted-foreground">
               <p>
-                Los loopoints vencen por lote desde su emisión, del más antiguo al más nuevo y sin
-                dejar saldo negativo. Un job diario los procesa automáticamente; aquí puedes
+                Las monedas vencen por lote desde su emisión, del más antiguo al más nuevo y sin
+                dejar saldo negativo. Un job diario las procesa automáticamente; aquí puedes
                 ejecutarlo ahora.
               </p>
               <Button

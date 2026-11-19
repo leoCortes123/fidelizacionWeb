@@ -39,9 +39,9 @@ describe("formato de dinero y loopoints", () => {
     expect(pointsPreview(100000, 1000, 20)).toBe(20);
   });
 
-  it("pluraliza loopoints", () => {
-    expect(formatPoints(1)).toContain("1 loopoint");
-    expect(formatPoints(15)).toContain("15 loopoints");
+  it("pluraliza monedas", () => {
+    expect(formatPoints(1)).toContain("1 moneda");
+    expect(formatPoints(15)).toContain("15 monedas");
   });
 
   it("formatea fechas en America/Bogota", () => {

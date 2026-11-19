@@ -528,11 +528,15 @@
   box-shadow: 8px 8px 0 var(--shadow-color);
 }
 
-.business-select-card.slide-right {
+.business-select-card.slide-right,
+.retro32-hero-slide.slide-right,
+.retro32-body-slide.slide-right {
   animation: slideRight 150ms ease;
 }
 
-.business-select-card.slide-left {
+.business-select-card.slide-left,
+.retro32-hero-slide.slide-left,
+.retro32-body-slide.slide-left {
   animation: slideLeft 150ms ease;
 }
 
@@ -710,6 +714,11 @@
 .arcade-arrow-btn:active {
   animation: none;
   transform: translateY(calc(-50% + 2px));
+}
+
+.arcade-arrow-btn:focus-visible {
+  outline: 3px solid var(--red);
+  outline-offset: 2px;
 }
 
 @keyframes arrowBobbing {
@@ -920,6 +929,627 @@
 }
 
 /* =========================================================================
+   TARJETA RETRO PIXEL ART 32x32 (INICIO DEL CLIENTE)
+   ========================================================================= */
+.retro32-card {
+  max-width: 600px;
+}
+
+.retro32-card-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 48px;
+  padding: 10px 14px;
+  background: #1e1c1a;
+  color: #fffdf5;
+  border-bottom: 3px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.retro-customer .retro32-topbar-title {
+  --topbar-title-base-size: clamp(13px, 2.8vw, 18px);
+  --title-fit-scale: 1;
+  flex: 1 1 0%;
+  min-width: 0;
+  font-family: var(--font-pixel);
+  font-size: var(--topbar-title-base-size);
+  line-height: 1.35;
+  color: #fffdf5;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@supports (text-fit: shrink per-line-all 45%) {
+  .retro-customer .retro32-topbar-title {
+    text-fit: shrink per-line-all 45%;
+  }
+}
+
+@supports not (text-fit: shrink per-line-all 45%) {
+  .retro-customer .retro32-topbar-title {
+    font-size: calc(var(--topbar-title-base-size) * var(--title-fit-scale, 1));
+  }
+}
+
+.retro32-status-tag {
+  font-family: var(--font-pixel);
+  font-size: 8px;
+  line-height: 1.2;
+  padding: 4px 7px;
+  background: var(--gold);
+  color: #1e1c1a;
+  border: 2px solid #fffdf5;
+  text-transform: uppercase;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.dark .retro32-status-tag {
+  background: #f2a541;
+  color: #1e1c1a;
+}
+
+.retro32-hero {
+  height: 240px;
+  min-height: 240px;
+  max-height: 240px;
+  flex-shrink: 0;
+}
+
+.retro32-hero::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 60%;
+  background: linear-gradient(to top, rgba(30, 28, 26, 0.72) 0%, rgba(30, 28, 26, 0) 100%);
+  pointer-events: none;
+  z-index: 3;
+}
+
+.retro32-hero-points-bottom {
+  position: absolute;
+  bottom: 10px;
+  left: 14px;
+  right: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  z-index: 15;
+  pointer-events: none;
+}
+
+.retro32-hero-points-bottom img,
+.store-hero-points-top img {
+  filter: drop-shadow(3px 3px 0 #1e1c1a);
+}
+
+.retro32-landing-points-text {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.retro32-landing-points-number {
+  font-family: var(--font-pixel);
+  font-size: clamp(24px, 5vw, 34px);
+  line-height: 1.1;
+  color: #ffd166;
+  text-shadow:
+    2px 2px 0 #1e1c1a,
+    -2px -2px 0 #1e1c1a,
+    2px -2px 0 #1e1c1a,
+    -2px 2px 0 #1e1c1a,
+    0 4px 0 #1e1c1a;
+}
+
+.retro32-landing-points-label {
+  font-family: var(--font-pixel);
+  font-size: clamp(12px, 2.4vw, 15px);
+  line-height: 1.1;
+  color: #fffdf5;
+  text-shadow:
+    2px 2px 0 #1e1c1a,
+    -1px -1px 0 #1e1c1a,
+    1px -1px 0 #1e1c1a,
+    -1px 1px 0 #1e1c1a,
+    0 3px 0 #1e1c1a;
+}
+
+.retro32-hero-slide {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 4;
+}
+
+.retro32-body-slide {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+  min-height: 0;
+}
+
+.retro32-pixel-grid-overlay {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, rgba(30, 28, 26, 0.08) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(30, 28, 26, 0.08) 1px, transparent 1px);
+  background-size: 8px 8px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.retro32-corner {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border: 3px solid #1e1c1a;
+  z-index: 12;
+  pointer-events: none;
+}
+
+.retro32-corner.tl {
+  top: 6px;
+  left: 6px;
+  border-right: none;
+  border-bottom: none;
+}
+
+.retro32-corner.tr {
+  top: 6px;
+  right: 6px;
+  border-left: none;
+  border-bottom: none;
+}
+
+.retro32-corner.bl {
+  bottom: 6px;
+  left: 6px;
+  border-right: none;
+  border-top: none;
+}
+
+.retro32-corner.br {
+  bottom: 6px;
+  right: 6px;
+  border-left: none;
+  border-top: none;
+}
+
+.retro32-sprite-frame {
+  position: relative;
+  z-index: 5;
+  padding: 6px;
+  background: rgba(255, 253, 245, 0.78);
+  border: 3px solid #1e1c1a;
+  box-shadow: 4px 4px 0 #1e1c1a;
+  image-rendering: pixelated;
+}
+
+@media (min-width: 760px) {
+  .retro32-sprite-frame {
+    padding: 10px;
+  }
+}
+
+.retro32-body {
+  overflow-y: auto;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px 14px;
+}
+
+.retro32-rewards-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+  min-height: 0;
+}
+
+.retro32-reward-card {
+  background: var(--paper);
+  border: 3px solid var(--border-color);
+  box-shadow: 4px 4px 0 var(--shadow-color);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: transform 120ms steps(2), box-shadow 120ms steps(2);
+}
+
+.retro32-reward-card:hover {
+  transform: translate(-1px, -2px);
+  box-shadow: 6px 6px 0 var(--shadow-color);
+}
+
+.retro32-reward-card.is-ready {
+  background: var(--cream);
+  border-color: #f2a541;
+  box-shadow: 0 0 0 2px #1e1c1a, 5px 5px 0 #1e1c1a;
+  animation: rewardReadyGlow 1.3s steps(2) infinite;
+}
+
+@keyframes rewardReadyGlow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 2px #1e1c1a, 5px 5px 0 #1e1c1a;
+  }
+  50% {
+    box-shadow: 0 0 0 2px #ffd166, 5px 5px 0 #e6533f;
+  }
+}
+
+.retro32-reward-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.retro32-reward-thumb {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  border: 2px solid #1e1c1a;
+  box-shadow: 2px 2px 0 #1e1c1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  animation: retroIconFloat 1.6s steps(2) infinite;
+}
+
+@keyframes retroIconFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+.retro32-reward-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.retro32-reward-desc {
+  font-family: var(--font-detail);
+  font-size: 12px;
+  line-height: 1.3;
+  color: var(--text-muted);
+  margin: 0;
+  max-width: none;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.retro32-cursor {
+  display: inline-block;
+  color: var(--red);
+  animation: cursorBlink 0.9s steps(2) infinite;
+}
+
+@keyframes cursorBlink {
+  0%,
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  50% {
+    opacity: 0.45;
+    transform: translateX(2px);
+  }
+}
+
+.retro32-reward-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.retro32-reward-name {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.retro32-reward-cost {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--red);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.retro32-xp-track {
+  height: 16px;
+  background: var(--progress-bg);
+  border: 3px solid var(--border-color);
+  box-shadow: inset 2px 2px 0 rgba(30, 28, 26, 0.14);
+}
+
+.retro32-xp-fill {
+  height: 100%;
+  background: var(--green);
+}
+
+.retro32-xp-fill.ready {
+  background: #f2a541;
+}
+
+.retro32-reward-status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.retro32-reward-status {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.retro32-reward-status.ready {
+  color: var(--red);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.retro32-reward-pct {
+  font-family: var(--font-pixel);
+  font-size: 10px;
+  color: var(--ink);
+  flex-shrink: 0;
+}
+
+.retro32-meta-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.retro-customer .retro32-meta-value {
+  font-family: var(--font-detail);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  max-width: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.retro32-card-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.retro32-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+
+.retro32-dot {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.retro32-dot::after {
+  content: "";
+  width: 10px;
+  height: 10px;
+  background: var(--paper-deep);
+  border: 2px solid var(--border-color);
+  transition: transform 100ms ease, background-color 120ms ease;
+}
+
+.retro32-dot.active::after {
+  background: var(--red);
+  transform: scale(1.2);
+}
+
+.retro32-dot:focus-visible {
+  outline: 3px solid var(--red);
+  outline-offset: 1px;
+}
+
+@media (max-width: 768px) {
+  .retro32-dot {
+    width: 36px;
+    height: 44px;
+  }
+}
+
+.retro-customer .retro32-cta-btn {
+  padding: 12px 16px;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.store-hero-stage {
+  height: 230px;
+  min-height: 230px;
+  max-height: 230px;
+  flex-shrink: 0;
+  border-bottom: none;
+}
+
+.store-hero-points-top {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 15;
+  pointer-events: none;
+}
+
+.store-landing-points-number {
+  font-size: clamp(20px, 4vw, 28px);
+}
+
+.store-hero-stage::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 48%;
+  background: linear-gradient(to top, rgba(30, 28, 26, 0.65) 0%, rgba(30, 28, 26, 0) 100%);
+  pointer-events: none;
+  z-index: 3;
+}
+
+.store-name-overlay {
+  bottom: 10px;
+  left: 12px;
+  right: 12px;
+}
+
+.retro-customer .store-biz-title {
+  --store-title-base-size: clamp(11px, 2.2vw, 15px);
+  --title-fit-scale: 1;
+  display: block;
+  width: 100%;
+  min-width: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: var(--store-title-base-size);
+  line-height: 1.3;
+  color: #fffdf5;
+  text-shadow:
+    2px 2px 0 #1e1c1a,
+    -1px -1px 0 #1e1c1a,
+    1px -1px 0 #1e1c1a,
+    -1px 1px 0 #1e1c1a,
+    0 3px 0 #1e1c1a;
+}
+
+@supports (text-fit: shrink per-line-all 45%) {
+  .retro-customer .store-biz-title {
+    text-fit: shrink per-line-all 45%;
+  }
+}
+
+@supports not (text-fit: shrink per-line-all 45%) {
+  .retro-customer .store-biz-title {
+    font-size: calc(var(--store-title-base-size) * var(--title-fit-scale, 1));
+  }
+}
+
+.store-info-topbar-btn {
+  padding: 7px 12px;
+  font-size: 11px;
+}
+
+/* Carrusel horizontal estilo menú de videojuego para Recompensas y Carta */
+.items-carousel {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 14px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  padding: 6px 24px 10px 4px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.items-carousel .item-pixel-card {
+  flex: 0 0 80%;
+  max-width: 300px;
+  height: 100%;
+  scroll-snap-align: start;
+  transition: transform 120ms steps(2), box-shadow 120ms steps(2), border-color 120ms ease;
+}
+
+.items-carousel .item-card-image {
+  flex: 1 1 55%;
+  min-height: 120px;
+  height: auto;
+}
+
+.items-carousel .item-card-body {
+  flex: 0 0 auto;
+}
+
+@media (min-width: 640px) {
+  .items-carousel .item-pixel-card {
+    flex: 0 0 280px;
+    max-width: 280px;
+  }
+}
+
+.items-carousel .item-pixel-card:hover,
+.items-carousel .item-pixel-card:focus-visible {
+  transform: translate(-2px, -3px);
+  box-shadow: 7px 7px 0 var(--shadow-color);
+}
+
+.items-carousel .item-pixel-card.is-ready {
+  border-color: #f2a541;
+  box-shadow: 0 0 0 2px #1e1c1a, 6px 6px 0 #1e1c1a;
+  animation: rewardReadyGlow 1.3s steps(2) infinite;
+}
+
+.items-carousel .item-pixel-card:hover .item-card-image svg,
+.items-carousel .item-pixel-card.is-ready .item-card-image svg {
+  animation: retroIconFloat 1.2s steps(2) infinite;
+}
+
+/* =========================================================================
    VISTA 2: PANTALLA DE DETALLE DEL NEGOCIO (ESTILO PUBLICADO)
    ========================================================================= */
 .store-topbar-nav {
@@ -947,12 +1577,6 @@
   overflow: hidden;
   border: 4px solid var(--border-color);
   box-shadow: 6px 6px 0 var(--shadow-color);
-}
-
-.store-hero-stage {
-  height: clamp(98px, 19dvh, 140px);
-  min-height: 98px;
-  max-height: 140px;
 }
 
 .store-card-desc-panel {
@@ -1053,7 +1677,8 @@
 }
 
 .store-tab-panel.active {
-  display: block;
+  display: flex;
+  flex-direction: column;
 }
 
 .items-grid {
@@ -1850,7 +2475,22 @@
   .retro-customer .retro-btn,
   .retro-customer .retro-progress span,
   .sprite-bobbing,
-  .arcade-arrow-btn {
+  .arcade-arrow-btn,
+  .view-section.active,
+  .business-select-card.slide-right,
+  .business-select-card.slide-left,
+  .retro32-hero-slide.slide-right,
+    .retro32-hero-slide.slide-left,
+  .retro32-body-slide.slide-right,
+  .retro32-body-slide.slide-left,
+  .retro32-dot::after,
+  .retro32-reward-card,
+  .retro32-reward-card.is-ready,
+  .retro32-reward-thumb,
+  .retro32-cursor,
+  .items-carousel .item-pixel-card,
+  .items-carousel .item-pixel-card.is-ready,
+  .items-carousel .item-card-image svg {
     transition: none;
     animation: none;
   }
@@ -1897,6 +2537,12 @@
     max-height: 255px;
   }
 
+  .retro32-hero {
+    height: 265px;
+    min-height: 265px;
+    max-height: 265px;
+  }
+
   .card-body-content {
     padding: 18px 22px 20px;
     gap: 14px;
@@ -1937,7 +2583,7 @@
 
   .store-desktop-layout {
     display: grid;
-    grid-template-columns: 350px minmax(0, 1fr);
+    grid-template-columns: 400px minmax(0, 1fr);
     grid-template-rows: minmax(0, 1fr);
     gap: 18px;
     align-items: stretch;
@@ -1950,9 +2596,11 @@
   }
 
   .store-hero-stage {
-    height: 180px;
-    min-height: 180px;
-    max-height: 180px;
+    flex: 1;
+    height: auto;
+    min-height: 300px;
+    max-height: none;
+    border-bottom: none;
   }
 
   .store-card-desc-panel {
@@ -1995,7 +2643,7 @@
     line-height: 1.5;
   }
 
-  .retro-customer h1,
+  .retro-customer h1:not(.retro32-topbar-title):not(.store-biz-title),
   .retro-customer .login-card-title {
     font-size: 24px;
     line-height: 1.2;

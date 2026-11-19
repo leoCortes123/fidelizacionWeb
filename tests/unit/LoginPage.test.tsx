@@ -58,7 +58,7 @@ describe("LoginPage", () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByText(/Entra a tus loopoints/i)).toBeInTheDocument();
+    expect(screen.getByText(/Entra a tus monedas/i)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /continuar con google/i }));
 
     expect(auth.signInWithGoogle).toHaveBeenCalledWith("/claim/token-123");

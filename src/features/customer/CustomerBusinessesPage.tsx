@@ -1,9 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Building2, Link2 } from "lucide-react";
+import { ArrowRight, Building2, Gift, Link2 } from "lucide-react";
 import { useAuth } from "@/features/auth/AuthProvider";
 import {
-  useBusinessPublic,
   useCustomerBusinessesClosestRewards,
   useCustomerBusinessesSummary,
 } from "@/features/loyalty/hooks";
@@ -13,15 +12,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { EmptyState, ErrorState, CardSkeleton } from "@/components/shared/States";
-import type { LoyaltyRewardAvailable } from "@/types";
 import {
   ArcadeArrowLeftSvg,
   ArcadeArrowRightSvg,
   getBusinessStageVisual,
   getRewardVisual,
   HeroCoinSvg,
+  PixelBusiness32Svg,
   PixelItemSvg,
 } from "./pixelSprites";
+import { useFitSingleLineTitle } from "./useFitSingleLineTitle";
 
 const SLUG_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
@@ -42,10 +42,9 @@ export function CustomerBusinessesPage() {
   const [invitationError, setInvitationError] = useState<string | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [slideDir, setSlideDir] = useState<"right" | "left">("right");
-  const [selectedReward, setSelectedReward] = useState<{
-    reward: LoyaltyRewardAvailable;
-    index: number;
-  } | null>(null);
+  const [failedLogoUrl, setFailedLogoUrl] = useState<string | null>(null);
+  const topbarRef = useRef<HTMLDivElement | null>(null);
+  const titleRef = useRef<HTMLHeadingElement | null>(null);
 
   const rows = summary.data ?? [];
   const closest = useCustomerBusinessesClosestRewards(rows, user?.id ?? "");
@@ -53,17 +52,21 @@ export function CustomerBusinessesPage() {
 
   const safeIndex = rows.length > 0 ? currentIndex % rows.length : 0;
   const activeBiz = rows[safeIndex] ?? null;
-  const publicBiz = useBusinessPublic(activeBiz?.slug ?? "");
+
+  useFitSingleLineTitle(titleRef, topbarRef, [
+    activeBiz?.business_id,
+    activeBiz?.name,
+    activeBiz?.loyalty_active,
+    activeBiz?.is_frequent,
+    activeBiz?.is_frequent_active,
+  ]);
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
-      if (selectedReward) {
-        if (event.key === "Escape") {
-          setSelectedReward(null);
-        }
+      if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
         return;
       }
-      if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) {
+      if (document.querySelector('[role="dialog"], [role="menu"].open')) {
         return;
       }
       const target = event.target as HTMLElement | null;
@@ -87,7 +90,7 @@ export function CustomerBusinessesPage() {
     }
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [rows.length, selectedReward]);
+  }, [rows.length]);
 
   function openInvitation(event: React.FormEvent) {
     event.preventDefault();
@@ -137,7 +140,7 @@ export function CustomerBusinessesPage() {
         <div className="my-auto space-y-4 py-2">
           <EmptyState
             title="Aún no participas en ningún negocio"
-            description="Escanea el QR de invitación del negocio o abre su enlace para empezar a sumar loopoints."
+            description="Escanea el QR de invitación del negocio o abre su enlace para empezar a sumar monedas."
             icon={Building2}
             className="pixel-box"
           />
@@ -148,7 +151,7 @@ export function CustomerBusinessesPage() {
                   Enlace o código del negocio
                 </Label>
                 <p className="font-mono text-xs text-[var(--text-muted)]">
-                  Ejemplo: https://loopoint.app/join/mi-negocio
+                  Ejemplo: https://fideliapp.app/join/mi-negocio
                 </p>
               </div>
               <form onSubmit={openInvitation} className="flex flex-col gap-2 sm:flex-row">
@@ -186,118 +189,118 @@ export function CustomerBusinessesPage() {
   }
 
   const stageVisual = getBusinessStageVisual(activeBiz.name, activeBiz.slug, safeIndex);
-  const categoryBadge = !activeBiz.loyalty_active
+  const statusBadge = !activeBiz.loyalty_active
     ? "PROGRAMA INACTIVO"
     : activeBiz.is_frequent_active
       ? "FRECUENTE ACTIVO"
       : activeBiz.is_frequent
         ? "FRECUENTE"
-        : stageVisual.category;
+        : null;
+  const showLogoImg = Boolean(activeBiz.logo_url && activeBiz.logo_url !== failedLogoUrl);
 
   const bizRewards = closest.rewardsByBusinessId.get(activeBiz.business_id) ?? [];
-  const threeRewards = bizRewards.slice(0, 3);
-
-  const defaultBio = !activeBiz.loyalty_active
-    ? `Programa temporalmente inactivo en ${activeBiz.name} (@${activeBiz.slug}).`
-    : activeBiz.ready_rewards > 0
-      ? `Tienes ${activeBiz.ready_rewards} ${activeBiz.ready_rewards === 1 ? "recompensa lista" : "recompensas listas"} para reclamar en ${activeBiz.name} (@${activeBiz.slug}).`
-      : `Acumula loopoints con cada compra en ${activeBiz.name} (@${activeBiz.slug}) y canjéalos por recompensas del programa.`;
-  const bizDescription = publicBiz.data?.description?.trim() || defaultBio;
-
-  const modalVisual = selectedReward
-    ? getRewardVisual(selectedReward.reward.name, selectedReward.index)
-    : null;
+  const featuredRewards = bizRewards.slice(0, 2);
 
   return (
-    <>
-      <section className="view-section active" id="viewSelector" aria-label="Negocios afiliados">
-        <div className="arcade-stage-wrapper">
-          <article
-            key={activeBiz.business_id}
-            className={cn(
-              "pixel-box business-select-card",
-              slideDir === "right" ? "slide-right" : "slide-left",
+    <section className="view-section active" id="viewSelector" aria-label="Negocios afiliados">
+      <div className="arcade-stage-wrapper">
+        <article className="pixel-box business-select-card retro32-card" id="businessSelectCard">
+          {/* Barra superior con el nombre grande del negocio y badge de estado opcional */}
+          <div className="retro32-card-topbar" ref={topbarRef}>
+            <h1 className="retro32-topbar-title" id="cardBizTitle" ref={titleRef}>
+              {activeBiz.name}
+            </h1>
+            {statusBadge && (
+              <span className="retro32-status-tag" id="cardCategoryBadge">
+                {statusBadge}
+              </span>
             )}
-            id="businessSelectCard"
+          </div>
+
+          {/* Escenario Pixel Art 32x32 más grande con monedas arriba y sprite/logo */}
+          <div
+            className="card-hero-stage retro32-hero"
+            id="cardHeroStage"
+            style={{ background: stageVisual.stageBg }}
           >
-            {/* 1. Imagen del negocio con Puntos arriba-izq, Categoría arriba-der, Flechas laterales y Nombre abajo-izq */}
+            <div className="retro32-pixel-grid-overlay" aria-hidden="true" />
+            <span className="retro32-corner tl" aria-hidden="true" />
+            <span className="retro32-corner tr" aria-hidden="true" />
+            <span className="retro32-corner bl" aria-hidden="true" />
+            <span className="retro32-corner br" aria-hidden="true" />
+
             <div
-              className="card-hero-stage"
-              id="cardHeroStage"
-              style={{ background: stageVisual.stageBg }}
+              key={activeBiz.business_id}
+              className={cn(
+                "retro32-hero-slide",
+                slideDir === "right" ? "slide-right" : "slide-left",
+              )}
             >
-              {/* Fondo de imagen completo o sprite pixel art */}
-              {activeBiz.logo_url ? (
+              {showLogoImg && activeBiz.logo_url ? (
                 <img
                   src={activeBiz.logo_url}
                   alt={`Logo de ${activeBiz.name}`}
                   className="card-hero-bg-img"
+                  onError={() => setFailedLogoUrl(activeBiz.logo_url)}
                 />
               ) : (
-                <div className="sprite-bobbing" id="cardSpriteBox">
-                  <PixelItemSvg sprite={stageVisual.spriteKey} size={80} />
+                <div className="sprite-bobbing retro32-sprite-frame" id="cardSpriteBox">
+                  <PixelBusiness32Svg sprite={stageVisual.spriteKey} size={128} />
                 </div>
               )}
-
-              {/* Arriba a la izquierda: Total de puntos en el negocio */}
-              <div className="hero-points-top-left">
-                <HeroCoinSvg size={15} />
-                <span className="hero-points-value" id="cardPointsNumber">
-                  {formatNumber(activeBiz.balance)}
-                </span>
-                <span className="hero-points-label">PTS</span>
-                <span className="sr-only" data-testid="total-points-balance">
-                  {formatNumber(total)}
-                </span>
-              </div>
-
-              {/* Arriba a la derecha: Letrero con el tipo/estado de negocio */}
-              <span className="hero-category-top-right" id="cardCategoryBadge">
-                {categoryBadge}
-              </span>
-
-              {/* Flecha Flotante Izquierda */}
-              <button
-                type="button"
-                className="arcade-arrow-btn arcade-arrow-left"
-                id="btnPrevBiz"
-                aria-label="Negocio anterior"
-                title="Negocio anterior"
-                onClick={handlePrevBiz}
-              >
-                <ArcadeArrowLeftSvg />
-              </button>
-
-              {/* Flecha Flotante Derecha */}
-              <button
-                type="button"
-                className="arcade-arrow-btn arcade-arrow-right"
-                id="btnNextBiz"
-                aria-label="Siguiente negocio"
-                title="Siguiente negocio"
-                onClick={handleNextBiz}
-              >
-                <ArcadeArrowRightSvg />
-              </button>
-
-              {/* Abajo a la izquierda: Nombre del negocio */}
-              <div className="hero-name-bottom-left">
-                <h1 className="card-biz-title" id="cardBizTitle">
-                  {activeBiz.name}
-                </h1>
-              </div>
             </div>
 
-            {/* 2. Cuerpo debajo de la imagen: Descripción + 3 recompensas + Botón VER MÁS */}
-            <div className="card-body-content">
-              <p className="card-biz-description" id="cardBizDescription">
-                {bizDescription}
-              </p>
+            {/* Abajo de la imagen: Monedas estilo tarjeta de la landing (sin recuadro negro/rojo) */}
+            <div className="retro32-hero-points-bottom">
+              <HeroCoinSvg size={40} />
+              <div className="retro32-landing-points-text">
+                <span className="retro32-landing-points-number" id="cardPointsNumber">
+                  {formatNumber(activeBiz.balance)}
+                </span>
+                <span className="retro32-landing-points-label">MONEDAS</span>
+              </div>
+              <span className="sr-only" data-testid="total-points-balance">
+                {formatNumber(total)}
+              </span>
+            </div>
 
-              {/* 3 recompensas del negocio */}
-              <div className="home-rewards-list" id="homeRewardsList">
-                {threeRewards.length > 0 ? (
-                  threeRewards.map((reward, idx) => {
+            {/* Flecha Flotante Izquierda */}
+            <button
+              type="button"
+              className="arcade-arrow-btn arcade-arrow-left"
+              id="btnPrevBiz"
+              aria-label="Negocio anterior"
+              title="Negocio anterior"
+              onClick={handlePrevBiz}
+            >
+              <ArcadeArrowLeftSvg />
+            </button>
+
+            {/* Flecha Flotante Derecha */}
+            <button
+              type="button"
+              className="arcade-arrow-btn arcade-arrow-right"
+              id="btnNextBiz"
+              aria-label="Siguiente negocio"
+              title="Siguiente negocio"
+              onClick={handleNextBiz}
+            >
+              <ArcadeArrowRightSvg />
+            </button>
+          </div>
+
+          {/* Cuerpo: Monedas + Progreso + Información del negocio + Botón Recompensas y carta */}
+          <div className="card-body-content retro32-body">
+            <div
+              key={activeBiz.business_id}
+              className={cn(
+                "retro32-body-slide",
+                slideDir === "right" ? "slide-right" : "slide-left",
+              )}
+            >
+              <div className="retro32-rewards-panel" id="homeRewardsList">
+                {featuredRewards.length > 0 ? (
+                  featuredRewards.map((reward, idx) => {
                     const pct =
                       reward.points_required > 0
                         ? Math.min(
@@ -305,144 +308,126 @@ export function CustomerBusinessesPage() {
                             Math.round((activeBiz.balance / reward.points_required) * 100),
                           )
                         : 0;
+                    const remaining = Math.max(0, reward.points_required - activeBiz.balance);
                     const visual = getRewardVisual(reward.name, idx);
                     return (
-                      <button
-                        type="button"
+                      <div
                         key={reward.id}
-                        className="home-reward-item"
-                        title={`Ver detalle de ${reward.name}`}
-                        onClick={() => setSelectedReward({ reward, index: idx })}
+                        className={cn("retro32-reward-card", reward.can_redeem && "is-ready")}
                       >
-                        <div className="home-reward-thumb" style={{ background: visual.bg }}>
-                          {reward.image_url ? (
-                            <img
-                              src={reward.image_url}
-                              alt={reward.name}
-                              className="size-full object-cover"
-                            />
-                          ) : (
-                            <PixelItemSvg sprite={visual.spriteKey} size={48} />
-                          )}
-                        </div>
-                        <div className="home-reward-info">
-                          <div className="home-reward-top">
-                            <span className="home-reward-title">{reward.name}</span>
-                            <span className="home-reward-pts">{reward.points_required} PTS</span>
+                        <div className="retro32-reward-top">
+                          <div className="retro32-reward-thumb" style={{ background: visual.bg }}>
+                            {reward.image_url ? (
+                              <img
+                                src={reward.image_url}
+                                alt={reward.name}
+                                className="size-full object-cover"
+                              />
+                            ) : (
+                              <PixelItemSvg sprite={visual.spriteKey} size={38} />
+                            )}
                           </div>
-                          <p className="home-reward-desc">
-                            {reward.description || "Recompensa disponible en tienda"}
-                          </p>
-                          <div className="xp-bar-track" aria-hidden="true">
-                            <div
-                              className={cn("xp-bar-fill", pct >= 100 && "ready")}
-                              style={{ width: `${pct}%` }}
-                            />
+
+                          <div className="retro32-reward-main">
+                            <div className="retro32-reward-header">
+                              <span className="retro32-reward-name">{reward.name}</span>
+                              <span className="retro32-reward-cost">
+                                {formatNumber(reward.points_required)} MONEDAS
+                              </span>
+                            </div>
+                            <p className="retro32-reward-desc">
+                              {reward.description?.trim() || "Recompensa disponible en tienda"}
+                              {reward.min_purchase_amount > 0
+                                ? ` · Compra mín. ${formatCOP(reward.min_purchase_amount)}`
+                                : ""}
+                            </p>
                           </div>
                         </div>
-                      </button>
+
+                        <div
+                          className="xp-bar-track retro32-xp-track"
+                          role="progressbar"
+                          aria-label={`Avance para ${reward.name}`}
+                          aria-valuenow={pct}
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                        >
+                          <div
+                            className={cn("xp-bar-fill retro32-xp-fill", pct >= 100 && "ready")}
+                            style={{ width: `${pct}%` }}
+                          />
+                        </div>
+
+                        <div className="retro32-reward-status-row">
+                          <span
+                            className={cn("retro32-reward-status", reward.can_redeem && "ready")}
+                          >
+                            {reward.can_redeem ? (
+                              <>
+                                <span className="retro32-cursor" aria-hidden="true">
+                                  ▶
+                                </span>{" "}
+                                ¡Lista para canjear!
+                              </>
+                            ) : (
+                              `Te faltan ${formatNumber(remaining)} monedas`
+                            )}
+                          </span>
+                          <span className="retro32-reward-pct">{pct}%</span>
+                        </div>
+                      </div>
                     );
                   })
                 ) : (
-                  <div className="pixel-box-dark col-span-full row-span-full flex flex-col items-center justify-center gap-1 p-4 text-center">
+                  <div className="pixel-box-dark flex flex-1 flex-col items-center justify-center gap-1 p-4 text-center">
                     <span className="pixel-title text-[10px] text-[var(--ink)]">
                       {activeBiz.loyalty_active
-                        ? "EXPLORA EL CATÁLOGO DEL NEGOCIO"
+                        ? "EXPLORA LAS RECOMPENSAS Y CARTA"
                         : "PROGRAMA INACTIVO"}
                     </span>
                     <p className="text-xs text-[var(--text-muted)]">
-                      {activeBiz.last_purchase_at
-                        ? "Última compra registrada · Entra para ver tu carta y movimientos."
-                        : "Sin compras todavía · Entra para consultar las recompensas y carta."}
+                      Entra al detalle del negocio para consultar su catálogo disponible.
                     </p>
                   </div>
                 )}
               </div>
+            </div>
 
-              {/* Botón para ir al detalle del negocio */}
+            {/* Navegación por puntos + Botón principal al detalle */}
+            <div className="retro32-card-footer">
+              {rows.length > 1 && (
+                <div className="retro32-dots" role="group" aria-label="Negocios disponibles">
+                  {rows.map((biz, idx) => (
+                    <button
+                      key={biz.business_id}
+                      type="button"
+                      className={cn("retro32-dot", idx === safeIndex && "active")}
+                      aria-label={`Ver ${biz.name}`}
+                      aria-current={idx === safeIndex ? "true" : undefined}
+                      onClick={() => {
+                        setSlideDir(idx >= safeIndex ? "right" : "left");
+                        setCurrentIndex(idx);
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+
               <Link
                 to={`/customer/business/${activeBiz.business_id}`}
-                className="pixel-btn pixel-btn-dark btn-see-more-rewards"
+                className="pixel-btn pixel-btn-xp btn-see-more-rewards retro32-cta-btn"
                 id="btnSeeMoreRewards"
               >
-                <span>VER MÁS</span>
-              </Link>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      {/* Modal de detalle de recompensa desde el inicio */}
-      {selectedReward && modalVisual && (
-        <div
-          className="modal-overlay open"
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="homeModalTitle"
-          onClick={(event) => {
-            if (event.target === event.currentTarget) setSelectedReward(null);
-          }}
-        >
-          <div className="pixel-box modal-dialog">
-            <div className="modal-hero-img" style={{ background: modalVisual.bg }}>
-              {selectedReward.reward.image_url ? (
-                <img
-                  src={selectedReward.reward.image_url}
-                  alt={selectedReward.reward.name}
-                  className="card-hero-bg-img"
-                />
-              ) : (
-                <PixelItemSvg sprite={modalVisual.spriteKey} size={84} />
-              )}
-              <button
-                type="button"
-                className="pixel-btn pixel-btn-ruby modal-close-floating"
-                style={{ padding: "5px 9px" }}
-                aria-label="Cerrar detalle"
-                onClick={() => setSelectedReward(null)}
-              >
-                X
-              </button>
-            </div>
-            <div className="modal-content-pad">
-              <div className="flex items-start justify-between gap-2">
-                <h2
-                  className="pixel-title"
-                  id="homeModalTitle"
-                  style={{ fontSize: 12, lineHeight: 1.35 }}
-                >
-                  {selectedReward.reward.name}
-                </h2>
-                <span className="item-badge-highlight">
-                  {selectedReward.reward.points_required} PTS
-                </span>
-              </div>
-              <p className="text-[15px] leading-[1.45] text-[var(--text-muted)]">
-                {selectedReward.reward.description ||
-                  "Válido presentando tu solicitud de canje en caja."}
-              </p>
-              <div className="pixel-box-dark p-2.5 text-[13px] text-[var(--text-muted)]">
-                {selectedReward.reward.min_purchase_amount > 0
-                  ? `Compra mínima requerida: ${formatCOP(selectedReward.reward.min_purchase_amount)}.`
-                  : "Válido presentando tu código de canje en caja."}
-              </div>
-              <Link
-                to={`/customer/business/${activeBiz.business_id}`}
-                className={cn(
-                  "pixel-btn w-full",
-                  selectedReward.reward.can_redeem ? "pixel-btn-xp" : "pixel-btn-secondary",
-                )}
-                style={{ padding: 11 }}
-                onClick={() => setSelectedReward(null)}
-              >
-                {selectedReward.reward.can_redeem
-                  ? "CANJEAR RECOMPENSA"
-                  : `TE FALTAN ${Math.max(0, selectedReward.reward.remaining)} PTS`}
+                <Gift className="size-4" aria-hidden="true" />
+                <span>Recompensas y carta</span>
+                <ArrowRight className="size-4" aria-hidden="true" />
               </Link>
             </div>
           </div>
-        </div>
-      )}
-    </>
+        </article>
+      </div>
+    </section>
   );
 }
+
+export default CustomerBusinessesPage;

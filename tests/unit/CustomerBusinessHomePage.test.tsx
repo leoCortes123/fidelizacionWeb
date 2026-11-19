@@ -243,4 +243,42 @@ describe("CustomerBusinessHomePage", () => {
     expect(modalHeroImg).not.toBeNull();
     expect(modalHeroImg?.src).toBe("https://example.com/product.jpg");
   });
+
+  it("oculta el texto de saldo debajo de la imagen y abre el modal de datos del negocio", async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    expect(screen.queryByText(/Saldo, recompensas, carta y compras/i)).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Ver datos del negocio" }));
+    const dialog = screen.getByRole("dialog");
+    expect(dialog).toBeInTheDocument();
+    expect(dialog).toHaveTextContent("@cafe-dorado");
+
+    await user.click(screen.getByRole("button", { name: "CERRAR" }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("ajusta --title-fit-scale en #profileStoreName cuando el nombre del negocio es largo", () => {
+    const clientWidthSpy = vi
+      .spyOn(HTMLElement.prototype, "clientWidth", "get")
+      .mockImplementation(function (this: HTMLElement) {
+        return this.id === "profileStoreName" ? 180 : 0;
+      });
+    const scrollWidthSpy = vi
+      .spyOn(HTMLElement.prototype, "scrollWidth", "get")
+      .mockImplementation(function (this: HTMLElement) {
+        return this.id === "profileStoreName" ? 360 : 0;
+      });
+
+    try {
+      renderPage();
+
+      const title = document.getElementById("profileStoreName")!;
+      expect(title.style.getPropertyValue("--title-fit-scale")).toBe("0.5000");
+    } finally {
+      clientWidthSpy.mockRestore();
+      scrollWidthSpy.mockRestore();
+    }
+  });
 });

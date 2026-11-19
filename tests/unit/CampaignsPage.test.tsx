@@ -109,14 +109,14 @@ describe("CampaignsPage", () => {
     expect(table.getByText("x2")).toBeInTheDocument();
     expect(table.getByText("En vigencia")).toBeInTheDocument();
     expect(table.getByText("Bono de bienvenida")).toBeInTheDocument();
-    expect(table.getByText("+10 loopoints")).toBeInTheDocument();
+    expect(table.getByText("+10 monedas")).toBeInTheDocument();
     expect(table.getByText("Inactiva")).toBeInTheDocument();
 
     const cards = within(screen.getByTestId("campaigns-cards"));
     expect(cards.getByText("Doble loopoints")).toBeInTheDocument();
     expect(cards.getByText("x2")).toBeInTheDocument();
     expect(cards.getByText("Sin mínimo")).toBeInTheDocument();
-    expect(cards.getByText("+10 loopoints")).toBeInTheDocument();
+    expect(cards.getByText("+10 monedas")).toBeInTheDocument();
 
     await user.click(cards.getByRole("button", { name: "Ver detalle de Doble loopoints" }));
     const dialog = within(screen.getByRole("dialog"));

@@ -166,7 +166,7 @@ describe("RedemptionsPage del administrador", () => {
 
     await user.click(screen.getByRole("button", { name: "Rechazar" }));
     const dialog = within(screen.getByRole("dialog"));
-    await user.click(dialog.getByRole("button", { name: "Rechazar y devolver loopoints" }));
+    await user.click(dialog.getByRole("button", { name: "Rechazar y devolver monedas" }));
 
     await waitFor(() => expect(approve).toHaveBeenCalledTimes(1));
     expect(approve).toHaveBeenCalledWith(
@@ -195,13 +195,13 @@ describe("RedemptionsPage del administrador", () => {
 
     await user.click(screen.getByRole("button", { name: "Cancelar" }));
     const dialog = within(screen.getByRole("dialog"));
-    await user.click(dialog.getByRole("button", { name: "Cancelar y devolver loopoints" }));
+    await user.click(dialog.getByRole("button", { name: "Cancelar y devolver monedas" }));
 
     expect(cancel).not.toHaveBeenCalled();
     expect(dialog.getByText("Cancelar solicitud")).toBeInTheDocument();
 
     await user.type(dialog.getByLabelText("Motivo de la cancelación"), "El cliente no se presentó");
-    await user.click(dialog.getByRole("button", { name: "Cancelar y devolver loopoints" }));
+    await user.click(dialog.getByRole("button", { name: "Cancelar y devolver monedas" }));
 
     await waitFor(() => expect(cancel).toHaveBeenCalledTimes(1));
     expect(cancel).toHaveBeenCalledWith({
@@ -219,5 +219,23 @@ describe("RedemptionsPage del administrador", () => {
     expect(screen.getByText(/no tienes permiso de aprobación/i)).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Aprobar" })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Confirmar entrega" })).not.toBeInTheDocument();
+  });
+
+  it("muestra tooltip en solicitudes vencidas y oculta el botón aprobar", () => {
+    rows.current = [
+      {
+        ...rows.current[0],
+        id: "red-expired",
+        status: "expired",
+      },
+    ];
+    renderPage();
+
+    expect(screen.getByText("Vencido")).toBeInTheDocument();
+    expect(screen.getByText("No disponible")).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Por qué no se puede aprobar esta solicitud vencida" }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Aprobar" })).not.toBeInTheDocument();
   });
 });

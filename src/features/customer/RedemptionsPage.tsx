@@ -79,7 +79,7 @@ export function RedemptionsPage() {
         <div className="pixel-box p-4">
           <EmptyState
             title="Aún no has solicitado recompensas"
-            description="Cuando tengas loopoints suficientes, solicita una recompensa y aquí verás su estado."
+            description="Cuando tengas monedas suficientes, solicita una recompensa y aquí verás su estado."
             icon={Gift}
             className="border-0 bg-transparent py-6"
             action={
@@ -170,8 +170,8 @@ export function RedemptionsPage() {
                     {(redemption.status === "cancelled" || redemption.status === "expired") && (
                       <p className="text-xs text-[var(--text-muted)]">
                         {redemption.cancelled_at
-                          ? `Cancelado el ${formatDateTimeBogota(redemption.cancelled_at)} · loopoints devueltos`
-                          : "Sin canje efectivo · loopoints devueltos"}
+                          ? `Cancelado el ${formatDateTimeBogota(redemption.cancelled_at)} · monedas devueltas`
+                          : "Sin canje efectivo · monedas devueltas"}
                       </p>
                     )}
                   </div>
@@ -225,7 +225,7 @@ export function RedemptionsPage() {
                   <RedemptionRequestStatusBadge status={detail.status} />
                 </dd>
                 <dt className="font-mono text-xs font-bold uppercase text-[var(--text-muted)]">
-                  Loopoints
+                  Monedas
                 </dt>
                 <dd className="font-mono font-bold">{formatPoints(detail.points_spent)}</dd>
                 <dt className="font-mono text-xs font-bold uppercase text-[var(--text-muted)]">

@@ -14,9 +14,9 @@ const buttonVariants = cva(
         destructive:
           "border border-destructive/90 bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 hover:shadow active:scale-[0.98]",
         outline:
-          "border border-border bg-card text-foreground shadow-sm hover:border-primary/40 hover:bg-muted/60 hover:text-foreground active:scale-[0.98] dark:border-slate-700 dark:hover:bg-slate-800/80",
+          "border border-border bg-card text-foreground shadow-sm hover:border-primary/40 hover:bg-muted/60 hover:text-foreground active:scale-[0.98] dark:border-border/60 dark:hover:bg-muted/80",
         secondary:
-          "border border-amber-500/80 bg-amber-400 text-slate-950 shadow-sm hover:bg-amber-300 hover:shadow active:scale-[0.98]",
+          "border border-amber-500/80 bg-amber-400 text-[#1e1c1a] shadow-sm hover:bg-amber-300 hover:shadow active:scale-[0.98]",
         ghost:
           "rounded-none border border-transparent text-foreground hover:bg-muted/80 hover:text-foreground",
         link: "text-primary underline-offset-4 hover:underline",
@@ -31,7 +31,7 @@ const buttonVariants = cva(
     compoundVariants: [
       {
         variant: "link",
-        className: "h-auto min-h-6 whitespace-normal px-1 py-0.5 dark:text-blue-400",
+        className: "h-auto min-h-6 whitespace-normal px-1 py-0.5",
       },
     ],
     defaultVariants: {

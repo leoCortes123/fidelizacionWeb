@@ -43,6 +43,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { HelpHint } from "@/components/shared/HelpHint";
 import { EmptyState, ErrorState, ListSkeleton, LoadingScreen } from "@/components/shared/States";
 import { RedemptionRequestStatusBadge } from "@/components/shared/StatusBadge";
 import type { Business, LoyaltyRedemptionWithCustomer } from "@/types";
@@ -71,22 +72,22 @@ const actionCopy: Record<
   },
   reject: {
     title: "Rechazar solicitud",
-    confirm: "Rechazar y devolver loopoints",
+    confirm: "Rechazar y devolver monedas",
     description:
-      "Se cancelará la solicitud y los loopoints reservados volverán al saldo del cliente.",
+      "Se cancelará la solicitud y las monedas reservadas volverán al saldo del cliente.",
     destructive: true,
   },
   deliver: {
     title: "Confirmar entrega",
     confirm: "Confirmar entrega",
     description:
-      "Marca la recompensa como entregada. Los loopoints quedan consumidos definitivamente.",
+      "Marca la recompensa como entregada. Las monedas quedan consumidas definitivamente.",
     destructive: false,
   },
   cancel: {
     title: "Cancelar solicitud",
-    confirm: "Cancelar y devolver loopoints",
-    description: "Solo para solicitudes pendientes. Los loopoints reservados volverán al cliente.",
+    confirm: "Cancelar y devolver monedas",
+    description: "Solo para solicitudes pendientes. Las monedas reservadas volverán al cliente.",
     destructive: true,
   },
 };
@@ -205,14 +206,14 @@ function RedemptionsSection({ business }: { business: Business }) {
           businessId: business.id,
           redemptionId: redemption.id,
         });
-        toast.success("Entrega confirmada. Loopoints consumidos.");
+        toast.success("Entrega confirmada. Monedas consumidas.");
       } else if (kind === "cancel") {
         await cancelRedemption.mutateAsync({
           businessId: business.id,
           redemptionId: redemption.id,
           reason: reason.trim(),
         });
-        toast.success("Solicitud cancelada y loopoints devueltos.");
+        toast.success("Solicitud cancelada y monedas devueltas.");
       } else {
         await approveRedemption.mutateAsync({
           businessId: business.id,
@@ -222,7 +223,7 @@ function RedemptionsSection({ business }: { business: Business }) {
         toast.success(
           kind === "approve"
             ? "Solicitud aprobada. Confirma la entrega al cliente."
-            : "Solicitud rechazada y loopoints devueltos.",
+            : "Solicitud rechazada y monedas devueltas.",
         );
       }
       setAction(null);
@@ -308,7 +309,7 @@ function RedemptionsSection({ business }: { business: Business }) {
                   Recompensa
                 </th>
                 <th scope="col" className="px-4 py-3 text-right">
-                  Loopoints
+                  Monedas
                 </th>
                 <th scope="col" className="px-4 py-3">
                   Origen
@@ -422,7 +423,16 @@ function RedemptionsSection({ business }: { business: Business }) {
                         </Button>
                       )}
                       {redemption.status === "cancelled" && (
-                        <span className="text-xs text-muted-foreground">Loopoints devueltos</span>
+                        <span className="text-xs text-muted-foreground">Monedas devueltas</span>
+                      )}
+                      {redemption.status === "expired" && (
+                        <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                          <span>No disponible</span>
+                          <HelpHint
+                            label="Por qué no se puede aprobar esta solicitud vencida"
+                            text="Esta solicitud venció y no es posible aprobarla. Las monedas reservadas fueron devueltas al cliente."
+                          />
+                        </span>
                       )}
                     </div>
                   </td>
@@ -436,8 +446,8 @@ function RedemptionsSection({ business }: { business: Business }) {
       <p className="px-4 text-xs text-muted-foreground sm:px-0">
         Aprobar consume el token QR: el cliente ya no podrá reutilizarlo. Si el QR se escanea desde{" "}
         <span className="font-mono">/scan</span>, la entrega se confirma en un solo paso y la
-        solicitud aparece como “QR escaneado”. Cancelar o rechazar devuelve los loopoints
-        reservados. Cada paso queda en la auditoría.
+        solicitud aparece como “QR escaneado”. Cancelar o rechazar devuelve las monedas reservadas.
+        Cada paso queda en la auditoría.
       </p>
 
       <Dialog
@@ -476,7 +486,7 @@ function RedemptionsSection({ business }: { business: Business }) {
                 placeholder="Ej.: el cliente no se presentó"
               />
               <p className="text-xs text-muted-foreground">
-                Se guarda en la auditoría junto con los loopoints devueltos.
+                Se guarda en la auditoría junto con las monedas devueltas.
               </p>
             </div>
           )}

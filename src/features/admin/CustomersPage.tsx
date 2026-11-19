@@ -124,7 +124,7 @@ export function CustomersPage() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="points">Saldo de loopoints</SelectItem>
+                  <SelectItem value="points">Saldo de monedas</SelectItem>
                   <SelectItem value="created_at">Fecha de registro</SelectItem>
                   <SelectItem value="name">Nombre</SelectItem>
                   <SelectItem value="email">Correo</SelectItem>
@@ -219,7 +219,7 @@ export function CustomersPage() {
                         {customer.points_balance}
                       </p>
                       <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                        loopoints
+                        monedas
                       </p>
                     </div>
                   </div>

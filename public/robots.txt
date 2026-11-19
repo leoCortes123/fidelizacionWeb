@@ -1,0 +1,12 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /customer
+Disallow: /encargado
+Disallow: /business
+Disallow: /perfil
+Disallow: /auth/
+Disallow: /claim/
+Disallow: /scan/
+
+Sitemap: https://fidelizacion01.vercel.app/sitemap.xml

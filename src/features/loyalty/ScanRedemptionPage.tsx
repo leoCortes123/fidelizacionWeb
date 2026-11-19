@@ -101,7 +101,7 @@ function ScanDetails({
     try {
       const redeemed = await redeem.mutateAsync({ token });
       setConfirmOpen(false);
-      toast.success("Entrega confirmada. Loopoints consumidos.");
+      toast.success("Entrega confirmada. Monedas consumidas.");
       onRedeemed(redeemed);
     } catch (error) {
       setConfirmOpen(false);
@@ -166,8 +166,7 @@ function ScanDetails({
                   </p>
                   <p className="text-lg font-extrabold leading-tight">{data.reward_name}</p>
                   <p className="mt-1 text-sm">
-                    <strong className="tabular-nums">{formatPoints(data.points_spent)}</strong>{" "}
-                    loopoints
+                    <strong className="tabular-nums">{formatPoints(data.points_spent)}</strong>
                   </p>
                 </div>
               </div>
@@ -231,7 +230,7 @@ function ScanDetails({
               Confirmar entrega
             </Button>
             <p className="text-center text-xs text-muted-foreground">
-              Al confirmar se consumen los loopoints y el QR deja de ser válido.
+              Al confirmar se consumen las monedas y el QR deja de ser válido.
             </p>
           </CardContent>
         </Card>
@@ -244,7 +243,7 @@ function ScanDetails({
             <DialogDescription>
               Entrega <strong>{data.reward_name}</strong> a{" "}
               {data.customer_nickname ? `@${data.customer_nickname}` : "el cliente"} y confirma para
-              consumir {formatPoints(data.points_spent)} loopoints.
+              consumir {formatPoints(data.points_spent)}.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -280,7 +279,7 @@ function ScanSuccess({ result }: { result: RedemptionRedeemResult }) {
         </span>
         <h1 className="mt-4 text-2xl font-extrabold">Entrega confirmada</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          El canje quedó registrado y los loopoints fueron consumidos.
+          El canje quedó registrado y las monedas fueron consumidas.
         </p>
       </div>
       <CardContent className="space-y-4 p-4 sm:p-6">
@@ -296,7 +295,7 @@ function ScanSuccess({ result }: { result: RedemptionRedeemResult }) {
             </dd>
           </div>
           <div className="flex items-center justify-between gap-3">
-            <dt className="text-muted-foreground">Loopoints</dt>
+            <dt className="text-muted-foreground">Monedas</dt>
             <dd className="text-right font-semibold tabular-nums">
               −{formatPoints(result.points_spent)}
             </dd>
@@ -351,7 +350,7 @@ function scanReasonCopy(
     case "redemption_cancelled":
       return {
         title: "Este canje fue cancelado",
-        description: "Los loopoints reservados fueron devueltos al cliente.",
+        description: "Las monedas reservadas fueron devueltas al cliente.",
         tone: "info",
       };
     case "redemption_expired":

@@ -94,9 +94,9 @@ export function CampaignsPage() {
   return (
     <BusinessGate
       title="Campañas"
-      description="Elige el negocio cuyas campañas de loopoints deseas administrar."
+      description="Elige el negocio cuyas campañas de monedas deseas administrar."
       icon={Megaphone}
-      emptyDescription="Registra un negocio para crear campañas de loopoints."
+      emptyDescription="Registra un negocio para crear campañas de monedas."
     >
       {(business) => <CampaignsSection key={business.id} business={business} />}
     </BusinessGate>
@@ -252,7 +252,7 @@ function CampaignsSection({ business }: { business: Business }) {
     <div className="space-y-4 sm:space-y-5 animate-fade-in">
       <PageHeader
         title="Campañas"
-        description="Multiplica los loopoints de compra o añade un bono durante una vigencia."
+        description="Multiplica las monedas de compra o añade un bono durante una vigencia."
         actions={
           <Button onClick={openCreate}>
             <Plus aria-hidden="true" />
@@ -265,8 +265,8 @@ function CampaignsSection({ business }: { business: Business }) {
         <CardContent className="flex items-start gap-3 p-4 text-sm text-muted-foreground">
           <Sparkles className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
           <p>
-            En cada compra se aplica la campaña vigente con mayor beneficio. Los loopoints
-            resultantes quedan registrados con la regla{" "}
+            En cada compra se aplica la campaña vigente con mayor beneficio. Las monedas resultantes
+            quedan registradas con la regla{" "}
             <code className="rounded-none bg-muted px-1 py-0.5 text-xs">v1+campaign:…</code> en el
             movimiento y en la auditoría.
           </p>
@@ -276,7 +276,7 @@ function CampaignsSection({ business }: { business: Business }) {
       {rows.length === 0 ? (
         <EmptyState
           title="Sin campañas"
-          description="Crea una campaña para duplicar loopoints o sumar un bono en fechas concretas."
+          description="Crea una campaña para duplicar monedas o sumar un bono en fechas concretas."
           icon={Megaphone}
           action={
             <Button variant="outline" onClick={openCreate}>
@@ -336,7 +336,7 @@ function CampaignsSection({ business }: { business: Business }) {
                       <p className="font-medium">x{campaign.multiplier}</p>
                       {campaign.bonus_points > 0 && (
                         <p className="text-xs text-muted-foreground">
-                          +{formatNumber(campaign.bonus_points)} loopoints
+                          +{formatNumber(campaign.bonus_points)} monedas
                         </p>
                       )}
                     </td>
@@ -404,8 +404,8 @@ function CampaignsSection({ business }: { business: Business }) {
           <DialogHeader>
             <DialogTitle>{editing ? "Detalle de la campaña" : "Nueva campaña"}</DialogTitle>
             <DialogDescription>
-              El multiplicador se aplica a los loopoints base de la compra y el bono se suma al
-              final. Solo aplica dentro de la vigencia.
+              El multiplicador se aplica a las monedas base de la compra y el bono se suma al final.
+              Solo aplica dentro de la vigencia.
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={save} className="min-w-0 space-y-4" noValidate>
@@ -449,12 +449,12 @@ function CampaignsSection({ business }: { business: Business }) {
                   </p>
                 ) : (
                   <p className="text-xs text-muted-foreground">
-                    x2 duplica los loopoints. Entre 1 y 10.
+                    x2 duplica las monedas. Entre 1 y 10.
                   </p>
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="campaign-bonus">Bono de loopoints</Label>
+                <Label htmlFor="campaign-bonus">Bono de monedas</Label>
                 <Input
                   id="campaign-bonus"
                   inputMode="numeric"
@@ -553,7 +553,7 @@ function CampaignsSection({ business }: { business: Business }) {
         title="Eliminar campaña"
         description={
           deleteTarget
-            ? `Se eliminará “${deleteTarget.name}”. El historial de loopoints ya acreditado no cambia.`
+            ? `Se eliminará “${deleteTarget.name}”. El historial de monedas ya acreditado no cambia.`
             : undefined
         }
         confirmLabel="Eliminar"
@@ -623,7 +623,7 @@ function CampaignCard({
             <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
               {statusBadge}
               {campaign.bonus_points > 0 && (
-                <Badge variant="secondary">+{formatNumber(campaign.bonus_points)} loopoints</Badge>
+                <Badge variant="secondary">+{formatNumber(campaign.bonus_points)} monedas</Badge>
               )}
             </div>
           </div>

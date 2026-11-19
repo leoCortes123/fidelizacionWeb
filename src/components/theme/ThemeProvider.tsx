@@ -53,7 +53,17 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) {
-      meta.setAttribute("content", theme === "dark" ? "#090f1a" : "#f8fafc");
+      const isWarmPortal = root.dataset.portal === "customer" || root.dataset.portal === "admin";
+      meta.setAttribute(
+        "content",
+        theme === "dark"
+          ? isWarmPortal
+            ? "#181615"
+            : "#090f1a"
+          : isWarmPortal
+            ? "#f6edda"
+            : "#f8fafc",
+      );
     }
   }, [theme]);
 
@@ -76,13 +86,17 @@ export function useTheme() {
 
 /**
  * Aplica la paleta del portal al documento mientras la pantalla está montada.
- * El cliente conserva la paleta cálida; el negocio usa la paleta turquesa.
+ * Tanto el cliente como el negocio (admin y encargado) comparten la paleta cálida Loopoint.
  */
 export function usePortalTheme(portal: Portal) {
   useEffect(() => {
     const root = document.documentElement;
     const previous = root.dataset.portal;
     root.dataset.portal = portal;
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) {
+      meta.setAttribute("content", root.classList.contains("dark") ? "#181615" : "#f6edda");
+    }
     return () => {
       if (previous) root.dataset.portal = previous;
       else delete root.dataset.portal;

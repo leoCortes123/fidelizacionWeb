@@ -144,7 +144,7 @@ describe("RewardsPage", () => {
     const dialog = await openCreate(user);
 
     await user.type(dialog.getByLabelText("Nombre"), "Taco del mes");
-    await user.type(dialog.getByLabelText("Loopoints requeridos"), "25");
+    await user.type(dialog.getByLabelText("Monedas requeridas"), "25");
     await user.type(dialog.getByLabelText("Compra mínima (COP)"), "4.000");
     await user.click(dialog.getByRole("button", { name: "Guardar" }));
 
@@ -171,7 +171,7 @@ describe("RewardsPage", () => {
     const dialog = await openCreate(user);
 
     await user.type(dialog.getByLabelText("Nombre"), "Descuento del 10 %");
-    await user.type(dialog.getByLabelText("Loopoints requeridos"), "20");
+    await user.type(dialog.getByLabelText("Monedas requeridas"), "20");
     await user.click(dialog.getByRole("combobox", { name: /tipo de recompensa/i }));
     await user.click(await screen.findByRole("option", { name: "Descuento porcentual" }));
 
@@ -189,7 +189,7 @@ describe("RewardsPage", () => {
     const dialog = await openCreate(user);
 
     await user.type(dialog.getByLabelText("Nombre"), "Descuento fijo");
-    await user.type(dialog.getByLabelText("Loopoints requeridos"), "20");
+    await user.type(dialog.getByLabelText("Monedas requeridas"), "20");
     await user.click(dialog.getByRole("combobox", { name: /tipo de recompensa/i }));
     await user.click(await screen.findByRole("option", { name: "Descuento fijo" }));
 

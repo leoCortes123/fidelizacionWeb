@@ -1,6 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { Building2, Gift, ReceiptText } from "lucide-react";
+import {
+  Building2,
+  Calendar,
+  Gift,
+  Globe,
+  Info,
+  Instagram,
+  MapPin,
+  Phone,
+  ReceiptText,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/features/auth/AuthProvider";
 import {
@@ -31,6 +41,7 @@ import {
   HeroCoinSvg,
   PixelItemSvg,
 } from "./pixelSprites";
+import { useFitSingleLineTitle } from "./useFitSingleLineTitle";
 
 type StoreTabId = "tabRewards" | "tabMenu" | "tabActivity";
 
@@ -72,17 +83,28 @@ export function CustomerBusinessHomePage() {
   const [idempotencyKey, setIdempotencyKey] = useState("");
   const [createdRedemption, setCreatedRedemption] = useState<RedemptionRequestResult | null>(null);
   const [detailId, setDetailId] = useState<string | null>(null);
+  const [businessInfoOpen, setBusinessInfoOpen] = useState(false);
+  const titleContainerRef = useRef<HTMLDivElement | null>(null);
+  const titleRef = useRef<HTMLHeadingElement | null>(null);
+
+  useFitSingleLineTitle(titleRef, titleContainerRef, [
+    business?.id,
+    business?.name,
+    account.isLoading,
+    rewards.isLoading,
+  ]);
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
         if (redeemDialog && !requestRedemption.isPending) setRedeemDialog(null);
         if (selectedProduct) setSelectedProduct(null);
+        if (businessInfoOpen) setBusinessInfoOpen(false);
       }
     }
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [redeemDialog, selectedProduct, requestRedemption.isPending]);
+  }, [redeemDialog, selectedProduct, businessInfoOpen, requestRedemption.isPending]);
 
   if (!business) {
     return (
@@ -130,15 +152,24 @@ export function CustomerBusinessHomePage() {
   const activeProducts = products.data ?? [];
 
   const stageVisual = getBusinessStageVisual(business.name, business.slug, 0);
-  const categoryBadge = summaryRow?.is_frequent_active
-    ? "FRECUENTE ACTIVO"
-    : summaryRow?.is_frequent
-      ? "FRECUENTE"
-      : stageVisual.category;
-
   const logoUrl = summaryRow?.logo_url ?? publicBiz.data?.logo_url ?? null;
-  const defaultBio = `Saldo, recompensas, carta y compras en @${business.slug}.`;
-  const bizDescription = publicBiz.data?.description?.trim() || defaultBio;
+  const bizDescription = publicBiz.data?.description?.trim() ?? "";
+  const locationParts = [
+    publicBiz.data?.address,
+    publicBiz.data?.neighborhood,
+    publicBiz.data?.city,
+  ].filter((part): part is string => Boolean(part && part.trim()));
+  const locationText = locationParts.join(" · ");
+  const operatingDaysLabel = (() => {
+    const days = publicBiz.data?.operating_days ?? [];
+    if (days.length === 0) return "";
+    if (days.length === 7) return "Todos los días";
+    const names = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+    return days
+      .map((d) => names[d - 1])
+      .filter(Boolean)
+      .join(", ");
+  })();
 
   function computeProductPoints(priceCop: number): number {
     const copPerUnit = program.data?.cop_per_point_unit ?? 1000;
@@ -153,7 +184,7 @@ export function CustomerBusinessHomePage() {
 
   function requestReward(reward: LoyaltyRewardAvailable, index: number) {
     if (!reward.can_redeem) {
-      toast.error("No tienes loopoints suficientes para esta recompensa.");
+      toast.error("No tienes monedas suficientes para esta recompensa.");
       return;
     }
     openRewardModal(reward, index);
@@ -210,6 +241,16 @@ export function CustomerBusinessHomePage() {
           <Link to="/customer" className="pixel-btn pixel-btn-secondary" id="btnBackToSelector">
             <span>◀ VOLVER</span>
           </Link>
+          <button
+            type="button"
+            className="pixel-btn pixel-btn-secondary store-info-topbar-btn"
+            id="btnBusinessInfo"
+            aria-label="Ver datos del negocio"
+            onClick={() => setBusinessInfoOpen(true)}
+          >
+            <Info className="size-3.5" aria-hidden="true" />
+            <span>Datos</span>
+          </button>
         </div>
 
         {createdRedemption && (
@@ -239,43 +280,34 @@ export function CustomerBusinessHomePage() {
                 <img src={logoUrl} alt={`Logo de ${business.name}`} className="card-hero-bg-img" />
               )}
 
-              {/* Arriba a la izquierda: Total de puntos */}
-              <div className="hero-points-top-left">
-                <HeroCoinSvg size={15} />
-                <span
-                  data-testid="points-balance"
-                  className="hero-points-value"
-                  id="profilePointsNumber"
-                >
-                  {balance}
-                </span>
-                <span className="hero-points-label">PTS</span>
+              {/* Arriba a la izquierda: Total de monedas replicando el estilo de la tarjeta de inicio */}
+              <div className="store-hero-points-top">
+                <HeroCoinSvg size={36} />
+                <div className="retro32-landing-points-text">
+                  <span
+                    data-testid="points-balance"
+                    className="retro32-landing-points-number store-landing-points-number"
+                    id="profilePointsNumber"
+                  >
+                    {balance}
+                  </span>
+                  <span className="retro32-landing-points-label">MONEDAS</span>
+                </div>
               </div>
-
-              {/* Arriba a la derecha: Letrero con el tipo de negocio */}
-              <span className="hero-category-top-right" id="profileCategoryBadge">
-                {categoryBadge}
-              </span>
 
               {/* Ilustración central del negocio */}
               {!logoUrl && (
                 <div className="sprite-bobbing" id="profileSpriteBox">
-                  <PixelItemSvg sprite={stageVisual.spriteKey} size={80} />
+                  <PixelItemSvg sprite={stageVisual.spriteKey} size={120} />
                 </div>
               )}
 
-              {/* Abajo a la izquierda: Nombre del negocio */}
-              <div className="hero-name-bottom-left">
-                <h1 className="card-biz-title" id="profileStoreName">
+              {/* Abajo a la izquierda: Nombre en una sola línea sin recuadro */}
+              <div className="hero-name-bottom-left store-name-overlay" ref={titleContainerRef}>
+                <h1 className="card-biz-title store-biz-title" id="profileStoreName" ref={titleRef}>
                   {business.name}
                 </h1>
               </div>
-            </div>
-
-            <div className="store-card-desc-panel">
-              <p className="card-biz-description" id="profileStoreBio">
-                {bizDescription}
-              </p>
             </div>
           </article>
 
@@ -332,13 +364,13 @@ export function CustomerBusinessHomePage() {
                   className="border-0 bg-transparent py-6"
                 />
               ) : (
-                <div className="items-grid" id="profileRewardsGrid">
+                <div className="items-carousel" id="profileRewardsGrid">
                   {available.map((reward, idx) => {
                     const visual = getRewardVisual(reward.name, idx);
                     return (
                       <article
                         key={reward.id}
-                        className="item-pixel-card"
+                        className={cn("item-pixel-card", reward.can_redeem && "is-ready")}
                         tabIndex={0}
                         onClick={() => openRewardModal(reward, idx)}
                         onKeyDown={(event) => {
@@ -371,7 +403,7 @@ export function CustomerBusinessHomePage() {
                           </div>
                           <div className="item-card-footer">
                             <span className="item-badge-highlight">
-                              {reward.points_required} PTS
+                              {reward.points_required} MONEDAS
                             </span>
                             <span
                               style={{
@@ -428,7 +460,7 @@ export function CustomerBusinessHomePage() {
                   className="border-0 bg-transparent py-6"
                 />
               ) : (
-                <div className="items-grid" id="profileProductsGrid">
+                <div className="items-carousel" id="profileProductsGrid">
                   {activeProducts.map((product, idx) => {
                     const visual = getProductVisual(product.name, idx);
                     const pts = computeProductPoints(product.price_cop);
@@ -481,7 +513,7 @@ export function CustomerBusinessHomePage() {
                             <span className="item-badge-highlight">
                               {formatCOP(product.price_cop)}
                             </span>
-                            <span className="item-badge-xp">+{pts} PTS</span>
+                            <span className="item-badge-xp">+{pts} MONEDAS</span>
                           </div>
                         </div>
                       </article>
@@ -510,7 +542,7 @@ export function CustomerBusinessHomePage() {
                   (!purchases.data || purchases.data.length === 0) ? (
                   <EmptyState
                     title="Sin movimientos todavía"
-                    description="Pide en caja que generen el QR de tu compra y escanéalo para acumular tus primeros loopoints."
+                    description="Pide en caja que generen el QR de tu compra y escanéalo para acumular tus primeras monedas."
                     icon={ReceiptText}
                     className="border-0 bg-transparent py-6"
                   />
@@ -527,7 +559,7 @@ export function CustomerBusinessHomePage() {
                                 : movement.movement_type === "bonus_credit"
                                   ? "Bono"
                                   : movement.movement_type === "expiry_debit"
-                                    ? "Loopoints vencidos"
+                                    ? "Monedas vencidas"
                                     : movement.movement_type}
                           </div>
                           <div className="mt-0.5 truncate text-xs text-[var(--text-muted)]">
@@ -544,7 +576,7 @@ export function CustomerBusinessHomePage() {
                           }}
                         >
                           {movement.points > 0 ? "+" : ""}
-                          {movement.points} PTS
+                          {movement.points} MONEDAS
                         </span>
                       </div>
                     ))}
@@ -567,7 +599,7 @@ export function CustomerBusinessHomePage() {
                             className="pixel-title"
                             style={{ fontSize: 10, color: "var(--green)" }}
                           >
-                            +{purchase.points_awarded} PTS
+                            +{purchase.points_awarded} MONEDAS
                           </span>
                           <button
                             type="button"
@@ -632,7 +664,7 @@ export function CustomerBusinessHomePage() {
                   {redeemDialog.reward.name}
                 </h2>
                 <span className="item-badge-highlight">
-                  {redeemDialog.reward.points_required} PTS
+                  {redeemDialog.reward.points_required} MONEDAS
                 </span>
               </div>
               <p className="text-[15px] leading-[1.45] text-[var(--text-muted)]">
@@ -672,7 +704,7 @@ export function CustomerBusinessHomePage() {
                   style={{ padding: 11 }}
                   onClick={() => setRedeemDialog(null)}
                 >
-                  TE FALTAN {Math.max(0, redeemDialog.reward.remaining)} PTS
+                  TE FALTAN {Math.max(0, redeemDialog.reward.remaining)} MONEDAS
                 </button>
               )}
             </div>
@@ -732,9 +764,9 @@ export function CustomerBusinessHomePage() {
                   "Producto disponible en el establecimiento."}
               </p>
               <div className="pixel-box-dark flex items-center justify-between p-2.5">
-                <span className="text-[13px] text-[var(--text-muted)]">Puntos que acumulas:</span>
+                <span className="text-[13px] text-[var(--text-muted)]">Monedas que acumulas:</span>
                 <span className="pixel-title" style={{ fontSize: 10, color: "var(--green)" }}>
-                  +{selectedProduct.points} PTS
+                  +{selectedProduct.points} MONEDAS
                 </span>
               </div>
               {selectedProduct.product.combo_items?.length > 0 && (
@@ -752,6 +784,153 @@ export function CustomerBusinessHomePage() {
                 onClick={() => setSelectedProduct(null)}
               >
                 ENTENDIDO
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {businessInfoOpen && (
+        <div
+          className="modal-overlay open"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="businessInfoModalTitle"
+          onClick={(event) => {
+            if (event.target === event.currentTarget) setBusinessInfoOpen(false);
+          }}
+        >
+          <div className="pixel-box modal-dialog">
+            <div className="modal-content-pad space-y-3">
+              <div className="flex items-start justify-between gap-2">
+                <div>
+                  <h2
+                    className="pixel-title"
+                    id="businessInfoModalTitle"
+                    style={{ fontSize: 13, lineHeight: 1.4 }}
+                  >
+                    {business.name}
+                  </h2>
+                  <p className="font-mono text-xs text-[var(--text-muted)]">@{business.slug}</p>
+                </div>
+                <button
+                  type="button"
+                  className="pixel-btn pixel-btn-ruby shrink-0"
+                  style={{ padding: "5px 9px" }}
+                  aria-label="Cerrar datos del negocio"
+                  onClick={() => setBusinessInfoOpen(false)}
+                >
+                  X
+                </button>
+              </div>
+
+              {bizDescription && (
+                <p className="text-[14px] leading-[1.45] text-[var(--text-muted)]">
+                  {bizDescription}
+                </p>
+              )}
+
+              <div className="space-y-2">
+                {locationText && (
+                  <div className="pixel-box-dark flex items-start gap-2.5 p-2.5 text-sm">
+                    <MapPin
+                      className="mt-0.5 size-4 shrink-0 text-[var(--red)]"
+                      aria-hidden="true"
+                    />
+                    <div>
+                      <span className="block font-mono text-[10px] font-bold uppercase text-[var(--text-muted)]">
+                        Dirección
+                      </span>
+                      <span className="font-medium text-[var(--ink)]">{locationText}</span>
+                    </div>
+                  </div>
+                )}
+
+                {publicBiz.data?.phone_whatsapp?.trim() && (
+                  <div className="pixel-box-dark flex items-start gap-2.5 p-2.5 text-sm">
+                    <Phone
+                      className="mt-0.5 size-4 shrink-0 text-[var(--red)]"
+                      aria-hidden="true"
+                    />
+                    <div>
+                      <span className="block font-mono text-[10px] font-bold uppercase text-[var(--text-muted)]">
+                        WhatsApp / Contacto
+                      </span>
+                      <span className="font-medium text-[var(--ink)]">
+                        {publicBiz.data.phone_whatsapp.trim()}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {publicBiz.data?.instagram?.trim() && (
+                  <div className="pixel-box-dark flex items-start gap-2.5 p-2.5 text-sm">
+                    <Instagram
+                      className="mt-0.5 size-4 shrink-0 text-[var(--red)]"
+                      aria-hidden="true"
+                    />
+                    <div>
+                      <span className="block font-mono text-[10px] font-bold uppercase text-[var(--text-muted)]">
+                        Instagram
+                      </span>
+                      <span className="font-medium text-[var(--ink)]">
+                        @{publicBiz.data.instagram.trim().replace(/^@/, "")}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {publicBiz.data?.website?.trim() && (
+                  <div className="pixel-box-dark flex items-start gap-2.5 p-2.5 text-sm">
+                    <Globe
+                      className="mt-0.5 size-4 shrink-0 text-[var(--red)]"
+                      aria-hidden="true"
+                    />
+                    <div className="min-w-0">
+                      <span className="block font-mono text-[10px] font-bold uppercase text-[var(--text-muted)]">
+                        Sitio web
+                      </span>
+                      <span className="block truncate font-medium text-[var(--ink)]">
+                        {publicBiz.data.website.trim()}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {operatingDaysLabel && (
+                  <div className="pixel-box-dark flex items-start gap-2.5 p-2.5 text-sm">
+                    <Calendar
+                      className="mt-0.5 size-4 shrink-0 text-[var(--red)]"
+                      aria-hidden="true"
+                    />
+                    <div>
+                      <span className="block font-mono text-[10px] font-bold uppercase text-[var(--text-muted)]">
+                        Días de atención
+                      </span>
+                      <span className="font-medium text-[var(--ink)]">{operatingDaysLabel}</span>
+                    </div>
+                  </div>
+                )}
+
+                {!bizDescription &&
+                  !locationText &&
+                  !publicBiz.data?.phone_whatsapp?.trim() &&
+                  !publicBiz.data?.instagram?.trim() &&
+                  !publicBiz.data?.website?.trim() &&
+                  !operatingDaysLabel && (
+                    <div className="pixel-box-dark p-3 text-center text-sm text-[var(--text-muted)]">
+                      Este negocio aún no ha registrado datos adicionales de contacto o ubicación.
+                    </div>
+                  )}
+              </div>
+
+              <button
+                type="button"
+                className="pixel-btn pixel-btn-dark w-full"
+                style={{ padding: 11 }}
+                onClick={() => setBusinessInfoOpen(false)}
+              >
+                CERRAR
               </button>
             </div>
           </div>

@@ -22,7 +22,7 @@ export function PwaUpdatePrompt() {
 
   useEffect(() => {
     if (!needRefresh) return;
-    toast.info("Nueva versión de Loopoint disponible", {
+    toast.info("Nueva versión de Fideliapp disponible", {
       id: UPDATE_TOAST_ID,
       duration: Infinity,
       description: "Actualiza para usar las últimas mejoras.",

@@ -4,7 +4,7 @@ import { errorMessage, isBusinessError } from "@/lib/errors";
 describe("mensajes de error", () => {
   it("traduce códigos de negocio del servidor", () => {
     expect(errorMessage(new Error("purchase_already_claimed"))).toContain("ya fue reclamada");
-    expect(errorMessage({ message: "insufficient_points" })).toContain("loopoints suficientes");
+    expect(errorMessage({ message: "insufficient_points" })).toContain("monedas suficientes");
     expect(errorMessage(new Error("purchase_expired"))).toContain("expiró");
   });
 

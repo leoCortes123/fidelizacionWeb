@@ -20,7 +20,7 @@ export function RolesErrorScreen({ error, onRetry }: { error: unknown; onRetry: 
         </div>
         <ErrorState title="No pudimos verificar tus permisos" error={error} onRetry={onRetry} />
         <Button variant="ghost" className="w-full" asChild>
-          <Link to="/customer">Ir a mis loopoints</Link>
+          <Link to="/customer">Ir a mis monedas</Link>
         </Button>
       </div>
     </div>

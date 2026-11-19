@@ -86,7 +86,7 @@ export function PurchaseRegistrationPage() {
   return (
     <BusinessGate
       title="Registrar venta"
-      description="Genera un QR con el valor de la venta para que el cliente sume sus loopoints."
+      description="Genera un QR con el valor de la venta para que el cliente sume sus monedas."
       icon={QrCode}
       emptyDescription="Registra un negocio para generar ventas con QR."
     >
@@ -211,7 +211,7 @@ function PurchaseQrSection({ business }: { business: Business }) {
     event.preventDefault();
     setError(null);
     if (!programActive) {
-      setError("Activa el programa de loopoints antes de generar ventas.");
+      setError("Activa el programa de monedas antes de generar ventas.");
       return;
     }
     if (mode === "catalog") {
@@ -245,7 +245,7 @@ function PurchaseQrSection({ business }: { business: Business }) {
           setAmountText("");
           setQuantities({});
           draft.clear();
-          toast.success("QR generado. Muéstralo al cliente para que sume sus loopoints.");
+          toast.success("QR generado. Muéstralo al cliente para que sume sus monedas.");
         },
         onError: (mutationError) => setError(errorMessage(mutationError)),
       },
@@ -284,12 +284,12 @@ function PurchaseQrSection({ business }: { business: Business }) {
     <div className="space-y-4 sm:space-y-5 animate-fade-in">
       <PageHeader
         title="Registrar venta"
-        description="Elige el valor manual o los productos de la carta. El cliente confirma desde su teléfono y recibe los loopoints."
+        description="Elige el valor manual o los productos de la carta. El cliente confirma desde su teléfono y recibe las monedas."
       />
 
       {!programActive && (
         <Alert variant="warning">
-          <AlertTitle>El programa de loopoints está inactivo</AlertTitle>
+          <AlertTitle>El programa de monedas está inactivo</AlertTitle>
           <AlertDescription>
             Actívalo en Mi perfil → Programa antes de generar ventas con QR.
           </AlertDescription>
@@ -331,7 +331,7 @@ function PurchaseQrSection({ business }: { business: Business }) {
                       ? formatCOP(amount)
                       : "Total pagado por el cliente."
                   }
-                  help="Escribe el valor total de la venta. El cliente verá los loopoints estimados antes de confirmar."
+                  help="Escribe el valor total de la venta. El cliente verá las monedas estimadas antes de confirmar."
                 >
                   <div className="relative">
                     <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm font-semibold text-muted-foreground">
@@ -438,7 +438,7 @@ function PurchaseQrSection({ business }: { business: Business }) {
                 <div className="flex items-center justify-between rounded-none bg-secondary/60 p-4">
                   <span className="flex items-center gap-2 text-sm font-medium">
                     <Sparkles className="size-4 text-primary" aria-hidden="true" />
-                    Loopoints para el cliente
+                    Monedas para el cliente
                   </span>
                   <span className="font-display text-2xl font-extrabold text-primary">
                     +{formatPoints(preview)}
@@ -617,7 +617,7 @@ function PurchaseQrSection({ business }: { business: Business }) {
           <DialogHeader>
             <DialogTitle>QR de la venta</DialogTitle>
             <DialogDescription>
-              Muestra este código al cliente para que sume sus loopoints.
+              Muestra este código al cliente para que sume sus monedas.
             </DialogDescription>
           </DialogHeader>
 
@@ -671,9 +671,9 @@ function PurchaseQrSection({ business }: { business: Business }) {
               </div>
 
               <div className="text-center">
-                <p className="text-sm font-semibold">Escanéalo para sumar loopoints</p>
+                <p className="text-sm font-semibold">Escanéalo para sumar monedas</p>
                 <p className="text-xs text-muted-foreground">
-                  {formatPoints(result.points_preview)} estimados
+                  {formatPoints(result.points_preview)} estimadas
                 </p>
               </div>
 

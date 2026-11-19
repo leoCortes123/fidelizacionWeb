@@ -102,7 +102,7 @@ export function CustomerShell() {
               <LoopointCoinSvg size={20} />
             </div>
             <span className="brand-name">
-              loopoint<span className="brand-dot">.</span>
+              fideliapp<span className="brand-dot">.</span>
             </span>
           </Link>
 

@@ -352,7 +352,7 @@ function BusinessProfileFields({
               <Field
                 id="business-name"
                 label="Nombre del negocio"
-                hint="Es el nombre visible para tus clientes en su billetera de puntos y códigos QR."
+                hint="Es el nombre visible para tus clientes en su billetera de monedas y códigos QR."
                 error={errors.name}
                 required
               >
@@ -400,7 +400,7 @@ function BusinessProfileFields({
                   id="business-timezone"
                   value={form.timezone}
                   onChange={(event) => update("timezone", event.target.value)}
-                  className="flex h-9 w-full cursor-pointer rounded-none border border-input bg-background px-2 py-1 text-base font-medium shadow-sm transition-colors focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 dark:border-slate-700 dark:bg-slate-900/90 md:text-sm"
+                  className="flex h-9 w-full cursor-pointer rounded-none border border-input bg-background px-2 py-1 text-base font-medium shadow-sm transition-colors focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 dark:border-border/60 dark:bg-card md:text-sm"
                 >
                   {(TIMEZONES.includes(form.timezone)
                     ? TIMEZONES

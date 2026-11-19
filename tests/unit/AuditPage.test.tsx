@@ -117,8 +117,8 @@ describe("AuditPage", () => {
     const dialog = within(screen.getByRole("dialog"));
     expect(dialog.getByText("Valor de la compra")).toBeInTheDocument();
     expect(dialog.getAllByText(/15\.500/).length).toBeGreaterThan(0);
-    expect(dialog.getByText("Loopoints sumados")).toBeInTheDocument();
-    expect(dialog.getAllByText(/15 loopoints/).length).toBeGreaterThan(0);
+    expect(dialog.getByText("Monedas sumadas")).toBeInTheDocument();
+    expect(dialog.getAllByText(/15 monedas/).length).toBeGreaterThan(0);
     expect(dialog.queryByText("amount_cop")).not.toBeInTheDocument();
 
     await user.click(dialog.getByRole("button", { name: "Ver JSON" }));

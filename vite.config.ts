@@ -8,12 +8,12 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: "prompt",
-      includeAssets: ["favicon.svg", "theme-init.js"],
+      includeAssets: ["favicon.svg", "fideliapp-coin.png", "theme-init.js"],
       manifest: {
-        name: "Loopoint",
-        short_name: "Loopoint",
+        name: "Fideliapp",
+        short_name: "Fideliapp",
         description:
-          "Loopoint: acumula loopoints con cada compra y canjéalos por recompensas en tus negocios favoritos.",
+          "Fideliapp: acumula monedas con cada compra y canjéalas por recompensas en tus negocios favoritos.",
         lang: "es",
         start_url: "/",
         scope: "/",
@@ -42,7 +42,7 @@ export default defineConfig({
         ],
         shortcuts: [
           {
-            name: "Mis puntos",
+            name: "Mis monedas",
             short_name: "Cliente",
             url: "/customer",
             icons: [{ src: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
@@ -64,6 +64,7 @@ export default defineConfig({
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
         navigateFallback: "/index.html",
+        navigateFallbackDenylist: [/^\/(robots\.txt|sitemap\.xml|llms\.txt)$/],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,

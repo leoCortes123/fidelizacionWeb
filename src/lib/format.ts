@@ -142,7 +142,7 @@ export function parseEconomicNumber(
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-/** Formatea valores unitarios por loopoint conservando 2 decimales cuando son menores a $1. */
+/** Formatea valores unitarios por moneda conservando 2 decimales cuando son menores a $1. */
 export function formatPointValueCOP(value: number): string {
   if (!Number.isFinite(value)) return "$ 0";
   if (value > 0 && value < 1) {

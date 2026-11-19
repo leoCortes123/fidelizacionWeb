@@ -13,7 +13,7 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
         "min-w-0 rounded-none border text-card-foreground transition-colors",
         variant === "tinted"
           ? "border-primary/20 bg-primary/[0.05] shadow-[0_2px_8px_-2px_hsl(var(--primary)/0.12)] dark:border-primary/30 dark:bg-primary/[0.10] dark:shadow-[0_2px_10px_-2px_rgba(2,6,23,0.45)]"
-          : "border-border/80 bg-card shadow-[0_1px_3px_rgba(15,23,42,0.04),0_6px_16px_-6px_rgba(15,23,42,0.06)] dark:border-slate-800 dark:shadow-[0_1px_3px_rgba(2,6,23,0.4)]",
+          : "border-border/80 bg-card shadow-[0_1px_3px_rgba(30,28,26,0.04),0_6px_16px_-6px_rgba(30,28,26,0.06)] dark:border-border/50 dark:shadow-[0_1px_3px_rgba(9,8,7,0.4)]",
         className,
       )}
       {...props}

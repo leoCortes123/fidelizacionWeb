@@ -576,7 +576,7 @@ function Wizard({
 
   function validateProgram(): string | null {
     if (!Number.isInteger(copPerPoint) || copPerPoint < 100 || copPerPoint > 1_000_000) {
-      return "El valor por loopoint debe ser un entero entre 100 y 1.000.000 COP.";
+      return "El valor por moneda debe ser un entero entre 100 y 1.000.000 COP.";
     }
     if (
       !Number.isFinite(parsedBudgetRatePercent) ||
@@ -587,7 +587,7 @@ function Wizard({
     }
     const expiry = parseWizardInteger(draft.pointsExpiryDays);
     if (!Number.isInteger(expiry) || expiry < 1 || expiry > 3650) {
-      return "El vencimiento de loopoints debe estar entre 1 y 3.650 días.";
+      return "El vencimiento de monedas debe estar entre 1 y 3.650 días.";
     }
     const qrHours = parseWizardInteger(draft.qrExpiryHours);
     if (!Number.isInteger(qrHours) || qrHours < 1 || qrHours > 168) {
@@ -600,7 +600,7 @@ function Wizard({
       if (suggested === null) continue;
       const value = parseWizardInteger(pointsInput(product.id, suggested));
       if (!Number.isInteger(value) || value <= 0 || value > 10_000_000) {
-        return `Los loopoints de ${product.name} no son válidos.`;
+        return `Las monedas de ${product.name} no son válidas.`;
       }
     }
 
@@ -696,7 +696,7 @@ function Wizard({
       <PageHeader
         kicker="CONFIGURACIÓN INICIAL"
         title="Configuración inicial"
-        description="Activa tu programa de fidelización en 3 pasos: registra los datos básicos de tu negocio, añade información económica opcional para orientar el presupuesto y define las reglas para acumular loopoints."
+        description="Activa tu programa de fidelización en 3 pasos: registra los datos básicos de tu negocio, añade información económica opcional para orientar el presupuesto y define las reglas para acumular monedas."
       />
 
       {/* Progreso y navegación entre pasos */}
@@ -728,7 +728,7 @@ function Wizard({
                         ? "relative z-10 border-primary bg-primary text-primary-foreground shadow-sm shadow-primary/25"
                         : done
                           ? "border-emerald-200 bg-emerald-50/70 text-emerald-950 hover:bg-emerald-50 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-100"
-                          : "border-border bg-muted/30 text-muted-foreground hover:border-slate-300 hover:bg-muted/60 hover:text-foreground dark:hover:border-slate-700",
+                          : "border-border bg-muted/30 text-muted-foreground hover:border-foreground/40 hover:bg-muted/60 hover:text-foreground dark:hover:border-border",
                     )}
                   >
                     {done && <span className="sr-only">Paso {index + 1} completado: </span>}
@@ -803,7 +803,8 @@ function Wizard({
                       maxLength={120}
                     />
                     <p className="text-xs text-muted-foreground">
-                      Es el nombre visible para tus clientes en su billetera de puntos y códigos QR.
+                      Es el nombre visible para tus clientes en su billetera de monedas y códigos
+                      QR.
                     </p>
                   </div>
 
@@ -854,7 +855,7 @@ function Wizard({
                     id="onboarding-timezone"
                     value={draft.timezone}
                     onChange={(event) => patch({ timezone: event.target.value })}
-                    className="flex h-9 w-full cursor-pointer rounded-none border border-input bg-background px-2 py-1 text-base font-medium shadow-sm transition-colors focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 dark:border-slate-700 dark:bg-slate-900/90 md:text-sm"
+                    className="flex h-9 w-full cursor-pointer rounded-none border border-input bg-background px-2 py-1 text-base font-medium shadow-sm transition-colors focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 dark:border-border/60 dark:bg-card md:text-sm"
                   >
                     {timezoneOptions.map((zone) => (
                       <option key={zone} value={zone}>
@@ -994,14 +995,14 @@ function Wizard({
                 </CardHeader>
                 <CardContent className="space-y-4 sm:space-y-5">
                   <p className="text-sm leading-relaxed text-muted-foreground">
-                    Configura cuántos loopoints acumulan tus clientes por cada compra y qué parte de
+                    Configura cuántas monedas acumulan tus clientes por cada compra y qué parte de
                     tus ventas destinas a premios. Con estas reglas se calcula el valor de cada
-                    loopoint y podrás activar tu programa al instante.
+                    moneda y podrás activar tu programa al instante.
                   </p>
 
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="space-y-1.5">
-                      <Label htmlFor="onboarding-cop-per-point">COP por loopoint ganado</Label>
+                      <Label htmlFor="onboarding-cop-per-point">COP por moneda ganada</Label>
                       <Input
                         id="onboarding-cop-per-point"
                         inputMode="numeric"
@@ -1009,9 +1010,8 @@ function Wizard({
                         onChange={(event) => patch({ copPerPointUnit: event.target.value })}
                       />
                       <p className="text-xs leading-relaxed text-muted-foreground">
-                        ¿Cuánto debe comprar un cliente para sumar 1 loopoint? Ahora mismo gana{" "}
-                        <strong>1 loopoint por cada {formatCOP(copPerPoint || 0)}</strong>{" "}
-                        elegibles.
+                        ¿Cuánto debe comprar un cliente para sumar 1 moneda? Ahora mismo gana{" "}
+                        <strong>1 moneda por cada {formatCOP(copPerPoint || 0)}</strong> elegibles.
                       </p>
                     </div>
                     <div className="space-y-1.5">
@@ -1050,7 +1050,7 @@ function Wizard({
                         )}
                     </div>
                     <div className="space-y-1.5">
-                      <Label htmlFor="onboarding-expiry">Vencimiento de loopoints (días)</Label>
+                      <Label htmlFor="onboarding-expiry">Vencimiento de monedas (días)</Label>
                       <Input
                         id="onboarding-expiry"
                         inputMode="numeric"
@@ -1058,7 +1058,7 @@ function Wizard({
                         onChange={(event) => patch({ pointsExpiryDays: event.target.value })}
                       />
                       <p className="text-xs leading-relaxed text-muted-foreground">
-                        Plazo en días antes de que caduquen los loopoints desde la compra que los
+                        Plazo en días antes de que caduquen las monedas desde la compra que las
                         generó (ej. 365 días = 1 año). Incentiva visitas frecuentes.
                       </p>
                     </div>
@@ -1072,7 +1072,7 @@ function Wizard({
                       />
                       <p className="text-xs leading-relaxed text-muted-foreground">
                         Tiempo máximo durante el cual el QR de una venta sigue siendo válido para
-                        que el cliente lo escanee y sume sus loopoints (ej. 24 horas).
+                        que el cliente lo escanee y sume sus monedas (ej. 24 horas).
                       </p>
                     </div>
                   </div>
@@ -1086,7 +1086,7 @@ function Wizard({
                         </span>
                         <span className="font-mono text-xs font-bold text-primary">
                           Compra de {formatCOP(50000)} = {formatNumber(examplePurchasePoints)}{" "}
-                          loopoints
+                          monedas
                           {costPerPoint !== null &&
                             ` (costo est. ${formatCOP(Math.round(examplePurchasePoints * costPerPoint))})`}
                         </span>
@@ -1094,7 +1094,7 @@ function Wizard({
                       {exampleAvgTicketPoints !== null && avgTicket !== null && (
                         <p className="text-xs text-muted-foreground">
                           En tu ticket promedio ({formatCOP(avgTicket)}), el cliente sumaría{" "}
-                          <strong>{formatNumber(exampleAvgTicketPoints)} loopoint(s)</strong> por
+                          <strong>{formatNumber(exampleAvgTicketPoints)} moneda(s)</strong> por
                           visita.
                         </p>
                       )}
@@ -1162,12 +1162,12 @@ function Wizard({
                               {formatCOP(product.price_cop)}
                             </p>
                             <p className="text-xs font-medium text-primary">
-                              Loopoints sugeridos: {formatNumber(suggested)} (editable)
+                              Monedas sugeridas: {formatNumber(suggested)} (editable)
                             </p>
                           </div>
                           <div className="space-y-1">
                             <Label htmlFor={`reward-points-${product.id}`} className="text-xs">
-                              Loopoints para {product.name}
+                              Monedas para {product.name}
                             </Label>
                             <Input
                               id={`reward-points-${product.id}`}
@@ -1226,7 +1226,7 @@ function Wizard({
                     </div>
                     <div className="rounded-none border border-border/80 bg-muted/25 p-3">
                       <span className="block text-[11px] font-medium text-muted-foreground">
-                        Valor por loopoint
+                        Valor por moneda
                       </span>
                       <span className="mt-0.5 block font-mono text-sm font-bold tabular-nums">
                         {costPerPoint !== null ? formatCOP(costPerPoint) : "Sin definir"}
@@ -1244,7 +1244,7 @@ function Wizard({
 
                   <div className="space-y-2 leading-relaxed">
                     <p>
-                      Los clientes ganan 1 loopoint por cada{" "}
+                      Los clientes ganan 1 moneda por cada{" "}
                       <strong>{formatCOP(copPerPoint || 0)}</strong> de compra elegible.
                     </p>
                     <p>
@@ -1279,13 +1279,13 @@ function Wizard({
                       )}
                     {costPerPoint !== null ? (
                       <p>
-                        Costo estimado por loopoint: <strong>{formatCOP(costPerPoint)}</strong> (
-                        {formatNumber(pointsPerThousand)} loopoints equivalen a $1.000 en premios).
+                        Costo estimado por moneda: <strong>{formatCOP(costPerPoint)}</strong> (
+                        {formatNumber(pointsPerThousand)} monedas equivalen a $1.000 en premios).
                       </p>
                     ) : (
                       <p className="text-amber-700 dark:text-amber-400">
-                        No se puede calcular el costo por loopoint (tasa de presupuesto en 0 % o
-                        valor por loopoint inválido), así que no hay propuesta de loopoints.
+                        No se puede calcular el costo por moneda (tasa de presupuesto en 0 % o valor
+                        por moneda inválido), así que no hay propuesta de monedas.
                       </p>
                     )}
                     {monthlyGain !== null &&
@@ -1394,7 +1394,7 @@ function Wizard({
               <div className="space-y-1">
                 <p className="text-xs text-muted-foreground">Regla de acumulación</p>
                 <p className="font-mono text-sm font-bold tabular-nums text-primary">
-                  1 PTO /{" "}
+                  1 MONEDA /{" "}
                   {formatCOP(Number.isInteger(copPerPoint) && copPerPoint > 0 ? copPerPoint : 0)}
                 </p>
                 <p className="text-xs text-muted-foreground">

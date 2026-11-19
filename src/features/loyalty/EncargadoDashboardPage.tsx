@@ -166,13 +166,20 @@ function EncargadoDashboardSection({ business }: { business: Business }) {
       {/* Indicadores clave */}
       <div className="grid gap-3 sm:grid-cols-3">
         {/* Solicitudes pendientes */}
-        <Card className={pendingRows.length > 0 ? "border-amber-400/80 bg-amber-50/30 dark:bg-amber-950/20" : ""}>
+        <Card
+          className={
+            pendingRows.length > 0 ? "border-amber-400/80 bg-amber-50/30 dark:bg-amber-950/20" : ""
+          }
+        >
           <CardContent className="p-4 sm:p-5">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Por aprobar
               </span>
-              <TicketCheck className="size-4 text-amber-600 dark:text-amber-400" aria-hidden="true" />
+              <TicketCheck
+                className="size-4 text-amber-600 dark:text-amber-400"
+                aria-hidden="true"
+              />
             </div>
             <p className="mt-2 font-display text-3xl font-extrabold text-foreground">
               {pendingRows.length}
@@ -182,7 +189,12 @@ function EncargadoDashboardSection({ business }: { business: Business }) {
                 ? "1 solicitud esperando aprobación"
                 : `${pendingRows.length} solicitudes esperando aprobación`}
             </p>
-            <Button variant="link" size="sm" asChild className="mt-2 h-auto p-0 font-semibold text-primary">
+            <Button
+              variant="link"
+              size="sm"
+              asChild
+              className="mt-2 h-auto p-0 font-semibold text-primary"
+            >
               <Link to="/encargado/solicitudes">
                 Ir a solicitudes <ArrowRight className="ml-1 size-3" />
               </Link>
@@ -191,13 +203,22 @@ function EncargadoDashboardSection({ business }: { business: Business }) {
         </Card>
 
         {/* Por entregar */}
-        <Card className={approvedRows.length > 0 ? "border-emerald-400/80 bg-emerald-50/30 dark:bg-emerald-950/20" : ""}>
+        <Card
+          className={
+            approvedRows.length > 0
+              ? "border-emerald-400/80 bg-emerald-50/30 dark:bg-emerald-950/20"
+              : ""
+          }
+        >
           <CardContent className="p-4 sm:p-5">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Por entregar
               </span>
-              <PackageCheck className="size-4 text-emerald-600 dark:text-emerald-400" aria-hidden="true" />
+              <PackageCheck
+                className="size-4 text-emerald-600 dark:text-emerald-400"
+                aria-hidden="true"
+              />
             </div>
             <p className="mt-2 font-display text-3xl font-extrabold text-foreground">
               {approvedRows.length}
@@ -207,7 +228,12 @@ function EncargadoDashboardSection({ business }: { business: Business }) {
                 ? "1 recompensa lista para entregar"
                 : `${approvedRows.length} recompensas listas para entregar`}
             </p>
-            <Button variant="link" size="sm" asChild className="mt-2 h-auto p-0 font-semibold text-primary">
+            <Button
+              variant="link"
+              size="sm"
+              asChild
+              className="mt-2 h-auto p-0 font-semibold text-primary"
+            >
               <Link to="/encargado/solicitudes">
                 Ver mostrador <ArrowRight className="ml-1 size-3" />
               </Link>
@@ -228,9 +254,14 @@ function EncargadoDashboardSection({ business }: { business: Business }) {
               Ranking de clientes
             </p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Consulta a los clientes ordenados por puntos acumulados.
+              Consulta a los clientes ordenados por monedas acumuladas.
             </p>
-            <Button variant="link" size="sm" asChild className="mt-2 h-auto p-0 font-semibold text-primary">
+            <Button
+              variant="link"
+              size="sm"
+              asChild
+              className="mt-2 h-auto p-0 font-semibold text-primary"
+            >
               <Link to="/encargado/solicitudes">
                 Ver lista de clientes <ArrowRight className="ml-1 size-3" />
               </Link>
@@ -281,8 +312,11 @@ function EncargadoDashboardSection({ business }: { business: Business }) {
                       <RedemptionRequestStatusBadge status={redemption.status} />
                     </div>
                     <p className="truncate text-xs text-muted-foreground">
-                      Cliente: {redemption.customer_nickname ? `@${redemption.customer_nickname}` : redemption.customer_email} ·{" "}
-                      {formatDateTimeBogota(redemption.created_at)}
+                      Cliente:{" "}
+                      {redemption.customer_nickname
+                        ? `@${redemption.customer_nickname}`
+                        : redemption.customer_email}{" "}
+                      · {formatDateTimeBogota(redemption.created_at)}
                     </p>
                   </div>
 
@@ -327,7 +361,7 @@ function EncargadoDashboardSection({ business }: { business: Business }) {
           ) : recentPurchases.length === 0 ? (
             <EmptyState
               title="Aún no hay ventas"
-              description="Registra la primera venta para que el cliente acumule sus loopoints."
+              description="Registra la primera venta para que el cliente acumule sus monedas."
               icon={ReceiptText}
               className="border-0 bg-transparent py-6"
             />

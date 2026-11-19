@@ -18,7 +18,7 @@ const movementLabels: Record<PointsMovementType, string> = {
   purchase_credit: "Compra acreditada",
   redemption_debit: "Canje",
   redemption_refund: "Devolución de canje",
-  expiry_debit: "Vencimiento de loopoints",
+  expiry_debit: "Vencimiento de monedas",
   admin_adjustment: "Ajuste administrativo",
   bonus_credit: "Bono acreditado",
 };
@@ -160,7 +160,7 @@ export function CustomerDetailPage() {
                       </p>
                     </div>
                     <div className="flex shrink-0 items-center gap-2">
-                      <Badge variant="success">+{purchase.points_awarded} pts</Badge>
+                      <Badge variant="success">+{purchase.points_awarded} monedas</Badge>
                       {purchase.items_count ? (
                         <Button variant="ghost" size="sm" onClick={() => setDetailId(purchase.id)}>
                           Detalle
@@ -178,7 +178,7 @@ export function CustomerDetailPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
               <TrendingUp className="size-4 text-muted-foreground" aria-hidden="true" />
-              Movimientos de loopoints
+              Movimientos de monedas
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -251,7 +251,7 @@ export function CustomerDetailPage() {
                     </div>
                     <p className="mt-1 text-xs text-muted-foreground">
                       {formatDateTimeBogota(redemption.created_at)} · −{redemption.points_spent}{" "}
-                      loopoints
+                      monedas
                       {redemption.cancelled_at
                         ? ` · anulado ${formatDateTimeBogota(redemption.cancelled_at)}`
                         : ""}

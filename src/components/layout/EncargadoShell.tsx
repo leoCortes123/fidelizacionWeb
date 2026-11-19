@@ -23,7 +23,12 @@ type EncargadoNavItem = {
 
 const navItems: EncargadoNavItem[] = [
   { to: "/encargado", label: "Inicio", shortLabel: "Inicio", icon: Home, end: true },
-  { to: "/encargado/venta", label: "Generar venta", shortLabel: "Generar venta", icon: ReceiptText },
+  {
+    to: "/encargado/venta",
+    label: "Generar venta",
+    shortLabel: "Generar venta",
+    icon: ReceiptText,
+  },
   {
     to: "/encargado/solicitudes",
     label: "Solicitudes de recompensa",
@@ -51,7 +56,7 @@ export function EncargadoShell() {
         inert={headerHidden || undefined}
         aria-hidden={headerHidden || undefined}
         className={cn(
-          "z-30 shrink-0 overflow-hidden border-b border-border/80 bg-card/95 backdrop-blur transition-[max-height,transform,opacity] duration-300 ease-out no-print dark:border-slate-800",
+          "z-30 shrink-0 overflow-hidden border-b border-border/80 bg-card/95 backdrop-blur transition-[max-height,transform,opacity] duration-300 ease-out no-print",
           headerHidden
             ? "invisible pointer-events-none max-h-0 -translate-y-full border-transparent opacity-0"
             : "max-h-40 opacity-100",
@@ -114,7 +119,7 @@ export function EncargadoShell() {
             <UserMenu compact />
           </div>
         </div>
-        <div className="border-t border-border/70 px-4 py-2 md:hidden dark:border-slate-800">
+        <div className="border-t border-border/70 px-4 py-2 md:hidden">
           <BusinessSwitcher />
         </div>
       </header>
@@ -146,7 +151,9 @@ export function EncargadoShell() {
                 className={({ isActive }) =>
                   cn(
                     "flex flex-col items-center gap-1 py-2.5 text-[11px] font-semibold transition-colors",
-                    isActive ? "text-primary font-bold" : "text-muted-foreground hover:text-foreground",
+                    isActive
+                      ? "text-primary font-bold"
+                      : "text-muted-foreground hover:text-foreground",
                   )
                 }
               >

@@ -278,9 +278,9 @@ describe("OnboardingWizardPage", () => {
     setDraft({ step: 2 });
     renderPage();
 
-    expect(screen.getByLabelText("COP por loopoint ganado")).toHaveValue("1000");
+    expect(screen.getByLabelText("COP por moneda ganada")).toHaveValue("1000");
     expect(screen.getByLabelText("Tasa de presupuesto (%)")).toHaveValue("1");
-    expect(screen.getByLabelText("Loopoints para Taco de guisado")).toHaveValue("80");
+    expect(screen.getByLabelText("Monedas para Taco de guisado")).toHaveValue("80");
     expect(screen.getAllByText(/52\.000/).length).toBeGreaterThan(0);
 
     await user.click(screen.getByRole("button", { name: /Activar programa/i }));
@@ -337,7 +337,7 @@ describe("OnboardingWizardPage", () => {
     expect(screen.getByText(/1\.560\.000/)).toBeInTheDocument();
     expect(screen.getAllByText(/6\.7 %/i).length).toBeGreaterThan(0);
     expect(screen.getByText(/28\.0 %/i)).toBeInTheDocument();
-    expect(screen.getByText(/5 loopoint\(s\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/5 moneda\(s\)/i)).toBeInTheDocument();
   });
 
   it("explica qué indicadores faltan cuando no hay datos económicos", () => {
@@ -355,7 +355,7 @@ describe("OnboardingWizardPage", () => {
     renderPage();
 
     const rateInput = screen.getByLabelText("Tasa de presupuesto (%)");
-    const expiryInput = screen.getByLabelText("Vencimiento de loopoints (días)");
+    const expiryInput = screen.getByLabelText("Vencimiento de monedas (días)");
 
     await user.clear(rateInput);
     await user.click(screen.getByRole("button", { name: /Activar programa/i }));

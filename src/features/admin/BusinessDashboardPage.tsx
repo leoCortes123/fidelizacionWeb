@@ -216,33 +216,33 @@ export function BusinessDashboardPage() {
       />
 
       {/* Hero Operativo */}
-      <Card className="relative overflow-hidden border-slate-800 bg-gradient-to-br from-slate-950 via-blue-950 to-slate-900 text-white shadow-lg">
+      <Card className="relative overflow-hidden border-[#1e1c1a] bg-gradient-to-br from-[#1e1c1a] via-[#2b2420] to-[#181615] text-[#fffdf5] shadow-lg dark:border-border/50">
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -right-12 -top-12 size-48 rounded-full bg-blue-500/20 blur-3xl"
+          className="pointer-events-none absolute -right-12 -top-12 size-48 rounded-full bg-primary/20 blur-3xl"
         />
         <CardContent className="relative flex flex-col justify-between gap-4 p-4 sm:flex-row sm:items-center sm:gap-5 sm:p-6">
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-400 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-slate-950">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-accent px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-accent-foreground">
                 <QrCode className="size-3" aria-hidden="true" />
                 Modo caja rápida
               </span>
-              <span className="rounded-full border border-white/15 bg-white/10 px-2.5 py-0.5 font-mono text-xs text-blue-100">
+              <span className="rounded-full border border-white/15 bg-white/10 px-2.5 py-0.5 font-mono text-xs text-[#f6edda]">
                 {program.isLoading
                   ? "Verificando programa…"
                   : programUnconfigured
                     ? "Programa pendiente de configurar"
                     : program.data?.is_active
-                      ? `1 PTO / ${formatCOP(program.data.cop_per_point_unit)}`
+                      ? `1 MONEDA / ${formatCOP(program.data.cop_per_point_unit)}`
                       : "Programa inactivo"}
               </span>
             </div>
             <h2 className="font-display text-xl font-extrabold tracking-tight sm:text-2xl">
-              Acredita loopoints en segundos o aprueba canjes en mostrador
+              Acredita monedas en segundos o aprueba canjes en mostrador
             </h2>
-            <p className="max-w-2xl text-sm text-slate-300">
-              Genera un QR único por venta para que el cliente reclame sus puntos desde el celular.
+            <p className="max-w-2xl text-sm text-[#cfc4b4]">
+              Genera un QR único por venta para que el cliente reclame sus monedas desde el celular.
             </p>
           </div>
           <div className="flex shrink-0 flex-wrap gap-2.5">
@@ -261,7 +261,7 @@ export function BusinessDashboardPage() {
                 <TicketCheck aria-hidden="true" />
                 Ver solicitudes
                 {data && data.pending_redemptions > 0 && (
-                  <span className="ml-1 rounded-full bg-amber-400 px-1.5 py-0.5 font-mono text-[11px] font-bold text-slate-950">
+                  <span className="ml-1 rounded-full bg-accent px-1.5 py-0.5 font-mono text-[11px] font-bold text-accent-foreground">
                     {data.pending_redemptions}
                   </span>
                 )}
@@ -310,13 +310,13 @@ export function BusinessDashboardPage() {
               actionHref={data.pending_redemptions > 0 ? "/admin/redemptions" : undefined}
               actionLabel={data.pending_redemptions > 0 ? "Atender canjes" : undefined}
             />
-            <Card className="relative min-w-0 overflow-hidden border-t-4 border-t-indigo-500">
+            <Card className="relative min-w-0 overflow-hidden border-t-4 border-t-primary">
               <CardContent className="space-y-2 p-3.5 sm:space-y-2.5 sm:p-5">
                 <div className="flex items-start justify-between gap-2">
                   <p className="min-w-0 text-[11px] font-semibold uppercase leading-snug tracking-wider text-muted-foreground sm:text-xs">
                     Clientes frecuentes
                   </p>
-                  <span className="grid size-7 shrink-0 place-items-center rounded-none bg-indigo-50 text-indigo-600 dark:bg-indigo-950/60 dark:text-indigo-300 sm:size-8">
+                  <span className="grid size-7 shrink-0 place-items-center rounded-none bg-primary/10 text-primary sm:size-8">
                     <Users className="size-3.5 sm:size-4" aria-hidden="true" />
                   </span>
                 </div>
@@ -333,7 +333,7 @@ export function BusinessDashboardPage() {
                     className="h-1.5 w-full overflow-hidden rounded-full bg-muted"
                   >
                     <div
-                      className="h-full rounded-full bg-indigo-500 transition-[width] duration-500"
+                      className="h-full rounded-full bg-primary transition-[width] duration-500"
                       style={{ width: `${activeCustomerRatio}%` }}
                     />
                   </div>
@@ -345,12 +345,12 @@ export function BusinessDashboardPage() {
           {/* Tier 2: Bento asimétrico de economía, actividad e invitación */}
           <div className="grid gap-4 sm:gap-5 lg:grid-cols-12">
             <div className="space-y-4 sm:space-y-5 lg:col-span-7">
-              {/* Economía y telemetría de puntos */}
+              {/* Economía y telemetría de monedas */}
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="flex items-center gap-2 text-base">
                     <Coins className="size-4 text-primary" aria-hidden="true" />
-                    Economía de loopoints
+                    Economía de monedas
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4 sm:space-y-5">
@@ -358,7 +358,7 @@ export function BusinessDashboardPage() {
                     <div className="rounded-none border border-border/80 bg-muted/25 p-3.5">
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-xs font-medium text-muted-foreground">
-                          Loopoints en circulación
+                          Monedas en circulación
                         </span>
                         <Coins className="size-3.5 text-primary" aria-hidden="true" />
                       </div>
@@ -366,14 +366,14 @@ export function BusinessDashboardPage() {
                         {formatNumber(data.points_outstanding)}
                       </p>
                       <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
-                        Emitidos: {formatNumber(data.points_issued_total)}
+                        Emitidas: {formatNumber(data.points_issued_total)}
                       </p>
                     </div>
 
                     <div className="rounded-none border border-border/80 bg-muted/25 p-3.5">
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-xs font-medium text-muted-foreground">
-                          Loopoints canjeados
+                          Monedas canjeadas
                         </span>
                         <Gift className="size-3.5 text-emerald-600" aria-hidden="true" />
                       </div>
@@ -494,7 +494,7 @@ export function BusinessDashboardPage() {
                             <span className="mt-0.5 block truncate text-xs text-muted-foreground">
                               {item.detail}
                               {item.amount_cop ? ` · ${formatCOP(item.amount_cop)}` : ""}
-                              {item.points ? ` · ${formatNumber(item.points)} loopoints` : ""}
+                              {item.points ? ` · ${formatNumber(item.points)} monedas` : ""}
                             </span>
                           </span>
                         </li>
@@ -680,7 +680,7 @@ function KpiCard({
       cardBg: "bg-amber-50/40 dark:bg-amber-950/15",
     },
     slate: {
-      border: "border-t-slate-400 dark:border-t-slate-600",
+      border: "border-t-muted-foreground/40",
       iconWrap: "bg-muted text-muted-foreground",
       cardBg: "",
     },

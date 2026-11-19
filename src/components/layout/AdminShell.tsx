@@ -104,8 +104,8 @@ export function AdminShell({ children }: { children?: ReactNode }) {
 
   return (
     <div className="flex h-dvh overflow-hidden bg-background">
-      <aside className="hidden h-dvh w-64 shrink-0 flex-col border-r border-border/80 bg-card/95 backdrop-blur-sm md:flex dark:border-slate-800">
-        <div className="border-b border-border/70 bg-muted/30 p-4 dark:border-slate-800">
+      <aside className="hidden h-dvh w-64 shrink-0 flex-col border-r border-border/80 bg-card/95 backdrop-blur-sm md:flex">
+        <div className="border-b border-border/70 bg-muted/30 p-4">
           <Brand
             name={headerBusinessName}
             tagline={headerBusinessName ? null : undefined}
@@ -142,7 +142,7 @@ export function AdminShell({ children }: { children?: ReactNode }) {
           })}
         </nav>
 
-        <div className="border-t border-slate-200 p-3 dark:border-slate-800">
+        <div className="border-t border-border/70 p-3">
           <UserMenu />
         </div>
       </aside>
@@ -153,7 +153,7 @@ export function AdminShell({ children }: { children?: ReactNode }) {
           inert={headerHidden || undefined}
           aria-hidden={headerHidden || undefined}
           className={cn(
-            "z-30 shrink-0 overflow-hidden border-b border-border/80 bg-card/85 backdrop-blur-md transition-[max-height,transform,opacity] duration-300 ease-out no-print dark:border-slate-800",
+            "z-30 shrink-0 overflow-hidden border-b border-border/80 bg-card/85 backdrop-blur-md transition-[max-height,transform,opacity] duration-300 ease-out no-print",
             headerHidden
               ? "invisible pointer-events-none max-h-0 -translate-y-full border-transparent opacity-0"
               : "max-h-40 opacity-100",
@@ -172,7 +172,7 @@ export function AdminShell({ children }: { children?: ReactNode }) {
               <UserMenu compact />
             </div>
           </div>
-          <div className="border-t border-border/70 px-4 py-2 sm:hidden dark:border-slate-800">
+          <div className="border-t border-border/70 px-4 py-2 sm:hidden">
             <BusinessSwitcher />
           </div>
         </header>
@@ -191,7 +191,7 @@ export function AdminShell({ children }: { children?: ReactNode }) {
       <PurchaseFab />
 
       <nav
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-border/80 bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden no-print dark:border-slate-800"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-border/80 bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden no-print"
         aria-label="Navegación del negocio"
       >
         <div className="grid grid-cols-5 p-1.5 gap-1">

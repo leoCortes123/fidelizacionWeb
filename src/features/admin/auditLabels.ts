@@ -83,7 +83,7 @@ export const AUDIT_CATEGORIES: AuditCategory[] = [
   },
   { id: "team", label: "Equipo", prefix: "membership.", icon: Users },
   { id: "rewards", label: "Recompensas", prefix: "reward.", icon: Gift },
-  { id: "points", label: "Loopoints", prefix: "points.", icon: Clock },
+  { id: "points", label: "Monedas", prefix: "points.", icon: Clock },
   { id: "budget", label: "Presupuesto", prefix: "budget.", icon: PiggyBank },
 ];
 
@@ -110,8 +110,8 @@ const ENTITY_LABELS: Record<string, string> = {
   business_membership: "Miembro del equipo",
   loyalty_budget_snapshot: "Presupuesto",
   loyalty_campaign: "Campaña",
-  loyalty_point_transactions: "Loopoints",
-  loyalty_program: "Programa de loopoints",
+  loyalty_point_transactions: "Monedas",
+  loyalty_program: "Programa de monedas",
   loyalty_purchase_event: "Compra",
   loyalty_redemption: "Canje",
   loyalty_reward: "Recompensa",
@@ -132,13 +132,13 @@ const FIELD_LABELS: Record<string, string> = {
   balance: "Saldo resultante",
   balance_after: "Saldo resultante",
   before: "Antes",
-  bonus_points: "Bono de loopoints",
+  bonus_points: "Bono de monedas",
   budget_rate: "Tasa de presupuesto",
   can_approve_redemptions: "Puede aprobar canjes",
   channel: "Canal",
   city: "Ciudad",
   code: "Código del canje",
-  cop_per_point_unit: "COP por loopoint",
+  cop_per_point_unit: "COP por moneda",
   customer_nickname: "Cliente",
   customer_email: "Correo del cliente",
   daily_avg_sales: "Ventas diarias promedio",
@@ -174,15 +174,15 @@ const FIELD_LABELS: Record<string, string> = {
   period_start: "Periodo",
   phone: "Teléfono",
   phone_whatsapp: "WhatsApp",
-  points_awarded: "Loopoints acreditados",
-  points_earned: "Loopoints sumados",
-  points_expired: "Loopoints vencidos",
-  points_per_cop_unit: "Loopoints por COP",
-  points_preview: "Loopoints estimados",
-  points_refunded: "Loopoints devueltos",
-  points_required: "Loopoints requeridos",
-  points_reversed: "Loopoints descontados",
-  points_spent: "Loopoints canjeados",
+  points_awarded: "Monedas acreditadas",
+  points_earned: "Monedas sumadas",
+  points_expired: "Monedas vencidas",
+  points_per_cop_unit: "Monedas por COP",
+  points_preview: "Monedas estimadas",
+  points_refunded: "Monedas devueltas",
+  points_required: "Monedas requeridas",
+  points_reversed: "Monedas descontadas",
+  points_spent: "Monedas canjeadas",
   points_expiry_days: "Días de vencimiento",
   previous_role: "Rol anterior",
   previous_status: "Estado anterior",
@@ -344,12 +344,12 @@ export const AUDIT_LABELS: Record<string, AuditLabel> = {
     "Negocio",
   ),
   "loyalty_program.configured": op(
-    "Programa de loopoints actualizado",
+    "Programa de monedas actualizado",
     "Se guardaron las reglas de acumulación, vencimiento y presupuesto.",
     SlidersHorizontal,
     "info",
     "configuration",
-    "Programa de loopoints",
+    "Programa de monedas",
   ),
   "loyalty_program.frequent_updated": op(
     "Criterios de cliente frecuente actualizados",
@@ -357,7 +357,7 @@ export const AUDIT_LABELS: Record<string, AuditLabel> = {
     SlidersHorizontal,
     "info",
     "configuration",
-    "Programa de loopoints",
+    "Programa de monedas",
   ),
   "economic_profile.updated": op(
     "Datos económicos actualizados",
@@ -377,7 +377,7 @@ export const AUDIT_LABELS: Record<string, AuditLabel> = {
   ),
   "purchase.registered": op(
     "Compra registrada",
-    "Se registró una compra y se sumaron loopoints al cliente.",
+    "Se registró una compra y se sumaron monedas al cliente.",
     ShoppingBag,
     "success",
     "purchase",
@@ -385,7 +385,7 @@ export const AUDIT_LABELS: Record<string, AuditLabel> = {
   ),
   "purchase.reverted": op(
     "Compra anulada",
-    "Se anuló una compra y se descontaron los loopoints que había sumado.",
+    "Se anuló una compra y se descontaron las monedas que había sumado.",
     XCircle,
     "danger",
     "purchase",
@@ -393,7 +393,7 @@ export const AUDIT_LABELS: Record<string, AuditLabel> = {
   ),
   "purchase.qr_created": op(
     "QR de compra generado",
-    "Se creó un QR para que el cliente reclame los loopoints de su compra.",
+    "Se creó un QR para que el cliente reclame las monedas de su compra.",
     QrCode,
     "info",
     "purchase",
@@ -401,7 +401,7 @@ export const AUDIT_LABELS: Record<string, AuditLabel> = {
   ),
   "purchase.qr_claimed": op(
     "Compra reclamada con QR",
-    "El cliente reclamó el QR de su compra y recibió los loopoints.",
+    "El cliente reclamó el QR de su compra y recibió las monedas.",
     BadgeCheck,
     "success",
     "purchase",
@@ -416,12 +416,12 @@ export const AUDIT_LABELS: Record<string, AuditLabel> = {
     "Compra",
   ),
   "points.expired": op(
-    "Loopoints vencidos",
-    "Se vencieron loopoints por antigüedad y se ajustaron los saldos.",
+    "Monedas vencidas",
+    "Se vencieron monedas por antigüedad y se ajustaron los saldos.",
     Clock,
     "warning",
     "points",
-    "Loopoints",
+    "Monedas",
   ),
   "reward.created": op(
     "Recompensa creada",
@@ -441,7 +441,7 @@ export const AUDIT_LABELS: Record<string, AuditLabel> = {
   ),
   "redemption.requested": op(
     "Canje solicitado",
-    "El cliente pidió una recompensa; los loopoints quedaron reservados.",
+    "El cliente pidió una recompensa; las monedas quedaron reservadas.",
     Ticket,
     "info",
     "redemption",
@@ -465,7 +465,7 @@ export const AUDIT_LABELS: Record<string, AuditLabel> = {
   ),
   "redemption.cancelled": op(
     "Canje cancelado",
-    "Se canceló el canje y se devolvieron los loopoints reservados.",
+    "Se canceló el canje y se devolvieron las monedas reservadas.",
     XCircle,
     "warning",
     "redemption",
@@ -553,7 +553,7 @@ export const AUDIT_LABELS: Record<string, AuditLabel> = {
   ),
   "campaign.created": op(
     "Campaña creada",
-    "Se añadió una campaña con multiplicador o bono de loopoints.",
+    "Se añadió una campaña con multiplicador o bono de monedas.",
     Megaphone,
     "success",
     "campaign",
@@ -593,7 +593,7 @@ export const AUDIT_LABELS: Record<string, AuditLabel> = {
 export const LEGACY_AUDIT_LABELS: Record<string, AuditLabel> = {
   "purchase.claimed": op(
     "Compra reclamada",
-    "El cliente reclamó su compra y recibió los loopoints.",
+    "El cliente reclamó su compra y recibió las monedas.",
     BadgeCheck,
     "success",
     "purchase",
@@ -609,7 +609,7 @@ export const LEGACY_AUDIT_LABELS: Record<string, AuditLabel> = {
   ),
   "purchase.cancelled": op(
     "Compra cancelada",
-    "Se canceló una compra y se descontaron los loopoints que había sumado.",
+    "Se canceló una compra y se descontaron las monedas que había sumado.",
     XCircle,
     "warning",
     "purchase",
@@ -617,7 +617,7 @@ export const LEGACY_AUDIT_LABELS: Record<string, AuditLabel> = {
   ),
   "redemption.created": op(
     "Canje creado",
-    "El cliente pidió una recompensa; los loopoints quedaron reservados.",
+    "El cliente pidió una recompensa; las monedas quedaron reservadas.",
     Ticket,
     "info",
     "redemption",
@@ -633,7 +633,7 @@ export const LEGACY_AUDIT_LABELS: Record<string, AuditLabel> = {
   ),
   "redemption.cancelled_by_admin": op(
     "Canje cancelado por administración",
-    "Un administrador canceló el canje y devolvió los loopoints reservados.",
+    "Un administrador canceló el canje y devolvió las monedas reservadas.",
     XCircle,
     "warning",
     "redemption",
@@ -752,7 +752,7 @@ export function auditSubject(entry: Pick<BusinessAuditLog, "operation" | "metada
     case "purchase.reverted": {
       const parts = [
         amount !== null ? `Compra por ${formatCOP(amount)}` : null,
-        points !== null ? `${formatLoopoints(points)} descontados` : null,
+        points !== null ? `${formatLoopoints(points)} descontadas` : null,
       ].filter(Boolean);
       return parts.length > 0 ? parts.join(" · ") : "Compra anulada";
     }
@@ -766,7 +766,7 @@ export function auditSubject(entry: Pick<BusinessAuditLog, "operation" | "metada
     case "redemption.cancelled": {
       const parts = [
         reward,
-        points !== null ? `${formatLoopoints(points)} devueltos` : null,
+        points !== null ? `${formatLoopoints(points)} devueltas` : null,
       ].filter(Boolean);
       return parts.length > 0 ? parts.join(" · ") : "Canje cancelado";
     }

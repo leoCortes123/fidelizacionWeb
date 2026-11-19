@@ -166,7 +166,7 @@ export function SettingsPage() {
       return;
     }
     if (!Number.isFinite(pointsCost) || pointsCost <= 0) {
-      setRewardError("El costo en loopoints debe ser mayor que cero.");
+      setRewardError("El costo en monedas debe ser mayor que cero.");
       return;
     }
     try {
@@ -205,7 +205,7 @@ export function SettingsPage() {
     try {
       const result = await expirePoints.mutateAsync();
       toast.success(
-        `Vencimiento aplicado: ${result.points_expired} loopoints en ${result.credits_expired} créditos.`,
+        `Vencimiento aplicado: ${result.points_expired} monedas en ${result.credits_expired} créditos.`,
       );
       setExpireOpen(false);
     } catch (error) {
@@ -238,7 +238,7 @@ export function SettingsPage() {
               <form onSubmit={saveSettings} className="space-y-4">
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="cop_per_point_unit">COP por loopoint</Label>
+                    <Label htmlFor="cop_per_point_unit">COP por moneda</Label>
                     <Input
                       id="cop_per_point_unit"
                       type="number"
@@ -248,7 +248,7 @@ export function SettingsPage() {
                       onChange={(event) => updateField("cop_per_point_unit", event.target.value)}
                     />
                     <p className="text-xs text-muted-foreground">
-                      1000 = 1 loopoint por cada $1.000 completos.
+                      1000 = 1 moneda por cada $1.000 completos.
                     </p>
                   </div>
                   <div className="space-y-2">
@@ -263,7 +263,7 @@ export function SettingsPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="max_points_per_purchase">Máximo de loopoints por compra</Label>
+                    <Label htmlFor="max_points_per_purchase">Máximo de monedas por compra</Label>
                     <Input
                       id="max_points_per_purchase"
                       type="number"
@@ -287,7 +287,7 @@ export function SettingsPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="points_expiry_days">Vencimiento de loopoints (días)</Label>
+                    <Label htmlFor="points_expiry_days">Vencimiento de monedas (días)</Label>
                     <Input
                       id="points_expiry_days"
                       type="number"
@@ -298,7 +298,7 @@ export function SettingsPage() {
                       onChange={(event) => updateField("points_expiry_days", event.target.value)}
                     />
                     <p className="text-xs text-muted-foreground">
-                      Vacío = los loopoints no vencen automáticamente.
+                      Vacío = las monedas no vencen automáticamente.
                     </p>
                   </div>
                   <div className="space-y-2">
@@ -384,7 +384,7 @@ export function SettingsPage() {
                         </Badge>
                       </div>
                       <p className="text-xs text-muted-foreground">
-                        {reward.points_cost} loopoints · {reward.times_redeemed} canjes
+                        {reward.points_cost} monedas · {reward.times_redeemed} canjes
                       </p>
                     </div>
                     <div className="flex gap-1">
@@ -552,7 +552,7 @@ export function SettingsPage() {
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
-                <Label htmlFor="reward-cost">Costo en loopoints</Label>
+                <Label htmlFor="reward-cost">Costo en monedas</Label>
                 <Input
                   id="reward-cost"
                   type="number"
@@ -627,7 +627,7 @@ export function SettingsPage() {
       <ConfirmDialog
         open={expireOpen}
         onOpenChange={setExpireOpen}
-        title="Ejecutar vencimiento de loopoints"
+        title="Ejecutar vencimiento de monedas"
         description="Se descontarán los créditos más antiguos que superen los días configurados, hasta donde el saldo actual lo permita. La operación es idempotente."
         confirmLabel="Aplicar vencimiento"
         loading={expirePoints.isPending}

@@ -43,7 +43,7 @@ export function PurchasesPage() {
         <p className="mt-1 text-xs text-[var(--text-muted)]">
           {businessLabel
             ? `Compras acreditadas en ${businessLabel}.`
-            : "Historial global de compras acreditadas y los loopoints ganados."}
+            : "Historial global de compras acreditadas y las monedas ganadas."}
         </p>
       </div>
 
@@ -115,7 +115,7 @@ export function PurchasesPage() {
                   </div>
                   <div className="shrink-0 text-right">
                     <span className="item-badge-xp inline-block">
-                      +{purchase.points_awarded} PTS
+                      +{purchase.points_awarded} MONEDAS
                     </span>
                   </div>
                 </div>
@@ -154,7 +154,7 @@ export function PurchasesPage() {
                     Ítems
                   </TableHead>
                   <TableHead className="text-right font-mono text-[11px] font-bold uppercase text-[var(--ink)]">
-                    Loopoints
+                    Monedas
                   </TableHead>
                   <TableHead className="text-right" />
                 </TableRow>

@@ -160,14 +160,14 @@ describe("PurchaseRegistrationPage (venta con QR)", () => {
 
     const input = screen.getByRole("textbox", { name: /importe de la compra/i });
     await user.type(input, "15500");
-    expect(await screen.findByText(/\+15 loopoints/i)).toBeInTheDocument();
+    expect(await screen.findByText(/\+15 monedas/i)).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: /generar qr de la venta/i }));
     expect(createMutate).toHaveBeenCalledWith({ amountCop: 15500, items: [] }, expect.any(Object));
 
     const dialog = await screen.findByRole("dialog");
     expect(within(dialog).getByRole("heading", { name: /qr de la venta/i })).toBeInTheDocument();
-    expect(within(dialog).getByText(/escanéalo para sumar loopoints/i)).toBeInTheDocument();
+    expect(within(dialog).getByText(/escanéalo para sumar monedas/i)).toBeInTheDocument();
     expect(within(dialog).getByTestId("qr")).toHaveAttribute(
       "data-value",
       "https://fidelizacion01.vercel.app/claim/tok_123456789012345678901234567890",
@@ -175,7 +175,7 @@ describe("PurchaseRegistrationPage (venta con QR)", () => {
     expect(within(dialog).getByTestId("claim-url").textContent).toContain(
       "/claim/tok_123456789012345678901234567890",
     );
-    expect(within(dialog).getByText(/15 loopoints estimados/i)).toBeInTheDocument();
+    expect(within(dialog).getByText(/15 monedas estimadas/i)).toBeInTheDocument();
   });
 
   it("abre el modal de carta al elegir productos y muestra la tabla con total al aceptar", async () => {
@@ -239,6 +239,6 @@ describe("PurchaseRegistrationPage (venta con QR)", () => {
     renderPage();
 
     expect(screen.getByRole("button", { name: /generar qr de la venta/i })).toBeDisabled();
-    expect(screen.getByText(/programa de loopoints está inactivo/i)).toBeInTheDocument();
+    expect(screen.getByText(/programa de monedas está inactivo/i)).toBeInTheDocument();
   });
 });

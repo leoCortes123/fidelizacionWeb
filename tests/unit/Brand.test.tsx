@@ -4,25 +4,25 @@ import { Brand } from "@/components/shared/Brand";
 import { loopointLabel, loopointPlural, loopointSingular, loopointWord } from "@/lib/copy";
 import { brandName, brandTagline } from "@/lib/config";
 
-describe("copy de Loopoint", () => {
-  it('usa "loopoint" en singular y "loopoints" en plural', () => {
-    expect(loopointSingular).toBe("loopoint");
-    expect(loopointPlural).toBe("loopoints");
+describe("copy de Fideliapp", () => {
+  it('usa "moneda" en singular y "monedas" en plural', () => {
+    expect(loopointSingular).toBe("moneda");
+    expect(loopointPlural).toBe("monedas");
   });
 
   it("elige la palabra según la cantidad", () => {
-    expect(loopointWord(1)).toBe("loopoint");
-    expect(loopointWord(0)).toBe("loopoints");
-    expect(loopointWord(2)).toBe("loopoints");
-    expect(loopointWord(-1)).toBe("loopoint");
-    expect(loopointWord(-3)).toBe("loopoints");
+    expect(loopointWord(1)).toBe("moneda");
+    expect(loopointWord(0)).toBe("monedas");
+    expect(loopointWord(2)).toBe("monedas");
+    expect(loopointWord(-1)).toBe("moneda");
+    expect(loopointWord(-3)).toBe("monedas");
   });
 
   it("compone la etiqueta con la cantidad", () => {
-    expect(loopointLabel(1)).toBe("1 loopoint");
-    expect(loopointLabel(0)).toBe("0 loopoints");
-    expect(loopointLabel(250)).toBe("250 loopoints");
-    expect(loopointLabel(-5)).toBe("-5 loopoints");
+    expect(loopointLabel(1)).toBe("1 moneda");
+    expect(loopointLabel(0)).toBe("0 monedas");
+    expect(loopointLabel(250)).toBe("250 monedas");
+    expect(loopointLabel(-5)).toBe("-5 monedas");
   });
 });
 
@@ -36,10 +36,10 @@ describe("Brand", () => {
 
     expect(screen.getByText(brandName)).toBeInTheDocument();
     expect(screen.getByText(brandTagline)).toBeInTheDocument();
-    expect(brandName).toBe("Loopoint");
+    expect(brandName).toBe("Fideliapp");
   });
 
-  it("usa la moneda de Loopoint en la imagen del logo", () => {
+  it("usa la moneda de Fideliapp en la imagen del logo", () => {
     const { container } = render(
       <MemoryRouter>
         <Brand />
@@ -48,7 +48,7 @@ describe("Brand", () => {
 
     const img = container.querySelector("img");
     expect(img).not.toBeNull();
-    expect(img?.getAttribute("src")).toBe("/loopoint-coin.png");
+    expect(img?.getAttribute("src")).toBe("/fideliapp-coin.png");
     expect(img?.getAttribute("alt")).toBe("");
     expect(img?.getAttribute("aria-hidden")).toBe("true");
   });

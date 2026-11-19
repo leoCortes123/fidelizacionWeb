@@ -96,14 +96,14 @@ describe("auditLabels", () => {
     expect(getAuditEntityLabel("custom_entity")).toBe("Custom entity");
   });
 
-  it("resume compras con importe y loopoints", () => {
+  it("resume compras con importe y monedas", () => {
     const subject = auditSubject({
       operation: "purchase.registered",
       metadata: { amount_cop: 15500, points_earned: 15 },
     });
     expect(subject).toContain("Compra por");
     expect(subject).toContain("15.500");
-    expect(subject).toContain("15 loopoints");
+    expect(subject).toContain("15 monedas");
   });
 
   it("resume canjes y membresías", () => {
@@ -112,7 +112,7 @@ describe("auditLabels", () => {
         operation: "redemption.delivered",
         metadata: { reward_name: "Taco individual", points_spent: 40 },
       }),
-    ).toBe("Taco individual · 40 loopoints");
+    ).toBe("Taco individual · 40 monedas");
 
     expect(
       auditSubject({
@@ -134,10 +134,10 @@ describe("auditLabels", () => {
     });
 
     const labels = description.fields.map((field) => field.label);
-    expect(labels).toEqual(["Valor de la compra", "Valor elegible", "Loopoints sumados"]);
+    expect(labels).toEqual(["Valor de la compra", "Valor elegible", "Monedas sumadas"]);
     expect(labels).not.toContain("Customer id");
     expect(description.fields[0].value).toMatch(/15\.500/);
-    expect(description.fields[2].value).toBe("15 loopoints");
+    expect(description.fields[2].value).toBe("15 monedas");
   });
 
   it("muestra solo los campos que cambiaron en before/after", () => {
@@ -184,7 +184,7 @@ describe("auditLabels", () => {
     });
 
     const byLabel = new Map(description.fields.map((field) => [field.label, field.value]));
-    expect(byLabel.get("COP por loopoint")).toBe("1.000");
+    expect(byLabel.get("COP por moneda")).toBe("1.000");
     expect(byLabel.get("Días de vencimiento")).toBe("365");
     expect(byLabel.get("Tasa de presupuesto")).toBe("1.00 %");
     expect(byLabel.get("Días de operación")).toBe("Lun · Mar · Mié");
@@ -225,21 +225,21 @@ describe("auditLabels", () => {
     ]);
   });
 
-  it("resumen las operaciones legadas con importes y loopoints", () => {
+  it("resumen las operaciones legadas con importes y monedas", () => {
     const purchase = auditSubject({
       operation: "purchase.claimed",
       metadata: { amount_cop: 15500, points_awarded: 15 },
     });
     expect(purchase).toContain("Compra por");
     expect(purchase).toContain("15.500");
-    expect(purchase).toContain("15 loopoints");
+    expect(purchase).toContain("15 monedas");
 
     expect(
       auditSubject({
         operation: "redemption.cancelled_by_admin",
         metadata: { reward_name: "Taco individual", points_refunded: 40 },
       }),
-    ).toBe("Taco individual · 40 loopoints");
+    ).toBe("Taco individual · 40 monedas");
   });
 
   it("traduce entidad, rol anterior y canal de invitaciones QR", () => {

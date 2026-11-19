@@ -689,7 +689,7 @@ export function EconomicDataForm({
                           onChange={(event) =>
                             updateStatus(config.field, event.target.value as EconomicDataStatus)
                           }
-                          className="flex h-9 w-full cursor-pointer rounded-none border border-input bg-background px-2 py-1 text-base font-medium shadow-sm focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 dark:border-slate-700 dark:bg-slate-900/90 md:text-sm"
+                          className="flex h-9 w-full cursor-pointer rounded-none border border-input bg-background px-2 py-1 text-base font-medium shadow-sm focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 dark:border-border/60 dark:bg-card md:text-sm"
                         >
                           {ECONOMIC_STATUS_OPTIONS.map((option) => (
                             <option key={option.value} value={option.value}>

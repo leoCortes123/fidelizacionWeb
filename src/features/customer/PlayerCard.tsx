@@ -89,12 +89,12 @@ export function PlayerCard({ items }: { items: BusinessClosestRewardInfo[] }) {
     ? "¡TIENES UN PREMIO LISTO PARA RECLAMAR!"
     : nextReward
       ? "¡ESTÁS CERCA DE TU PRÓXIMO PREMIO!"
-      : "ACUMULA LOOPOINTS CON CADA COMPRA";
+      : "ACUMULA MONEDAS CON CADA COMPRA";
 
   const remainingText = hasReadyReward
     ? "LISTO PARA CANJEAR EN CAJA"
     : nextReward
-      ? `FALTAN ${formatNumber(remainingPoints)} PTS PARA ${nextReward.name.toUpperCase()}`
+      ? `FALTAN ${formatNumber(remainingPoints)} MONEDAS PARA ${nextReward.name.toUpperCase()}`
       : business.loyalty_active
         ? "SIN RECOMPENSAS ACTIVAS"
         : "PROGRAMA INACTIVO";
@@ -145,9 +145,7 @@ export function PlayerCard({ items }: { items: BusinessClosestRewardInfo[] }) {
         <div
           id="player-tabpanel"
           role="tabpanel"
-          aria-labelledby={
-            topItems.length > 1 ? `player-tab-${business.business_id}` : undefined
-          }
+          aria-labelledby={topItems.length > 1 ? `player-tab-${business.business_id}` : undefined}
         >
           <div className="hud-meta">
             <span className="points-label">TU SALDO EN {business.name.toUpperCase()}</span>
@@ -158,14 +156,14 @@ export function PlayerCard({ items }: { items: BusinessClosestRewardInfo[] }) {
 
           <div className="points-row">
             <img
-              src="/loopoint-coin.png"
+              src="/fideliapp-coin.png"
               alt=""
               width={40}
               height={40}
               className="points-coin"
               aria-hidden="true"
             />
-            <div className="points">{formatNumber(business.balance)} PTS</div>
+            <div className="points">{formatNumber(business.balance)} MONEDAS</div>
           </div>
 
           <div className="progress-caption">{progressCaption}</div>

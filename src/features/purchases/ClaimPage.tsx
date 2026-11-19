@@ -72,7 +72,7 @@ export function ClaimPage() {
         setResult(data);
         clearPendingClaim();
         persistBusinessSelection(user?.id, data.business_id);
-        toast.success(`¡Sumaste ${formatPoints(data.points_awarded)} loopoints!`);
+        toast.success(`¡Sumaste ${formatPoints(data.points_awarded)}!`);
       },
       onError: (claimError) => {
         setError(errorMessage(claimError));
@@ -97,7 +97,7 @@ export function ClaimPage() {
               nueva.
             </p>
             <Button asChild>
-              <Link to="/customer">Ir a mis loopoints</Link>
+              <Link to="/customer">Ir a mis monedas</Link>
             </Button>
           </CardContent>
         </Card>
@@ -124,7 +124,7 @@ export function ClaimPage() {
                 : "El código no existe o el enlace está incompleto."}
             </p>
             <Button asChild variant="outline">
-              <Link to="/customer">Ir a mis loopoints</Link>
+              <Link to="/customer">Ir a mis monedas</Link>
             </Button>
           </CardContent>
         </Card>
@@ -142,7 +142,7 @@ export function ClaimPage() {
             <span className="mx-auto grid size-14 place-items-center rounded-full bg-primary-foreground/15">
               <BadgeCheck className="size-8" aria-hidden="true" />
             </span>
-            <h1 className="mt-3 font-display text-2xl font-extrabold">¡Loopoints acreditados!</h1>
+            <h1 className="mt-3 font-display text-2xl font-extrabold">¡Monedas acreditadas!</h1>
             <p className="mt-1 text-sm text-primary-foreground/80">
               Tu compra en {result.business_name} ya está asociada a tu cuenta.
             </p>
@@ -159,7 +159,7 @@ export function ClaimPage() {
               </div>
               <div className="rounded-none bg-secondary p-4 text-center">
                 <p className="text-xs font-semibold uppercase tracking-wider text-secondary-foreground/70">
-                  Loopoints sumados
+                  Monedas sumadas
                 </p>
                 <p className="mt-1 font-display text-xl font-extrabold text-primary">
                   +{formatPoints(result.points_awarded)}
@@ -174,7 +174,7 @@ export function ClaimPage() {
             </div>
             <Button asChild size="lg" className="w-full">
               <Link to={`/customer/business/${result.business_id}`}>
-                Ir a mis loopoints
+                Ir a mis monedas
                 <ArrowRight aria-hidden="true" />
               </Link>
             </Button>
@@ -186,9 +186,9 @@ export function ClaimPage() {
 
   if (data.status !== "pending_claim") {
     const messages = {
-      claimed: "Este QR ya fue reclamado. Si eras tú, entra a tu cuenta para ver los loopoints.",
-      expired: "Este QR venció. Pide en caja que generen una venta nueva para sumar los loopoints.",
-      cancelled: "Esta venta fue cancelada, así que sus loopoints ya no están disponibles.",
+      claimed: "Este QR ya fue reclamado. Si eras tú, entra a tu cuenta para ver las monedas.",
+      expired: "Este QR venció. Pide en caja que generen una venta nueva para sumar las monedas.",
+      cancelled: "Esta venta fue cancelada, así que sus monedas ya no están disponibles.",
     } as const;
     return (
       <ClaimLayout>
@@ -205,7 +205,7 @@ export function ClaimPage() {
               <Link
                 to={session ? `/customer/business/${data.business_id}` : `/login?next=${loginNext}`}
               >
-                {session ? "Ir a mis loopoints" : "Entrar a mi cuenta"}
+                {session ? "Ir a mis monedas" : "Entrar a mi cuenta"}
               </Link>
             </Button>
             <Button asChild variant="outline" className="w-full">
@@ -242,7 +242,7 @@ export function ClaimPage() {
             </div>
             <div className="rounded-none bg-secondary p-4 text-center">
               <p className="text-xs font-semibold uppercase tracking-wider text-secondary-foreground/70">
-                Loopoints
+                Monedas
               </p>
               <p className="mt-1 font-display text-xl font-extrabold text-primary">
                 +{formatNumber(data.points_preview)}
@@ -289,14 +289,14 @@ export function ClaimPage() {
                       className="mt-0.5 size-3.5 shrink-0 text-primary"
                       aria-hidden="true"
                     />
-                    Los loopoints se suman a tu cuenta en {data.business_name}.
+                    Las monedas se suman a tu cuenta en {data.business_name}.
                   </li>
                   <li className="flex gap-2">
                     <ShieldCheck
                       className="mt-0.5 size-3.5 shrink-0 text-primary"
                       aria-hidden="true"
                     />
-                    El importe y los loopoints los calcula el servidor.
+                    El importe y las monedas los calcula el servidor.
                   </li>
                   <li className="flex gap-2">
                     <BadgeCheck
@@ -309,7 +309,7 @@ export function ClaimPage() {
               </div>
 
               <Button size="lg" className="w-full" onClick={handleClaim} loading={claim.isPending}>
-                Confirmar y sumar loopoints
+                Confirmar y sumar monedas
               </Button>
               <Button asChild variant="ghost" className="w-full">
                 <Link to={`/customer/business/${data.business_id}`}>Ahora no</Link>
@@ -339,7 +339,7 @@ function ClaimLayout({ children }: { children: React.ReactNode }) {
         </div>
         {children}
         <p className={cn("px-4 text-center text-xs text-muted-foreground sm:px-0")}>
-          Tus datos se usan solo para el programa de loopoints del negocio.
+          Tus datos se usan solo para el programa de monedas del negocio.
         </p>
       </div>
     </div>
