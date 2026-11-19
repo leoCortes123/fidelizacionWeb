@@ -1,0 +1,1361 @@
+/* ==========================================================================
+   FIDELIAPP — ANIMACIÓN PRINCIPAL LANDING PAGE (PIXEL ART 32x32 + GSAP)
+   Formato cuadrado 1:1 · Fondo transparente · Modular por momentos (1..5)
+   ========================================================================== */
+
+.fa-stage {
+  --fa-ink: #1e1c1a;
+  --fa-cream: #fffdf5;
+  --fa-paper: #f6edda;
+  --fa-paper-deep: #eadec5;
+  --fa-red: #e6533f;
+  --fa-red-dark: #b83726;
+  --fa-gold: #ffd166;
+  --fa-gold-bright: #facc15;
+  --fa-green: #4e8c57;
+  --fa-green-dark: #3d7345;
+  --fa-emerald: #34d399;
+  --fa-blue: #467299;
+
+  --fa-font-pixel: "Press Start 2P", ui-monospace, monospace;
+  --fa-font-mono: "DM Mono", ui-monospace, monospace;
+  --fa-font-sans: "Space Grotesk", "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+
+  position: relative;
+  width: 100%;
+  max-width: 540px;
+  margin: 0 auto;
+  background: transparent;
+  color: var(--fa-ink);
+  font-family: var(--fa-font-sans);
+  container-type: inline-size;
+  user-select: none;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.fa-stage *,
+.fa-stage *::before,
+.fa-stage *::after {
+  box-sizing: border-box;
+}
+
+/* Barra HUD superior retro */
+.fa-stage-hud {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 11px;
+  margin-bottom: 6px;
+  background: var(--fa-ink);
+  color: var(--fa-cream);
+  border: 3px solid var(--fa-ink);
+  box-shadow: 4px 4px 0 var(--fa-red);
+  z-index: 25;
+  flex: none;
+}
+
+.fa-hud-stage {
+  font-family: var(--fa-font-pixel);
+  font-size: clamp(8.5px, 2.15cqi, 11px);
+  color: var(--fa-gold);
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+
+.fa-hud-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.fa-hud-dot {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  min-height: 26px;
+  border: 2.5px solid #000000;
+  background: var(--fa-cream);
+  color: var(--fa-ink);
+  font-family: var(--fa-font-pixel);
+  font-size: clamp(8.5px, 2cqi, 10.5px);
+  padding: clamp(4px, 1cqi, 6px) clamp(7px, 1.8cqi, 10px);
+  cursor: pointer;
+  line-height: 1;
+  box-shadow:
+    inset 1.5px 1.5px 0 rgba(255, 255, 255, 0.8),
+    inset -1.5px -1.5px 0 rgba(0, 0, 0, 0.18),
+    0 3px 0 #000000;
+  translate: 0px;
+  transition:
+    translate 0.08s steps(2),
+    box-shadow 0.08s steps(2),
+    background-color 0.08s steps(2),
+    color 0.08s steps(2);
+}
+
+.fa-hud-dot:hover,
+.fa-hud-dot:focus-visible {
+  background: var(--fa-gold);
+  color: var(--fa-ink);
+  outline: 2px solid var(--fa-gold);
+  outline-offset: 2px;
+}
+
+@container (max-width: 420px) {
+  .fa-stage-hud {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+    padding: 6px 8px;
+  }
+
+  .fa-hud-stage {
+    font-size: clamp(7.5px, 2.2cqi, 9.5px);
+    text-align: center;
+  }
+
+  .fa-hud-dots {
+    gap: 4px;
+  }
+
+  .fa-hud-dot {
+    font-size: clamp(7.5px, 2cqi, 9px);
+    min-width: 26px;
+    min-height: 26px;
+    padding: 4px 5px;
+  }
+}
+
+.fa-hud-dot:active {
+  translate: 0 2px;
+  box-shadow: inset 1px 1px 0 rgba(0, 0, 0, 0.2);
+}
+
+.fa-hud-dot.is-active {
+  background: var(--fa-red-dark);
+  color: #ffffff;
+  border-color: var(--fa-cream);
+  box-shadow:
+    inset 1.5px 1.5px 0 rgba(255, 255, 255, 0.35),
+    0 3px 0 #000000;
+}
+
+/* Texto descriptivo pixelado sin contenedor, integrado dentro de cada escena debajo de la barra superior */
+.fa-scene-caption {
+  position: absolute;
+  top: 2.5%;
+  left: 3%;
+  right: 3%;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  text-align: center;
+  font-family: var(--fa-font-pixel);
+  font-size: clamp(10.5px, 2.6cqi, 14px);
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+  color: var(--fa-ink);
+  text-shadow:
+    2px 2px 0 var(--fa-cream),
+    -1px -1px 0 var(--fa-cream);
+  z-index: 29;
+  pointer-events: none;
+  translate: 0px;
+  scale: 1;
+}
+
+.fa-scene-caption .fa-txt-accent {
+  color: var(--fa-red);
+  text-shadow: 2px 2px 0 var(--fa-ink);
+}
+
+.fa-stage.is-caption-hidden .fa-scene-caption {
+  display: none !important;
+}
+
+/* Viewport central cuadrado donde viven los momentos sobre fondo transparente */
+.fa-moments-viewport {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  min-height: 0;
+  background: transparent;
+  overflow: hidden;
+}
+
+.fa-m4-coin-badge {
+  background: var(--fa-gold);
+}
+
+.fa-moment {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  padding: 2%;
+  visibility: hidden;
+  opacity: 0;
+  translate: 0px;
+  rotate: 0deg;
+  scale: 1;
+}
+
+.fa-stage-single .fa-moment {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Sprites Pixel Art */
+.fa-sprite {
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+  shape-rendering: crispEdges;
+  translate: 0px;
+  rotate: 0deg;
+  scale: 1;
+}
+
+/* Flotación suave escalonada (idle bobbing de 3px en steps) */
+.fa-idle-bob {
+  translate: 0px;
+  scale: 1;
+  animation: fa-idle-bob-anim 1.2s steps(2, end) infinite;
+}
+
+@keyframes fa-idle-bob-anim {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -3px;
+  }
+}
+
+/* Cortinilla de transición pixelada rápida entre momentos */
+.fa-transition-wipe {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  pointer-events: none;
+  visibility: hidden;
+  opacity: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    var(--fa-ink) 0px,
+    var(--fa-ink) 12px,
+    var(--fa-red) 12px,
+    var(--fa-red) 16px,
+    transparent 16px,
+    transparent 32px
+  );
+}
+
+/* ==========================================================================
+   COMPONENTES COMPARTIDOS (Dispositivos detallados, Tarjetas, Botones)
+   ========================================================================== */
+
+.fa-retro-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 3px solid var(--fa-ink);
+  padding: clamp(5px, 1.5cqi, 8px) clamp(9px, 2.5cqi, 14px);
+  font-family: var(--fa-font-mono);
+  font-weight: 700;
+  font-size: clamp(9.5px, 2.4cqi, 12.5px);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  box-shadow:
+    inset 2px 2px 0 rgba(255, 255, 255, 0.35),
+    0 4px 0 var(--fa-ink);
+  white-space: nowrap;
+  translate: 0px;
+  scale: 1;
+}
+
+.fa-btn-blue {
+  background: var(--fa-red);
+  color: #ffffff;
+}
+
+.fa-btn-red {
+  background: var(--fa-red);
+  color: #ffffff;
+}
+
+.fa-btn-emerald {
+  background: var(--fa-emerald);
+  color: var(--fa-ink);
+}
+
+.fa-btn-disabled {
+  background: #cbd5e1;
+  color: #64748b;
+}
+
+.fa-led-green,
+.fa-led-red {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border: 2px solid var(--fa-ink);
+  flex: none;
+}
+
+.fa-led-green {
+  background: var(--fa-emerald);
+}
+
+.fa-led-red {
+  background: var(--fa-red);
+}
+
+/* Tarjeta de producto / alimento (Momentos 1 y 5) */
+.fa-product-card {
+  position: relative;
+  width: clamp(180px, 44cqi, 232px);
+  background: var(--fa-cream);
+  border: 4px solid var(--fa-ink);
+  box-shadow:
+    inset 3px 3px 0 rgba(255, 255, 255, 0.8),
+    8px 8px 0 var(--fa-ink);
+  padding: clamp(8px, 2.2cqi, 12px);
+  text-align: center;
+  translate: 0px;
+  scale: 1;
+}
+
+.fa-loot-card {
+  background: var(--fa-cream);
+  box-shadow:
+    0 0 0 3px var(--fa-gold),
+    10px 10px 0 var(--fa-ink);
+}
+
+.fa-product-badge {
+  display: inline-block;
+  background: var(--fa-paper-deep);
+  border: 2px solid var(--fa-ink);
+  padding: 3px 7px;
+  font-family: var(--fa-font-pixel);
+  font-size: clamp(7px, 1.7cqi, 8.5px);
+  color: var(--fa-ink);
+  margin-bottom: 5px;
+}
+
+.fa-badge-gold {
+  background: var(--fa-gold);
+}
+
+.fa-product-art {
+  width: clamp(86px, 22cqi, 118px);
+  height: clamp(86px, 22cqi, 118px);
+  margin: 0 auto 5px;
+  background: var(--fa-paper);
+  border: 3px solid var(--fa-ink);
+  padding: 5px;
+}
+
+.fa-product-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-top: 5px;
+}
+
+.fa-product-title {
+  font-weight: 700;
+  font-size: clamp(10.5px, 2.5cqi, 13.5px);
+  text-align: left;
+}
+
+.fa-amount-pill {
+  background: var(--fa-gold);
+  border: 2px solid var(--fa-ink);
+  box-shadow: 2px 2px 0 var(--fa-ink);
+  padding: 3px 6px;
+  font-family: var(--fa-font-pixel);
+  font-size: clamp(7.5px, 1.9cqi, 9.5px);
+  color: var(--fa-ink);
+  white-space: nowrap;
+}
+
+.fa-pill-emerald {
+  background: var(--fa-emerald);
+}
+
+/* ==========================================================================
+   DISPOSITIVOS DETALLADOS:
+   1. TABLET POS / TERMINAL DE CAJA DEL NEGOCIO (.fa-device-tablet)
+   2. SMARTPHONE MÓVIL DEL CLIENTE (.fa-device-phone)
+   ========================================================================== */
+
+/* 1. Tablet POS del Negocio (Marco metálico slate, cámara, altavoz, botón home y base/dock) */
+.fa-device-tablet {
+  position: relative;
+  width: clamp(198px, 47cqi, 248px);
+  background: #334155;
+  border: 4px solid var(--fa-ink);
+  border-radius: 10px;
+  padding: 7px 9px 8px;
+  box-shadow:
+    inset 2px 2px 0 #64748b,
+    inset -2px -2px 0 #1e293b,
+    8px 8px 0 var(--fa-ink);
+  translate: 0px;
+  scale: 1;
+}
+
+.fa-tablet-compact {
+  width: clamp(168px, 39cqi, 208px);
+  padding: 6px 7px 7px;
+}
+
+/* Botones físicos laterales de la Tablet POS */
+.fa-tablet-side-btns {
+  position: absolute;
+  top: 22px;
+  right: -7px;
+  width: 4px;
+  height: 28px;
+  background: var(--fa-ink);
+  box-shadow: 0 36px 0 var(--fa-ink);
+}
+
+.fa-tablet-top-bezel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 5px;
+}
+
+.fa-bezel-cam {
+  width: 7px;
+  height: 7px;
+  background: #0f172a;
+  border: 1.5px solid #94a3b8;
+  display: inline-block;
+}
+
+.fa-bezel-speaker {
+  width: 28px;
+  height: 4px;
+  background: var(--fa-ink);
+  border-bottom: 1px solid #64748b;
+  display: inline-block;
+}
+
+.fa-bezel-sensor {
+  width: 5px;
+  height: 5px;
+  background: var(--fa-emerald);
+  border: 1px solid var(--fa-ink);
+  display: inline-block;
+}
+
+.fa-tablet-bottom-bezel {
+  display: flex;
+  justify-content: center;
+  margin-top: 5px;
+}
+
+.fa-tablet-home-btn {
+  width: 24px;
+  height: 6px;
+  background: #1e293b;
+  border: 1.5px solid #94a3b8;
+  display: inline-block;
+}
+
+/* Base / Soporte de mostrador de la Tablet POS */
+.fa-tablet-dock {
+  position: absolute;
+  bottom: -11px;
+  left: 50%;
+  translate: -50% 0;
+  width: 58%;
+  height: 8px;
+  background: #475569;
+  border: 3px solid var(--fa-ink);
+  box-shadow: 0 3px 0 var(--fa-ink);
+}
+
+/* 2. Smartphone Móvil del Cliente (Chasis vertical estilizado, auricular, cámara, botones laterales y barra home) */
+.fa-device-phone {
+  position: relative;
+  width: clamp(182px, 43cqi, 224px);
+  background: #1e293b;
+  border: 4px solid var(--fa-ink);
+  border-radius: 16px;
+  padding: 7px 7px 8px;
+  box-shadow:
+    inset 2px 2px 0 #475569,
+    inset -2px -2px 0 #0f172a,
+    8px 8px 0 var(--fa-ink);
+  translate: 0px;
+  scale: 1;
+}
+
+.fa-phone-side-btns {
+  position: absolute;
+  top: 28px;
+  left: -7px;
+  width: 4px;
+  height: 20px;
+  background: var(--fa-ink);
+  box-shadow: 0 26px 0 var(--fa-ink);
+}
+
+.fa-phone-top-bezel {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin-bottom: 5px;
+}
+
+.fa-bezel-earpiece {
+  width: 34px;
+  height: 4px;
+  background: #0f172a;
+  border: 1px solid #475569;
+  display: inline-block;
+}
+
+.fa-phone-bottom-bezel {
+  display: flex;
+  justify-content: center;
+  margin-top: 5px;
+}
+
+.fa-phone-home-bar {
+  width: 46px;
+  height: 4px;
+  background: #94a3b8;
+  display: inline-block;
+}
+
+/* Cabecera y pantalla compartida por Smartphone y Tablet POS */
+.fa-phone-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 5px 7px;
+  border: 2px solid var(--fa-ink);
+  border-bottom: none;
+  font-family: var(--fa-font-pixel);
+  font-size: clamp(6.5px, 1.6cqi, 8px);
+  color: #ffffff;
+}
+
+.fa-header-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.fa-device-status-icons {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.fa-status-ico {
+  width: 11px;
+  height: 9px;
+  display: block;
+}
+
+.fa-header-blue {
+  background: var(--fa-blue);
+}
+
+.fa-header-ink {
+  background: var(--fa-red);
+}
+
+.fa-phone-screen {
+  background: var(--fa-cream);
+  border: 2px solid var(--fa-ink);
+  padding: clamp(7px, 2cqi, 10px);
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.fa-screen-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  background: var(--fa-paper);
+  border: 2px solid var(--fa-ink);
+  padding: 4px 6px;
+}
+
+.fa-screen-lbl {
+  font-family: var(--fa-font-mono);
+  font-size: clamp(7.5px, 1.8cqi, 9.5px);
+  font-weight: 700;
+  color: #5c5446;
+}
+
+.fa-screen-amount {
+  font-family: var(--fa-font-pixel);
+  font-size: clamp(8.5px, 2.1cqi, 10.5px);
+  color: var(--fa-ink);
+}
+
+/* Visor de código QR */
+.fa-qr-stage {
+  position: relative;
+  width: clamp(106px, 25cqi, 134px);
+  height: clamp(106px, 25cqi, 134px);
+  margin: 0 auto;
+  background: var(--fa-paper);
+  border: 3px solid var(--fa-ink);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.fa-qr-placeholder {
+  position: absolute;
+  inset: 7px;
+  border: 2px dashed #94a3b8;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  font-family: var(--fa-font-mono);
+  font-weight: 700;
+  font-size: clamp(8px, 1.9cqi, 9.5px);
+  color: #64748b;
+  padding: 4px;
+}
+
+.fa-qr-arcade-frame {
+  width: 86%;
+  height: 86%;
+  background: var(--fa-cream);
+  border: 3px solid var(--fa-ink);
+  padding: 4px;
+}
+
+.fa-qr-ready-tag {
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  translate: -50% 0;
+  background: var(--fa-gold);
+  border: 2px solid var(--fa-ink);
+  padding: 2px 5px;
+  font-family: var(--fa-font-pixel);
+  font-size: clamp(5.5px, 1.4cqi, 7px);
+  white-space: nowrap;
+}
+
+/* Toasts e indicadores flotantes */
+.fa-toast-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 3px solid var(--fa-ink);
+  box-shadow: 4px 4px 0 var(--fa-ink);
+  font-family: var(--fa-font-pixel);
+  font-size: clamp(8px, 2cqi, 10px);
+  z-index: 20;
+}
+
+.fa-toast-emerald {
+  background: var(--fa-emerald);
+  color: var(--fa-ink);
+}
+
+.fa-toast-icon {
+  width: 14px;
+  height: 14px;
+  display: inline-block;
+}
+
+.fa-floating-arcade-text {
+  position: absolute;
+  background: var(--fa-ink);
+  color: var(--fa-gold);
+  border: 3px solid var(--fa-ink);
+  box-shadow: 4px 4px 0 var(--fa-red);
+  padding: 5px 9px;
+  font-family: var(--fa-font-pixel);
+  font-size: clamp(8px, 2.1cqi, 10.5px);
+  white-space: nowrap;
+  z-index: 30;
+  pointer-events: none;
+}
+
+/* Estrellas pixeladas */
+.fa-pixel-sparkle {
+  position: absolute;
+  font-size: clamp(15px, 3.8cqi, 21px);
+  color: var(--fa-gold-bright);
+  text-shadow: 2px 2px 0 var(--fa-ink);
+  pointer-events: none;
+  z-index: 22;
+}
+
+/* ==========================================================================
+   MOMENTO 1: Compra y generación del QR
+   ========================================================================== */
+.fa-m1-purchase-group {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+
+.fa-m1-customer-pay {
+  position: absolute;
+  left: -34%;
+  bottom: -14%;
+  display: flex;
+  align-items: center;
+  z-index: 12;
+}
+
+.fa-m1-hand-customer {
+  width: clamp(58px, 14.5cqi, 76px);
+  height: clamp(58px, 14.5cqi, 76px);
+}
+
+.fa-m1-bill {
+  width: clamp(56px, 13.5cqi, 72px);
+  height: clamp(56px, 13.5cqi, 72px);
+  margin-left: -10px;
+}
+
+.fa-m1-flash {
+  position: absolute;
+  width: 124px;
+  height: 124px;
+  background: var(--fa-gold);
+  border: 4px solid var(--fa-ink);
+  z-index: 15;
+  pointer-events: none;
+}
+
+.fa-m1-pago-ok {
+  position: absolute;
+  top: -16px;
+  right: -22px;
+}
+
+.fa-m1-staff-phone-wrap {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  z-index: 18;
+}
+
+.fa-m1-btn-generate {
+  width: 100%;
+}
+
+.fa-m1-hand-staff {
+  position: absolute;
+  right: -18px;
+  bottom: -26px;
+  width: clamp(58px, 14.5cqi, 76px);
+  height: clamp(58px, 14.5cqi, 76px);
+  z-index: 24;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   MOMENTO 2: Escaneo del QR y reclamo de monedas
+   ========================================================================== */
+.fa-m2-staff-unit {
+  position: absolute;
+  z-index: 10;
+}
+
+.fa-m2-qr-box {
+  width: clamp(96px, 22.5cqi, 118px);
+  height: clamp(96px, 22.5cqi, 118px);
+}
+
+.fa-laser-line {
+  position: absolute;
+  top: 4px;
+  left: 0;
+  right: 0;
+  height: 5px;
+  background: var(--fa-red);
+  box-shadow:
+    0 2px 0 var(--fa-ink),
+    0 -2px 0 #fecaca;
+  z-index: 16;
+}
+
+.fa-qr-detect-flash {
+  position: absolute;
+  inset: 0;
+  background: var(--fa-gold);
+  border: 3px solid var(--fa-red);
+  z-index: 17;
+  pointer-events: none;
+}
+
+.fa-m2-coins-flight {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  z-index: 25;
+}
+
+.fa-flying-coin {
+  position: absolute;
+  width: clamp(40px, 10cqi, 52px);
+  height: clamp(40px, 10cqi, 52px);
+  filter: drop-shadow(3px 3px 0 var(--fa-ink));
+}
+
+.fa-m2-customer-unit {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  z-index: 18;
+}
+
+.fa-m2-hand-customer {
+  position: absolute;
+  left: -42px;
+  bottom: 16px;
+  width: clamp(56px, 14cqi, 72px);
+  height: clamp(56px, 14cqi, 72px);
+  z-index: 22;
+}
+
+.fa-screen-kicker {
+  font-family: var(--fa-font-pixel);
+  font-size: clamp(6.5px, 1.6cqi, 8px);
+  color: #6b6355;
+  text-align: center;
+}
+
+.fa-m2-hero-coin-box {
+  position: relative;
+  width: clamp(80px, 19.5cqi, 104px);
+  height: clamp(80px, 19.5cqi, 104px);
+  margin: 2px auto;
+  background: var(--fa-paper);
+  border: 3px solid var(--fa-ink);
+  display: grid;
+  place-items: center;
+}
+
+.fa-m2-hero-coin {
+  width: 76%;
+  height: 76%;
+  filter: drop-shadow(3px 3px 0 var(--fa-ink));
+}
+
+.fa-sp-tl {
+  top: -8px;
+  left: -8px;
+}
+
+.fa-sp-tr {
+  top: -8px;
+  right: -8px;
+  color: var(--fa-red);
+}
+
+.fa-sp-br {
+  bottom: -8px;
+  right: -8px;
+}
+
+.fa-m2-balance-panel {
+  background: var(--fa-paper-deep);
+  border: 2px solid var(--fa-ink);
+  padding: 5px;
+  text-align: center;
+}
+
+.fa-balance-label {
+  display: block;
+  font-family: var(--fa-font-mono);
+  font-size: clamp(7px, 1.7cqi, 9px);
+  font-weight: 700;
+  color: #5c5446;
+}
+
+.fa-balance-value {
+  display: block;
+  margin-top: 2px;
+  font-family: var(--fa-font-pixel);
+  font-size: clamp(8.5px, 2.1cqi, 11px);
+  color: var(--fa-red);
+  text-shadow: 1px 1px 0 var(--fa-ink);
+}
+
+.fa-m2-plus-toast {
+  top: -18px;
+  right: -10px;
+}
+
+/* ==========================================================================
+   MOMENTO 3 y 4: Tarjeta de Recompensas (PLAYER CARD)
+   ========================================================================== */
+.fa-player-card {
+  position: relative;
+  width: min(92%, 372px);
+  background: var(--fa-cream);
+  border: 4px solid var(--fa-ink);
+  box-shadow:
+    inset 3px 3px 0 rgba(255, 255, 255, 0.8),
+    10px 10px 0 var(--fa-ink);
+  z-index: 14;
+  translate: 0px;
+  scale: 1;
+}
+
+.fa-card-window-bar {
+  background: var(--fa-blue);
+  border-bottom: 4px solid var(--fa-ink);
+  padding: clamp(6px, 1.7cqi, 9px) clamp(9px, 2.3cqi, 13px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #ffffff;
+  font-family: var(--fa-font-pixel);
+  font-size: clamp(7px, 1.8cqi, 9px);
+}
+
+.fa-card-window-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.fa-card-hearts {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.fa-pixel-heart {
+  width: 12px;
+  height: 11px;
+  display: block;
+}
+
+.fa-card-body {
+  padding: clamp(10px, 2.6cqi, 14px);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(7px, 1.8cqi, 10px);
+}
+
+.fa-card-hud-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.fa-card-kicker {
+  font-family: var(--fa-font-pixel);
+  font-size: clamp(6.5px, 1.6cqi, 8px);
+  color: #6b6355;
+}
+
+.fa-level-pill {
+  background: var(--fa-gold);
+  border: 2px solid var(--fa-ink);
+  padding: 2px 5px;
+  font-family: var(--fa-font-pixel);
+  font-size: clamp(6.5px, 1.6cqi, 7.5px);
+  color: var(--fa-ink);
+}
+
+.fa-card-points-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.fa-card-coin-icon {
+  width: clamp(30px, 7.5cqi, 38px);
+  height: clamp(30px, 7.5cqi, 38px);
+  flex: none;
+  filter: drop-shadow(2px 2px 0 var(--fa-ink));
+}
+
+.fa-card-points-val {
+  font-family: var(--fa-font-pixel);
+  font-size: clamp(13px, 3.5cqi, 18px);
+  color: var(--fa-red);
+  text-shadow: 2px 2px 0 var(--fa-ink);
+}
+
+.fa-m3-unlock-banner {
+  background: var(--fa-ink);
+  color: var(--fa-gold);
+  border: 2px solid var(--fa-ink);
+  box-shadow: 3px 3px 0 var(--fa-red);
+  padding: 4px 7px;
+  text-align: center;
+  font-family: var(--fa-font-pixel);
+  font-size: clamp(7px, 1.8cqi, 9px);
+}
+
+/* Barra segmentada en 10 bloques discretos */
+.fa-segmented-bar {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 3px;
+  height: clamp(16px, 4.2cqi, 22px);
+  padding: 2.5px;
+  background: #e5dcc9;
+  border: 3px solid var(--fa-ink);
+}
+
+.fa-prog-block {
+  display: block;
+  height: 100%;
+  background: var(--fa-green);
+  border: 1.5px solid var(--fa-ink);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.3);
+}
+
+.fa-bar-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--fa-font-mono);
+  font-weight: 700;
+  font-size: clamp(8.5px, 2.1cqi, 10.5px);
+  color: #5c5446;
+}
+
+.fa-m3-bar-pct {
+  font-family: var(--fa-font-pixel);
+  color: var(--fa-ink);
+}
+
+.fa-reward-slot {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  background: var(--fa-paper);
+  border: 3px solid var(--fa-ink);
+  box-shadow: 4px 4px 0 var(--fa-ink);
+  padding: clamp(7px, 1.8cqi, 10px);
+}
+
+.fa-reward-icon-box {
+  position: relative;
+  width: clamp(38px, 9.8cqi, 48px);
+  height: clamp(38px, 9.8cqi, 48px);
+  background: var(--fa-paper-deep);
+  border: 3px solid var(--fa-ink);
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+
+.fa-m3-icon-locked,
+.fa-m3-icon-unlocked {
+  position: absolute;
+  inset: 4px;
+}
+
+.fa-reward-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.fa-reward-tag {
+  display: block;
+  font-family: var(--fa-font-pixel);
+  font-size: clamp(6px, 1.5cqi, 7.5px);
+  color: var(--fa-red);
+  margin-bottom: 2px;
+}
+
+.fa-reward-name {
+  display: block;
+  font-weight: 700;
+  font-size: clamp(10.5px, 2.5cqi, 13.5px);
+  line-height: 1.2;
+}
+
+.fa-m3-absorb-coins,
+.fa-m4-spent-coins {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  z-index: 25;
+}
+
+/* ==========================================================================
+   MOMENTO 4: Solicitud y validación del canje
+   ========================================================================== */
+.fa-m4-spend-tag {
+  margin-left: auto;
+  background: var(--fa-red);
+  color: #ffffff;
+  border: 2px solid var(--fa-ink);
+  padding: 2px 5px;
+  font-family: var(--fa-font-pixel);
+  font-size: clamp(7.5px, 1.9cqi, 9.5px);
+}
+
+.fa-m4-redeem-cta-wrap {
+  margin-top: 8px;
+  display: flex;
+  justify-content: center;
+}
+
+.fa-m4-btn-redeem {
+  width: 100%;
+}
+
+.fa-ticket-qr-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--fa-paper);
+  border: 3px dashed var(--fa-ink);
+  padding: 8px;
+}
+
+.fa-ticket-qr-box {
+  width: clamp(60px, 15.5cqi, 78px);
+  height: clamp(60px, 15.5cqi, 78px);
+  background: var(--fa-cream);
+  border: 3px solid var(--fa-ink);
+  padding: 3px;
+  flex: none;
+}
+
+.fa-ticket-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.fa-ticket-code {
+  font-family: var(--fa-font-pixel);
+  font-size: clamp(6.5px, 1.6cqi, 8.5px);
+  color: var(--fa-blue);
+}
+
+.fa-ticket-prize {
+  font-size: clamp(11px, 2.8cqi, 14px);
+  font-weight: 700;
+}
+
+.fa-ticket-cost {
+  font-family: var(--fa-font-mono);
+  font-size: clamp(8.5px, 2cqi, 10.5px);
+  font-weight: 700;
+  color: #5c5446;
+}
+
+/* Mini terminal POS del encargado dentro del Momento 4 */
+.fa-pos-mini-terminal {
+  margin-top: 8px;
+  background: #334155;
+  border: 3px solid var(--fa-ink);
+  border-radius: 6px;
+  padding: 4px;
+  box-shadow: inset 1px 1px 0 #64748b;
+}
+
+.fa-pos-mini-bar {
+  background: var(--fa-blue);
+  color: #ffffff;
+  border: 2px solid var(--fa-ink);
+  border-bottom: none;
+  padding: 3px 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: var(--fa-font-pixel);
+  font-size: clamp(6px, 1.45cqi, 7.5px);
+}
+
+.fa-m4-approve-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: var(--fa-paper-deep);
+  border: 2px solid var(--fa-ink);
+  padding: 5px 8px;
+}
+
+.fa-staff-device-tag {
+  font-family: var(--fa-font-pixel);
+  font-size: clamp(6px, 1.5cqi, 7.5px);
+  color: var(--fa-ink);
+}
+
+.fa-retro-stamp {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  translate: -50% 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--fa-emerald);
+  color: var(--fa-ink);
+  border: 4px solid var(--fa-ink);
+  box-shadow: 6px 6px 0 var(--fa-ink);
+  padding: 7px 12px;
+  font-family: var(--fa-font-pixel);
+  font-size: clamp(8.5px, 2.2cqi, 11.5px);
+  white-space: nowrap;
+  z-index: 28;
+}
+
+.fa-stamp-check {
+  width: 15px;
+  height: 15px;
+  display: inline-block;
+}
+
+.fa-m4-hand-customer {
+  position: absolute;
+  bottom: 8%;
+  left: 52%;
+  width: clamp(58px, 14.5cqi, 74px);
+  height: clamp(58px, 14.5cqi, 74px);
+  z-index: 26;
+  pointer-events: none;
+}
+
+.fa-m4-hand-staff {
+  position: absolute;
+  bottom: 8%;
+  right: 12%;
+  width: clamp(58px, 14.5cqi, 74px);
+  height: clamp(58px, 14.5cqi, 74px);
+  z-index: 26;
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   MOMENTO 5: Entrega de la recompensa y ciclo de fidelización
+   ========================================================================== */
+.fa-m5-transform-flash {
+  position: absolute;
+  width: 170px;
+  height: 170px;
+  background: var(--fa-gold);
+  border: 4px solid var(--fa-ink);
+  z-index: 25;
+  pointer-events: none;
+}
+
+.fa-m5-giant-coin-stage {
+  position: absolute;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+}
+
+.fa-m5-giant-coin {
+  width: clamp(124px, 31cqi, 164px);
+  height: clamp(124px, 31cqi, 164px);
+  filter: drop-shadow(6px 6px 0 var(--fa-ink));
+}
+
+.fa-m5-delivery-scene {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 15;
+}
+
+.fa-m5-hand-customer,
+.fa-m5-hand-staff {
+  width: clamp(60px, 15cqi, 78px);
+  height: clamp(60px, 15cqi, 78px);
+  z-index: 18;
+}
+
+.fa-m5-celebration-stars {
+  position: absolute;
+  inset: 14%;
+  pointer-events: none;
+  z-index: 22;
+}
+
+.fa-s1 {
+  top: 8%;
+  left: 14%;
+  color: var(--fa-red);
+}
+
+.fa-s2 {
+  top: 10%;
+  right: 14%;
+}
+
+.fa-s3 {
+  bottom: 16%;
+  left: 16%;
+}
+
+.fa-s4 {
+  bottom: 14%;
+  right: 16%;
+  color: var(--fa-red);
+}
+
+.fa-loop-banner {
+  position: absolute;
+  bottom: 3%;
+  background: var(--fa-ink);
+  color: var(--fa-gold);
+  border: 3px solid var(--fa-ink);
+  box-shadow: 4px 4px 0 var(--fa-red);
+  padding: 6px 11px;
+  font-family: var(--fa-font-pixel);
+  font-size: clamp(7.5px, 1.9cqi, 10px);
+  white-space: nowrap;
+  z-index: 24;
+}
+
+/* Accesibilidad: prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  .fa-idle-bob {
+    animation: none;
+  }
+}

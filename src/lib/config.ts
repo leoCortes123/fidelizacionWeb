@@ -7,10 +7,9 @@ const trimSlash = (value: string) => value.replace(/\/+$/, "");
  */
 export const defaultPublicAppUrl = "https://fidelizacion01.vercel.app";
 
-export const brandName = import.meta.env.VITE_BRAND_NAME?.trim() || "Loopoint";
+export const brandName = import.meta.env.VITE_BRAND_NAME?.trim() || "Fideliapp";
 
-export const brandTagline =
-  import.meta.env.VITE_BRAND_TAGLINE?.trim() || "Loopoints por tus compras";
+export const brandTagline = import.meta.env.VITE_BRAND_TAGLINE?.trim() || "Monedas por tus compras";
 
 export const supabaseUrl = import.meta.env.VITE_SUPABASE_URL?.trim() || "http://127.0.0.1:54321";
 

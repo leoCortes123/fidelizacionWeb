@@ -20,65 +20,117 @@ function isIosDevice(): boolean {
   return /iphone|ipad|ipod/i.test(navigator.userAgent);
 }
 
+// Estado compartido a nivel de módulo para evitar listeners y toasts duplicados
+// cuando la página renderiza varios botones de instalación simultáneamente.
+interface PwaInstallSnapshot {
+  deferredPrompt: BeforeInstallPromptEvent | null;
+  standalone: boolean;
+}
+
+const listeners = new Set<() => void>();
+let initialized = false;
+let snapshot: PwaInstallSnapshot = {
+  deferredPrompt: null,
+  standalone: isRunningStandalone(),
+};
+
+function emitChange() {
+  for (const listener of listeners) {
+    listener();
+  }
+}
+
+function ensureWindowListeners() {
+  if (initialized || typeof window === "undefined") return;
+  initialized = true;
+
+  const media = window.matchMedia?.("(display-mode: standalone)");
+  const syncStandalone = () => {
+    const next = isRunningStandalone();
+    if (next !== snapshot.standalone) {
+      snapshot = { ...snapshot, standalone: next };
+      emitChange();
+    }
+  };
+
+  window.addEventListener("beforeinstallprompt", (event: Event) => {
+    event.preventDefault();
+    snapshot = { ...snapshot, deferredPrompt: event as BeforeInstallPromptEvent };
+    emitChange();
+  });
+
+  window.addEventListener("appinstalled", () => {
+    snapshot = { deferredPrompt: null, standalone: true };
+    emitChange();
+    toast.success("Fideliapp instalada en tu dispositivo");
+  });
+
+  media?.addEventListener?.("change", syncStandalone);
+}
+
+/** Solo para pruebas unitarias: restablece el snapshot compartido entre tests. */
+export function resetInstallPwaStateForTests() {
+  snapshot = {
+    deferredPrompt: null,
+    standalone: isRunningStandalone(),
+  };
+  emitChange();
+}
+
 interface InstallPwaButtonProps {
   className?: string;
+  label?: string;
 }
 
 /**
- * Botón para instalar Loopoint como PWA.
+ * Botón para instalar Fideliapp como PWA.
  * Se oculta automáticamente cuando la app ya se ejecuta instalada (standalone).
  */
-export function InstallPwaButton({ className = "btn btn-light" }: InstallPwaButtonProps) {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [standalone, setStandalone] = useState<boolean>(() => isRunningStandalone());
+export function InstallPwaButton({
+  className = "btn btn-light",
+  label = "Instalar app",
+}: InstallPwaButtonProps) {
+  const [state, setState] = useState<PwaInstallSnapshot>(() => {
+    ensureWindowListeners();
+    return snapshot;
+  });
 
   useEffect(() => {
-    const media = window.matchMedia?.("(display-mode: standalone)");
-    const syncStandalone = () => setStandalone(isRunningStandalone());
-
-    const onBeforeInstallPrompt = (event: Event) => {
-      event.preventDefault();
-      setDeferredPrompt(event as BeforeInstallPromptEvent);
-    };
-
-    const onAppInstalled = () => {
-      setDeferredPrompt(null);
-      setStandalone(true);
-      toast.success("Loopoint instalada en tu dispositivo");
-    };
-
-    window.addEventListener("beforeinstallprompt", onBeforeInstallPrompt);
-    window.addEventListener("appinstalled", onAppInstalled);
-    media?.addEventListener?.("change", syncStandalone);
-
+    ensureWindowListeners();
+    const sync = () => setState(snapshot);
+    listeners.add(sync);
+    sync();
     return () => {
-      window.removeEventListener("beforeinstallprompt", onBeforeInstallPrompt);
-      window.removeEventListener("appinstalled", onAppInstalled);
-      media?.removeEventListener?.("change", syncStandalone);
+      listeners.delete(sync);
     };
   }, []);
 
-  if (standalone) return null;
+  if (state.standalone) return null;
 
   const handleInstallClick = async () => {
-    if (deferredPrompt) {
-      await deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === "accepted") {
-        setDeferredPrompt(null);
+    const promptEvent = snapshot.deferredPrompt;
+    if (promptEvent) {
+      // Chromium solo permite invocar prompt() una vez por evento (incluso si el usuario lo descarta).
+      snapshot = { ...snapshot, deferredPrompt: null };
+      emitChange();
+      try {
+        await promptEvent.prompt();
+        await promptEvent.userChoice;
+        return;
+      } catch {
+        // Si el navegador rechaza el prompt, mostramos las instrucciones manuales.
       }
-      return;
     }
 
     if (isIosDevice()) {
-      toast.info("Instala Loopoint en iPhone/iPad", {
+      toast.info("Instala Fideliapp en iPhone/iPad", {
         duration: 8000,
         description: 'Toca el botón "Compartir" en Safari y elige "Agregar a pantalla de inicio".',
       });
       return;
     }
 
-    toast.info("Instala Loopoint desde tu navegador", {
+    toast.info("Instala Fideliapp desde tu navegador", {
       duration: 7000,
       description:
         'Abre el menú del navegador (⋮) o el ícono de la barra de direcciones y elige "Instalar aplicación".',
@@ -88,7 +140,7 @@ export function InstallPwaButton({ className = "btn btn-light" }: InstallPwaButt
   return (
     <button type="button" className={className} onClick={() => void handleInstallClick()}>
       <Download className="h-4 w-4 shrink-0" aria-hidden="true" />
-      <span>Instalar app</span>
+      <span>{label}</span>
     </button>
   );
 }
