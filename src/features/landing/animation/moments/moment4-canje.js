@@ -165,8 +165,8 @@ export function createMoment4Timeline(
   tl.set(card, { autoAlpha: 1, x: 0, y: 0, scale: 1 });
   tl.set(viewRequest, { autoAlpha: 1, display: "block" });
   tl.set(viewTicket, { autoAlpha: 0, display: "none" });
-  tl.set(btnRedeem, { y: 0, boxShadow: "0 4px 0 #1e1c1a", backgroundColor: "#e6533f" });
-  tl.set(btnApprove, { y: 0, boxShadow: "0 4px 0 #1e1c1a", backgroundColor: "#34d399" });
+  tl.set(btnRedeem, { y: 0, boxShadow: "0 4px 0 #16262e", backgroundColor: "#155bc0" });
+  tl.set(btnApprove, { y: 0, boxShadow: "0 4px 0 #16262e", backgroundColor: "#24d04a" });
   tl.set(spendTag, { autoAlpha: 0, y: 8 });
   tl.set(stamp, { autoAlpha: 0, scale: 1.9, rotation: -6 });
   tl.set(handCustomer, { autoAlpha: 0, x: -35, y: 48 });
@@ -194,8 +194,8 @@ export function createMoment4Timeline(
     btnRedeem,
     {
       y: 4,
-      boxShadow: "0 0px 0 #1e1c1a",
-      backgroundColor: "#b83726",
+      boxShadow: "0 0px 0 #16262e",
+      backgroundColor: "#104696",
       duration: 0.07,
       ease: "steps(1)",
     },
@@ -205,8 +205,8 @@ export function createMoment4Timeline(
     btnRedeem,
     {
       y: 0,
-      boxShadow: "0 4px 0 #1e1c1a",
-      backgroundColor: "#e6533f",
+      boxShadow: "0 4px 0 #16262e",
+      backgroundColor: "#155bc0",
       duration: 0.06,
       ease: "steps(1)",
     },
@@ -260,8 +260,8 @@ export function createMoment4Timeline(
     btnApprove,
     {
       y: 4,
-      boxShadow: "0 0px 0 #1e1c1a",
-      backgroundColor: "#059669",
+      boxShadow: "0 0px 0 #16262e",
+      backgroundColor: "#169c35",
       duration: 0.07,
       ease: "steps(1)",
     },
@@ -271,8 +271,8 @@ export function createMoment4Timeline(
     btnApprove,
     {
       y: 0,
-      boxShadow: "0 4px 0 #1e1c1a",
-      backgroundColor: "#34d399",
+      boxShadow: "0 4px 0 #16262e",
+      backgroundColor: "#24d04a",
       duration: 0.06,
       ease: "steps(1)",
     },

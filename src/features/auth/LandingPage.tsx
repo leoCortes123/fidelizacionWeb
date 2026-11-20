@@ -236,7 +236,7 @@ export function LandingPage() {
             )}
 
             <div className="hero-buttons">
-              <Link className="btn btn-red btn-lg" to={REGISTER_BUSINESS}>
+              <Link className="btn btn-primary btn-lg" to={REGISTER_BUSINESS}>
                 Crear mi programa de puntos <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
             </div>
@@ -453,7 +453,7 @@ export function LandingPage() {
               ))}
             </ol>
             <div className="center-cta">
-              <Link className="btn btn-red btn-lg" to={REGISTER_BUSINESS}>
+              <Link className="btn btn-primary btn-lg" to={REGISTER_BUSINESS}>
                 Registrar mi negocio <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </Link>
             </div>
@@ -620,7 +620,7 @@ export function LandingPage() {
             <h2>Haz que tus clientes quieran volver.</h2>
             <p>Crea tu programa de fidelización hoy y registra tu primera venta en minutos.</p>
             <div className="hero-buttons cta-buttons">
-              <Link className="btn btn-red btn-lg" to={REGISTER_BUSINESS}>
+              <Link className="btn btn-primary btn-lg" to={REGISTER_BUSINESS}>
                 Registrar mi negocio
               </Link>
               <InstallPwaButton className="btn btn-download btn-lg" label="Descargar app" />
@@ -645,7 +645,7 @@ export function LandingPage() {
       {/* Barra fija inferior en móvil: acceso permanente a descargar la app y registrarse */}
       <div className="mobile-cta" role="region" aria-label="Acciones rápidas">
         <InstallPwaButton className="btn btn-download" label="Descargar app" />
-        <Link className="btn btn-red" to={REGISTER_BUSINESS}>
+        <Link className="btn btn-primary" to={REGISTER_BUSINESS}>
           Crear programa
         </Link>
       </div>

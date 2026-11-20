@@ -223,8 +223,8 @@ export function createMoment1Timeline(
     btnGenerate,
     {
       y: 4,
-      boxShadow: "0 0px 0 #1e1c1a",
-      backgroundColor: "#b83726",
+      boxShadow: "0 0px 0 #16262e",
+      backgroundColor: "#104696",
       duration: 0.07,
       ease: "steps(1)",
     },
@@ -234,8 +234,8 @@ export function createMoment1Timeline(
     btnGenerate,
     {
       y: 0,
-      boxShadow: "0 4px 0 #1e1c1a",
-      backgroundColor: "#e6533f",
+      boxShadow: "0 4px 0 #16262e",
+      backgroundColor: "#155bc0",
       duration: 0.08,
       ease: "steps(1)",
     },
@@ -270,8 +270,8 @@ export function createMoment1Timeline(
   tl.to(
     qrFrame,
     {
-      borderColor: "#e6533f",
-      boxShadow: "0 0 0 3px #ffd166, 4px 4px 0 #1e1c1a",
+      borderColor: "#155bc0",
+      boxShadow: "0 0 0 3px #fad24b, 4px 4px 0 #16262e",
       duration: Math.min(0.2, readingPause),
       repeat: Math.max(0, blinkRepeats),
       yoyo: true,

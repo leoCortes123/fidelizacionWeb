@@ -144,16 +144,16 @@ export function createMoment3Timeline(
   tl.set(coinB, { x: 0 });
   tl.set(coinC, { x: 56 });
   tl.set(stepBlocks, { autoAlpha: 0, scaleY: 0.3, transformOrigin: "50% 100%" });
-  tl.set(bar, { borderColor: "#1e1c1a", boxShadow: "none" });
+  tl.set(bar, { borderColor: "#16262e", boxShadow: "none" });
   tl.set(unlockBanner, { autoAlpha: 0, y: 6, scale: 0.9 });
   tl.set(iconLocked, { autoAlpha: 1, scale: 1 });
   tl.set(iconUnlocked, { autoAlpha: 0, scale: 0.5 });
-  tl.set(iconBox, { backgroundColor: "#eadec5" });
+  tl.set(iconBox, { backgroundColor: "#dce7ec" });
   tl.set(stars, { autoAlpha: 0, scale: 0.5 });
   tl.set(btnRedeem, {
     backgroundColor: "#cbd5e1",
     color: "#64748b",
-    boxShadow: "0 3px 0 #1e1c1a",
+    boxShadow: "0 3px 0 #16262e",
     scale: 1,
   });
 
@@ -162,11 +162,11 @@ export function createMoment3Timeline(
     if (barPct) barPct.textContent = "60%";
     if (statusPill) {
       statusPill.textContent = "LVL 04 · EN PROGRESO";
-      statusPill.style.backgroundColor = "#ffd166";
+      statusPill.style.backgroundColor = "#fad24b";
     }
     if (rewardTag) {
       rewardTag.textContent = "BLOQUEADO";
-      rewardTag.style.color = "#6b6355";
+      rewardTag.style.color = "#55707d";
     }
   }, null, 0);
 
@@ -226,8 +226,8 @@ export function createMoment3Timeline(
   tl.to(
     bar,
     {
-      borderColor: "#e6533f",
-      boxShadow: "0 0 0 3px #ffd166",
+      borderColor: "#155bc0",
+      boxShadow: "0 0 0 3px #fad24b",
       duration: 0.14,
       repeat: 3,
       yoyo: true,
@@ -246,25 +246,25 @@ export function createMoment3Timeline(
     { autoAlpha: 1, scale: 1, duration: 0.18, ease: "steps(3)" },
     1.84
   );
-  tl.to(iconBox, { backgroundColor: "#ffd166", duration: 0.1, ease: "steps(1)" }, 1.84);
+  tl.to(iconBox, { backgroundColor: "#fad24b", duration: 0.1, ease: "steps(1)" }, 1.84);
 
   tl.call(() => {
     if (statusPill) {
       statusPill.textContent = "¡100% COMPLETADO!";
-      statusPill.style.backgroundColor = "#34d399";
+      statusPill.style.backgroundColor = "#24d04a";
     }
     if (rewardTag) {
       rewardTag.textContent = "¡LISTO PARA CANJEAR!";
-      rewardTag.style.color = "#e6533f";
+      rewardTag.style.color = "#155bc0";
     }
   }, null, 1.82);
 
   tl.to(
     btnRedeem,
     {
-      backgroundColor: "#e6533f",
-      color: "#fffdf5",
-      boxShadow: "0 4px 0 #1e1c1a",
+      backgroundColor: "#155bc0",
+      color: "#ffffff",
+      boxShadow: "0 4px 0 #16262e",
       scale: 1.06,
       duration: 0.14,
       ease: "steps(2)",
