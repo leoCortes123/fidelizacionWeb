@@ -171,9 +171,9 @@ export function CustomerShell() {
                   shapeRendering="crispEdges"
                   aria-hidden="true"
                 >
-                  <rect x="3" y="1" width="6" height="2" fill="#f2a541" />
-                  <rect x="2" y="3" width="6" height="6" fill="#f2a541" />
-                  <rect x="3" y="9" width="6" height="2" fill="#f2a541" />
+                  <rect x="3" y="1" width="6" height="2" fill="#fad24b" />
+                  <rect x="2" y="3" width="6" height="6" fill="#fad24b" />
+                  <rect x="3" y="9" width="6" height="2" fill="#fad24b" />
                 </svg>
                 <span>{theme === "dark" ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}</span>
               </button>

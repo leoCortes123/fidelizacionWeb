@@ -5,26 +5,26 @@ import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-none font-sans text-sm font-semibold tracking-tight transition-all duration-150 select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
+  "inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-none font-mono text-sm font-semibold tracking-tight transition-[transform,box-shadow,background-color] duration-150 select-none focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--lp-focus-ring)] disabled:pointer-events-none disabled:opacity-50 motion-reduce:transition-none [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
         default:
-          "border border-primary/90 bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 hover:shadow active:scale-[0.98]",
+          "border-2 border-[var(--lp-ink)] bg-[var(--lp-blue)] text-white shadow-[inset_2px_2px_0_rgba(255,255,255,0.32),inset_-2px_-2px_0_rgba(0,0,0,0.16),3px_3px_0_var(--lp-ink)] hover:translate-x-[1px] hover:translate-y-[1px] hover:bg-[var(--lp-blue-hover)] hover:shadow-[inset_2px_2px_0_rgba(255,255,255,0.38),2px_2px_0_var(--lp-ink)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none motion-reduce:hover:translate-x-0 motion-reduce:hover:translate-y-0 motion-reduce:active:translate-x-0 motion-reduce:active:translate-y-0",
         destructive:
-          "border border-destructive/90 bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90 hover:shadow active:scale-[0.98]",
+          "border-2 border-[var(--lp-ink)] bg-[var(--lp-red-dark)] text-white shadow-[inset_2px_2px_0_rgba(255,255,255,0.28),inset_-2px_-2px_0_rgba(0,0,0,0.16),3px_3px_0_var(--lp-ink)] hover:translate-x-[1px] hover:translate-y-[1px] hover:bg-[#a62919] hover:shadow-[inset_2px_2px_0_rgba(255,255,255,0.34),2px_2px_0_var(--lp-ink)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none motion-reduce:hover:translate-x-0 motion-reduce:hover:translate-y-0 motion-reduce:active:translate-x-0 motion-reduce:active:translate-y-0",
         outline:
-          "border border-border bg-card text-foreground shadow-sm hover:border-primary/40 hover:bg-muted/60 hover:text-foreground active:scale-[0.98] dark:border-border/60 dark:hover:bg-muted/80",
+          "border-2 border-[var(--lp-ink)] bg-card text-foreground shadow-[inset_2px_2px_0_rgba(255,255,255,0.28),3px_3px_0_var(--lp-ink)] hover:translate-x-[1px] hover:translate-y-[1px] hover:bg-[var(--lp-tab-hover-bg)] hover:text-foreground hover:shadow-[2px_2px_0_var(--lp-ink)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none motion-reduce:hover:translate-x-0 motion-reduce:hover:translate-y-0 motion-reduce:active:translate-x-0 motion-reduce:active:translate-y-0",
         secondary:
-          "border border-amber-500/80 bg-amber-400 text-[#1e1c1a] shadow-sm hover:bg-amber-300 hover:shadow active:scale-[0.98]",
+          "border-2 border-[var(--lp-ink)] bg-[var(--lp-gold)] text-[#16262e] shadow-[inset_2px_2px_0_rgba(255,255,255,0.42),inset_-2px_-2px_0_rgba(0,0,0,0.12),3px_3px_0_var(--lp-ink)] hover:translate-x-[1px] hover:translate-y-[1px] hover:bg-[var(--lp-gold-dark)] hover:shadow-[inset_2px_2px_0_rgba(255,255,255,0.45),2px_2px_0_var(--lp-ink)] active:translate-x-[3px] active:translate-y-[3px] active:shadow-none motion-reduce:hover:translate-x-0 motion-reduce:hover:translate-y-0 motion-reduce:active:translate-x-0 motion-reduce:active:translate-y-0",
         ghost:
-          "rounded-none border border-transparent text-foreground hover:bg-muted/80 hover:text-foreground",
-        link: "text-primary underline-offset-4 hover:underline",
+          "rounded-none border-2 border-transparent text-foreground hover:border-[var(--lp-ink)] hover:bg-card hover:text-foreground hover:shadow-[2px_2px_0_var(--lp-ink)]",
+        link: "font-sans text-[var(--lp-accent-link)] underline-offset-4 hover:underline",
       },
       size: {
         default: "min-h-11 px-4 py-2",
         sm: "min-h-9 rounded-none px-3 py-1.5 text-xs",
-        lg: "min-h-11 rounded-none px-5 py-2 text-base",
+        lg: "min-h-12 rounded-none px-5 py-2.5 text-sm",
         icon: "size-11",
       },
     },

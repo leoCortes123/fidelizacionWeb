@@ -69,11 +69,36 @@ describe("ThemeProvider", () => {
 
     const html = readFileSync(htmlPath, "utf8");
     expect(html).toContain('<script src="/theme-init.js"></script>');
+    expect(html).toContain('<meta name="theme-color" content="#edf3f5" />');
     expect(html).not.toMatch(
       /<script(?![^>]*\b(?:src=|type=["']application\/ld\+json["']))[^>]*>[\s\S]*?<\/script>/i,
     );
 
     const scriptContent = readFileSync(scriptPath, "utf8");
     expect(scriptContent).toContain('localStorage.getItem("loopoint:theme")');
+    expect(scriptContent).toContain("#2b4652");
+    expect(scriptContent).toContain("#edf3f5");
+  });
+
+  it("sincroniza meta theme-color con la paleta de la landing al alternar tema", async () => {
+    const meta = document.createElement("meta");
+    meta.name = "theme-color";
+    meta.content = "#edf3f5";
+    document.head.appendChild(meta);
+
+    try {
+      const user = userEvent.setup();
+      render(
+        <ThemeProvider>
+          <ThemeProbe />
+        </ThemeProvider>,
+      );
+
+      expect(meta.getAttribute("content")).toBe("#edf3f5");
+      await user.click(screen.getByRole("button"));
+      expect(meta.getAttribute("content")).toBe("#2b4652");
+    } finally {
+      meta.remove();
+    }
   });
 });

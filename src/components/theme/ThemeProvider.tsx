@@ -38,6 +38,14 @@ function systemTheme(): Theme {
   }
 }
 
+function persistTheme(theme: Theme) {
+  try {
+    window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+  } catch {
+    // Sin almacenamiento: el tema sigue funcionando en esta sesión.
+  }
+}
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(() => readStoredTheme() ?? systemTheme());
 
@@ -45,11 +53,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     const root = document.documentElement;
     root.classList.toggle("dark", theme === "dark");
     root.style.colorScheme = theme;
-    try {
-      window.localStorage.setItem(THEME_STORAGE_KEY, theme);
-    } catch {
-      // Sin almacenamiento: el tema sigue funcionando en esta sesión.
-    }
 
     const colorSchemeMeta = document.querySelector<HTMLMetaElement>('meta[name="color-scheme"]');
     if (colorSchemeMeta) {
@@ -58,19 +61,20 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) {
-      const isWarmPortal = root.dataset.portal === "customer" || root.dataset.portal === "admin";
-      meta.setAttribute(
-        "content",
-        theme === "dark"
-          ? isWarmPortal
-            ? "#181615"
-            : "#090f1a"
-          : isWarmPortal
-            ? "#f6edda"
-            : "#f8fafc",
-      );
+      meta.setAttribute("content", theme === "dark" ? "#2b4652" : "#edf3f5");
     }
   }, [theme]);
+
+  useEffect(() => {
+    const media = window.matchMedia?.("(prefers-color-scheme: dark)");
+    if (!media?.addEventListener) return;
+    const onSystemChange = (event: MediaQueryListEvent) => {
+      if (readStoredTheme() !== null) return;
+      setThemeState(event.matches ? "dark" : "light");
+    };
+    media.addEventListener("change", onSystemChange);
+    return () => media.removeEventListener("change", onSystemChange);
+  }, []);
 
   useEffect(() => {
     const onStorage = (event: StorageEvent) => {
@@ -83,11 +87,17 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     return () => window.removeEventListener("storage", onStorage);
   }, []);
 
-  const setTheme = useCallback((next: Theme) => setThemeState(next), []);
-  const toggleTheme = useCallback(
-    () => setThemeState((current) => (current === "dark" ? "light" : "dark")),
-    [],
-  );
+  const setTheme = useCallback((next: Theme) => {
+    persistTheme(next);
+    setThemeState(next);
+  }, []);
+  const toggleTheme = useCallback(() => {
+    setThemeState((current) => {
+      const next: Theme = current === "dark" ? "light" : "dark";
+      persistTheme(next);
+      return next;
+    });
+  }, []);
 
   const value = useMemo(() => ({ theme, setTheme, toggleTheme }), [theme, setTheme, toggleTheme]);
 
@@ -105,8 +115,8 @@ export function useOptionalTheme() {
 }
 
 /**
- * Aplica la paleta del portal al documento mientras la pantalla está montada.
- * Tanto el cliente como el negocio (admin y encargado) comparten la paleta cálida Loopoint.
+ * Aplica el identificador del portal al documento mientras la pantalla está montada.
+ * Todo el sistema comparte la paleta 65/25/10 de la landing (claro #edf3f5 / oscuro #2b4652).
  */
 export function usePortalTheme(portal: Portal) {
   useEffect(() => {
@@ -115,7 +125,7 @@ export function usePortalTheme(portal: Portal) {
     root.dataset.portal = portal;
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) {
-      meta.setAttribute("content", root.classList.contains("dark") ? "#181615" : "#f6edda");
+      meta.setAttribute("content", root.classList.contains("dark") ? "#2b4652" : "#edf3f5");
     }
     return () => {
       if (previous) root.dataset.portal = previous;

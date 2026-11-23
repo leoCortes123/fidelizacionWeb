@@ -53,22 +53,22 @@ export default {
       },
       fontFamily: {
         sans: [
-          '"Plus Jakarta Sans"',
           '"Space Grotesk"',
+          '"Plus Jakarta Sans"',
           "Inter",
           "ui-sans-serif",
           "system-ui",
           "sans-serif",
         ],
         display: [
-          '"Plus Jakarta Sans"',
           '"Space Grotesk"',
           '"Bricolage Grotesque"',
+          '"Plus Jakarta Sans"',
           "Inter",
           "ui-sans-serif",
           "sans-serif",
         ],
-        pixel: ['"Press Start 2P"', "ui-monospace", "monospace"],
+        pixel: ['"Press Start 2P"', '"DM Mono"', "ui-monospace", "monospace"],
         mono: ['"DM Mono"', "ui-monospace", "SFMono-Regular", "monospace"],
       },
       keyframes: {

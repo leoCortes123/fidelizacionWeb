@@ -46,7 +46,7 @@ export function UserMenu({ compact = false, className, align = "end" }: UserMenu
         <button
           type="button"
           className={cn(
-            "flex items-center gap-2 rounded-none text-left transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+            "flex cursor-pointer items-center gap-2 rounded-none border-2 border-[var(--lp-ink)] bg-card text-left shadow-[2px_2px_0_var(--lp-ink)] transition-colors hover:bg-[var(--lp-tab-hover-bg)] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--lp-focus-ring)]",
             compact ? "p-1" : "w-full p-2",
             className,
           )}
@@ -56,10 +56,10 @@ export function UserMenu({ compact = false, className, align = "end" }: UserMenu
             <img
               src={profile.data.avatar_url}
               alt={displayName || user?.email || "Foto de perfil"}
-              className="size-9 shrink-0 rounded-full border border-border object-cover"
+              className="size-9 shrink-0 rounded-none border-2 border-[var(--lp-ink)] object-cover"
             />
           ) : (
-            <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary text-xs font-bold text-primary-foreground">
+            <span className="grid size-9 shrink-0 place-items-center rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-gold)] font-mono text-xs font-bold text-[#16262e]">
               {initials(displayName || user?.email || "?")}
             </span>
           )}

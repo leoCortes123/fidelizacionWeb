@@ -27,7 +27,7 @@ function syncDocumentTheme(target: "light" | "dark", persist: boolean) {
 
   const themeColorMeta = document.head.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
   if (themeColorMeta) {
-    themeColorMeta.content = isDark ? "#090f1a" : "#f8fafc";
+    themeColorMeta.content = isDark ? "#2b4652" : "#edf3f5";
   }
 
   if (!persist) return;

@@ -176,7 +176,7 @@ export function CustomerBusinessesPage() {
                 <p
                   id="invitation-link-error"
                   role="alert"
-                  className="text-xs font-semibold text-[var(--red)]"
+                  className="text-xs font-semibold text-[var(--red-text)]"
                 >
                   {invitationError}
                 </p>

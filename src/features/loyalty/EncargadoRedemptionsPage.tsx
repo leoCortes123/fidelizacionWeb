@@ -65,7 +65,10 @@ export function EncargadoRedemptionsPage() {
         </div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {list.map((business) => (
-            <Card key={business.id} className="cursor-pointer transition-shadow hover:shadow-md">
+            <Card
+              key={business.id}
+              className="cursor-pointer transition-colors hover:bg-[var(--lp-tip-bg)]"
+            >
               <CardContent className="p-4 text-center sm:p-6">
                 <TicketCheck className="mx-auto mb-3 size-12 text-primary" aria-hidden="true" />
                 <h3 className="font-semibold">{business.name}</h3>
@@ -207,10 +210,13 @@ function EncargadoRedemptionsSection({ business }: { business: Business }) {
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-2 font-mono text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            <span className="size-2 rounded-full bg-emerald-500" aria-hidden="true" />
+            <span
+              className="size-2.5 border border-[var(--lp-ink)] bg-[var(--lp-green-badge)]"
+              aria-hidden="true"
+            />
             {business.name} · Terminal
           </div>
-          <h1 className="mt-1 font-display text-2xl font-black tracking-tight sm:text-3xl">
+          <h1 className="mt-1 font-display text-2xl font-black tracking-tight [text-shadow:var(--lp-h1-shadow)] sm:text-3xl">
             Solicitudes de recompensa
           </h1>
           <p className="text-sm text-muted-foreground">
@@ -228,19 +234,17 @@ function EncargadoRedemptionsSection({ business }: { business: Business }) {
       </div>
 
       {!canAct && (
-        <Card className="border-amber-300 bg-amber-50/50 dark:border-amber-900/60 dark:bg-amber-950/20">
-          <CardContent className="flex items-start gap-3 p-4">
-            <ShieldAlert className="size-5 shrink-0 text-amber-600 dark:text-amber-400" />
-            <div className="text-sm text-amber-900 dark:text-amber-200">
-              <p className="font-semibold">Sin permiso de aprobación</p>
-              <p className="mt-0.5 text-xs text-amber-800/90 dark:text-amber-300/90">
-                Tu rol es <strong>{selectedRole ?? "sin rol"}</strong>. Puedes ver las solicitudes,
-                pero necesitas que el administrador active el permiso “Puede aprobar redenciones”
-                para autorizar o entregar canjes.
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="lp-tip-box flex items-start gap-3 rounded-none p-4 shadow-[3px_3px_0_var(--lp-ink)]">
+          <ShieldAlert className="size-5 shrink-0 text-[var(--lp-tip-strong)]" aria-hidden="true" />
+          <div className="text-sm">
+            <p className="font-semibold text-[var(--lp-tip-strong)]">Sin permiso de aprobación</p>
+            <p className="mt-0.5 text-xs text-[var(--lp-ink-soft)]">
+              Tu rol es <strong>{selectedRole ?? "sin rol"}</strong>. Puedes ver las solicitudes,
+              pero necesitas que el administrador active el permiso “Puede aprobar redenciones” para
+              autorizar o entregar canjes.
+            </p>
+          </div>
+        </div>
       )}
 
       <Tabs defaultValue="solicitudes" className="space-y-4">
@@ -522,7 +526,7 @@ function EncargadoRedemptionsSection({ business }: { business: Business }) {
                               setSelectedCustomerId(customer.id);
                             }
                           }}
-                          className="cursor-pointer transition-all hover:border-primary/50 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary active:scale-[0.99] group text-left border"
+                          className="group cursor-pointer text-left transition-colors hover:bg-[var(--lp-tip-bg)] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--lp-focus-ring)]"
                         >
                           <CardContent className="p-4 flex flex-col justify-between h-full space-y-3">
                             <div className="space-y-2">

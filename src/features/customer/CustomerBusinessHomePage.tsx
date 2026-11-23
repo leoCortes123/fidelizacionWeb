@@ -409,7 +409,9 @@ export function CustomerBusinessHomePage() {
                               style={{
                                 fontSize: 11,
                                 fontWeight: 700,
-                                color: reward.can_redeem ? "var(--green)" : "var(--text-muted)",
+                                color: reward.can_redeem
+                                  ? "var(--green-text)"
+                                  : "var(--text-muted)",
                               }}
                             >
                               {reward.can_redeem ? "Disponible" : "Bloqueado"}
@@ -572,7 +574,7 @@ export function CustomerBusinessHomePage() {
                           className="pixel-title shrink-0"
                           style={{
                             fontSize: 10,
-                            color: movement.points > 0 ? "var(--green)" : "var(--red)",
+                            color: movement.points > 0 ? "var(--green-text)" : "var(--red-text)",
                           }}
                         >
                           {movement.points > 0 ? "+" : ""}
@@ -597,7 +599,7 @@ export function CustomerBusinessHomePage() {
                         <div className="flex shrink-0 items-center gap-2">
                           <span
                             className="pixel-title"
-                            style={{ fontSize: 10, color: "var(--green)" }}
+                            style={{ fontSize: 10, color: "var(--green-text)" }}
                           >
                             +{purchase.points_awarded} MONEDAS
                           </span>
@@ -765,7 +767,7 @@ export function CustomerBusinessHomePage() {
               </p>
               <div className="pixel-box-dark flex items-center justify-between p-2.5">
                 <span className="text-[13px] text-[var(--text-muted)]">Monedas que acumulas:</span>
-                <span className="pixel-title" style={{ fontSize: 10, color: "var(--green)" }}>
+                <span className="pixel-title" style={{ fontSize: 10, color: "var(--green-text)" }}>
                   +{selectedProduct.points} MONEDAS
                 </span>
               </div>

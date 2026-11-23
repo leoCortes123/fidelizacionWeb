@@ -615,7 +615,7 @@ export function LoginPage() {
                     <>
                       <div className="flex items-center justify-between gap-2">
                         <div className="flex items-center gap-2.5">
-                          <span className="grid size-9 place-items-center border-2 border-[#1e1c1a] bg-[var(--gold)] text-[#1e1c1a]">
+                          <span className="grid size-9 place-items-center border-2 border-[#16262e] bg-[var(--gold)] text-[#16262e]">
                             <TrendingUp className="size-4" aria-hidden="true" />
                           </span>
                           <div>
@@ -645,7 +645,7 @@ export function LoginPage() {
                     <>
                       <div className="flex items-center justify-between gap-3">
                         <div className="flex items-center gap-2.5">
-                          <div className="grid size-9 place-items-center border-2 border-[var(--border-color)] bg-[#1e1c1a]">
+                          <div className="grid size-9 place-items-center border-2 border-[var(--border-color)] bg-[#16262e]">
                             <HeroCoinSvg size={18} />
                           </div>
                           <div>
@@ -674,7 +674,7 @@ export function LoginPage() {
 
                 <ul className="space-y-2.5 text-xs text-[var(--ink-muted)]">
                   <li className="flex items-center gap-2.5">
-                    <span className="grid size-7 shrink-0 place-items-center border-2 border-[var(--border-color)] bg-[var(--paper-deep)] text-[var(--blue)]">
+                    <span className="grid size-7 shrink-0 place-items-center border-2 border-[var(--border-color)] bg-[var(--paper-deep)] text-[var(--accent-link)]">
                       <QrCode className="size-3.5" aria-hidden="true" />
                     </span>
                     <span>
@@ -682,13 +682,13 @@ export function LoginPage() {
                     </span>
                   </li>
                   <li className="flex items-center gap-2.5">
-                    <span className="grid size-7 shrink-0 place-items-center border-2 border-[var(--border-color)] bg-[var(--paper-deep)] text-[var(--red)]">
+                    <span className="grid size-7 shrink-0 place-items-center border-2 border-[var(--border-color)] bg-[var(--paper-deep)] text-[var(--red-text)]">
                       <Gift className="size-3.5" aria-hidden="true" />
                     </span>
                     <span>Tus saldos de cada comercio se mantienen ordenados y separados.</span>
                   </li>
                   <li className="flex items-center gap-2.5">
-                    <span className="grid size-7 shrink-0 place-items-center border-2 border-[var(--border-color)] bg-[var(--paper-deep)] text-[var(--green)]">
+                    <span className="grid size-7 shrink-0 place-items-center border-2 border-[var(--border-color)] bg-[var(--paper-deep)] text-[var(--green-text)]">
                       <ShieldCheck className="size-3.5" aria-hidden="true" />
                     </span>
                     <span>
@@ -806,7 +806,7 @@ export function LoginPage() {
                                 </span>
                                 <Badge
                                   variant="secondary"
-                                  className="rounded-none border-2 border-[var(--border-color)] bg-[var(--gold)] text-[#1e1c1a]"
+                                  className="rounded-none border-2 border-[var(--border-color)] bg-[var(--gold)] text-[#16262e]"
                                 >
                                   Rol: {inviteRoleText}
                                 </Badge>
@@ -836,7 +836,7 @@ export function LoginPage() {
                         <div
                           ref={errorBannerRef}
                           tabIndex={-1}
-                          className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--red)]"
+                          className="focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]"
                         >
                           <Alert variant="destructive" className="retro-alert">
                             <AlertTitle>No se pudo continuar</AlertTitle>
@@ -865,10 +865,10 @@ export function LoginPage() {
                               onClick={() => handleSelectAccountType("customer")}
                               onKeyDown={(event) => handleRadioKeyDown(event, "customer")}
                               className={cn(
-                                "relative flex cursor-pointer flex-col gap-1.5 border-[3px] border-[var(--border-color)] p-3 text-left transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--blue)]",
+                                "relative flex cursor-pointer flex-col gap-1.5 border-[3px] p-3 text-left transition-all duration-150 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]",
                                 accountType === "customer"
-                                  ? "bg-[color-mix(in_srgb,var(--green)_15%,var(--cream))] text-[var(--ink)] shadow-[4px_4px_0_var(--shadow-color)]"
-                                  : "bg-[var(--paper-deep)] text-[var(--ink)] shadow-[2px_2px_0_var(--shadow-color)] hover:bg-[var(--cream-alt)]",
+                                  ? "border-[var(--border-color)] bg-[var(--tip-bg)] text-[var(--ink)] shadow-[4px_4px_0_var(--shadow-color)] dark:border-[var(--gold)] dark:bg-[var(--cream)]"
+                                  : "border-[var(--border-color)] bg-[var(--paper-deep)] text-[var(--ink)] shadow-[2px_2px_0_var(--shadow-color)] hover:bg-[var(--cream-alt)]",
                               )}
                             >
                               <div className="flex items-center justify-between gap-2">
@@ -876,14 +876,14 @@ export function LoginPage() {
                                   className={cn(
                                     "grid size-8 place-items-center border-2 border-[var(--border-color)]",
                                     accountType === "customer"
-                                      ? "bg-[var(--green)] text-white"
+                                      ? "bg-[var(--blue)] text-white"
                                       : "bg-[var(--cream)] text-[var(--ink-muted)]",
                                   )}
                                 >
                                   <UserRound className="size-4" aria-hidden="true" />
                                 </span>
                                 {accountType === "customer" && (
-                                  <span className="grid size-5 place-items-center border-2 border-[var(--border-color)] bg-[var(--green)] text-white">
+                                  <span className="grid size-5 place-items-center border-2 border-[var(--border-color)] bg-[var(--blue)] text-white">
                                     <Check className="size-3" aria-hidden="true" />
                                   </span>
                                 )}
@@ -905,10 +905,10 @@ export function LoginPage() {
                               onClick={() => handleSelectAccountType("admin")}
                               onKeyDown={(event) => handleRadioKeyDown(event, "admin")}
                               className={cn(
-                                "relative flex cursor-pointer flex-col gap-1.5 border-[3px] border-[var(--border-color)] p-3 text-left transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--blue)]",
+                                "relative flex cursor-pointer flex-col gap-1.5 border-[3px] p-3 text-left transition-all duration-150 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]",
                                 accountType === "admin"
-                                  ? "bg-[color-mix(in_srgb,var(--gold)_28%,var(--cream))] dark:bg-[color-mix(in_srgb,var(--gold)_15%,var(--cream))] text-[var(--ink)] shadow-[4px_4px_0_var(--shadow-color)]"
-                                  : "bg-[var(--paper-deep)] text-[var(--ink)] shadow-[2px_2px_0_var(--shadow-color)] hover:bg-[var(--cream-alt)]",
+                                  ? "border-[var(--border-color)] bg-[var(--tip-bg)] text-[var(--ink)] shadow-[4px_4px_0_var(--shadow-color)] dark:border-[var(--gold)] dark:bg-[var(--cream)]"
+                                  : "border-[var(--border-color)] bg-[var(--paper-deep)] text-[var(--ink)] shadow-[2px_2px_0_var(--shadow-color)] hover:bg-[var(--cream-alt)]",
                               )}
                             >
                               <div className="flex items-center justify-between gap-2">
@@ -916,14 +916,14 @@ export function LoginPage() {
                                   className={cn(
                                     "grid size-8 place-items-center border-2 border-[var(--border-color)]",
                                     accountType === "admin"
-                                      ? "bg-[var(--gold)] text-[#1e1c1a]"
+                                      ? "bg-[var(--gold)] text-[#16262e]"
                                       : "bg-[var(--cream)] text-[var(--ink-muted)]",
                                   )}
                                 >
                                   <Building2 className="size-4" aria-hidden="true" />
                                 </span>
                                 {accountType === "admin" && (
-                                  <span className="grid size-5 place-items-center border-2 border-[#1e1c1a] bg-[var(--gold)] text-[#1e1c1a]">
+                                  <span className="grid size-5 place-items-center border-2 border-[#16262e] bg-[var(--gold)] text-[#16262e]">
                                     <Check className="size-3" aria-hidden="true" />
                                   </span>
                                 )}
@@ -1000,7 +1000,7 @@ export function LoginPage() {
                               <p
                                 id="full-name-error"
                                 aria-live="polite"
-                                className="text-xs font-semibold text-[var(--red-dark)] dark:text-red-400"
+                                className="text-xs font-semibold text-destructive"
                               >
                                 {fieldErrors.fullName}
                               </p>
@@ -1044,7 +1044,7 @@ export function LoginPage() {
                               <p
                                 id="business-name-error"
                                 aria-live="polite"
-                                className="text-xs font-semibold text-[var(--red-dark)] dark:text-red-400"
+                                className="text-xs font-semibold text-destructive"
                               >
                                 {fieldErrors.businessName}
                               </p>
@@ -1083,7 +1083,7 @@ export function LoginPage() {
                             <p
                               id="email-error"
                               aria-live="polite"
-                              className="text-xs font-semibold text-[var(--red-dark)] dark:text-red-400"
+                              className="text-xs font-semibold text-destructive"
                             >
                               {fieldErrors.email}
                             </p>
@@ -1129,7 +1129,7 @@ export function LoginPage() {
                                 showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
                               }
                               aria-pressed={showPassword}
-                              className="absolute right-1 top-1/2 grid size-11 -translate-y-1/2 cursor-pointer place-items-center text-[var(--ink-muted)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--red)]"
+                              className="absolute right-1 top-1/2 grid size-11 -translate-y-1/2 cursor-pointer place-items-center text-[var(--ink-muted)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]"
                             >
                               {showPassword ? (
                                 <EyeOff className="size-4" aria-hidden="true" />
@@ -1142,7 +1142,7 @@ export function LoginPage() {
                             <p
                               id="password-error"
                               aria-live="polite"
-                              className="text-xs font-semibold text-[var(--red-dark)] dark:text-red-400"
+                              className="text-xs font-semibold text-destructive"
                             >
                               {fieldErrors.password}
                             </p>
@@ -1174,7 +1174,7 @@ export function LoginPage() {
                         {mode === "login" ? "¿No tienes cuenta?" : "¿Ya tienes cuenta?"}{" "}
                         <button
                           type="button"
-                          className="cursor-pointer font-bold text-[var(--red-dark)] underline underline-offset-4 hover:text-[var(--red)] dark:text-[var(--gold)] dark:hover:text-[#ffe08a]"
+                          className="cursor-pointer font-bold text-[var(--accent-link)] underline underline-offset-4 hover:opacity-85"
                           onClick={() => switchMode(mode === "login" ? "register" : "login")}
                         >
                           {mode === "login" ? "Regístrate" : "Inicia sesión"}

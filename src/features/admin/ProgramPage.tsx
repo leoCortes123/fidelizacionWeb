@@ -342,11 +342,16 @@ function ProgramForm({
       />
 
       {unconfigured && (
-        <div className="flex items-start gap-3 rounded-none border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-          <AlertTriangle className="mt-0.5 size-5 shrink-0" aria-hidden="true" />
+        <div className="lp-tip-box flex items-start gap-3 rounded-none p-4 text-sm">
+          <AlertTriangle
+            className="mt-0.5 size-5 shrink-0 text-[var(--lp-tip-strong)]"
+            aria-hidden="true"
+          />
           <div>
-            <p className="font-semibold">El programa aún no está configurado</p>
-            <p className="text-amber-800">
+            <p className="font-semibold text-[var(--lp-tip-strong)]">
+              El programa aún no está configurado
+            </p>
+            <p className="text-[var(--lp-ink-soft)]">
               Hemos cargado valores sugeridos. Revísalos, guárdalos y activa el programa para que
               tus clientes puedan acumular y canjear monedas.
             </p>
@@ -355,7 +360,7 @@ function ProgramForm({
       )}
 
       {configured && !program.is_active && (
-        <div className="flex items-start gap-3 rounded-none border bg-muted/40 p-4 text-sm">
+        <div className="flex items-start gap-3 rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-paper-deep)] p-4 text-sm">
           <Info className="mt-0.5 size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
           <p className="text-muted-foreground">
             El programa está configurado pero <strong>inactivo</strong>. Los clientes no podrán
@@ -365,9 +370,12 @@ function ProgramForm({
       )}
 
       {economicError != null && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-none border border-amber-200 bg-amber-50 p-3.5 text-xs text-amber-900">
+        <div className="lp-tip-box flex flex-wrap items-center justify-between gap-3 rounded-none p-3.5 text-xs">
           <div className="flex items-start gap-2">
-            <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+            <AlertTriangle
+              className="mt-0.5 size-4 shrink-0 text-[var(--lp-tip-strong)]"
+              aria-hidden="true"
+            />
             <p>
               No pudimos cargar tus datos económicos ({errorMessage(economicError)}). Aún puedes
               configurar el programa o reintentar.
@@ -707,8 +715,11 @@ function ProgramForm({
           {economic.configuredMaxBudget !== null &&
             referenceBudget !== null &&
             referenceBudget > economic.configuredMaxBudget && (
-              <div className="flex items-start gap-2 rounded-none border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
-                <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+              <div className="lp-tip-box flex items-start gap-2 rounded-none p-3 text-xs">
+                <AlertTriangle
+                  className="mt-0.5 size-4 shrink-0 text-[var(--lp-tip-strong)]"
+                  aria-hidden="true"
+                />
                 <p>
                   Con esta tasa ({form.budgetRatePercent.trim()} %), el presupuesto estimado (
                   {formatCOP(referenceBudget)}) supera el tope mensual que definiste en Económico (
@@ -721,8 +732,11 @@ function ProgramForm({
             Number.isFinite(budgetRate) &&
             budgetRate >= 0 &&
             (estimatedCostRate > budgetRate + 0.0005 ? (
-              <div className="flex items-start gap-2 rounded-none border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
-                <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+              <div className="lp-tip-box flex items-start gap-2 rounded-none p-3 text-xs">
+                <AlertTriangle
+                  className="mt-0.5 size-4 shrink-0 text-[var(--lp-tip-strong)]"
+                  aria-hidden="true"
+                />
                 <p>
                   El costo estimado de canje ({(estimatedCostRate * 100).toFixed(1)} %) supera el
                   presupuesto declarado ({(budgetRate * 100).toFixed(1)} %). Ajusta la acumulación,

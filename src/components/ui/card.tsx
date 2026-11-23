@@ -10,10 +10,8 @@ const Card = React.forwardRef<HTMLDivElement, CardProps>(
     <div
       ref={ref}
       className={cn(
-        "min-w-0 rounded-none border text-card-foreground transition-colors",
-        variant === "tinted"
-          ? "border-primary/20 bg-primary/[0.05] shadow-[0_2px_8px_-2px_hsl(var(--primary)/0.12)] dark:border-primary/30 dark:bg-primary/[0.10] dark:shadow-[0_2px_10px_-2px_rgba(2,6,23,0.45)]"
-          : "border-border/80 bg-card shadow-[0_1px_3px_rgba(30,28,26,0.04),0_6px_16px_-6px_rgba(30,28,26,0.06)] dark:border-border/50 dark:shadow-[0_1px_3px_rgba(9,8,7,0.4)]",
+        "min-w-0 rounded-none border-2 border-[var(--lp-ink)] text-card-foreground shadow-[4px_4px_0_var(--lp-ink)] transition-colors",
+        variant === "tinted" ? "bg-[var(--lp-tip-bg)]" : "bg-card",
         className,
       )}
       {...props}

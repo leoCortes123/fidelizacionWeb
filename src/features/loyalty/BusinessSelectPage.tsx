@@ -58,7 +58,7 @@ export function BusinessSelectPage() {
           {list.map((business) => (
             <Card
               key={business.id}
-              className="cursor-pointer hover:shadow-md transition-shadow"
+              className="cursor-pointer transition-colors hover:bg-[var(--lp-tip-bg)]"
               onClick={() => {
                 setSelectedBusiness(business);
                 navigate(businessHomePath(business.role, business.id));

@@ -26,14 +26,14 @@ export function Progress({
       aria-valuenow={Math.round(clampedValue)}
       aria-label={label}
       className={cn(
-        "relative h-3 w-full overflow-hidden rounded-full border border-border/70 bg-muted dark:border-border/50",
+        "relative h-3.5 w-full overflow-hidden rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-paper-deep)]",
         className,
       )}
     >
       <div
         className={cn(
-          "h-full rounded-full bg-gradient-to-r from-primary to-accent transition-[width] duration-500 ease-out",
-          indicatorClassName,
+          "h-full rounded-none transition-[width] duration-500 ease-out motion-reduce:transition-none",
+          indicatorClassName || "bg-[var(--lp-green)]",
         )}
         style={{ width: `${percentage}%` }}
       />

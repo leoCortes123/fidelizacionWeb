@@ -5,27 +5,80 @@
 @layer base {
   :root {
     color-scheme: light dark;
-    /* Paleta Loopoint SaaS: Slate limpio + Azul Cobalto + Ámbar Oro */
-    --background: 210 40% 98%;
-    --foreground: 222 47% 11%;
+
+    /* Tokens unificados de la landing Fideliapp (paleta 65/25/10):
+       Base Slate claro (#edf3f5) / Slate-Teal oscuro (#2b4652),
+       Amarillo dorado de marca (#fad24b) y Azul CTA (#1765cc).
+       Rojo reservado (<2%) para estados destructivos o alertas negativas. */
+    --lp-ink: #16262e;
+    --lp-text-main: #16262e;
+    --lp-ink-soft: #36505c;
+    --lp-muted: #48626f;
+    --lp-paper: #edf3f5;
+    --lp-paper-deep: #dce7ec;
+    --lp-cream: #ffffff;
+    --lp-surface-elevated: #2b4652;
+    --lp-surface-elevated-deep: #233b46;
+    --lp-surface-elevated-text: #fff8e6;
+    --lp-surface-elevated-soft: #d5e4ea;
+    --lp-surface-elevated-muted: #9ebbc6;
+    --lp-grid-line: rgba(22, 38, 46, 0.045);
+    --lp-header-bg: rgba(237, 243, 245, 0.95);
+    --lp-gold: #fad24b;
+    --lp-gold-dark: #e8bc2c;
+    --lp-gold-soft: #fce49d;
+    --lp-gold-ink: #7a5300;
+    --lp-blue: #1765cc;
+    --lp-blue-hover: #124fa3;
+    --lp-green: #169c35;
+    --lp-green-cta: #15803d;
+    --lp-green-cta-hover: #116630;
+    --lp-green-badge: #24d04a;
+    --lp-red: #d9412e;
+    --lp-red-dark: #c43220;
+    --lp-tip-bg: #fff6d6;
+    --lp-tip-border: #16262e;
+    --lp-tip-strong: #7a5300;
+    --lp-row-hover: rgba(255, 246, 214, 0.72);
+    --lp-accent-link: #1250a3;
+    --lp-focus-ring: #1765cc;
+    --lp-tab-hover-bg: #dce7ec;
+    --lp-h1-shadow: 2px 2px 0 var(--lp-cream), 4px 4px 0 rgba(22, 38, 46, 0.14);
+
+    --lp-accent-control-light: #1765cc;
+    --lp-accent-control-dark: #fad24b;
+    --lp-accent-control: var(--lp-accent-control-light);
+    --lp-scrollbar-thumb-light: #55707d;
+    --lp-scrollbar-thumb-dark: #9ebbc6;
+    --lp-scrollbar-track-light: #dce7ec;
+    --lp-scrollbar-track-dark: #233b46;
+    --lp-scrollbar-thumb: var(--lp-scrollbar-thumb-light);
+    --lp-scrollbar-track: var(--lp-scrollbar-track-light);
+
+    /* Tokens HSL de Tailwind / shadcn sincronizados con la paleta 65/25/10 */
+    --background: 195 29% 95%;
+    --foreground: 200 35% 13%;
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 200 35% 13%;
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-    --primary: 221 83% 53%;
+    --popover-foreground: 200 35% 13%;
+    --primary: 214 80% 45%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 214 32% 93%;
-    --secondary-foreground: 222 47% 11%;
-    --muted: 214 32% 95%;
-    --muted-foreground: 215 20% 42%;
-    --accent: 38 92% 50%;
-    --accent-foreground: 222 47% 11%;
-    --destructive: 0 72% 51%;
+    --secondary: 199 30% 89%;
+    --secondary-foreground: 200 35% 13%;
+    --muted: 199 30% 89%;
+    --muted-foreground: 200 21% 36%;
+    --accent: 46 95% 64%;
+    --accent-foreground: 200 35% 13%;
+    --destructive: 7 72% 45%;
     --destructive-foreground: 0 0% 100%;
-    --border: 214 32% 89%;
-    --input: 214 28% 82%;
-    --ring: 221 83% 53%;
+    --border: 200 35% 13%;
+    --input: 200 35% 13%;
+    --ring: 214 80% 45%;
     --radius: 0px;
+
+    accent-color: var(--lp-accent-control);
+    scrollbar-color: var(--lp-scrollbar-thumb) var(--lp-scrollbar-track);
   }
 
   :root:has(> head > meta[name="color-scheme"][content="dark"]) {
@@ -36,72 +89,100 @@
     color-scheme: light;
   }
 
-  /* Modo oscuro Loopoint: Slate nocturno con contraste verificado >= 4.5:1 */
+  /* Modo oscuro Fideliapp: Slate-Teal de la landing con contraste verificado >= 4.5:1 */
   .dark {
-    --background: 222 47% 7%;
-    --foreground: 210 40% 96%;
-    --card: 222 47% 11%;
-    --card-foreground: 210 40% 96%;
-    --popover: 222 47% 11%;
-    --popover-foreground: 210 40% 96%;
-    --primary: 217 91% 60%;
-    --primary-foreground: 222 47% 11%;
-    --secondary: 217 33% 18%;
-    --secondary-foreground: 210 40% 96%;
-    --muted: 217 33% 15%;
-    --muted-foreground: 215 20% 68%;
-    --accent: 38 92% 50%;
-    --accent-foreground: 222 47% 11%;
-    --destructive: 0 74% 42%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 217 33% 20%;
-    --input: 217 33% 26%;
-    --ring: 217 91% 60%;
+    --lp-ink: #16262e;
+    --lp-text-main: #fff8e6;
+    --lp-ink-soft: #d5e4ea;
+    --lp-muted: #c7dce4;
+    --lp-paper: #2b4652;
+    --lp-paper-deep: #233b46;
+    --lp-cream: #385a68;
+    --lp-surface-elevated: #385a68;
+    --lp-surface-elevated-deep: #233b46;
+    --lp-surface-elevated-text: #fff8e6;
+    --lp-surface-elevated-soft: #d5e4ea;
+    --lp-surface-elevated-muted: #bcd3dc;
+    --lp-grid-line: rgba(255, 248, 230, 0.04);
+    --lp-header-bg: rgba(35, 59, 70, 0.96);
+    --lp-gold: #fad24b;
+    --lp-gold-dark: #e8bc2c;
+    --lp-gold-soft: #fce49d;
+    --lp-gold-ink: #fad24b;
+    --lp-blue: #1a6ad6;
+    --lp-blue-hover: #1455b0;
+    --lp-green: #24d04a;
+    --lp-green-cta: #16833c;
+    --lp-green-cta-hover: #126a30;
+    --lp-green-badge: #24d04a;
+    --lp-red: #ff8577;
+    --lp-red-dark: #c43220;
+    --lp-tip-bg: #233b46;
+    --lp-tip-border: #fad24b;
+    --lp-tip-strong: #fad24b;
+    --lp-row-hover: rgba(35, 59, 70, 0.72);
+    --lp-accent-link: #fad24b;
+    --lp-focus-ring: #fad24b;
+    --lp-tab-hover-bg: #466e7e;
+    --lp-h1-shadow: 2px 2px 0 var(--lp-ink);
+
+    --lp-accent-control: var(--lp-accent-control-dark);
+    --lp-scrollbar-thumb: var(--lp-scrollbar-thumb-dark);
+    --lp-scrollbar-track: var(--lp-scrollbar-track-dark);
+
+    --background: 198 31% 25%;
+    --foreground: 43 100% 95%;
+    --card: 197 30% 31%;
+    --card-foreground: 43 100% 95%;
+    --popover: 197 30% 31%;
+    --popover-foreground: 43 100% 95%;
+    --primary: 46 95% 64%;
+    --primary-foreground: 200 35% 13%;
+    --secondary: 199 33% 21%;
+    --secondary-foreground: 43 100% 95%;
+    --muted: 199 33% 21%;
+    --muted-foreground: 197 35% 84%;
+    --accent: 46 95% 64%;
+    --accent-foreground: 200 35% 13%;
+    --destructive: 7 100% 85%;
+    --destructive-foreground: 200 35% 13%;
+    --border: 200 35% 13%;
+    --input: 197 26% 70%;
+    --ring: 46 95% 64%;
   }
 
-  /* Portal negocio (Admin y Encargado): replica la paleta cálida del módulo de clientes */
-  :root[data-portal="admin"] {
-    --background: 40 58% 91%;
-    --foreground: 30 7% 11%;
-    --card: 48 100% 98%;
-    --card-foreground: 30 7% 11%;
-    --popover: 48 100% 98%;
-    --popover-foreground: 30 7% 11%;
-    --primary: 7 77% 57%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 39 45% 85%;
-    --secondary-foreground: 30 7% 11%;
-    --muted: 40 43% 88%;
-    --muted-foreground: 34 11% 36%;
-    --accent: 34 87% 60%;
-    --accent-foreground: 30 7% 11%;
-    --destructive: 7 77% 48%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 30 7% 11%;
-    --input: 30 7% 11%;
-    --ring: 208 37% 44%;
+  @supports (color: light-dark(white, black)) {
+    :root,
+    .dark {
+      --lp-accent-control: light-dark(
+        var(--lp-accent-control-light),
+        var(--lp-accent-control-dark)
+      );
+      --lp-scrollbar-thumb: light-dark(
+        var(--lp-scrollbar-thumb-light),
+        var(--lp-scrollbar-thumb-dark)
+      );
+      --lp-scrollbar-track: light-dark(
+        var(--lp-scrollbar-track-light),
+        var(--lp-scrollbar-track-dark)
+      );
+    }
   }
 
-  :root.dark[data-portal="admin"] {
-    --background: 20 7% 9%;
-    --foreground: 48 53% 94%;
-    --card: 20 9% 13%;
-    --card-foreground: 48 53% 94%;
-    --popover: 20 9% 13%;
-    --popover-foreground: 48 53% 94%;
-    --primary: 7 90% 65%;
-    --primary-foreground: 20 7% 9%;
-    --secondary: 20 9% 15%;
-    --secondary-foreground: 48 53% 94%;
-    --muted: 20 9% 15%;
-    --muted-foreground: 36 21% 76%;
-    --accent: 34 87% 60%;
-    --accent-foreground: 30 7% 11%;
-    --destructive: 7 82% 58%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 36 21% 76%;
-    --input: 36 21% 76%;
-    --ring: 208 42% 55%;
+  @supports not (scrollbar-color: auto) {
+    :root::-webkit-scrollbar {
+      width: 12px;
+      height: 12px;
+    }
+
+    :root::-webkit-scrollbar-thumb {
+      background: var(--lp-scrollbar-thumb);
+      border: 2px solid var(--lp-ink);
+    }
+
+    :root::-webkit-scrollbar-track {
+      background: var(--lp-scrollbar-track);
+    }
   }
 
   * {
@@ -116,18 +197,13 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-family:
-      "Plus Jakarta Sans", "Space Grotesk", "Inter", ui-sans-serif, system-ui, sans-serif;
+      "Space Grotesk", "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, sans-serif;
     min-height: 100vh;
+    background-color: var(--lp-paper);
     background-image:
-      radial-gradient(900px 420px at 10% -10%, hsl(var(--primary) / 0.06), transparent 65%),
-      radial-gradient(700px 380px at 95% 0%, hsl(var(--accent) / 0.06), transparent 65%);
-    background-attachment: fixed;
-  }
-
-  .dark body {
-    background-image:
-      radial-gradient(900px 420px at 10% -10%, hsl(var(--primary) / 0.12), transparent 65%),
-      radial-gradient(700px 380px at 95% 0%, hsl(var(--accent) / 0.06), transparent 65%);
+      linear-gradient(to right, var(--lp-grid-line) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--lp-grid-line) 1px, transparent 1px);
+    background-size: 24px 24px;
   }
 
   h1,
@@ -135,49 +211,59 @@
   h3,
   h4 {
     font-family:
-      "Plus Jakarta Sans", "Space Grotesk", "Inter", ui-sans-serif, system-ui, sans-serif;
-    letter-spacing: -0.025em;
+      "Space Grotesk", "Bricolage Grotesque", "Plus Jakarta Sans", ui-sans-serif, system-ui,
+      sans-serif;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  :where(button, a, summary, input, select, textarea, [role="button"], [role="tab"]) {
+    touch-action: manipulation;
   }
 
   :focus-visible {
-    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+    outline: 3px solid var(--lp-focus-ring);
+    outline-offset: 2px;
   }
 
   ::selection {
-    @apply bg-primary/20;
+    background-color: rgba(250, 210, 75, 0.35);
+    color: var(--lp-text-main);
   }
 }
 
 @layer components {
   .hero-glow {
-    background:
-      radial-gradient(60% 80% at 15% 10%, hsl(221 83% 53% / 0.1), transparent 60%),
-      radial-gradient(50% 70% at 90% 20%, hsl(38 92% 50% / 0.11), transparent 65%),
-      linear-gradient(180deg, hsl(210 40% 99%), hsl(210 40% 97%));
+    background-color: var(--lp-paper);
+    background-image:
+      radial-gradient(rgba(22, 38, 46, 0.08) 0.75px, transparent 0.75px),
+      linear-gradient(to right, var(--lp-grid-line) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--lp-grid-line) 1px, transparent 1px);
+    background-size: 6px 6px, 24px 24px, 24px 24px;
+  }
+
+  .dark .hero-glow {
+    background-image:
+      radial-gradient(rgba(255, 248, 230, 0.05) 0.75px, transparent 0.75px),
+      linear-gradient(to right, var(--lp-grid-line) 1px, transparent 1px),
+      linear-gradient(to bottom, var(--lp-grid-line) 1px, transparent 1px);
   }
 
   .paper-grid {
     background-image:
-      linear-gradient(hsl(214 32% 86% / 0.35) 1px, transparent 1px),
-      linear-gradient(90deg, hsl(214 32% 86% / 0.35) 1px, transparent 1px);
+      linear-gradient(var(--lp-grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--lp-grid-line) 1px, transparent 1px);
     background-size: 24px 24px;
   }
 
-  .dark .hero-glow {
-    background:
-      radial-gradient(60% 80% at 15% 10%, hsl(217 91% 60% / 0.14), transparent 60%),
-      radial-gradient(50% 70% at 90% 20%, hsl(38 92% 50% / 0.08), transparent 65%),
-      linear-gradient(180deg, hsl(222 47% 9%), hsl(222 47% 7%));
-  }
-
-  .dark .paper-grid {
-    background-image:
-      linear-gradient(hsl(217 33% 18% / 0.5) 1px, transparent 1px),
-      linear-gradient(90deg, hsl(217 33% 18% / 0.5) 1px, transparent 1px);
-  }
-
   .glass-surface {
-    @apply border border-white/60 bg-white/80 backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-900/80;
+    background-color: var(--lp-header-bg);
+    border: 2px solid var(--lp-ink);
+    backdrop-filter: blur(6px);
   }
 
   .code-display {
@@ -185,32 +271,23 @@
     letter-spacing: 0.14em;
   }
 
+  /* Etiqueta retro inspirada en .eyebrow / .kicker de la landing */
   .lp-section-kicker {
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
-    border-radius: 9999px;
-    background: hsl(var(--primary) / 0.1);
-    border: 1px solid hsl(var(--primary) / 0.22);
-    padding: 0.2rem 0.65rem;
-    font-family: "Plus Jakarta Sans", sans-serif;
-    font-size: 0.7rem;
-    font-weight: 700;
+    gap: 0.45rem;
+    border-radius: 0;
+    background: var(--lp-surface-elevated-deep);
+    border: 2px solid var(--lp-ink);
+    box-shadow: 3px 3px 0 var(--lp-gold);
+    padding: 0.28rem 0.65rem;
+    font-family: "Press Start 2P", "DM Mono", monospace;
+    font-size: 0.5625rem;
+    line-height: 1.4;
+    font-weight: 400;
     text-transform: uppercase;
-    letter-spacing: 0.07em;
-    color: hsl(221 83% 44%);
-  }
-
-  .dark .lp-section-kicker {
-    color: hsl(213 94% 72%);
-  }
-
-  :root[data-portal="admin"] .lp-section-kicker {
-    color: #b83726;
-  }
-
-  :root.dark[data-portal="admin"] .lp-section-kicker {
-    color: #f06452;
+    letter-spacing: 0.04em;
+    color: var(--lp-gold);
   }
 
   .lp-section-kicker::before {
@@ -218,8 +295,21 @@
     display: inline-block;
     width: 6px;
     height: 6px;
-    border-radius: 9999px;
-    background: hsl(var(--primary));
+    border-radius: 0;
+    background: var(--lp-gold);
+  }
+
+  .lp-surface-elevated {
+    background-color: var(--lp-surface-elevated-deep);
+    color: var(--lp-surface-elevated-text);
+    border: 3px solid var(--lp-ink);
+    box-shadow: 5px 5px 0 var(--lp-ink);
+  }
+
+  .lp-tip-box {
+    background-color: var(--lp-tip-bg);
+    border: 2px dashed var(--lp-tip-border);
+    color: var(--lp-text-main);
   }
 
   .lp-progress-ticks {
@@ -227,15 +317,32 @@
       90deg,
       transparent 0,
       transparent calc(10% - 1px),
-      rgba(255, 255, 255, 0.25) calc(10% - 1px),
-      rgba(255, 255, 255, 0.25) 10%
+      rgba(22, 38, 46, 0.22) calc(10% - 1px),
+      rgba(22, 38, 46, 0.22) 10%
     );
+  }
+}
+
+@media (forced-colors: active) {
+  body,
+  .hero-glow,
+  .paper-grid {
+    background-image: none;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+
+  .animate-fade-in,
+  .animate-pulse,
+  [data-state="open"],
+  [data-state="closed"] {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
   }
 }
 
@@ -246,6 +353,7 @@
 
   body {
     background: white;
+    background-image: none;
   }
 
   body * {

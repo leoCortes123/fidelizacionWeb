@@ -138,35 +138,37 @@ export function ClaimPage() {
     return (
       <ClaimLayout>
         <Card className="overflow-hidden">
-          <div className="bg-primary px-6 py-8 text-center text-primary-foreground">
-            <span className="mx-auto grid size-14 place-items-center rounded-full bg-primary-foreground/15">
+          <div className="border-b-[3px] border-[var(--lp-ink)] bg-[var(--lp-surface-elevated-deep)] px-6 py-8 text-center text-[var(--lp-surface-elevated-text)]">
+            <span className="mx-auto grid size-14 place-items-center rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-gold)] text-[#16262e] shadow-[3px_3px_0_var(--lp-ink)]">
               <BadgeCheck className="size-8" aria-hidden="true" />
             </span>
-            <h1 className="mt-3 font-display text-2xl font-extrabold">¡Monedas acreditadas!</h1>
-            <p className="mt-1 text-sm text-primary-foreground/80">
+            <h1 className="mt-3 font-display text-2xl font-extrabold [text-shadow:2px_2px_0_#16262e]">
+              ¡Monedas acreditadas!
+            </h1>
+            <p className="mt-1 text-sm text-[var(--lp-surface-elevated-soft)]">
               Tu compra en {result.business_name} ya está asociada a tu cuenta.
             </p>
           </div>
           <CardContent className="space-y-4 p-4 sm:space-y-5 sm:p-6">
             <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-none bg-muted p-4 text-center">
-                <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              <div className="rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-paper-deep)] p-4 text-center">
+                <p className="font-mono text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Compra
                 </p>
                 <p className="mt-1 font-display text-xl font-extrabold">
                   {formatCOP(result.amount_cop)}
                 </p>
               </div>
-              <div className="rounded-none bg-secondary p-4 text-center">
-                <p className="text-xs font-semibold uppercase tracking-wider text-secondary-foreground/70">
+              <div className="rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-tip-bg)] p-4 text-center">
+                <p className="font-mono text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Monedas sumadas
                 </p>
-                <p className="mt-1 font-display text-xl font-extrabold text-primary">
+                <p className="mt-1 font-display text-xl font-extrabold text-[var(--lp-accent-link)]">
                   +{formatPoints(result.points_awarded)}
                 </p>
               </div>
             </div>
-            <div className="flex items-center justify-between rounded-none border bg-card p-4">
+            <div className="flex items-center justify-between rounded-none border-2 border-[var(--lp-ink)] bg-card p-4 shadow-[3px_3px_0_var(--lp-ink)]">
               <span className="text-sm text-muted-foreground">Nuevo saldo</span>
               <span className="font-display text-xl font-extrabold">
                 {formatPoints(result.balance)}
@@ -222,29 +224,29 @@ export function ClaimPage() {
       <Card>
         <CardContent className="space-y-4 p-4 sm:space-y-5 sm:p-6">
           <div className="text-center">
-            <span className="mx-auto grid size-14 place-items-center rounded-full bg-secondary text-secondary-foreground">
+            <span className="mx-auto grid size-14 place-items-center rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-gold)] text-[#16262e] shadow-[3px_3px_0_var(--lp-ink)]">
               <Building2 className="size-7" aria-hidden="true" />
             </span>
-            <p className="mt-3 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            <p className="mt-3 font-mono text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Compra en
             </p>
             <h1 className="font-display text-2xl font-extrabold">{data.business_name}</h1>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-none bg-muted p-4 text-center">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            <div className="rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-paper-deep)] p-4 text-center">
+              <p className="font-mono text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Importe
               </p>
               <p className="mt-1 font-display text-xl font-extrabold">
                 {formatCOP(data.amount_cop)}
               </p>
             </div>
-            <div className="rounded-none bg-secondary p-4 text-center">
-              <p className="text-xs font-semibold uppercase tracking-wider text-secondary-foreground/70">
+            <div className="rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-tip-bg)] p-4 text-center">
+              <p className="font-mono text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Monedas
               </p>
-              <p className="mt-1 font-display text-xl font-extrabold text-primary">
+              <p className="mt-1 font-display text-xl font-extrabold text-[var(--lp-accent-link)]">
                 +{formatNumber(data.points_preview)}
               </p>
             </div>

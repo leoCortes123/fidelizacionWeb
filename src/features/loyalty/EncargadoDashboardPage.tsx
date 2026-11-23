@@ -56,7 +56,10 @@ export function EncargadoDashboardPage() {
         </div>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {list.map((business) => (
-            <Card key={business.id} className="cursor-pointer transition-shadow hover:shadow-md">
+            <Card
+              key={business.id}
+              className="cursor-pointer transition-colors hover:bg-[var(--lp-tip-bg)]"
+            >
               <CardContent className="p-4 text-center sm:p-6">
                 <TicketCheck className="mx-auto mb-3 size-12 text-primary" aria-hidden="true" />
                 <h3 className="font-semibold">{business.name}</h3>
@@ -144,10 +147,13 @@ function EncargadoDashboardSection({ business }: { business: Business }) {
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <div className="flex items-center gap-2 font-mono text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-            <span className="size-2 rounded-full bg-emerald-500 animate-pulse" aria-hidden="true" />
+            <span
+              className="size-2.5 border border-[var(--lp-ink)] bg-[var(--lp-green-badge)] animate-pulse"
+              aria-hidden="true"
+            />
             Terminal de caja · {dateLabel}
           </div>
-          <h1 className="mt-1 font-display text-2xl font-black tracking-tight sm:text-3xl">
+          <h1 className="mt-1 font-display text-2xl font-black tracking-tight [text-shadow:var(--lp-h1-shadow)] sm:text-3xl">
             {business.name}
           </h1>
           <p className="text-sm text-muted-foreground">
@@ -155,7 +161,7 @@ function EncargadoDashboardSection({ business }: { business: Business }) {
           </p>
         </div>
 
-        <Button asChild className="h-11 shadow-sm">
+        <Button asChild className="h-11">
           <Link to="/encargado/venta">
             <QrCode className="size-4" aria-hidden="true" />
             Registrar venta
@@ -166,11 +172,7 @@ function EncargadoDashboardSection({ business }: { business: Business }) {
       {/* Indicadores clave */}
       <div className="grid gap-3 sm:grid-cols-3">
         {/* Solicitudes pendientes */}
-        <Card
-          className={
-            pendingRows.length > 0 ? "border-amber-400/80 bg-amber-50/30 dark:bg-amber-950/20" : ""
-          }
-        >
+        <Card className={pendingRows.length > 0 ? "bg-[var(--lp-tip-bg)]" : ""}>
           <CardContent className="p-4 sm:p-5">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">

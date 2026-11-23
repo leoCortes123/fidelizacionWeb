@@ -293,7 +293,7 @@ export function ProfilePage() {
           "flex flex-wrap items-center justify-between gap-3 p-3.5 text-sm sm:p-4",
           isCustomerPortal
             ? "pixel-box-dark"
-            : "rounded-none border border-slate-200 bg-muted/50 dark:border-slate-800",
+            : "rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-paper-deep)] shadow-[3px_3px_0_var(--lp-ink)]",
         )}
       >
         <div className="flex min-w-0 items-center gap-3">
@@ -418,7 +418,10 @@ export function ProfilePage() {
             </>
           ) : availability.data ? (
             <>
-              <BadgeCheck className="size-4 text-emerald-600" aria-hidden="true" />
+              <BadgeCheck
+                className="size-4 text-emerald-700 dark:text-emerald-300"
+                aria-hidden="true"
+              />
               <span className="text-emerald-700 dark:text-emerald-400">
                 @{normalizedNickname} está disponible.
               </span>
@@ -524,7 +527,7 @@ export function ProfilePage() {
                 )}
               </div>
               <div>
-                <span className="pixel-title block text-[10px] text-[var(--red)]">
+                <span className="pixel-title block text-[10px] text-[var(--gold-ink)]">
                   PLAYER PROFILE · DATOS BÁSICOS
                 </span>
                 <h1 className="font-display text-xl font-bold text-[var(--ink)]">Mi perfil</h1>

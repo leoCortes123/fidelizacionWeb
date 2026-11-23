@@ -32,7 +32,7 @@ export function Field({ id, label, hint, help, error, required, className, child
       {error ? (
         <p
           id={id ? `${id}-error` : undefined}
-          className="text-xs font-medium text-destructive dark:text-red-400"
+          className="text-xs font-medium text-destructive"
           role="alert"
         >
           {error}

@@ -31,7 +31,7 @@ export function EntityAvatar({
         src={src}
         alt={alt}
         className={cn(
-          "shrink-0 border border-border/70 bg-muted object-cover",
+          "shrink-0 border-2 border-[var(--lp-ink)] bg-muted object-cover",
           sizeClassName,
           roundedClassName,
           className,
@@ -43,7 +43,7 @@ export function EntityAvatar({
   return (
     <span
       className={cn(
-        "grid shrink-0 place-items-center border border-border/70 bg-muted text-xs font-bold text-muted-foreground",
+        "grid shrink-0 place-items-center border-2 border-[var(--lp-ink)] bg-[var(--lp-paper-deep)] text-xs font-bold text-foreground",
         sizeClassName,
         roundedClassName,
         className,

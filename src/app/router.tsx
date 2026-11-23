@@ -105,8 +105,8 @@ function OnboardingRoute() {
 
   if (startedAsNew) {
     return (
-      <div className="min-h-dvh bg-background text-foreground">
-        <header className="sticky top-0 z-20 border-b border-border/80 bg-card/85 backdrop-blur-md">
+      <div className="min-h-dvh text-foreground">
+        <header className="sticky top-0 z-20 border-b-[3px] border-[var(--lp-ink)] bg-[var(--lp-header-bg)] backdrop-blur-[6px]">
           <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
             <Brand compact className="sm:hidden" linkTo="/" />
             <Brand className="hidden sm:flex" linkTo="/" />

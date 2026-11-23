@@ -12,7 +12,7 @@ export function UnauthorizedPage() {
           <div className="flex justify-center">
             <Brand />
           </div>
-          <span className="mx-auto grid size-14 place-items-center rounded-full bg-destructive/10 text-destructive">
+          <span className="mx-auto grid size-14 place-items-center rounded-none border-2 border-[var(--lp-ink)] bg-[#fee2e2] text-[#991b1b] shadow-[3px_3px_0_var(--lp-ink)] dark:bg-[#4c1d1b] dark:text-[#ffbab0]">
             <ShieldAlert className="size-7" aria-hidden="true" />
           </span>
           <div className="space-y-1">
@@ -44,7 +44,9 @@ export function NotFoundPage() {
     <div className="hero-glow grid min-h-screen place-items-center px-0 sm:px-4">
       <Card className="w-full max-w-md">
         <CardContent className="space-y-4 p-5 text-center sm:p-8">
-          <p className="font-display text-6xl font-extrabold text-primary">404</p>
+          <p className="font-pixel text-5xl text-[var(--lp-gold-ink)] [text-shadow:3px_3px_0_var(--lp-ink)]">
+            404
+          </p>
           <h1 className="font-display text-2xl font-extrabold">Página no encontrada</h1>
           <p className="text-sm text-muted-foreground">
             El enlace que buscas no existe o cambió de lugar.

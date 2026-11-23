@@ -76,10 +76,10 @@ function isItemActive(item: AdminNavItem, pathname: string) {
 
 function navClass(isActive: boolean) {
   return cn(
-    "flex min-h-11 items-center gap-3 rounded-none px-3 py-2 text-sm font-semibold transition-all duration-150",
+    "flex min-h-11 items-center gap-3 rounded-none border-2 px-3 py-2 font-mono text-xs font-bold uppercase tracking-wide transition-all duration-150",
     isActive
-      ? "bg-primary text-primary-foreground shadow-sm shadow-primary/25"
-      : "text-muted-foreground hover:bg-muted/80 hover:text-foreground",
+      ? "border-[var(--lp-ink)] bg-[var(--lp-gold)] text-[#16262e] shadow-[2px_2px_0_var(--lp-ink)]"
+      : "border-transparent text-[var(--lp-ink-soft)] hover:border-[var(--lp-ink)] hover:bg-card hover:text-foreground hover:shadow-[2px_2px_0_var(--lp-ink)]",
   );
 }
 
@@ -103,9 +103,9 @@ export function AdminShell({ children }: { children?: ReactNode }) {
   });
 
   return (
-    <div className="flex h-dvh overflow-hidden bg-background">
-      <aside className="hidden h-dvh w-64 shrink-0 flex-col border-r border-border/80 bg-card/95 backdrop-blur-sm md:flex">
-        <div className="border-b border-border/70 bg-muted/30 p-4">
+    <div className="flex h-dvh overflow-hidden">
+      <aside className="hidden h-dvh w-64 shrink-0 flex-col border-r-[3px] border-[var(--lp-ink)] bg-[var(--lp-paper-deep)] md:flex">
+        <div className="border-b-[3px] border-[var(--lp-ink)] bg-card p-4">
           <Brand
             name={headerBusinessName}
             tagline={headerBusinessName ? null : undefined}
@@ -125,7 +125,7 @@ export function AdminShell({ children }: { children?: ReactNode }) {
           </Button>
         </div>
 
-        <nav className="flex-1 space-y-1 overflow-y-auto p-3" aria-label="Panel del negocio">
+        <nav className="flex-1 space-y-1.5 overflow-y-auto p-3" aria-label="Panel del negocio">
           {mainNav.map((item) => {
             const Icon = item.icon;
             return (
@@ -142,7 +142,7 @@ export function AdminShell({ children }: { children?: ReactNode }) {
           })}
         </nav>
 
-        <div className="border-t border-border/70 p-3">
+        <div className="border-t-[3px] border-[var(--lp-ink)] bg-card p-3">
           <UserMenu />
         </div>
       </aside>
@@ -153,7 +153,7 @@ export function AdminShell({ children }: { children?: ReactNode }) {
           inert={headerHidden || undefined}
           aria-hidden={headerHidden || undefined}
           className={cn(
-            "z-30 shrink-0 overflow-hidden border-b border-border/80 bg-card/85 backdrop-blur-md transition-[max-height,transform,opacity] duration-300 ease-out no-print",
+            "z-30 shrink-0 overflow-hidden border-b-[3px] border-[var(--lp-ink)] bg-[var(--lp-header-bg)] backdrop-blur-[6px] transition-[max-height,transform,opacity] duration-300 ease-out no-print",
             headerHidden
               ? "invisible pointer-events-none max-h-0 -translate-y-full border-transparent opacity-0"
               : "max-h-40 opacity-100",
@@ -163,8 +163,11 @@ export function AdminShell({ children }: { children?: ReactNode }) {
             <div className="min-w-0 md:hidden">
               <Brand compact name={headerBusinessName} linkTo="/admin/dashboard" />
             </div>
-            <p className="hidden items-center gap-2 font-mono text-xs font-medium text-muted-foreground md:flex">
-              <span className="size-2 rounded-full bg-emerald-500" aria-hidden="true" />
+            <p className="hidden items-center gap-2 font-mono text-xs font-semibold uppercase text-[var(--lp-ink-soft)] md:flex">
+              <span
+                className="size-2.5 border border-[var(--lp-ink)] bg-[var(--lp-green-badge)]"
+                aria-hidden="true"
+              />
               {headerBusinessName ? `${headerBusinessName} · ` : ""}CAJA ACTIVA · {dateLabel}
             </p>
             <div className="flex items-center gap-2">
@@ -172,7 +175,7 @@ export function AdminShell({ children }: { children?: ReactNode }) {
               <UserMenu compact />
             </div>
           </div>
-          <div className="border-t border-border/70 px-4 py-2 sm:hidden">
+          <div className="border-t-2 border-[var(--lp-ink)] px-4 py-2 sm:hidden">
             <BusinessSwitcher />
           </div>
         </header>
@@ -191,10 +194,10 @@ export function AdminShell({ children }: { children?: ReactNode }) {
       <PurchaseFab />
 
       <nav
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-border/80 bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden no-print"
+        className="fixed inset-x-0 bottom-0 z-40 border-t-[3px] border-[var(--lp-ink)] bg-[var(--lp-header-bg)] pb-[env(safe-area-inset-bottom)] backdrop-blur-[6px] md:hidden no-print"
         aria-label="Navegación del negocio"
       >
-        <div className="grid grid-cols-5 p-1.5 gap-1">
+        <div className="grid grid-cols-5 gap-1 p-1.5">
           {bottomNav.map((item) => {
             const Icon = item.icon;
             const active = isItemActive(item, pathname);
@@ -204,10 +207,10 @@ export function AdminShell({ children }: { children?: ReactNode }) {
                 to={item.to}
                 end={item.end}
                 className={cn(
-                  "flex min-h-12 flex-col items-center justify-center gap-1 rounded-none px-1 py-1.5 text-[10px] font-semibold transition-colors",
+                  "flex min-h-12 flex-col items-center justify-center gap-1 rounded-none border-2 px-1 py-1.5 font-mono text-[10px] font-bold uppercase transition-colors",
                   active
-                    ? "bg-primary text-primary-foreground shadow-sm shadow-primary/25"
-                    : "text-muted-foreground hover:bg-muted/70 hover:text-foreground",
+                    ? "border-[var(--lp-ink)] bg-[var(--lp-gold)] text-[#16262e] shadow-[2px_2px_0_var(--lp-ink)]"
+                    : "border-transparent text-[var(--lp-ink-soft)] hover:border-[var(--lp-ink)] hover:bg-card hover:text-foreground",
                 )}
               >
                 <Icon className="size-4 shrink-0" aria-hidden="true" />
@@ -220,7 +223,7 @@ export function AdminShell({ children }: { children?: ReactNode }) {
             onClick={() => setMoreOpen(true)}
             aria-expanded={moreOpen}
             aria-haspopup="dialog"
-            className="flex min-h-12 cursor-pointer flex-col items-center justify-center gap-1 rounded-none px-1 py-1.5 text-[10px] font-semibold text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground"
+            className="flex min-h-12 cursor-pointer flex-col items-center justify-center gap-1 rounded-none border-2 border-transparent px-1 py-1.5 font-mono text-[10px] font-bold uppercase text-[var(--lp-ink-soft)] transition-colors hover:border-[var(--lp-ink)] hover:bg-card hover:text-foreground"
             aria-label="Más opciones"
           >
             <LayoutGrid className="size-4" aria-hidden="true" />
@@ -239,9 +242,9 @@ export function AdminShell({ children }: { children?: ReactNode }) {
             <Link
               to="/admin/purchases/new"
               onClick={() => setMoreOpen(false)}
-              className="flex items-center gap-3 rounded-none border p-3 text-sm font-semibold hover:bg-muted"
+              className="flex items-center gap-3 rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-gold-soft)] p-3 font-mono text-sm font-bold text-[#16262e] shadow-[2px_2px_0_var(--lp-ink)] hover:bg-[var(--lp-gold)]"
             >
-              <QrCode className="size-4 text-primary" aria-hidden="true" />
+              <QrCode className="size-4" aria-hidden="true" />
               Registrar venta
             </Link>
             {moreNav.map((item) => {
@@ -251,9 +254,9 @@ export function AdminShell({ children }: { children?: ReactNode }) {
                   key={item.to}
                   to={item.to}
                   onClick={() => setMoreOpen(false)}
-                  className="flex items-center gap-3 rounded-none border p-3 text-sm font-semibold hover:bg-muted"
+                  className="flex items-center gap-3 rounded-none border-2 border-[var(--lp-ink)] bg-secondary p-3 font-mono text-sm font-semibold shadow-[2px_2px_0_var(--lp-ink)] hover:bg-[var(--lp-gold)] hover:text-[#16262e]"
                 >
-                  <Icon className="size-4 text-muted-foreground" aria-hidden="true" />
+                  <Icon className="size-4" aria-hidden="true" />
                   {item.label}
                 </Link>
               );

@@ -3,21 +3,17 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const badgeVariants = cva(
-  "inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 font-sans text-xs font-semibold tracking-tight shadow-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+  "inline-flex items-center gap-1 rounded-none border-2 border-[var(--lp-ink)] px-2 py-0.5 font-mono text-[11px] font-bold uppercase tracking-wide shadow-[2px_2px_0_var(--lp-ink)] transition-colors focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--lp-focus-ring)]",
   {
     variants: {
       variant: {
-        default:
-          "border-primary/30 bg-primary/10 text-primary dark:border-primary/40 dark:bg-primary/15 dark:text-primary",
-        secondary: "border-border/60 bg-secondary text-secondary-foreground",
-        destructive:
-          "border-red-300 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950/60 dark:text-red-300",
-        outline: "border-border/70 text-foreground",
-        success:
-          "border-emerald-300 bg-emerald-50 text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300",
-        warning:
-          "border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-800 dark:bg-amber-950/60 dark:text-amber-300",
-        muted: "border-border/50 bg-muted text-muted-foreground",
+        default: "bg-[var(--lp-surface-elevated-deep)] text-[var(--lp-gold)]",
+        secondary: "bg-[var(--lp-gold-soft)] text-[#16262e]",
+        destructive: "bg-[#fee2e2] text-[#991b1b] dark:bg-[#4c1d1b] dark:text-[#ffbab0]",
+        outline: "bg-card text-foreground",
+        success: "bg-[#dcfce7] text-[#14532d] dark:bg-[#143d27] dark:text-[#86efac]",
+        warning: "bg-[var(--lp-gold)] text-[#16262e]",
+        muted: "bg-secondary text-muted-foreground shadow-none",
       },
     },
     defaultVariants: {

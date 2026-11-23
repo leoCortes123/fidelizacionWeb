@@ -632,7 +632,7 @@ export function EconomicDataForm({
                     {fieldError ? (
                       <p
                         id={feedbackId}
-                        className="text-xs font-medium text-destructive dark:text-red-400"
+                        className="text-xs font-medium text-destructive"
                         role="alert"
                       >
                         {fieldError}
@@ -689,7 +689,7 @@ export function EconomicDataForm({
                           onChange={(event) =>
                             updateStatus(config.field, event.target.value as EconomicDataStatus)
                           }
-                          className="flex h-9 w-full cursor-pointer rounded-none border border-input bg-background px-2 py-1 text-base font-medium shadow-sm focus-visible:border-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/20 dark:border-border/60 dark:bg-card md:text-sm"
+                          className="flex h-10 w-full cursor-pointer rounded-none border-2 border-input bg-card px-2.5 py-1.5 text-base font-medium text-foreground shadow-[2px_2px_0_var(--lp-ink)] hover:border-[var(--lp-focus-ring)] focus-visible:border-[var(--lp-focus-ring)] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--lp-focus-ring)] dark:bg-[var(--lp-paper-deep)] md:text-sm"
                         >
                           {ECONOMIC_STATUS_OPTIONS.map((option) => (
                             <option key={option.value} value={option.value}>

@@ -37,7 +37,9 @@ export function RedemptionsPage() {
   return (
     <section className="space-y-4 animate-fade-in" aria-label="Mis canjes">
       <div className="pixel-box p-4 sm:p-5">
-        <span className="pixel-title block text-[10px] text-[var(--red)]">HISTORIAL · CANJES</span>
+        <span className="pixel-title block text-[10px] text-[var(--gold-ink)]">
+          HISTORIAL · CANJES
+        </span>
         <h1 className="mt-1 font-display text-xl font-bold text-[var(--ink)]">Mis canjes</h1>
         <p className="mt-1 text-xs text-[var(--text-muted)]">
           Solicitudes de recompensa en todos tus negocios y su estado actual.
@@ -177,8 +179,8 @@ export function RedemptionsPage() {
                   </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3 border-t-2 border-dashed border-[var(--border)] pt-3 sm:justify-end sm:border-t-0 sm:pt-0">
-                  <p className="pixel-title mr-auto text-sm text-[var(--red)] sm:mr-2">
+                <div className="flex flex-wrap items-center gap-3 border-t-2 border-dashed border-[var(--dash-line)] pt-3 sm:justify-end sm:border-t-0 sm:pt-0">
+                  <p className="pixel-title mr-auto text-sm text-[var(--gold-ink)] sm:mr-2">
                     −{redemption.points_spent}
                   </p>
                   <button

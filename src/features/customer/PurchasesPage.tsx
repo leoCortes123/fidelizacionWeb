@@ -38,7 +38,9 @@ export function PurchasesPage() {
   return (
     <section className="space-y-4 animate-fade-in" aria-label="Mis compras">
       <div className="pixel-box p-4 sm:p-5">
-        <span className="pixel-title block text-[10px] text-[var(--red)]">HISTORIAL · COMPRAS</span>
+        <span className="pixel-title block text-[10px] text-[var(--gold-ink)]">
+          HISTORIAL · COMPRAS
+        </span>
         <h1 className="mt-1 font-display text-xl font-bold text-[var(--ink)]">Mis compras</h1>
         <p className="mt-1 text-xs text-[var(--text-muted)]">
           {businessLabel
@@ -103,7 +105,10 @@ export function PurchasesPage() {
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="flex items-center gap-1.5 truncate font-mono text-xs font-bold uppercase text-[var(--ink)]">
-                      <Store className="size-3.5 shrink-0 text-[var(--red)]" aria-hidden="true" />
+                      <Store
+                        className="size-3.5 shrink-0 text-[var(--accent-link)]"
+                        aria-hidden="true"
+                      />
                       {purchase.business_name}
                     </p>
                     <p className="mt-1 font-display text-xl font-extrabold text-[var(--ink)]">
@@ -119,7 +124,7 @@ export function PurchasesPage() {
                     </span>
                   </div>
                 </div>
-                <div className="flex items-center justify-between gap-2 border-t-2 border-dashed border-[var(--border)] pt-2.5 text-xs text-[var(--text-muted)]">
+                <div className="flex items-center justify-between gap-2 border-t-2 border-dashed border-[var(--dash-line)] pt-2.5 text-xs text-[var(--text-muted)]">
                   <span>
                     {purchase.items_count > 0
                       ? `${purchase.items_count} producto(s)`
@@ -140,22 +145,12 @@ export function PurchasesPage() {
           <div className="pixel-box hidden overflow-hidden sm:block">
             <Table>
               <TableHeader>
-                <TableRow className="border-b-[3px] border-[var(--border-color)] bg-[var(--paper-deep)] hover:bg-[var(--paper-deep)]">
-                  <TableHead className="font-mono text-[11px] font-bold uppercase text-[var(--ink)]">
-                    Negocio
-                  </TableHead>
-                  <TableHead className="font-mono text-[11px] font-bold uppercase text-[var(--ink)]">
-                    Fecha
-                  </TableHead>
-                  <TableHead className="font-mono text-[11px] font-bold uppercase text-[var(--ink)]">
-                    Importe
-                  </TableHead>
-                  <TableHead className="font-mono text-[11px] font-bold uppercase text-[var(--ink)]">
-                    Ítems
-                  </TableHead>
-                  <TableHead className="text-right font-mono text-[11px] font-bold uppercase text-[var(--ink)]">
-                    Monedas
-                  </TableHead>
+                <TableRow>
+                  <TableHead>Negocio</TableHead>
+                  <TableHead>Fecha</TableHead>
+                  <TableHead>Importe</TableHead>
+                  <TableHead>Ítems</TableHead>
+                  <TableHead className="text-right">Monedas</TableHead>
                   <TableHead className="text-right" />
                 </TableRow>
               </TableHeader>
@@ -163,7 +158,7 @@ export function PurchasesPage() {
                 {purchases.data.map((purchase) => (
                   <TableRow
                     key={purchase.id}
-                    className="border-b-2 border-dashed border-[var(--border)]"
+                    className="border-b-2 border-dashed border-[var(--dash-line)]"
                   >
                     <TableCell>
                       <p className="font-bold text-[var(--ink)]">{purchase.business_name}</p>

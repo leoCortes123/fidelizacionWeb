@@ -22,22 +22,30 @@ export function Brand({ className, compact = false, linkTo = "/", name, tagline 
         width={40}
         height={40}
         className={cn(
-          "shrink-0 rounded-none object-contain drop-shadow-sm",
-          compact ? "size-8" : "size-10",
+          "shrink-0 rounded-none object-contain [image-rendering:pixelated]",
+          compact ? "size-8" : "size-9",
         )}
         aria-hidden="true"
       />
       <span className="flex min-w-0 flex-col leading-tight">
         <span
           className={cn(
-            "truncate font-display font-extrabold tracking-tight",
-            compact ? "text-base" : "text-base sm:text-lg",
+            "truncate font-display font-bold tracking-tight text-foreground",
+            compact ? "text-base" : "text-lg",
           )}
         >
-          {displayName}
+          <span>{displayName}</span>
+          {!name?.trim() && (
+            <span
+              className="ml-0.5 font-pixel text-[11px] text-[var(--lp-gold-ink)]"
+              aria-hidden="true"
+            >
+              .
+            </span>
+          )}
         </span>
         {!compact && displayTagline && (
-          <span className="hidden truncate text-[11px] font-medium text-muted-foreground sm:block">
+          <span className="hidden truncate font-mono text-[11px] font-medium text-muted-foreground sm:block">
             {displayTagline}
           </span>
         )}

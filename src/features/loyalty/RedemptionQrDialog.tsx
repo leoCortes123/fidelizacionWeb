@@ -98,10 +98,10 @@ export function RedemptionQrDialog({
               </div>
               <div
                 className={cn(
-                  "flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold",
+                  "flex items-center gap-2 rounded-none border-2 border-[var(--lp-ink)] px-3 py-1 font-mono text-xs font-bold uppercase shadow-[2px_2px_0_var(--lp-ink)]",
                   countdown.remainingMs < 60 * 60 * 1000
-                    ? "bg-amber-100 text-amber-900"
-                    : "bg-emerald-100 text-emerald-800",
+                    ? "bg-[var(--lp-gold)] text-[#16262e]"
+                    : "bg-[#dcfce7] text-[#14532d] dark:bg-[#143d27] dark:text-[#86efac]",
                 )}
                 role="timer"
                 aria-live="polite"
@@ -144,9 +144,12 @@ export function RedemptionQrDialog({
               </div>
             </div>
           ) : (
-            <div className="space-y-3 rounded-none border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+            <div className="lp-tip-box space-y-3 rounded-none p-4 text-sm">
               <div className="flex items-start gap-2">
-                <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+                <AlertTriangle
+                  className="mt-0.5 size-4 shrink-0 text-[var(--lp-tip-strong)]"
+                  aria-hidden="true"
+                />
                 <p>
                   {expired
                     ? "Este QR ya venció. Reemite uno nuevo para poder entregar la recompensa."

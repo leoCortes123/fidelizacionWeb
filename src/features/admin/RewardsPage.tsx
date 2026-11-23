@@ -756,7 +756,7 @@ function RewardsSection({ business }: { business: Business }) {
               <div className="space-y-2">
                 <Label htmlFor="reward-product">Producto que se entrega</Label>
                 {(products.data ?? []).length === 0 ? (
-                  <p className="rounded-none border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900">
+                  <p className="lp-tip-box rounded-none p-3 text-xs">
                     La carta está vacía. Crea un producto en <strong>Carta</strong> antes de usar
                     una recompensa de producto gratis.
                   </p>

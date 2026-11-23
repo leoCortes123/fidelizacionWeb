@@ -258,49 +258,52 @@ function BudgetSnapshotsCard({ businessId }: { businessId: string }) {
             mensual también lo hace automáticamente.
           </p>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto rounded-none border-2 border-[var(--lp-ink)]">
             <table className="w-full text-sm">
-              <thead className="text-left text-xs uppercase tracking-wide text-muted-foreground">
+              <thead className="border-b-[3px] border-[var(--lp-ink)] bg-[var(--lp-surface-elevated-deep)] text-left font-mono text-xs font-bold uppercase tracking-wide text-[var(--lp-gold)]">
                 <tr>
-                  <th scope="col" className="py-2 pr-4">
+                  <th scope="col" className="px-3 py-2.5">
                     Periodo
                   </th>
-                  <th scope="col" className="py-2 pr-4 text-right">
+                  <th scope="col" className="px-3 py-2.5 text-right">
                     Ventas
                   </th>
-                  <th scope="col" className="py-2 pr-4 text-right">
+                  <th scope="col" className="px-3 py-2.5 text-right">
                     Presupuesto
                   </th>
-                  <th scope="col" className="py-2 pr-4 text-right">
+                  <th scope="col" className="px-3 py-2.5 text-right">
                     Redimido
                   </th>
-                  <th scope="col" className="py-2 pr-4 text-right">
+                  <th scope="col" className="px-3 py-2.5 text-right">
                     Pendiente
                   </th>
-                  <th scope="col" className="py-2 text-right">
+                  <th scope="col" className="px-3 py-2.5 text-right">
                     Monedas (emitidas / canjeadas)
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y">
+              <tbody className="divide-y-2 divide-[var(--lp-paper-deep)]">
                 {snapshots.data.map((snapshot) => (
-                  <tr key={snapshot.id}>
-                    <td className="py-2 pr-4 font-medium">
+                  <tr
+                    key={snapshot.id}
+                    className="transition-colors hover:bg-[var(--lp-row-hover)]"
+                  >
+                    <td className="px-3 py-2.5 font-medium">
                       {formatDateBogota(snapshot.period_start)}
                     </td>
-                    <td className="py-2 pr-4 text-right tabular-nums">
+                    <td className="px-3 py-2.5 text-right tabular-nums">
                       {formatCOP(snapshot.monthly_sales_cop)}
                     </td>
-                    <td className="py-2 pr-4 text-right tabular-nums">
+                    <td className="px-3 py-2.5 text-right tabular-nums">
                       {formatCOP(snapshot.max_budget_cop)}
                     </td>
-                    <td className="py-2 pr-4 text-right tabular-nums">
+                    <td className="px-3 py-2.5 text-right tabular-nums">
                       {formatCOP(snapshot.redeemed_cost_cop)}
                     </td>
-                    <td className="py-2 pr-4 text-right tabular-nums">
+                    <td className="px-3 py-2.5 text-right tabular-nums">
                       {formatCOP(snapshot.pending_cost_cop)}
                     </td>
-                    <td className="py-2 text-right tabular-nums">
+                    <td className="px-3 py-2.5 text-right tabular-nums">
                       {formatNumber(snapshot.points_issued)} /{" "}
                       {formatNumber(snapshot.points_redeemed)}
                     </td>

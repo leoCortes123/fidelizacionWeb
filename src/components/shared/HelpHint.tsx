@@ -37,7 +37,7 @@ export function HelpHint({ text, label = "Mostrar explicación", className }: He
       type="button"
       aria-label={label}
       className={cn(
-        "inline-grid size-5 shrink-0 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+        "inline-grid size-5 shrink-0 cursor-pointer place-items-center rounded-none border border-transparent text-muted-foreground transition-colors hover:border-[var(--lp-ink)] hover:bg-[var(--lp-gold-soft)] hover:text-[#16262e] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--lp-focus-ring)]",
         className,
       )}
     >

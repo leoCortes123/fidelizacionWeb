@@ -4,14 +4,14 @@ export type PixelSpriteKey =
   "fries" | "shake" | "burger" | "beer" | "coffee" | "cookie" | "pizza" | "gelato";
 
 const STAGE_GRADIENTS = [
-  "linear-gradient(135deg, #eadec5 0%, #f2a541 100%)",
-  "linear-gradient(135deg, #eadec5 0%, #467299 100%)",
-  "linear-gradient(135deg, #eadec5 0%, #e6533f 100%)",
-  "linear-gradient(135deg, #eadec5 0%, #4e8c57 100%)",
+  "linear-gradient(135deg, #dce7ec 0%, #fad24b 100%)",
+  "linear-gradient(135deg, #dce7ec 0%, #1765cc 100%)",
+  "linear-gradient(135deg, #dce7ec 0%, #2b4652 100%)",
+  "linear-gradient(135deg, #dce7ec 0%, #169c35 100%)",
 ] as const;
 
-const REWARD_THUMBS = ["#f2a541", "#467299", "#4e8c57", "#e6533f", "#ffd166"] as const;
-const PRODUCT_THUMBS = ["#eadec5", "#ffd166", "#eadec5", "#f2a541"] as const;
+const REWARD_THUMBS = ["#fad24b", "#1765cc", "#169c35", "#2b4652", "#fce49d"] as const;
+const PRODUCT_THUMBS = ["#dce7ec", "#fce49d", "#edf3f5", "#fad24b"] as const;
 
 const SPRITE_KEYS: PixelSpriteKey[] = [
   "burger",

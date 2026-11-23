@@ -76,8 +76,8 @@ function CustomerDetailContent({ data }: { data: CustomerDetail }) {
   return (
     <div className="space-y-5 animate-fade-in">
       {/* 1. Datos básicos del cliente y saldo */}
-      <Card className="border-0 bg-foreground text-background shadow-md">
-        <CardContent className="p-5 space-y-4">
+      <Card className="border-[3px] border-[var(--lp-ink)] bg-[var(--lp-surface-elevated-deep)] text-[var(--lp-surface-elevated-text)] shadow-[5px_5px_0_var(--lp-ink)]">
+        <CardContent className="space-y-4 p-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex items-start gap-3">
               <EntityAvatar
@@ -85,17 +85,17 @@ function CustomerDetailContent({ data }: { data: CustomerDetail }) {
                 alt={profile.full_name || profile.email}
                 fallbackText={profile.full_name || profile.email}
                 sizeClassName="size-12"
-                className="border-background/30 bg-background/15 text-background"
+                className="border-[var(--lp-ink)] bg-[var(--lp-surface-elevated)] text-[var(--lp-gold)]"
               />
               <div className="space-y-1">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h3 className="text-xl font-black font-display text-background">
+                  <h3 className="font-display text-xl font-black text-[var(--lp-surface-elevated-text)]">
                     {profile.full_name || "Cliente sin nombre"}
                   </h3>
                   {profile.nickname && (
                     <Badge
                       variant="outline"
-                      className="border-background/30 text-background/90 font-mono text-xs"
+                      className="border-[var(--lp-ink)] bg-[var(--lp-surface-elevated)] font-mono text-xs text-[var(--lp-surface-elevated-text)]"
                     >
                       @{profile.nickname}
                     </Badge>
@@ -107,7 +107,7 @@ function CustomerDetailContent({ data }: { data: CustomerDetail }) {
                   />
                 </div>
 
-                <div className="flex flex-wrap items-center gap-3 text-xs text-background/80 pt-1">
+                <div className="flex flex-wrap items-center gap-3 pt-1 text-xs text-[var(--lp-surface-elevated-soft)]">
                   <span className="flex items-center gap-1">
                     <Mail className="size-3.5" aria-hidden="true" />
                     {profile.email}
@@ -121,17 +121,19 @@ function CustomerDetailContent({ data }: { data: CustomerDetail }) {
             </div>
 
             <div className="sm:text-right">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-background/60">
+              <p className="font-mono text-[11px] font-semibold uppercase tracking-wider text-[var(--lp-surface-elevated-muted)]">
                 Monedas acumuladas
               </p>
-              <p className="font-display text-4xl font-extrabold text-amber-300 leading-none mt-1">
+              <p className="mt-1 font-display text-4xl font-extrabold leading-none text-[var(--lp-gold)] [text-shadow:2px_2px_0_#16262e]">
                 {data.points_balance}
               </p>
-              <p className="text-xs text-background/70 mt-1">monedas acumuladas</p>
+              <p className="mt-1 text-xs text-[var(--lp-surface-elevated-soft)]">
+                monedas acumuladas
+              </p>
             </div>
           </div>
 
-          <div className="border-t border-background/20 pt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-background/80">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/20 pt-3 text-xs text-[var(--lp-surface-elevated-soft)]">
             <span>
               <strong>{data.purchase_count}</strong> compras registradas · Total gastado:{" "}
               <strong>{formatCOP(data.total_spent)}</strong>

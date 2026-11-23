@@ -299,9 +299,9 @@ function CampaignsSection({ business }: { business: Business }) {
             ))}
           </div>
 
-          <div className="hidden overflow-x-auto rounded-none border md:block">
+          <div className="hidden overflow-x-auto rounded-none border-2 border-[var(--lp-ink)] bg-card shadow-[4px_4px_0_var(--lp-ink)] md:block">
             <table className="w-full text-sm">
-              <thead className="bg-muted/50 text-left text-xs uppercase tracking-wide text-muted-foreground">
+              <thead className="border-b-[3px] border-[var(--lp-ink)] bg-[var(--lp-surface-elevated-deep)] text-left font-mono text-xs font-bold uppercase tracking-wide text-[var(--lp-gold)]">
                 <tr>
                   <th scope="col" className="px-4 py-3">
                     Campaña
@@ -323,9 +323,12 @@ function CampaignsSection({ business }: { business: Business }) {
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y">
+              <tbody className="divide-y-2 divide-[var(--lp-paper-deep)]">
                 {rows.map((campaign) => (
-                  <tr key={campaign.id}>
+                  <tr
+                    key={campaign.id}
+                    className="transition-colors hover:bg-[var(--lp-row-hover)]"
+                  >
                     <td className="px-4 py-3">
                       <p className="font-semibold">{campaign.name}</p>
                       {campaign.description && (

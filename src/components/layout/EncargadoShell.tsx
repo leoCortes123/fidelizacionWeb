@@ -50,13 +50,13 @@ export function EncargadoShell() {
   const isAdmin = businessContext?.selectedRole === "admin" || roles.includes("admin");
 
   return (
-    <div className="flex h-dvh flex-col overflow-hidden bg-background">
+    <div className="flex h-dvh flex-col overflow-hidden">
       <header
         data-testid="app-header"
         inert={headerHidden || undefined}
         aria-hidden={headerHidden || undefined}
         className={cn(
-          "z-30 shrink-0 overflow-hidden border-b border-border/80 bg-card/95 backdrop-blur transition-[max-height,transform,opacity] duration-300 ease-out no-print",
+          "z-30 shrink-0 overflow-hidden border-b-[3px] border-[var(--lp-ink)] bg-[var(--lp-header-bg)] backdrop-blur-[6px] transition-[max-height,transform,opacity] duration-300 ease-out no-print",
           headerHidden
             ? "invisible pointer-events-none max-h-0 -translate-y-full border-transparent opacity-0"
             : "max-h-40 opacity-100",
@@ -77,7 +77,7 @@ export function EncargadoShell() {
               name={headerBusinessName}
               tagline={headerBusinessName ? null : undefined}
             />
-            <Badge variant="default" className="hidden sm:inline-flex text-[11px]">
+            <Badge variant="default" className="hidden sm:inline-flex text-[10px]">
               ENCARGADO · NEGOCIO
             </Badge>
           </div>
@@ -93,10 +93,10 @@ export function EncargadoShell() {
                 end={item.end}
                 className={({ isActive }) =>
                   cn(
-                    "flex items-center gap-2 rounded-none px-3.5 py-2 text-sm font-semibold transition-all duration-150",
+                    "flex items-center gap-2 rounded-none border-2 px-3 py-2 font-mono text-xs font-bold uppercase tracking-wide transition-all duration-150",
                     isActive
-                      ? "bg-primary text-primary-foreground shadow-sm shadow-primary/25"
-                      : "text-muted-foreground hover:bg-muted/80 hover:text-foreground",
+                      ? "border-[var(--lp-ink)] bg-[var(--lp-gold)] text-[#16262e] shadow-[2px_2px_0_var(--lp-ink)]"
+                      : "border-transparent text-[var(--lp-ink-soft)] hover:border-[var(--lp-ink)] hover:bg-card hover:text-foreground hover:shadow-[2px_2px_0_var(--lp-ink)]",
                   )
                 }
               >
@@ -119,7 +119,7 @@ export function EncargadoShell() {
             <UserMenu compact />
           </div>
         </div>
-        <div className="border-t border-border/70 px-4 py-2 md:hidden">
+        <div className="border-t-2 border-[var(--lp-ink)] px-4 py-2 md:hidden">
           <BusinessSwitcher />
         </div>
       </header>
@@ -137,10 +137,10 @@ export function EncargadoShell() {
       <PurchaseFab />
 
       <nav
-        className="fixed inset-x-0 bottom-0 z-40 border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden no-print"
+        className="fixed inset-x-0 bottom-0 z-40 border-t-[3px] border-[var(--lp-ink)] bg-[var(--lp-header-bg)] pb-[env(safe-area-inset-bottom)] backdrop-blur-[6px] md:hidden no-print"
         aria-label="Navegación inferior"
       >
-        <div className="grid grid-cols-3">
+        <div className="grid grid-cols-3 gap-1.5 p-1.5">
           {navItems.map((item) => {
             const Icon = item.icon;
             return (
@@ -150,10 +150,10 @@ export function EncargadoShell() {
                 end={item.end}
                 className={({ isActive }) =>
                   cn(
-                    "flex flex-col items-center gap-1 py-2.5 text-[11px] font-semibold transition-colors",
+                    "flex flex-col items-center gap-1 rounded-none border-2 py-2 font-mono text-[10px] font-bold uppercase transition-colors",
                     isActive
-                      ? "text-primary font-bold"
-                      : "text-muted-foreground hover:text-foreground",
+                      ? "border-[var(--lp-ink)] bg-[var(--lp-gold)] text-[#16262e] shadow-[2px_2px_0_var(--lp-ink)]"
+                      : "border-transparent text-[var(--lp-ink-soft)] hover:border-[var(--lp-ink)] hover:bg-card hover:text-foreground",
                   )
                 }
               >

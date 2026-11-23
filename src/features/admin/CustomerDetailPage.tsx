@@ -87,7 +87,7 @@ export function CustomerDetailPage() {
         }
       />
 
-      <Card className="border-0 bg-foreground text-background shadow-lg">
+      <Card className="border-[3px] border-[var(--lp-ink)] bg-[var(--lp-surface-elevated-deep)] text-[var(--lp-surface-elevated-text)] shadow-[5px_5px_0_var(--lp-ink)]">
         <CardContent className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">
             <EntityAvatar
@@ -95,22 +95,24 @@ export function CustomerDetailPage() {
               alt={data.profile.full_name || data.profile.email}
               fallbackText={data.profile.full_name || data.profile.email}
               sizeClassName="size-16"
-              className="border-background/30 bg-background/15 text-base text-background"
+              className="border-[var(--lp-ink)] bg-[var(--lp-surface-elevated)] text-base text-[var(--lp-gold)]"
             />
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-background/60">
+              <p className="font-mono text-xs font-semibold uppercase tracking-[0.2em] text-[var(--lp-surface-elevated-muted)]">
                 Saldo disponible
               </p>
               <p
                 data-testid="customer-points-balance"
-                className="mt-1 break-all font-display text-6xl font-extrabold leading-none text-amber-300"
+                className="mt-1 break-all font-display text-6xl font-extrabold leading-none text-[var(--lp-gold)] [text-shadow:3px_3px_0_#16262e]"
               >
                 {balance}
               </p>
-              <p className="mt-2 text-sm text-background/70">{formatPoints(balance)}</p>
+              <p className="mt-2 text-sm text-[var(--lp-surface-elevated-soft)]">
+                {formatPoints(balance)}
+              </p>
             </div>
           </div>
-          <div className="space-y-1 text-sm text-background/80 sm:text-right">
+          <div className="space-y-1 text-sm text-[var(--lp-surface-elevated-soft)] sm:text-right">
             <p className="flex items-center gap-1.5 break-all sm:justify-end">
               <Mail className="size-3.5 shrink-0" aria-hidden="true" />
               {data.profile.email}
@@ -118,7 +120,7 @@ export function CustomerDetailPage() {
             <p>
               {data.purchase_count} compras · {formatCOP(data.total_spent)}
             </p>
-            <p className="text-xs text-background/60">
+            <p className="text-xs text-[var(--lp-surface-elevated-muted)]">
               {lastPurchaseAt
                 ? `Última compra: ${formatDateTimeBogota(lastPurchaseAt)}`
                 : "Sin compras registradas"}
@@ -207,7 +209,7 @@ export function CustomerDetailPage() {
                     <span
                       className={
                         movement.points >= 0
-                          ? "shrink-0 text-sm font-bold text-emerald-700"
+                          ? "shrink-0 text-sm font-bold text-emerald-700 dark:text-emerald-300"
                           : "shrink-0 text-sm font-bold text-destructive"
                       }
                     >

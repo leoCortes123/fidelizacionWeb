@@ -96,9 +96,9 @@ export function BusinessDashboardPage() {
                 setSelectedBusiness(business);
                 navigate("/admin/dashboard");
               }}
-              className="group cursor-pointer rounded-none text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="group cursor-pointer rounded-none text-left focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--lp-focus-ring)]"
             >
-              <Card className="h-full border-l-4 border-l-primary transition-all duration-150 group-hover:border-primary/60 group-hover:shadow-md">
+              <Card className="h-full border-l-4 border-l-primary transition-colors duration-150 group-hover:bg-[var(--lp-tip-bg)]">
                 <CardContent className="space-y-4 p-4 sm:p-6">
                   <div className="flex items-center gap-3">
                     <span className="grid size-11 shrink-0 place-items-center rounded-none bg-primary/10 text-primary">
@@ -158,10 +158,10 @@ export function BusinessDashboardPage() {
   const budgetPercent = data ? Math.max(0, Math.min(100, data.budget_committed_percent)) : 0;
   const budgetIndicatorClass =
     budgetPercent >= 90
-      ? "from-red-500 to-rose-600"
+      ? "bg-[var(--lp-red-dark)]"
       : budgetPercent >= 70
-        ? "from-amber-400 to-orange-500"
-        : "from-emerald-500 to-teal-500";
+        ? "bg-[var(--lp-gold-dark)]"
+        : "bg-[var(--lp-green)]";
 
   function handleCopyInvite() {
     void navigator.clipboard
@@ -216,19 +216,15 @@ export function BusinessDashboardPage() {
       />
 
       {/* Hero Operativo */}
-      <Card className="relative overflow-hidden border-[#1e1c1a] bg-gradient-to-br from-[#1e1c1a] via-[#2b2420] to-[#181615] text-[#fffdf5] shadow-lg dark:border-border/50">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -right-12 -top-12 size-48 rounded-full bg-primary/20 blur-3xl"
-        />
+      <Card className="relative overflow-hidden border-[3px] border-[var(--lp-ink)] bg-[var(--lp-surface-elevated-deep)] text-[var(--lp-surface-elevated-text)] shadow-[6px_6px_0_var(--lp-blue)]">
         <CardContent className="relative flex flex-col justify-between gap-4 p-4 sm:flex-row sm:items-center sm:gap-5 sm:p-6">
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-accent px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-accent-foreground">
+              <span className="inline-flex items-center gap-1.5 rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-gold)] px-2.5 py-0.5 font-mono text-[11px] font-bold uppercase tracking-wider text-[#16262e] shadow-[2px_2px_0_var(--lp-ink)]">
                 <QrCode className="size-3" aria-hidden="true" />
                 Modo caja rápida
               </span>
-              <span className="rounded-full border border-white/15 bg-white/10 px-2.5 py-0.5 font-mono text-xs text-[#f6edda]">
+              <span className="rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-surface-elevated)] px-2.5 py-0.5 font-mono text-xs font-semibold text-[var(--lp-gold)]">
                 {program.isLoading
                   ? "Verificando programa…"
                   : programUnconfigured
@@ -238,10 +234,10 @@ export function BusinessDashboardPage() {
                       : "Programa inactivo"}
               </span>
             </div>
-            <h2 className="font-display text-xl font-extrabold tracking-tight sm:text-2xl">
+            <h2 className="font-display text-xl font-extrabold tracking-tight text-[var(--lp-surface-elevated-text)] [text-shadow:2px_2px_0_#16262e] sm:text-2xl">
               Acredita monedas en segundos o aprueba canjes en mostrador
             </h2>
-            <p className="max-w-2xl text-sm text-[#cfc4b4]">
+            <p className="max-w-2xl text-sm text-[var(--lp-surface-elevated-soft)]">
               Genera un QR único por venta para que el cliente reclame sus monedas desde el celular.
             </p>
           </div>
@@ -255,13 +251,13 @@ export function BusinessDashboardPage() {
             <Button
               variant="outline"
               asChild
-              className="border-white/25 bg-white/10 text-white hover:border-white/40 hover:bg-white/20 hover:text-white"
+              className="border-[var(--lp-ink)] bg-[var(--lp-surface-elevated)] text-[var(--lp-surface-elevated-text)] hover:bg-[var(--lp-tab-hover-bg)] hover:text-[var(--lp-gold)]"
             >
               <Link to="/admin/redemptions">
                 <TicketCheck aria-hidden="true" />
                 Ver solicitudes
                 {data && data.pending_redemptions > 0 && (
-                  <span className="ml-1 rounded-full bg-accent px-1.5 py-0.5 font-mono text-[11px] font-bold text-accent-foreground">
+                  <span className="ml-1 border border-[var(--lp-ink)] bg-[var(--lp-gold)] px-1.5 py-0.5 font-mono text-[11px] font-bold text-[#16262e]">
                     {data.pending_redemptions}
                   </span>
                 )}
@@ -375,7 +371,10 @@ export function BusinessDashboardPage() {
                         <span className="text-xs font-medium text-muted-foreground">
                           Monedas canjeadas
                         </span>
-                        <Gift className="size-3.5 text-emerald-600" aria-hidden="true" />
+                        <Gift
+                          className="size-3.5 text-emerald-700 dark:text-emerald-300"
+                          aria-hidden="true"
+                        />
                       </div>
                       <p className="mt-1.5 font-display text-xl font-extrabold tabular-nums">
                         {formatNumber(data.points_redeemed_total)}
@@ -392,7 +391,7 @@ export function BusinessDashboardPage() {
                         <span className="text-xs font-medium text-muted-foreground">
                           QR de venta pendientes
                         </span>
-                        <QrCode className="size-3.5 text-amber-600" aria-hidden="true" />
+                        <QrCode className="size-3.5 text-[var(--lp-gold-ink)]" aria-hidden="true" />
                       </div>
                       <p className="mt-1.5 font-display text-xl font-extrabold tabular-nums">
                         {formatNumber(data.pending_qr_count)}
@@ -542,7 +541,7 @@ export function BusinessDashboardPage() {
                           readOnly
                           value={joinUrl}
                           aria-label="Enlace de invitación"
-                          className="h-9 min-w-0 flex-1 rounded-none border border-input bg-muted/40 px-2 py-1 font-mono text-base text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:text-xs"
+                          className="h-10 min-w-0 flex-1 rounded-none border-2 border-input bg-card px-2.5 py-1 font-mono text-base text-foreground shadow-[2px_2px_0_var(--lp-ink)] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--lp-focus-ring)] dark:bg-[var(--lp-paper-deep)] sm:text-xs"
                           onFocus={(event) => event.currentTarget.select()}
                         />
                         <Button
@@ -552,14 +551,17 @@ export function BusinessDashboardPage() {
                           onClick={handleCopyInvite}
                         >
                           {copiedInvite ? (
-                            <Check className="text-emerald-600" aria-hidden="true" />
+                            <Check
+                              className="text-emerald-700 dark:text-emerald-300"
+                              aria-hidden="true"
+                            />
                           ) : (
                             <Copy aria-hidden="true" />
                           )}
                           {copiedInvite ? "Copiado" : "Copiar"}
                         </Button>
                       </div>
-                      <div className="mx-auto w-fit rounded-none border border-border bg-white p-3.5 shadow-sm">
+                      <div className="mx-auto w-fit rounded-none border-2 border-[var(--lp-ink)] bg-white p-3.5 shadow-[4px_4px_0_var(--lp-ink)]">
                         <QRCodeCanvas
                           value={joinUrl}
                           size={168}
@@ -738,18 +740,18 @@ function QuickTile({
   return (
     <Link
       to={to}
-      className="group flex flex-col gap-1 rounded-none border border-border/80 bg-background/70 p-3.5 transition-all duration-150 hover:border-primary/40 hover:bg-primary/[0.04] hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className="group flex flex-col gap-1 rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-paper)] p-3.5 shadow-[3px_3px_0_var(--lp-ink)] transition-[transform,box-shadow,background-color] duration-150 hover:translate-x-[1px] hover:translate-y-[1px] hover:bg-[var(--lp-tip-bg)] hover:shadow-[2px_2px_0_var(--lp-ink)] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--lp-focus-ring)] motion-reduce:transition-none motion-reduce:hover:translate-x-0 motion-reduce:hover:translate-y-0"
     >
       <div className="flex items-center justify-between gap-2">
-        <span className="grid size-8 place-items-center rounded-none bg-muted text-foreground transition-colors group-hover:bg-primary/10 group-hover:text-primary">
+        <span className="grid size-8 place-items-center rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-gold)] text-[#16262e]">
           <Icon className="size-4" aria-hidden="true" />
         </span>
         <ArrowRight
-          className="size-3.5 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary"
+          className="size-3.5 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground"
           aria-hidden="true"
         />
       </div>
-      <span className="mt-1 text-sm font-bold text-foreground">{label}</span>
+      <span className="mt-1 font-display text-sm font-bold text-foreground">{label}</span>
       <span className="text-[11px] text-muted-foreground">{hint}</span>
     </Link>
   );

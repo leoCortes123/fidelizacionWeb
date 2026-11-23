@@ -128,23 +128,25 @@ export function BusinessJoinPage() {
           <Brand />
         </div>
 
-        <Card className="overflow-hidden shadow-lg">
-          <div className="bg-foreground px-4 py-6 text-background sm:px-6 sm:py-8">
+        <Card className="overflow-hidden">
+          <div className="border-b-[3px] border-[var(--lp-ink)] bg-[var(--lp-surface-elevated-deep)] px-4 py-6 text-[var(--lp-surface-elevated-text)] sm:px-6 sm:py-8">
             {data.logo_url ? (
               <img
                 src={data.logo_url}
                 alt={`Logo de ${data.name}`}
-                className="size-14 rounded-none border border-background/20 object-cover"
+                className="size-14 rounded-none border-2 border-[var(--lp-ink)] object-cover shadow-[3px_3px_0_var(--lp-gold)]"
               />
             ) : (
-              <span className="grid size-12 place-items-center rounded-none bg-background/10">
+              <span className="grid size-12 place-items-center rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-gold)] text-[#16262e] shadow-[3px_3px_0_var(--lp-ink)]">
                 <Building2 className="size-6" aria-hidden="true" />
               </span>
             )}
-            <h1 className="mt-4 font-display text-3xl font-extrabold leading-tight">{data.name}</h1>
-            <p className="mt-1 text-sm text-background/70">@{data.slug}</p>
+            <h1 className="mt-4 font-display text-3xl font-extrabold leading-tight [text-shadow:2px_2px_0_#16262e]">
+              {data.name}
+            </h1>
+            <p className="mt-1 font-mono text-sm text-[var(--lp-gold)]">@{data.slug}</p>
             {data.description && (
-              <p className="mt-3 max-w-md text-sm leading-relaxed text-background/80">
+              <p className="mt-3 max-w-md text-sm leading-relaxed text-[var(--lp-surface-elevated-soft)]">
                 {data.description}
               </p>
             )}

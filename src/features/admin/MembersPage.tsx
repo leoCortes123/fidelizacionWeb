@@ -331,7 +331,7 @@ export function MembersPage() {
               </div>
 
               <div className="flex flex-col items-center gap-3">
-                <div className="rounded-none border border-border bg-white p-4 shadow-sm">
+                <div className="rounded-none border-2 border-[var(--lp-ink)] bg-white p-4 shadow-[4px_4px_0_var(--lp-ink)]">
                   <QRCodeCanvas
                     value={inviteUrl}
                     size={220}
@@ -346,8 +346,11 @@ export function MembersPage() {
                 </p>
               </div>
 
-              <div className="space-y-2 rounded-none border bg-muted/30 p-3">
-                <Label htmlFor="member-invite-url" className="text-xs uppercase tracking-wide">
+              <div className="space-y-2 rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-paper-deep)] p-3">
+                <Label
+                  htmlFor="member-invite-url"
+                  className="font-mono text-xs uppercase tracking-wide"
+                >
                   Enlace de invitación
                 </Label>
                 <div className="flex gap-2">
@@ -357,7 +360,7 @@ export function MembersPage() {
                     value={inviteUrl}
                     aria-label="Enlace de invitación de miembro"
                     onFocus={(event) => event.currentTarget.select()}
-                    className="h-9 min-w-0 flex-1 rounded-none border border-input bg-background px-2 py-1 font-mono text-xs text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="h-10 min-w-0 flex-1 rounded-none border-2 border-input bg-card px-2.5 py-1 font-mono text-xs text-foreground shadow-[2px_2px_0_var(--lp-ink)] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--lp-focus-ring)] dark:bg-[var(--lp-paper-deep)]"
                   />
                   <Button
                     type="button"
@@ -366,7 +369,10 @@ export function MembersPage() {
                     onClick={() => void copyInviteUrl()}
                   >
                     {copiedUrl ? (
-                      <Check className="text-emerald-600" aria-hidden="true" />
+                      <Check
+                        className="text-emerald-700 dark:text-emerald-300"
+                        aria-hidden="true"
+                      />
                     ) : (
                       <Copy aria-hidden="true" />
                     )}

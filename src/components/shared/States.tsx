@@ -76,15 +76,15 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center gap-3 rounded-none border border-dashed bg-muted/30 px-4 py-8 text-center sm:px-6 sm:py-12",
+        "flex flex-col items-center justify-center gap-3 rounded-none border-2 border-dashed border-[var(--lp-ink)] bg-secondary/60 px-4 py-8 text-center sm:px-6 sm:py-12",
         className,
       )}
     >
-      <span className="grid size-12 place-items-center rounded-full bg-muted text-muted-foreground">
+      <span className="grid size-12 place-items-center rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-gold)] text-[#16262e] shadow-[3px_3px_0_var(--lp-ink)]">
         <Icon className="size-5" aria-hidden />
       </span>
       <div className="space-y-1">
-        <h3 className="font-semibold">{title}</h3>
+        <h3 className="font-display font-bold">{title}</h3>
         {description && <p className="max-w-sm text-sm text-muted-foreground">{description}</p>}
       </div>
       {action}
@@ -94,7 +94,12 @@ export function EmptyState({
 
 export function CardSkeleton({ className }: { className?: string }) {
   return (
-    <div className={cn("space-y-3 rounded-none border p-4 sm:p-5", className)}>
+    <div
+      className={cn(
+        "space-y-3 rounded-none border-2 border-[var(--lp-ink)] bg-card p-4 shadow-[4px_4px_0_var(--lp-ink)] sm:p-5",
+        className,
+      )}
+    >
       <Skeleton className="h-4 w-1/3" />
       <Skeleton className="h-8 w-1/2" />
       <Skeleton className="h-3 w-full" />
@@ -107,8 +112,11 @@ export function ListSkeleton({ rows = 3 }: { rows?: number }) {
   return (
     <div className="space-y-3" aria-hidden="true">
       {Array.from({ length: rows }).map((_, index) => (
-        <div key={index} className="flex items-center gap-4 rounded-none border p-3.5 sm:p-4">
-          <Skeleton className="size-10 shrink-0 rounded-full" />
+        <div
+          key={index}
+          className="flex items-center gap-4 rounded-none border-2 border-[var(--lp-ink)] bg-card p-3.5 shadow-[3px_3px_0_var(--lp-ink)] sm:p-4"
+        >
+          <Skeleton className="size-10 shrink-0 rounded-none" />
           <div className="flex-1 space-y-2">
             <Skeleton className="h-4 w-1/3" />
             <Skeleton className="h-3 w-2/3" />

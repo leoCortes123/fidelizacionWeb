@@ -279,7 +279,7 @@ function RedemptionsSection({ business }: { business: Business }) {
       />
 
       {!canAct && (
-        <div className="rounded-none border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+        <div className="lp-tip-box rounded-none p-4 text-sm">
           Tu rol en este negocio es <strong>{selectedRole ?? "sin rol"}</strong>
           {selectedRole === "encargado" ? " y no tienes permiso de aprobación" : ""}. Puedes
           consultar las solicitudes, pero solo un administrador o un encargado autorizado puede
@@ -298,9 +298,9 @@ function RedemptionsSection({ business }: { business: Business }) {
           icon={TicketCheck}
         />
       ) : (
-        <div className="overflow-x-auto rounded-none border">
+        <div className="overflow-x-auto rounded-none border-2 border-[var(--lp-ink)] bg-card shadow-[4px_4px_0_var(--lp-ink)]">
           <table className="w-full text-sm">
-            <thead className="bg-muted/50 text-left text-xs uppercase tracking-wide text-muted-foreground">
+            <thead className="border-b-[3px] border-[var(--lp-ink)] bg-[var(--lp-surface-elevated-deep)] text-left font-mono text-xs font-bold uppercase tracking-wide text-[var(--lp-gold)]">
               <tr>
                 <th scope="col" className="px-4 py-3">
                   Cliente
@@ -325,9 +325,12 @@ function RedemptionsSection({ business }: { business: Business }) {
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y">
+            <tbody className="divide-y-2 divide-[var(--lp-paper-deep)]">
               {rows.map((redemption) => (
-                <tr key={redemption.id}>
+                <tr
+                  key={redemption.id}
+                  className="transition-colors hover:bg-[var(--lp-row-hover)]"
+                >
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2.5">
                       <EntityAvatar
@@ -373,7 +376,7 @@ function RedemptionsSection({ business }: { business: Business }) {
                   <td className="px-4 py-3 text-xs text-muted-foreground">
                     {formatDateTimeBogota(redemption.created_at)}
                     {redemption.delivered_at && (
-                      <span className="block text-emerald-700">
+                      <span className="block text-emerald-700 dark:text-emerald-300">
                         Entregado {formatDateTimeBogota(redemption.delivered_at)}
                       </span>
                     )}

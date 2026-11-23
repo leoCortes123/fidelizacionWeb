@@ -44,7 +44,10 @@ export function BusinessGate({
         <PageHeader as={headingAs} title="Selecciona un negocio" description={description} />
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {list.map((business) => (
-            <Card key={business.id} className="cursor-pointer transition-shadow hover:shadow-md">
+            <Card
+              key={business.id}
+              className="cursor-pointer transition-colors hover:bg-[var(--lp-tip-bg)]"
+            >
               <CardContent className="p-4 text-center sm:p-6">
                 <Icon className="mx-auto mb-3 size-12 text-primary" aria-hidden="true" />
                 <h3 className="font-semibold">{business.name}</h3>

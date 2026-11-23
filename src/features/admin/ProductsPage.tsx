@@ -468,9 +468,9 @@ function ProductsSection({ business }: { business: Business }) {
             ))}
           </div>
 
-          <div className="hidden overflow-x-auto rounded-none border md:block">
+          <div className="hidden overflow-x-auto rounded-none border-2 border-[var(--lp-ink)] bg-card shadow-[4px_4px_0_var(--lp-ink)] md:block">
             <table className="w-full text-sm">
-              <thead className="bg-muted/50 text-left text-xs uppercase tracking-wide text-muted-foreground">
+              <thead className="border-b-[3px] border-[var(--lp-ink)] bg-[var(--lp-surface-elevated-deep)] text-left font-mono text-xs font-bold uppercase tracking-wide text-[var(--lp-gold)]">
                 <tr>
                   <th scope="col" className="px-4 py-3">
                     Producto
@@ -489,9 +489,9 @@ function ProductsSection({ business }: { business: Business }) {
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y">
+              <tbody className="divide-y-2 divide-[var(--lp-paper-deep)]">
                 {filtered.map((product) => (
-                  <tr key={product.id}>
+                  <tr key={product.id} className="transition-colors hover:bg-[var(--lp-row-hover)]">
                     <td className="px-4 py-3">
                       <div className="flex items-start gap-3">
                         <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden border bg-muted/40">
@@ -808,7 +808,7 @@ function ProductsSection({ business }: { business: Business }) {
                     {errors.costCop}
                   </p>
                 ) : costWarning ? (
-                  <p className="text-xs font-medium text-amber-700" role="status">
+                  <p className="text-xs font-medium text-[var(--lp-tip-strong)]" role="status">
                     El costo supera el precio de venta. Verifica el dato: es solo una estimación.
                   </p>
                 ) : (

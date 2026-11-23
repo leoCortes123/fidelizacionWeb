@@ -208,11 +208,14 @@ function ScanDetails({
               <div
                 className={
                   reasonCopy.tone === "warning"
-                    ? "flex items-start gap-2 rounded-none border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950"
-                    : "flex items-start gap-2 rounded-none border bg-muted/40 p-3 text-sm"
+                    ? "lp-tip-box flex items-start gap-2 rounded-none p-3 text-sm"
+                    : "flex items-start gap-2 rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-paper-deep)] p-3 text-sm"
                 }
               >
-                <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+                <AlertTriangle
+                  className="mt-0.5 size-4 shrink-0 text-[var(--lp-tip-strong)]"
+                  aria-hidden="true"
+                />
                 <div>
                   <p className="font-semibold">{reasonCopy.title}</p>
                   <p className="text-xs">{reasonCopy.description}</p>
@@ -463,8 +466,8 @@ function ManualTokenCard({
 
 function ScanLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-dvh bg-background">
-      <header className="border-b bg-card/80 backdrop-blur">
+    <div className="min-h-dvh">
+      <header className="border-b-[3px] border-[var(--lp-ink)] bg-[var(--lp-header-bg)] backdrop-blur-[6px]">
         <div className="mx-auto flex max-w-2xl items-center justify-between gap-3 px-4 py-3">
           <Brand compact linkTo="/" />
           <Badge variant="secondary" className="gap-1">

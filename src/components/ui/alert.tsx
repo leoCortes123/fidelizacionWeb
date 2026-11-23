@@ -4,18 +4,18 @@ import { AlertCircle, CheckCircle2, Info, TriangleAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const alertVariants = cva(
-  "relative w-full rounded-none border p-3.5 text-sm sm:p-4 [&>svg]:absolute [&>svg]:left-3.5 [&>svg]:top-3.5 sm:[&>svg]:left-4 sm:[&>svg]:top-4 [&>svg]:size-4 [&>svg~*]:pl-6 sm:[&>svg~*]:pl-7",
+  "relative w-full rounded-none border-2 border-[var(--lp-ink)] p-3.5 text-sm shadow-[3px_3px_0_var(--lp-ink)] sm:p-4 [&>svg]:absolute [&>svg]:left-3.5 [&>svg]:top-3.5 sm:[&>svg]:left-4 sm:[&>svg]:top-4 [&>svg]:size-4 [&>svg~*]:pl-6 sm:[&>svg~*]:pl-7",
   {
     variants: {
       variant: {
-        default: "bg-background text-foreground",
+        default: "bg-card text-foreground",
         destructive:
-          "border-destructive/40 bg-destructive/5 text-destructive [&>svg]:text-destructive dark:border-red-900/70 dark:bg-red-950/35 dark:text-red-300 dark:[&>svg]:text-red-400",
+          "bg-[#fee2e2] text-[#7f1d1d] [&>svg]:text-[#991b1b] dark:bg-[#4c1d1b] dark:text-[#ffdad4] dark:[&>svg]:text-[#ffbab0]",
         success:
-          "border-emerald-300 bg-emerald-50 text-emerald-900 [&>svg]:text-emerald-700 dark:border-emerald-900/70 dark:bg-emerald-950/35 dark:text-emerald-200 dark:[&>svg]:text-emerald-400",
+          "bg-[#dcfce7] text-[#14532d] [&>svg]:text-[#15803d] dark:bg-[#143d27] dark:text-[#d1fae5] dark:[&>svg]:text-[#86efac]",
         warning:
-          "border-amber-300 bg-amber-50 text-amber-950 [&>svg]:text-amber-700 dark:border-amber-900/70 dark:bg-amber-950/35 dark:text-amber-200 dark:[&>svg]:text-amber-400",
-        info: "border-sky-300 bg-sky-50 text-sky-950 [&>svg]:text-sky-700 dark:border-sky-900/70 dark:bg-sky-950/35 dark:text-sky-200 dark:[&>svg]:text-sky-400",
+          "border-[var(--lp-tip-border)] bg-[var(--lp-tip-bg)] text-foreground [&>svg]:text-[var(--lp-tip-strong)]",
+        info: "bg-[#dbeafe] text-[#16262e] [&>svg]:text-[#1765cc] dark:bg-[#1d394b] dark:text-[#fff8e6] dark:[&>svg]:text-[#fad24b]",
       },
     },
     defaultVariants: { variant: "default" },

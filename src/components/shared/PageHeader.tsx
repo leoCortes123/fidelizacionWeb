@@ -24,13 +24,15 @@ export function PageHeader({
         className,
       )}
     >
-      <div className="min-w-0 space-y-1.5">
+      <div className="min-w-0 space-y-2">
         {kicker && <span className="lp-section-kicker">{kicker}</span>}
-        <Heading className="font-display text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
+        <Heading className="font-display text-2xl font-extrabold tracking-tight text-foreground [text-shadow:var(--lp-h1-shadow)] sm:text-3xl">
           {title}
         </Heading>
         {description && (
-          <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground">{description}</p>
+          <p className="max-w-2xl text-sm leading-relaxed text-[var(--lp-ink-soft)]">
+            {description}
+          </p>
         )}
       </div>
       {actions && (
