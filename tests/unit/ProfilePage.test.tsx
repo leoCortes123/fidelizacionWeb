@@ -43,8 +43,56 @@ vi.mock("@/features/admin/BusinessGate", () => ({
   BusinessGate: ({
     children,
   }: {
-    children: (business: { id: string; name: string }) => React.ReactNode;
-  }) => <>{children({ id: "biz-1", name: "Taquería El Fogón" })}</>,
+    children: (business: {
+      id: string;
+      name: string;
+      slug: string;
+      timezone: string;
+      operating_days: number[];
+    }) => React.ReactNode;
+  }) => (
+    <>
+      {children({
+        id: "biz-1",
+        name: "Taquería El Fogón",
+        slug: "taqueria-el-fogon",
+        timezone: "America/Bogota",
+        operating_days: [1, 2, 3, 4, 5, 6],
+      })}
+    </>
+  ),
+}));
+
+vi.mock("@/features/loyalty/hooks", () => ({
+  useBusinessProfile: () => ({
+    data: {
+      id: "biz-1",
+      name: "Taquería El Fogón",
+      slug: "taqueria-el-fogon",
+      timezone: "America/Bogota",
+      operating_days: [1, 2, 3, 4, 5, 6],
+      is_active: true,
+      description: "Tacos al carbón",
+      address: "Calle 10",
+      neighborhood: "Centro",
+      city: "Bogotá",
+      phone_whatsapp: "+573001234567",
+      phone: null,
+      instagram: "elfogon",
+      facebook: "facebook.com/elfogon",
+      tiktok: "@elfogon",
+      twitter: null,
+      youtube: null,
+      website: null,
+      logo_url: null,
+      updated_at: "2026-01-01T12:00:00.000Z",
+    },
+    isLoading: false,
+    isError: false,
+    error: null,
+    refetch: vi.fn(),
+  }),
+  useSetBusinessLogo: () => ({ mutateAsync: vi.fn(), isPending: false }),
 }));
 
 vi.mock("@/features/admin/BusinessProfileForm", () => ({
@@ -137,11 +185,14 @@ describe("ProfilePage", () => {
     }
   });
 
-  it("en vista de administrador muestra los campos en la pestaña Negocio con etiquetas de administrador y sin pestaña Mi cuenta", () => {
+  it("en vista de administrador muestra diseño estilo red social con ambas fotos y sin pestaña Mi cuenta", () => {
     renderPage("/admin/perfil");
 
     expect(screen.queryByRole("tab", { name: "Mi cuenta" })).not.toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "Negocio" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("heading", { name: "Taquería El Fogón" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Subir foto del negocio/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Subir foto admin/i })).toBeInTheDocument();
     expect(screen.getByLabelText(/Nombre de administrador/)).toHaveValue("Carla Cliente");
     expect(screen.getByLabelText(/Alias de administrador/)).toHaveValue("carlacliente");
     expect(screen.getByTestId("business-profile-form")).toBeInTheDocument();
@@ -155,12 +206,12 @@ describe("ProfilePage", () => {
     expect(screen.getByText(/PLAYER PROFILE/i)).toBeInTheDocument();
   });
 
-  it("permite guardar teléfono y fecha de cumpleaños en /customer/perfil", async () => {
+  it("permite guardar teléfono y fecha de nacimiento en /customer/perfil", async () => {
     const user = userEvent.setup();
     renderPage("/customer/perfil");
 
     const phone = screen.getByLabelText(/Número de teléfono/i);
-    const birthDate = screen.getByLabelText(/Fecha de cumpleaños/i);
+    const birthDate = screen.getByLabelText(/Fecha de nacimiento/i);
 
     await user.type(phone, "+57 300 555 1234");
     await user.type(birthDate, "1995-08-15");

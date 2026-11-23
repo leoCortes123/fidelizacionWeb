@@ -334,10 +334,15 @@ describe("OnboardingWizardPage", () => {
     renderPage();
 
     expect(screen.getByLabelText("Tasa de presupuesto (%)")).toHaveValue("2");
+    expect(screen.getByLabelText("Monedas que equivalen a $1.000")).toBeDisabled();
+    expect(screen.getByLabelText("Monedas que equivalen a $1.000")).toHaveValue("100");
+    expect(screen.getByLabelText("COP por moneda ganada")).toBeDisabled();
+    expect(screen.getByLabelText("COP por moneda ganada")).toHaveValue("500");
     expect(screen.getByText(/1\.560\.000/)).toBeInTheDocument();
     expect(screen.getAllByText(/6\.7 %/i).length).toBeGreaterThan(0);
     expect(screen.getByText(/28\.0 %/i)).toBeInTheDocument();
-    expect(screen.getByText(/5 moneda\(s\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/10 moneda\(s\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/Simulador de compra/i)).toBeInTheDocument();
   });
 
   it("explica qué indicadores faltan cuando no hay datos económicos", () => {

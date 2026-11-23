@@ -45,6 +45,21 @@ interface BusinessContextValue {
 
 const BusinessContext = createContext<BusinessContextValue | undefined>(undefined);
 
+const ROLE_PRIORITY: Record<BusinessRole, number> = {
+  admin: 0,
+  encargado: 1,
+  cliente: 2,
+};
+
+function defaultBusinessForUser(businesses: Business[]): Business | null {
+  if (businesses.length === 0) return null;
+  return (
+    [...businesses].sort(
+      (a, b) => (ROLE_PRIORITY[a.role] ?? 9) - (ROLE_PRIORITY[b.role] ?? 9),
+    )[0] ?? null
+  );
+}
+
 export function BusinessProvider({
   children,
   businesses = [],
@@ -61,7 +76,8 @@ export function BusinessProvider({
 
   const selectedBusiness = showSelector
     ? null
-    : (businesses.find((business) => business.id === chosenId) ?? businesses[0] ?? null);
+    : (businesses.find((business) => business.id === chosenId) ??
+      defaultBusinessForUser(businesses));
 
   // Conserva la elección (incluida la selección por defecto) para la próxima visita.
   useEffect(() => {

@@ -184,6 +184,26 @@ export function buildEconomicInitial(
           : "estimated";
   }
 
+  const initSales = parseEconomicNumber(values.daily_avg_sales, "cop");
+  const initGain = parseEconomicNumber(values.daily_gain, "cop");
+  if (
+    initSales !== null &&
+    initSales > 0 &&
+    initGain !== null &&
+    initGain >= 0 &&
+    initGain <= initSales
+  ) {
+    values.gross_margin = formatPercentValue((initGain / initSales) * 100);
+    if (!autoComputed.includes("gross_margin")) {
+      autoComputed.push("gross_margin");
+    }
+    if (autoStatus) {
+      status.gross_margin = deriveAutoEconomicStatus(values.gross_margin, "percent");
+    } else if (status.gross_margin === "unknown") {
+      status.gross_margin = "estimated";
+    }
+  }
+
   return { values, status, autoComputed };
 }
 
@@ -331,11 +351,9 @@ export function EconomicDataForm({
         const canComputeMargin =
           sales !== null && sales > 0 && gain !== null && gain >= 0 && gain <= sales;
         if (canComputeMargin) {
-          if (nextValues.gross_margin.trim() === "" || nextAuto.has("gross_margin")) {
-            nextValues.gross_margin = formatPercentValue((gain / sales) * 100);
-            nextAuto.add("gross_margin");
-            nextStatus = applyAutoStatusForDerived(nextStatus, "gross_margin", true);
-          }
+          nextValues.gross_margin = formatPercentValue((gain / sales) * 100);
+          nextAuto.add("gross_margin");
+          nextStatus = applyAutoStatusForDerived(nextStatus, "gross_margin", true);
         } else if (nextAuto.has("gross_margin")) {
           nextValues.gross_margin = "";
           nextAuto.delete("gross_margin");
@@ -628,6 +646,7 @@ export function EconomicDataForm({
                       <Input
                         id={id}
                         inputMode={config.kind === "percent" ? "decimal" : "numeric"}
+                        readOnly={config.field === "gross_margin" && isAuto}
                         placeholder={
                           !autoStatus && fieldStatus === "unknown"
                             ? "Sin dato"

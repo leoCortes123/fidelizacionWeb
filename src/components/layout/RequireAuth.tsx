@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { Link, Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { useBusinessContext } from "@/features/loyalty/businessContext";
@@ -76,7 +77,23 @@ export function RequireBusinessRole({
   roles: BusinessRole[];
   children: React.ReactNode;
 }) {
-  const { businesses, selectedBusiness, selectedRole } = useBusinessContext();
+  const { businesses, selectedBusiness, selectedRole, setSelectedBusiness } = useBusinessContext();
+
+  const otherAllowed = selectedBusiness
+    ? businesses.filter(
+        (business) => business.id !== selectedBusiness.id && roles.includes(business.role),
+      )
+    : [];
+  const shouldAutoSwitch =
+    Boolean(selectedBusiness) &&
+    (!selectedRole || !roles.includes(selectedRole)) &&
+    otherAllowed.length === 1;
+
+  useEffect(() => {
+    if (shouldAutoSwitch && otherAllowed[0]) {
+      setSelectedBusiness(otherAllowed[0]);
+    }
+  }, [otherAllowed, setSelectedBusiness, shouldAutoSwitch]);
 
   if (businesses.length === 0) {
     return <Navigate to="/business/select" replace />;
@@ -88,6 +105,12 @@ export function RequireBusinessRole({
   // Sin negocio elegido se deja que la página muestre su selector.
   if (!selectedBusiness) return <>{children}</>;
   if (!selectedRole || !roles.includes(selectedRole)) {
+    if (otherAllowed.length === 1) {
+      return <FullPageLoader label="Cambiando al negocio…" />;
+    }
+    if (otherAllowed.length > 1) {
+      return <Navigate to="/business/select" replace />;
+    }
     return <Navigate to={businessHomePath(selectedRole, selectedBusiness?.id)} replace />;
   }
   return <>{children}</>;

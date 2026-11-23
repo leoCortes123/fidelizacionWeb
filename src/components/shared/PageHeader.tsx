@@ -6,6 +6,7 @@ export function PageHeader({
   kicker,
   actions,
   actionsClassName,
+  titleClassName,
   className,
   as: Heading = "h1",
 }: {
@@ -14,6 +15,7 @@ export function PageHeader({
   kicker?: string;
   actions?: React.ReactNode;
   actionsClassName?: string;
+  titleClassName?: string;
   className?: string;
   as?: "h1" | "h2";
 }) {
@@ -26,7 +28,12 @@ export function PageHeader({
     >
       <div className="min-w-0 space-y-1">
         {kicker && <span className="lp-section-kicker">{kicker}</span>}
-        <Heading className="font-display text-xl font-extrabold tracking-tight text-foreground [text-shadow:var(--lp-h1-shadow)] sm:text-2xl">
+        <Heading
+          className={cn(
+            "font-display text-xl font-extrabold tracking-tight text-foreground [text-shadow:var(--lp-h1-shadow)] sm:text-2xl",
+            titleClassName,
+          )}
+        >
           {title}
         </Heading>
         {description && (

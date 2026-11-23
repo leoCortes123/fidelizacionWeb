@@ -147,6 +147,28 @@ export function useMyPurchaseDetail(purchaseId: string | null | undefined) {
   });
 }
 
+export function useRegeneratePurchaseQr(businessId: string) {
+  const queryClient = useQueryClient();
+  return useMutation<PurchaseQrCreateResult, Error, string>({
+    mutationFn: (purchaseId) =>
+      rpc<PurchaseQrCreateResult>("purchase_qr_regenerate", {
+        p_business_id: businessId,
+        p_purchase_id: purchaseId,
+      }),
+    onSettled: (_data, _error, purchaseId) => {
+      void queryClient.invalidateQueries({
+        queryKey: ["business-purchases", businessId],
+      });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.businessPurchaseDetail(businessId, purchaseId),
+      });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.businessAuditLogPrefix(businessId),
+      });
+    },
+  });
+}
+
 export function useCancelBusinessPurchase(businessId: string) {
   const queryClient = useQueryClient();
   return useMutation({

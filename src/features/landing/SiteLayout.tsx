@@ -64,7 +64,7 @@ export function SiteLayout({ children }: { children: ReactNode }) {
   const goToAccount = () => {
     if (rolesLoading || !rolesLoaded || navigatingAccount) return;
     setNavigatingAccount(true);
-    void resolvePostLoginPath(roles)
+    void resolvePostLoginPath(roles, session?.user.id)
       .then((destination) => navigate(destination))
       .catch(() => navigate(defaultPathForRoles(roles)))
       .finally(() => setNavigatingAccount(false));

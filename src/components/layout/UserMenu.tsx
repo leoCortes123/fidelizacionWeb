@@ -1,31 +1,21 @@
-import { useLocation, useNavigate } from "react-router-dom";
-import { ChevronDown, LogOut, Moon, Sun, UserRound } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { LogOut } from "lucide-react";
 import { toast } from "sonner";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { useMyProfile } from "@/features/profile/hooks";
-import { useTheme } from "@/components/theme/ThemeProvider";
+import { ThemeToggleButton } from "@/features/landing/ThemeToggleButton";
 import { initials } from "@/lib/config";
 import { cn } from "@/lib/utils";
 
 interface UserMenuProps {
   compact?: boolean;
   className?: string;
-  align?: "start" | "end";
 }
 
-export function UserMenu({ compact = false, className, align = "end" }: UserMenuProps) {
+export function UserMenu({ compact = true, className }: UserMenuProps) {
   const { displayName, user, signOut } = useAuth();
   const profile = useMyProfile(Boolean(user));
   const nickname = profile.data?.nickname ?? null;
-  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const profilePath = pathname.startsWith("/admin")
@@ -41,69 +31,44 @@ export function UserMenu({ compact = false, className, align = "end" }: UserMenu
   }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <button
-          type="button"
-          className={cn(
-            "flex cursor-pointer items-center gap-2 rounded-none border-2 border-[var(--lp-ink)] bg-card text-left shadow-[var(--lp-shadow-sm)] transition-colors hover:bg-[var(--lp-tab-hover-bg)] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--lp-focus-ring)]",
-            compact ? "p-1" : "w-full p-1.5",
-            className,
-          )}
-          aria-label="Abrir menú de usuario"
-        >
-          {profile.data?.avatar_url ? (
-            <img
-              src={profile.data.avatar_url}
-              alt={displayName || user?.email || "Foto de perfil"}
-              className="size-8 shrink-0 rounded-none border-2 border-[var(--lp-ink)] object-cover"
-            />
-          ) : (
-            <span className="grid size-8 shrink-0 place-items-center rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-gold)] font-mono text-xs font-bold text-[#16262e]">
-              {initials(displayName || user?.email || "?")}
-            </span>
-          )}
-          {!compact && (
-            <span className="min-w-0 flex-1 leading-tight">
-              <span className="block truncate text-sm font-semibold">
-                {displayName || "Mi cuenta"}
-              </span>
-              <span className="block truncate text-[11px] text-muted-foreground">
-                {nickname ? `@${nickname}` : user?.email}
-              </span>
-            </span>
-          )}
-          <ChevronDown className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-        </button>
-      </DropdownMenuTrigger>
+    <div className={cn("flex items-center gap-1.5 sm:gap-2", className)}>
+      <ThemeToggleButton variant="shell" />
 
-      <DropdownMenuContent align={align} className="w-60">
-        <DropdownMenuLabel className="space-y-0.5">
-          <span className="block truncate text-sm font-semibold text-foreground">
-            {displayName || "Mi cuenta"}
+      <Link
+        to={profilePath}
+        className={cn(
+          "inline-flex h-9 cursor-pointer items-center gap-2 rounded-none border-2 border-[var(--lp-ink)] bg-card text-left shadow-[var(--lp-shadow-sm)] transition-colors hover:bg-[var(--lp-tab-hover-bg)] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--lp-focus-ring)] [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:min-w-11",
+          compact ? "px-1 py-0.5 sm:pr-2.5" : "px-2 py-1",
+        )}
+        aria-label="Mi perfil"
+        title={displayName ? `Mi perfil (${displayName})` : "Mi perfil"}
+      >
+        {profile.data?.avatar_url ? (
+          <img
+            src={profile.data.avatar_url}
+            alt={displayName || user?.email || "Foto de perfil"}
+            className="size-7 shrink-0 rounded-none border-2 border-[var(--lp-ink)] object-cover"
+          />
+        ) : (
+          <span className="grid size-7 shrink-0 place-items-center rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-gold)] font-mono text-[11px] font-bold text-[#16262e]">
+            {initials(displayName || user?.email || "?")}
           </span>
-          <span className="block truncate text-[11px] font-normal text-muted-foreground">
-            {nickname ? `@${nickname} · ${user?.email}` : user?.email}
-          </span>
-        </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={() => navigate(profilePath)}>
-          <UserRound aria-hidden="true" />
-          Mi perfil
-        </DropdownMenuItem>
-        <DropdownMenuItem onSelect={() => toggleTheme()}>
-          {theme === "dark" ? <Sun aria-hidden="true" /> : <Moon aria-hidden="true" />}
-          {theme === "dark" ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
-        </DropdownMenuItem>
-        <DropdownMenuSeparator />
-        <DropdownMenuItem
-          className="text-destructive focus:bg-destructive/10 focus:text-destructive"
-          onSelect={() => void handleSignOut()}
-        >
-          <LogOut aria-hidden="true" />
-          Cerrar sesión
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+        )}
+        <span className="hidden max-w-[120px] truncate text-xs font-semibold text-foreground lg:inline">
+          {displayName || (nickname ? `@${nickname}` : "Mi perfil")}
+        </span>
+      </Link>
+
+      <button
+        type="button"
+        onClick={() => void handleSignOut()}
+        aria-label="Cerrar sesión"
+        title="Cerrar sesión"
+        className="inline-flex h-9 cursor-pointer items-center justify-center gap-1.5 rounded-none border-2 border-[var(--lp-ink)] bg-card px-2 font-mono text-xs font-bold uppercase text-destructive shadow-[var(--lp-shadow-sm)] transition-colors hover:bg-[var(--lp-danger-bg)] hover:text-[var(--lp-danger-text)] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--lp-focus-ring)] [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:min-w-11 sm:px-2.5"
+      >
+        <LogOut className="size-4 shrink-0" aria-hidden="true" />
+        <span className="hidden sm:inline">Salir</span>
+      </button>
+    </div>
   );
 }

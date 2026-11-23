@@ -150,11 +150,13 @@ describe("BusinessDashboardPage", () => {
     expect(spies.useLoyaltyProgram).toHaveBeenCalledWith("biz-admin");
     expect(spies.useBusinessDashboardSummary).toHaveBeenCalledWith("biz-admin");
     expect(spies.useBusinessRecentActivity).toHaveBeenCalledWith("biz-admin", 8);
-    expect(screen.getByRole("heading", { name: /^Inicio$/ })).toBeInTheDocument();
-    expect(screen.getByText(/@negocio-biz-admin/i)).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /^Negocio biz-admin$/ })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: /^Inicio$/ })).not.toBeInTheDocument();
+    expect(screen.queryByText(/@negocio-biz-admin/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/Modo caja rápida/i)).not.toBeInTheDocument();
   });
 
-  it("oculta Administrador y Cambiar negocio solo en móvil y organiza los KPI principales en filas de 2 en responsive", () => {
+  it("muestra el nombre del negocio como título sin badge de rol ni Cambiar negocio y organiza los KPI en filas de 2", () => {
     const biz1 = makeBusiness("biz-admin-1", "admin");
     const biz2 = makeBusiness("biz-admin-2", "admin");
     state.businesses = [biz1, biz2];
@@ -191,15 +193,11 @@ describe("BusinessDashboardPage", () => {
       </MemoryRouter>,
     );
 
-    const completeLink = screen.getByRole("link", { name: /completar configuración/i });
-    expect(completeLink).toBeInTheDocument();
-
-    const roleBadge = screen.getByText("Administrador");
-    expect(roleBadge).toHaveClass("hidden", "sm:inline-flex");
-
-    const switchButton = screen.getByRole("button", { name: /cambiar negocio/i });
-    expect(switchButton).toHaveClass("hidden", "sm:inline-flex");
-    expect(switchButton.parentElement).not.toHaveClass("hidden");
+    expect(screen.getByRole("heading", { name: /^Negocio biz-admin-1$/ })).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /completar configuración/i })).toBeInTheDocument();
+    expect(screen.queryByText("Administrador")).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /cambiar negocio/i })).not.toBeInTheDocument();
+    expect(screen.queryByText(/Modo caja rápida/i)).not.toBeInTheDocument();
 
     const kpiGrid = screen.getByText("Ventas de hoy").closest(".grid");
     expect(kpiGrid).toHaveClass("grid-cols-2", "sm:grid-cols-2", "lg:grid-cols-4");
@@ -218,10 +216,6 @@ describe("BusinessDashboardPage", () => {
     expect(
       screen.queryByRole("link", { name: /completar configuración/i }),
     ).not.toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /cambiar negocio/i }).parentElement).toHaveClass(
-      "hidden",
-      "sm:flex",
-    );
 
     const skeletonGrid = document.querySelector(".animate-pulse")?.closest(".grid");
     expect(skeletonGrid).toHaveClass("grid-cols-2", "sm:grid-cols-2", "lg:grid-cols-4");

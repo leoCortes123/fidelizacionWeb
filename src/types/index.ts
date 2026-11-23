@@ -178,10 +178,15 @@ export interface CustomerMovement {
 export interface CustomerRedemption {
   id: string;
   reward_name: string;
+  reward_type?: LoyaltyRewardType;
+  reward_image_url?: string | null;
   points_spent: number;
   code: string;
+  origin?: RedemptionOrigin;
+  request_status?: RedemptionRequestStatus;
   status: RedemptionStatus;
   created_at: string;
+  approved_at?: string | null;
   delivered_at: string | null;
   cancelled_at: string | null;
 }
@@ -331,7 +336,9 @@ export interface BusinessMembership {
 
 export interface BusinessMembershipWithProfile extends BusinessMembership {
   full_name: string;
+  nickname?: string | null;
   email: string;
+  phone?: string | null;
   avatar_url?: string | null;
 }
 
@@ -846,6 +853,10 @@ export interface BusinessPublic {
   city: string | null;
   phone_whatsapp: string | null;
   instagram: string | null;
+  facebook?: string | null;
+  tiktok?: string | null;
+  twitter?: string | null;
+  youtube?: string | null;
   website: string | null;
 }
 
@@ -863,6 +874,10 @@ export interface BusinessProfile {
   phone_whatsapp: string | null;
   phone: string | null;
   instagram: string | null;
+  facebook?: string | null;
+  tiktok?: string | null;
+  twitter?: string | null;
+  youtube?: string | null;
   website: string | null;
   logo_url: string | null;
   updated_at: string;

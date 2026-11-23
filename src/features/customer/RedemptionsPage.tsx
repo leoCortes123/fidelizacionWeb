@@ -199,7 +199,7 @@ export function RedemptionsPage() {
       )}
 
       <Dialog open={detail !== null} onOpenChange={() => setDetail(null)}>
-        <DialogContent className="border-[3px] border-[var(--lp-ink)] bg-[var(--lp-cream)] shadow-[var(--lp-shadow-xl)]">
+        <DialogContent className="bg-[var(--lp-cream)]">
           <DialogHeader>
             <DialogTitle className="font-display text-lg font-bold">
               {detail?.reward_name}

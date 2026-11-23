@@ -199,21 +199,18 @@ describe("EconomicPage", () => {
     );
   });
 
-  it("calcula automáticamente el margen bruto a partir de ventas y ganancia diarias", async () => {
+  it("recalcula automáticamente el margen bruto al cambiar ganancia diaria incluso si ya había un margen previo", async () => {
     const user = userEvent.setup();
     renderPage();
 
     const marginInput = screen.getByLabelText("Margen bruto");
-    await user.clear(marginInput);
-
-    const salesInput = screen.getByLabelText("Ventas diarias promedio");
-    await user.clear(salesInput);
-    await user.type(salesInput, "200000");
+    expect(marginInput).toHaveValue("30");
 
     const gainInput = screen.getByLabelText("Ganancia diaria");
-    await user.type(gainInput, "60000");
+    await user.type(gainInput, "80000");
 
-    expect(marginInput).toHaveValue("30");
+    expect(marginInput).toHaveValue("40");
+    expect(marginInput).toHaveAttribute("readonly");
     expect(screen.getByText("Calculado automáticamente")).toBeInTheDocument();
   });
 

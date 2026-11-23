@@ -123,13 +123,15 @@ describe("CampaignsPage", () => {
     expect(dialog.getByText("Detalle de la campaña")).toBeInTheDocument();
   });
 
-  it("crea una campaña con los valores por defecto", async () => {
+  it("crea una campaña con los valores por defecto y permite activar reglas acumulables por check", async () => {
     const user = userEvent.setup();
     renderPage();
 
     await user.click(screen.getByRole("button", { name: /Nueva campaña/i }));
     const dialog = within(screen.getByRole("dialog"));
-    await user.type(dialog.getByLabelText("Nombre"), "Semana doble");
+    await user.type(dialog.getByLabelText("Nombre de la campaña"), "Semana doble");
+    expect(dialog.getByLabelText(/Sumar bono fijo de monedas/i)).toBeDisabled();
+    expect(dialog.getByLabelText(/Exigir compra mínima/i)).toBeDisabled();
     await user.click(dialog.getByRole("button", { name: "Guardar" }));
 
     await waitFor(() => expect(upsert).toHaveBeenCalledTimes(1));
@@ -148,14 +150,47 @@ describe("CampaignsPage", () => {
     );
   });
 
+  it("permite combinar multiplicador, bono y compra mínima activando sus checks", async () => {
+    const user = userEvent.setup();
+    renderPage();
+
+    await user.click(screen.getByRole("button", { name: /Nueva campaña/i }));
+    const dialog = within(screen.getByRole("dialog"));
+    await user.type(dialog.getByLabelText("Nombre de la campaña"), "Promo combinada");
+
+    await user.click(dialog.getByRole("checkbox", { name: /Habilitar bono fijo de monedas/i }));
+    const bonusInput = dialog.getByLabelText(/Sumar bono fijo de monedas/i);
+    expect(bonusInput).toBeEnabled();
+    await user.clear(bonusInput);
+    await user.type(bonusInput, "25");
+
+    await user.click(dialog.getByRole("checkbox", { name: /Habilitar compra mínima/i }));
+    const minInput = dialog.getByLabelText(/Exigir compra mínima/i);
+    expect(minInput).toBeEnabled();
+    await user.clear(minInput);
+    await user.type(minInput, "30000");
+
+    await user.click(dialog.getByRole("button", { name: "Guardar" }));
+
+    await waitFor(() => expect(upsert).toHaveBeenCalledTimes(1));
+    expect(upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "Promo combinada",
+        multiplier: 2,
+        bonusPoints: 25,
+        minPurchaseAmount: 30000,
+      }),
+    );
+  });
+
   it("rechaza una fecha de fin anterior al inicio", async () => {
     const user = userEvent.setup();
     renderPage();
 
     await user.click(screen.getByRole("button", { name: /Nueva campaña/i }));
     const dialog = within(screen.getByRole("dialog"));
-    await user.type(dialog.getByLabelText("Nombre"), "Campaña inválida");
-    await user.type(dialog.getByLabelText("Fin (opcional)"), "2020-01-01T00:00");
+    await user.type(dialog.getByLabelText("Nombre de la campaña"), "Campaña inválida");
+    await user.type(dialog.getByLabelText("Fecha de fin (opcional)"), "2020-01-01T00:00");
     await user.click(dialog.getByRole("button", { name: "Guardar" }));
 
     expect(await screen.findByText(/debe ser posterior al inicio/i)).toBeInTheDocument();

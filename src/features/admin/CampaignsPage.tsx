@@ -6,6 +6,7 @@ import {
   useLoyaltyCampaigns,
   useUpsertLoyaltyCampaign,
 } from "@/features/loyalty/hooks";
+import { parseProgramInteger } from "@/features/loyalty/programEconomics";
 import { errorMessage } from "@/lib/errors";
 import { formatCOP, formatDateTimeBogota, formatNumber, parseCopInput } from "@/lib/format";
 import { Badge } from "@/components/ui/badge";
@@ -31,8 +32,11 @@ import type { Business, LoyaltyCampaign } from "@/types";
 interface CampaignFormState {
   name: string;
   description: string;
+  useMultiplier: boolean;
   multiplier: string;
+  useBonusPoints: boolean;
   bonusPoints: string;
+  useMinPurchase: boolean;
   minPurchase: string;
   validFrom: string;
   validUntil: string;
@@ -68,8 +72,11 @@ function emptyForm(): CampaignFormState {
   return {
     name: "",
     description: "",
+    useMultiplier: true,
     multiplier: "2",
+    useBonusPoints: false,
     bonusPoints: "0",
+    useMinPurchase: false,
     minPurchase: "0",
     validFrom: nowLocalInput(),
     validUntil: "",
@@ -81,8 +88,11 @@ function formFromCampaign(campaign: LoyaltyCampaign): CampaignFormState {
   return {
     name: campaign.name,
     description: campaign.description,
+    useMultiplier: campaign.multiplier > 1,
     multiplier: String(campaign.multiplier),
+    useBonusPoints: campaign.bonus_points > 0,
     bonusPoints: String(campaign.bonus_points),
+    useMinPurchase: campaign.min_purchase_amount > 0,
     minPurchase: String(campaign.min_purchase_amount),
     validFrom: toLocalInput(campaign.valid_from),
     validUntil: toLocalInput(campaign.valid_until),
@@ -143,23 +153,27 @@ function CampaignsSection({ business }: { business: Business }) {
   function validate(): { payload?: Parameters<typeof upsertCampaign.mutateAsync>[0] } {
     const nextErrors: CampaignErrors = {};
     const name = form.name.trim();
-    const multiplier = Number(form.multiplier.replace(",", "."));
-    const bonusPoints = Number(form.bonusPoints);
-    const minPurchase = parseCopInput(form.minPurchase) ?? 0;
+    const multiplier = form.useMultiplier ? Number(form.multiplier.replace(",", ".")) : 1;
+    const bonusPoints = form.useBonusPoints ? parseProgramInteger(form.bonusPoints) : 0;
+    const parsedMinPurchase = form.useMinPurchase ? parseCopInput(form.minPurchase) : 0;
+    const minPurchase = parsedMinPurchase ?? 0;
     const validFrom = fromLocalInput(form.validFrom);
     const validUntil = fromLocalInput(form.validUntil);
 
     if (name.length < 2 || name.length > 120) {
       nextErrors.name = "El nombre debe tener entre 2 y 120 caracteres.";
     }
-    if (!Number.isFinite(multiplier) || multiplier < 1 || multiplier > 10) {
+    if (form.useMultiplier && (!Number.isFinite(multiplier) || multiplier < 1 || multiplier > 10)) {
       nextErrors.multiplier = "El multiplicador debe estar entre 1 y 10.";
     }
-    if (!Number.isInteger(bonusPoints) || bonusPoints < 0 || bonusPoints > 1_000_000) {
+    if (
+      form.useBonusPoints &&
+      (!Number.isInteger(bonusPoints) || bonusPoints < 0 || bonusPoints > 1_000_000)
+    ) {
       nextErrors.bonusPoints = "El bono debe ser un entero entre 0 y 1.000.000.";
     }
-    if (minPurchase < 0) {
-      nextErrors.minPurchase = "La compra mínima no puede ser negativa.";
+    if (form.useMinPurchase && (parsedMinPurchase === null || parsedMinPurchase < 0)) {
+      nextErrors.minPurchase = "Indica un monto válido de compra mínima (0 o mayor).";
     }
     if (!validFrom) {
       nextErrors.validFrom = "Indica la fecha de inicio.";
@@ -407,81 +421,193 @@ function CampaignsSection({ business }: { business: Business }) {
           <DialogHeader>
             <DialogTitle>{editing ? "Detalle de la campaña" : "Nueva campaña"}</DialogTitle>
             <DialogDescription>
-              El multiplicador se aplica a las monedas base de la compra y el bono se suma al final.
-              Solo aplica dentro de la vigencia.
+              Combina las reglas que necesites: si activas varias opciones, se acumulan entre sí
+              dentro de la vigencia definida.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={save} className="min-w-0 space-y-3" noValidate>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <Field
+          <form onSubmit={save} className="min-w-0 space-y-3.5" noValidate>
+            <Field id="campaign-name" label="Nombre de la campaña" error={errors.name}>
+              <Input
                 id="campaign-name"
-                label="Nombre"
-                error={errors.name}
-                className="sm:col-span-2"
-              >
-                <Input
-                  id="campaign-name"
-                  value={form.name}
-                  onChange={(event) => update("name", event.target.value)}
-                  maxLength={120}
-                  aria-invalid={Boolean(errors.name)}
-                />
-              </Field>
-              <Field
+                value={form.name}
+                onChange={(event) => update("name", event.target.value)}
+                maxLength={120}
+                placeholder="Ej.: Doble moneda en fin de semana"
+                aria-invalid={Boolean(errors.name)}
+              />
+            </Field>
+
+            <Field id="campaign-description" label="Descripción (opcional)">
+              <Textarea
                 id="campaign-description"
-                label="Descripción (opcional)"
-                className="sm:col-span-2"
-              >
-                <Textarea
-                  id="campaign-description"
-                  value={form.description}
-                  onChange={(event) => update("description", event.target.value)}
-                  maxLength={500}
-                />
-              </Field>
-              <Field
-                id="campaign-multiplier"
-                label="Multiplicador"
-                error={errors.multiplier}
-                hint="x2 duplica las monedas. Entre 1 y 10."
-              >
-                <Input
-                  id="campaign-multiplier"
-                  inputMode="decimal"
-                  value={form.multiplier}
-                  onChange={(event) => update("multiplier", event.target.value)}
-                  aria-invalid={Boolean(errors.multiplier)}
-                />
-              </Field>
-              <Field
-                id="campaign-bonus"
-                label="Bono de monedas"
-                error={errors.bonusPoints}
-                hint="Se suma después del multiplicador."
-              >
-                <Input
-                  id="campaign-bonus"
-                  inputMode="numeric"
-                  value={form.bonusPoints}
-                  onChange={(event) => update("bonusPoints", event.target.value)}
-                  aria-invalid={Boolean(errors.bonusPoints)}
-                />
-              </Field>
-              <Field
-                id="campaign-min-purchase"
-                label="Compra mínima (COP)"
-                error={errors.minPurchase}
-              >
-                <Input
-                  id="campaign-min-purchase"
-                  inputMode="numeric"
-                  placeholder="0"
-                  value={form.minPurchase}
-                  onChange={(event) => update("minPurchase", event.target.value)}
-                  aria-invalid={Boolean(errors.minPurchase)}
-                />
-              </Field>
-              <Field id="campaign-from" label="Inicio" error={errors.validFrom}>
+                value={form.description}
+                onChange={(event) => update("description", event.target.value)}
+                maxLength={500}
+                rows={2}
+                placeholder="Explica brevemente qué beneficio recibe el cliente"
+              />
+            </Field>
+
+            <div className="lp-subpanel space-y-2.5">
+              <div>
+                <p className="font-mono text-xs font-bold uppercase tracking-wide text-foreground">
+                  Beneficios y condiciones (acumulables)
+                </p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  Marca las opciones que quieras activar. Si activas multiplicador y bono, primero
+                  se multiplican las monedas base y luego se suma el bono extra.
+                </p>
+              </div>
+
+              {/* Multiplicador */}
+              <div className="space-y-1 border-2 border-[var(--lp-ink)] bg-card p-2.5">
+                <div className="flex items-center gap-3">
+                  <input
+                    id="campaign-use-multiplier"
+                    type="checkbox"
+                    aria-label="Habilitar multiplicador de monedas"
+                    checked={form.useMultiplier}
+                    onChange={(event) => {
+                      const checked = event.target.checked;
+                      setForm((current) => ({
+                        ...current,
+                        useMultiplier: checked,
+                        multiplier:
+                          checked && (!current.multiplier || Number(current.multiplier) <= 1)
+                            ? "2"
+                            : current.multiplier,
+                      }));
+                      setErrors((current) => ({ ...current, multiplier: undefined }));
+                    }}
+                    className="size-4 shrink-0 cursor-pointer rounded-none border-input accent-primary"
+                  />
+                  <label
+                    htmlFor="campaign-multiplier"
+                    className="min-w-0 flex-1 cursor-pointer text-sm leading-tight"
+                  >
+                    <span className="block font-semibold">Multiplicar monedas de la compra</span>
+                    <span className="block text-[11px] text-muted-foreground">
+                      Ej.: 2 duplica las monedas base (entre 1 y 10).
+                    </span>
+                  </label>
+                  <Input
+                    id="campaign-multiplier"
+                    inputMode="decimal"
+                    disabled={!form.useMultiplier}
+                    value={form.multiplier}
+                    onChange={(event) => update("multiplier", event.target.value)}
+                    aria-invalid={Boolean(errors.multiplier)}
+                    className="w-24 shrink-0 text-right font-mono font-bold"
+                  />
+                </div>
+                {errors.multiplier && (
+                  <p className="pl-7 text-xs font-semibold text-destructive" role="alert">
+                    {errors.multiplier}
+                  </p>
+                )}
+              </div>
+
+              {/* Bono de monedas */}
+              <div className="space-y-1 border-2 border-[var(--lp-ink)] bg-card p-2.5">
+                <div className="flex items-center gap-3">
+                  <input
+                    id="campaign-use-bonus"
+                    type="checkbox"
+                    aria-label="Habilitar bono fijo de monedas"
+                    checked={form.useBonusPoints}
+                    onChange={(event) => {
+                      const checked = event.target.checked;
+                      setForm((current) => ({
+                        ...current,
+                        useBonusPoints: checked,
+                        bonusPoints:
+                          checked && (!current.bonusPoints || Number(current.bonusPoints) <= 0)
+                            ? "10"
+                            : current.bonusPoints,
+                      }));
+                      setErrors((current) => ({ ...current, bonusPoints: undefined }));
+                    }}
+                    className="size-4 shrink-0 cursor-pointer rounded-none border-input accent-primary"
+                  />
+                  <label
+                    htmlFor="campaign-bonus"
+                    className="min-w-0 flex-1 cursor-pointer text-sm leading-tight"
+                  >
+                    <span className="block font-semibold">Sumar bono fijo de monedas</span>
+                    <span className="block text-[11px] text-muted-foreground">
+                      Monedas extra que se suman al final de la compra.
+                    </span>
+                  </label>
+                  <Input
+                    id="campaign-bonus"
+                    inputMode="numeric"
+                    disabled={!form.useBonusPoints}
+                    value={form.bonusPoints}
+                    onChange={(event) => update("bonusPoints", event.target.value)}
+                    aria-invalid={Boolean(errors.bonusPoints)}
+                    className="w-24 shrink-0 text-right font-mono font-bold"
+                  />
+                </div>
+                {errors.bonusPoints && (
+                  <p className="pl-7 text-xs font-semibold text-destructive" role="alert">
+                    {errors.bonusPoints}
+                  </p>
+                )}
+              </div>
+
+              {/* Compra mínima */}
+              <div className="space-y-1 border-2 border-[var(--lp-ink)] bg-card p-2.5">
+                <div className="flex items-center gap-3">
+                  <input
+                    id="campaign-use-min-purchase"
+                    type="checkbox"
+                    aria-label="Habilitar compra mínima"
+                    checked={form.useMinPurchase}
+                    onChange={(event) => {
+                      const checked = event.target.checked;
+                      setForm((current) => ({
+                        ...current,
+                        useMinPurchase: checked,
+                        minPurchase:
+                          checked &&
+                          (!current.minPurchase || (parseCopInput(current.minPurchase) ?? 0) <= 0)
+                            ? "20000"
+                            : current.minPurchase,
+                      }));
+                      setErrors((current) => ({ ...current, minPurchase: undefined }));
+                    }}
+                    className="size-4 shrink-0 cursor-pointer rounded-none border-input accent-primary"
+                  />
+                  <label
+                    htmlFor="campaign-min-purchase"
+                    className="min-w-0 flex-1 cursor-pointer text-sm leading-tight"
+                  >
+                    <span className="block font-semibold">Exigir compra mínima (COP)</span>
+                    <span className="block text-[11px] text-muted-foreground">
+                      Solo aplica si la venta iguala o supera este monto.
+                    </span>
+                  </label>
+                  <Input
+                    id="campaign-min-purchase"
+                    inputMode="numeric"
+                    placeholder="0"
+                    disabled={!form.useMinPurchase}
+                    value={form.minPurchase}
+                    onChange={(event) => update("minPurchase", event.target.value)}
+                    aria-invalid={Boolean(errors.minPurchase)}
+                    className="w-28 shrink-0 text-right font-mono font-bold"
+                  />
+                </div>
+                {errors.minPurchase && (
+                  <p className="pl-7 text-xs font-semibold text-destructive" role="alert">
+                    {errors.minPurchase}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <Field id="campaign-from" label="Fecha de inicio" error={errors.validFrom}>
                 <Input
                   id="campaign-from"
                   type="datetime-local"
@@ -490,7 +616,7 @@ function CampaignsSection({ business }: { business: Business }) {
                   aria-invalid={Boolean(errors.validFrom)}
                 />
               </Field>
-              <Field id="campaign-until" label="Fin (opcional)" error={errors.validUntil}>
+              <Field id="campaign-until" label="Fecha de fin (opcional)" error={errors.validUntil}>
                 <Input
                   id="campaign-until"
                   type="datetime-local"

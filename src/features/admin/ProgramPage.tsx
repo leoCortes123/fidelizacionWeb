@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import {
   AlertTriangle,
-  Calculator,
   CheckCircle2,
   Info,
+  Lock,
   RotateCcw,
   Settings2,
   TimerReset,
@@ -19,9 +19,12 @@ import {
 import {
   analyzeEconomicProfile,
   analyzeProgramEconomics,
+  computeCopPerPointFromBudgetRate,
+  FIXED_POINTS_PER_THOUSAND,
   parseProgramDecimal,
   parseProgramInteger,
 } from "@/features/loyalty/programEconomics";
+import { PurchaseSimulatorCard } from "@/features/loyalty/PurchaseSimulatorCard";
 import { errorMessage } from "@/lib/errors";
 import { formatCompactNumber, formatCOP, formatNumber, formatPointValueCOP } from "@/lib/format";
 import { useFormDraft } from "@/lib/useFormDraft";
@@ -29,18 +32,16 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { BusinessGate } from "./BusinessGate";
 import { FrequentCriteriaCard } from "./FrequentCriteriaCard";
 import { PageHeader } from "@/components/shared/PageHeader";
-import { Field } from "@/components/shared/Field";
 import { ErrorState, LoadingScreen } from "@/components/shared/States";
 import type { Business, BusinessEconomicProfile, LoyaltyProgram } from "@/types";
 
 const UNCONFIGURED_ID = "00000000-0000-0000-0000-000000000000";
 
 const DEFAULTS = {
-  copPerPointUnit: 1000,
-  pointsPerCopUnit: 100,
   pointsExpiryDays: 365,
   budgetRatePercent: 1,
   firstPurchaseBonusPoints: 0,
@@ -60,8 +61,6 @@ const requiredInteger = (label: string, min: number, max: number) =>
 
 const programSchema = z
   .object({
-    copPerPointUnit: requiredInteger("COP por moneda", 100, 1_000_000),
-    pointsPerCopUnit: requiredInteger("Monedas por $1.000", 1, 1_000_000),
     pointsExpiryDays: requiredInteger("Vencimiento de monedas", 1, 3650),
     budgetRatePercent: z
       .union([z.string(), z.number()])
@@ -95,8 +94,6 @@ function isUnconfigured(program: LoyaltyProgram): boolean {
 function fromProgram(program: LoyaltyProgram): FormState {
   if (isUnconfigured(program)) {
     return {
-      copPerPointUnit: String(DEFAULTS.copPerPointUnit),
-      pointsPerCopUnit: String(DEFAULTS.pointsPerCopUnit),
       pointsExpiryDays: String(DEFAULTS.pointsExpiryDays),
       budgetRatePercent: String(DEFAULTS.budgetRatePercent),
       firstPurchaseBonusPoints: String(DEFAULTS.firstPurchaseBonusPoints),
@@ -107,8 +104,6 @@ function fromProgram(program: LoyaltyProgram): FormState {
     };
   }
   return {
-    copPerPointUnit: String(program.cop_per_point_unit),
-    pointsPerCopUnit: String(program.points_per_cop_unit),
     pointsExpiryDays: String(program.points_expiry_days),
     budgetRatePercent: String(Math.round(program.budget_rate * 10000) / 100),
     firstPurchaseBonusPoints: String(program.first_purchase_bonus_points),
@@ -200,7 +195,9 @@ function ProgramForm({
     key: `admin:program:${business.id}`,
   });
   const [restoredDraft] = useState(() => draft.read());
-  const [form, setForm] = useState<FormState>(() => restoredDraft ?? fromProgram(program));
+  const [form, setForm] = useState<FormState>(() =>
+    restoredDraft ? { ...fromProgram(program), ...restoredDraft } : fromProgram(program),
+  );
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
   const [dirty, setDirty] = useState(false);
   const [budgetRateEdited, setBudgetRateEdited] = useState(false);
@@ -208,20 +205,17 @@ function ProgramForm({
   const configured = !unconfigured;
 
   const economic = analyzeEconomicProfile(economicProfile);
-  const copPerPoint = parseProgramInteger(form.copPerPointUnit);
-  const pointsPerThousand = parseProgramInteger(form.pointsPerCopUnit);
   const parsedBudgetRatePercent = parseProgramDecimal(form.budgetRatePercent);
-  const validNumbers =
-    Number.isInteger(copPerPoint) &&
-    Number.isInteger(pointsPerThousand) &&
-    copPerPoint > 0 &&
-    pointsPerThousand > 0;
+  const pointsPerThousand = FIXED_POINTS_PER_THOUSAND;
+  const copPerPoint = computeCopPerPointFromBudgetRate(parsedBudgetRatePercent);
+  const firstBonus = Math.max(0, parseProgramInteger(form.firstPurchaseBonusPoints) || 0);
+  const recurrenceBonus = Math.max(0, parseProgramInteger(form.recurrenceBonusPoints) || 0);
+
   const analysis = analyzeProgramEconomics({
     economic,
     copPerPoint,
     budgetRatePercent: parsedBudgetRatePercent,
-    explicitPointsPerThousand:
-      Number.isInteger(pointsPerThousand) && pointsPerThousand > 0 ? pointsPerThousand : undefined,
+    explicitPointsPerThousand: pointsPerThousand,
   });
 
   const {
@@ -229,22 +223,16 @@ function ProgramForm({
     referenceBudget,
     maxBudget,
     effectiveProgramBudget,
-    costPerPoint: recommendedCostPerPoint,
-    pointsPerThousand: recommendedPointsPerThousand,
     pointValueCop: rawPointValueCop,
     pointsPer1000Spent: rawPointsPer1000Spent,
     estimatedCostRate: rawEstimatedCostRate,
-    examplePurchasePoints,
-    exampleAvgTicketPoints,
-    examplePurchaseCostCop,
     suggestedRateFromCap,
     utilityAbsorptionPct,
     netMarginAfterRewards,
   } = analysis;
-  const pointValueCop = validNumbers ? (rawPointValueCop ?? 0) : 0;
-  const pointsPer1000Spent = validNumbers ? (rawPointsPer1000Spent ?? 0) : 0;
-  const estimatedCostRate = validNumbers ? (rawEstimatedCostRate ?? 0) : 0;
-  const estimatedCostRateRounded = Math.round(estimatedCostRate * 10000) / 100;
+  const pointValueCop = rawPointValueCop ?? 10;
+  const pointsPer1000Spent = rawPointsPer1000Spent ?? 0;
+  const estimatedCostRate = rawEstimatedCostRate ?? 0;
 
   // Si el programa aún no está configurado y existe tope económico mensual, sugiere la tasa inicial.
   useEffect(() => {
@@ -279,8 +267,6 @@ function ProgramForm({
     setDirty(true);
     setBudgetRateEdited(true);
     setForm({
-      copPerPointUnit: String(DEFAULTS.copPerPointUnit),
-      pointsPerCopUnit: String(DEFAULTS.pointsPerCopUnit),
       pointsExpiryDays: String(DEFAULTS.pointsExpiryDays),
       budgetRatePercent: String(DEFAULTS.budgetRatePercent),
       firstPurchaseBonusPoints: String(DEFAULTS.firstPurchaseBonusPoints),
@@ -307,11 +293,12 @@ function ProgramForm({
     }
 
     const values = parsed.data;
+    const calculatedCopPerPoint = computeCopPerPointFromBudgetRate(values.budgetRatePercent);
     try {
       await configureProgram.mutateAsync({
         businessId: business.id,
-        copPerPointUnit: values.copPerPointUnit,
-        pointsPerCopUnit: values.pointsPerCopUnit,
+        copPerPointUnit: calculatedCopPerPoint,
+        pointsPerCopUnit: FIXED_POINTS_PER_THOUSAND,
         pointsExpiryDays: values.pointsExpiryDays,
         budgetRate: Math.round(values.budgetRatePercent * 100) / 10000,
         firstPurchaseBonusPoints: values.firstPurchaseBonusPoints,
@@ -350,7 +337,7 @@ function ProgramForm({
   }
 
   return (
-    <div className="space-y-3.5 animate-fade-in">
+    <div className="space-y-4 animate-fade-in">
       {embedded ? (
         <div className="flex flex-wrap items-center justify-between gap-2 px-4 sm:px-0">
           <h2 className="font-display text-lg font-extrabold tracking-tight text-foreground">
@@ -367,7 +354,7 @@ function ProgramForm({
         <PageHeader
           as={headingAs}
           title="Programa de monedas"
-          description="Configura cuántas monedas acumulan tus clientes por cada compra, cuánto valen al canjearlas y qué parte de tus ventas destinas a premios."
+          description="Configura qué parte de tus ventas destinas a premios, la vigencia de las monedas y los bonos especiales."
           actions={
             <div className="flex flex-wrap items-center gap-2">
               {draft.hasDraft && <Badge variant="muted">Borrador guardado</Badge>}
@@ -426,94 +413,40 @@ function ProgramForm({
       )}
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <Settings2 className="size-4 text-[var(--lp-accent-link)]" aria-hidden="true" />
-              Reglas de acumulación y canje
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-3.5" noValidate>
-              <div className="grid gap-3 sm:grid-cols-2">
-                <Field
-                  id="cop-per-point"
-                  label="COP por moneda ganada"
-                  hint={
-                    Number.isInteger(copPerPoint) && copPerPoint > 0
-                      ? `1 moneda / ${formatCOP(copPerPoint)} elegibles`
-                      : "Ej. 1.000 COP por 1 moneda"
-                  }
-                  help="¿Cuánto debe comprar un cliente para sumar 1 moneda? Mientras más bajo sea este valor, más rápido acumulan monedas tus clientes en caja."
-                  error={errors.copPerPointUnit}
-                >
-                  <Input
-                    id="cop-per-point"
-                    inputMode="numeric"
-                    value={form.copPerPointUnit}
-                    onChange={(event) => update("copPerPointUnit", event.target.value)}
-                    aria-invalid={Boolean(errors.copPerPointUnit)}
-                  />
-                </Field>
-                <div className="space-y-1">
-                  <Field
-                    id="points-per-cop"
-                    label="Monedas que equivalen a $1.000"
-                    hint={
-                      validNumbers
-                        ? `1 moneda = ${formatPointValueCOP(pointValueCop)} al canjear`
-                        : "Monedas necesarias para cubrir $1.000"
-                    }
-                    help="Define cuánto vale cada moneda al canjear. Puedes ajustarlo manualmente o calcularlo según tu tasa de presupuesto."
-                    error={errors.pointsPerCopUnit}
-                  >
-                    <Input
-                      id="points-per-cop"
-                      inputMode="numeric"
-                      value={form.pointsPerCopUnit}
-                      onChange={(event) => update("pointsPerCopUnit", event.target.value)}
-                      aria-invalid={Boolean(errors.pointsPerCopUnit)}
-                    />
-                  </Field>
-                  {recommendedCostPerPoint !== null &&
-                    pointsPerThousand !== recommendedPointsPerThousand && (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          update("pointsPerCopUnit", String(recommendedPointsPerThousand))
-                        }
-                        className="cursor-pointer text-left text-xs font-semibold text-[var(--lp-accent-link)] underline-offset-2 hover:underline"
-                      >
-                        Calcular según tasa de presupuesto (
-                        {formatNumber(recommendedPointsPerThousand)} monedas)
-                      </button>
-                    )}
-                </div>
-                <Field
-                  id="points-expiry-days"
-                  label="Vencimiento de monedas (días)"
-                  help="Plazo en días antes de que caduquen las monedas desde la compra que las generó (ej. 365 días = 1 año). Cada compra crea un lote con su fecha; al vencer se descuentan primero los más antiguos."
-                  error={errors.pointsExpiryDays}
-                >
-                  <Input
-                    id="points-expiry-days"
-                    inputMode="numeric"
-                    value={form.pointsExpiryDays}
-                    onChange={(event) => update("pointsExpiryDays", event.target.value)}
-                    aria-invalid={Boolean(errors.pointsExpiryDays)}
-                  />
-                </Field>
-                <div className="space-y-1">
-                  <Field
+        <div className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Settings2 className="size-4 text-[var(--lp-accent-link)]" aria-hidden="true" />
+                Reglas de acumulación y canje
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-3.5" noValidate>
+                <div className="space-y-2.5">
+                  {/* 1. Tasa de presupuesto */}
+                  <StackedFieldRow
                     id="budget-rate"
                     label="Tasa de presupuesto (%)"
-                    hint={
-                      referenceBudget !== null
-                        ? `≈ ${formatCOP(referenceBudget)}/mes (recomendado: 1–5 %)`
-                        : "Recomendado: 1 % a 5 % de ventas"
-                    }
-                    help="Porcentaje de tus ventas mensuales destinado a recompensas. Es una referencia financiera para alertarte si el costo de tus premios supera lo planeado."
                     error={errors.budgetRatePercent}
+                    description="Porcentaje de tus ventas que destinas a premios (recomendado entre 1 % y 5 %). Al cambiar este porcentaje se recalcula automáticamente cuánto debe comprar un cliente para ganar 1 moneda."
+                    extraHint={
+                      referenceBudget !== null
+                        ? `≈ ${formatCOP(referenceBudget)}/mes sobre tus ventas estimadas.`
+                        : undefined
+                    }
+                    action={
+                      suggestedRateFromCap !== null &&
+                      parsedBudgetRatePercent !== suggestedRateFromCap ? (
+                        <button
+                          type="button"
+                          onClick={() => update("budgetRatePercent", String(suggestedRateFromCap))}
+                          className="cursor-pointer text-left text-xs font-semibold text-[var(--lp-accent-link)] underline-offset-2 hover:underline"
+                        >
+                          Ajustar al tope mensual ({suggestedRateFromCap} %)
+                        </button>
+                      ) : undefined
+                    }
                   >
                     <Input
                       id="budget-rate"
@@ -522,86 +455,92 @@ function ProgramForm({
                       onChange={(event) => update("budgetRatePercent", event.target.value)}
                       aria-invalid={Boolean(errors.budgetRatePercent)}
                     />
-                  </Field>
-                  <div className="flex flex-wrap gap-x-3 gap-y-1">
-                    {suggestedRateFromCap !== null &&
-                      parsedBudgetRatePercent !== suggestedRateFromCap && (
-                        <button
-                          type="button"
-                          onClick={() => update("budgetRatePercent", String(suggestedRateFromCap))}
-                          className="cursor-pointer text-left text-xs font-semibold text-[var(--lp-accent-link)] underline-offset-2 hover:underline"
-                        >
-                          Ajustar al tope mensual ({suggestedRateFromCap} %)
-                        </button>
-                      )}
-                    {validNumbers &&
-                      estimatedCostRateRounded > 0 &&
-                      estimatedCostRateRounded <= 100 &&
-                      Math.abs(
-                        estimatedCostRateRounded -
-                          (Number.isFinite(parsedBudgetRatePercent) ? parsedBudgetRatePercent : 0),
-                      ) >= 0.05 && (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            update("budgetRatePercent", String(estimatedCostRateRounded))
-                          }
-                          className="cursor-pointer text-left text-xs font-semibold text-[var(--lp-accent-link)] underline-offset-2 hover:underline"
-                        >
-                          Igualar al costo de canje ({estimatedCostRateRounded} %)
-                        </button>
-                      )}
-                  </div>
-                </div>
-                <Field
-                  id="qr-expiry-hours"
-                  label="Vigencia del QR (horas)"
-                  help="Tiempo máximo durante el cual el código QR de un canje o validación sigue vigente (ej. 24 horas). Si vence antes de validarse, el cliente puede reemitirlo desde Mis canjes."
-                  error={errors.qrExpiryHours}
-                >
-                  <Input
+                  </StackedFieldRow>
+
+                  {/* 2. Monedas que equivalen a $1.000 (BLOQUEADO = 100) */}
+                  <StackedFieldRow
+                    id="points-per-cop"
+                    label="Monedas que equivalen a $1.000"
+                    badge="Fijo"
+                    locked
+                    description={`Equivalencia fija inicial de Fideliapp: ${formatNumber(FIXED_POINTS_PER_THOUSAND)} monedas equivalen siempre a $1.000 COP al canjear (1 moneda = ${formatPointValueCOP(pointValueCop)}).`}
+                  >
+                    <Input
+                      id="points-per-cop"
+                      inputMode="numeric"
+                      value={String(FIXED_POINTS_PER_THOUSAND)}
+                      readOnly
+                      disabled
+                      className="font-mono font-bold"
+                    />
+                  </StackedFieldRow>
+
+                  {/* 3. COP por moneda ganada (BLOQUEADO y CALCULADO) */}
+                  <StackedFieldRow
+                    id="cop-per-point"
+                    label="COP por moneda ganada"
+                    badge="Calculado"
+                    locked
+                    description={`Se calcula automáticamente con tu tasa de presupuesto y la equivalencia de ${formatNumber(FIXED_POINTS_PER_THOUSAND)} monedas por $1.000. Tus clientes ganarán 1 moneda por cada ${formatCOP(copPerPoint)} en compras.`}
+                  >
+                    <Input
+                      id="cop-per-point"
+                      inputMode="numeric"
+                      value={String(copPerPoint)}
+                      readOnly
+                      disabled
+                      className="font-mono font-bold"
+                    />
+                  </StackedFieldRow>
+
+                  {/* 4. Vencimiento de monedas */}
+                  <StackedFieldRow
+                    id="points-expiry-days"
+                    label="Vencimiento de monedas (días)"
+                    error={errors.pointsExpiryDays}
+                    description="Plazo en días antes de que caduquen las monedas acumuladas desde cada compra (ej. 365 días = 1 año). Al vencer se descuentan primero las más antiguas."
+                  >
+                    <Input
+                      id="points-expiry-days"
+                      inputMode="numeric"
+                      value={form.pointsExpiryDays}
+                      onChange={(event) => update("pointsExpiryDays", event.target.value)}
+                      aria-invalid={Boolean(errors.pointsExpiryDays)}
+                    />
+                  </StackedFieldRow>
+
+                  {/* 5. Vigencia del QR */}
+                  <StackedFieldRow
                     id="qr-expiry-hours"
-                    inputMode="numeric"
-                    value={form.qrExpiryHours}
-                    onChange={(event) => update("qrExpiryHours", event.target.value)}
-                    aria-invalid={Boolean(errors.qrExpiryHours)}
-                  />
-                </Field>
-              </div>
-
-              {examplePurchasePoints !== null && (
-                <div className="lp-subpanel space-y-1 text-sm">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <span className="flex items-center gap-2 font-semibold text-foreground">
-                      <Calculator
-                        className="size-4 shrink-0 text-[var(--lp-accent-link)]"
-                        aria-hidden="true"
-                      />
-                      Simulación rápida en caja
-                    </span>
-                    <span className="font-mono text-xs font-bold text-[var(--lp-accent-link)]">
-                      Compra de {formatCOP(50000)} = {formatNumber(examplePurchasePoints)} monedas
-                      {validNumbers &&
-                        examplePurchaseCostCop !== null &&
-                        ` (costo est. ${formatCOP(examplePurchaseCostCop)})`}
-                    </span>
-                  </div>
-                  {exampleAvgTicketPoints !== null && economic.avgTicket !== null && (
-                    <p className="text-xs text-muted-foreground">
-                      En tu ticket promedio ({formatCOP(economic.avgTicket)}), el cliente sumaría{" "}
-                      <strong>{formatNumber(exampleAvgTicketPoints)} moneda(s)</strong> por visita.
-                    </p>
-                  )}
+                    label="Vigencia del QR (horas)"
+                    error={errors.qrExpiryHours}
+                    description="Tiempo máximo durante el cual el código QR de una venta sigue activo para que el cliente reclame sus monedas. Pasado este tiempo los puntos expiran."
+                  >
+                    <Input
+                      id="qr-expiry-hours"
+                      inputMode="numeric"
+                      value={form.qrExpiryHours}
+                      onChange={(event) => update("qrExpiryHours", event.target.value)}
+                      aria-invalid={Boolean(errors.qrExpiryHours)}
+                    />
+                  </StackedFieldRow>
                 </div>
-              )}
 
-              <div className="space-y-2.5">
-                <h3 className="text-sm font-semibold">Bonos en monedas</h3>
-                <div className="grid gap-3 sm:grid-cols-3">
-                  <Field
+                {/* Bonos en monedas apilados con descripción */}
+                <div className="space-y-2.5 pt-1">
+                  <div>
+                    <h3 className="text-sm font-semibold">Bonos en monedas (opcionales)</h3>
+                    <p className="text-xs text-muted-foreground">
+                      Monedas extra que se suman en momentos especiales. Déjalos en 0 si no deseas
+                      activarlos.
+                    </p>
+                  </div>
+
+                  <StackedFieldRow
                     id="first-purchase-bonus"
                     label="Primera compra"
                     error={errors.firstPurchaseBonusPoints}
+                    description="Monedas de bienvenida que recibe un cliente nuevo al reclamar su primera compra en el negocio."
                   >
                     <Input
                       id="first-purchase-bonus"
@@ -610,11 +549,13 @@ function ProgramForm({
                       onChange={(event) => update("firstPurchaseBonusPoints", event.target.value)}
                       aria-invalid={Boolean(errors.firstPurchaseBonusPoints)}
                     />
-                  </Field>
-                  <Field
+                  </StackedFieldRow>
+
+                  <StackedFieldRow
                     id="recurrence-bonus"
                     label="Recurrencia"
                     error={errors.recurrenceBonusPoints}
+                    description="Monedas extra para premiar a clientes que compran con frecuencia en tu negocio."
                   >
                     <Input
                       id="recurrence-bonus"
@@ -623,8 +564,14 @@ function ProgramForm({
                       onChange={(event) => update("recurrenceBonusPoints", event.target.value)}
                       aria-invalid={Boolean(errors.recurrenceBonusPoints)}
                     />
-                  </Field>
-                  <Field id="referral-bonus" label="Referidos" error={errors.referralBonusPoints}>
+                  </StackedFieldRow>
+
+                  <StackedFieldRow
+                    id="referral-bonus"
+                    label="Referidos"
+                    error={errors.referralBonusPoints}
+                    description="Monedas extra cuando un cliente refiere a un amigo y este realiza su primera compra."
+                  >
                     <Input
                       id="referral-bonus"
                       inputMode="numeric"
@@ -632,43 +579,48 @@ function ProgramForm({
                       onChange={(event) => update("referralBonusPoints", event.target.value)}
                       aria-invalid={Boolean(errors.referralBonusPoints)}
                     />
-                  </Field>
+                  </StackedFieldRow>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Los bonos suman monedas extra en hitos clave (primera compra, recurrencia o
-                  referidos), además de las ganadas por compra. Usa 0 para desactivarlos.
-                </p>
-              </div>
 
-              <label className="lp-subpanel flex cursor-pointer items-start gap-3">
-                <input
-                  type="checkbox"
-                  checked={form.isActive}
-                  onChange={(event) => update("isActive", event.target.checked)}
-                  className="mt-0.5 size-4 cursor-pointer rounded-none border-input accent-[var(--lp-accent-control)]"
-                />
-                <span className="space-y-0.5">
-                  <span className="block text-sm font-semibold">Programa activo</span>
-                  <span className="block text-xs text-muted-foreground">
-                    Al activarlo, tus clientes afiliados podrán acumular monedas en cada compra y
-                    solicitar recompensas.
+                <label className="lp-subpanel flex cursor-pointer items-start gap-3">
+                  <input
+                    type="checkbox"
+                    checked={form.isActive}
+                    onChange={(event) => update("isActive", event.target.checked)}
+                    className="mt-0.5 size-4 cursor-pointer rounded-none border-input accent-[var(--lp-accent-control)]"
+                  />
+                  <span className="space-y-0.5">
+                    <span className="block text-sm font-semibold">Programa activo</span>
+                    <span className="block text-xs text-muted-foreground">
+                      Al activarlo, tus clientes afiliados podrán acumular monedas en cada compra y
+                      solicitar recompensas.
+                    </span>
                   </span>
-                </span>
-              </label>
+                </label>
 
-              <div className="flex flex-wrap justify-between gap-3 border-t-2 border-[var(--lp-ink)] pt-3">
-                <Button type="button" variant="outline" onClick={resetToDefaults}>
-                  <RotateCcw aria-hidden="true" />
-                  Valores sugeridos
-                </Button>
-                <Button type="submit" loading={configureProgram.isPending}>
-                  <CheckCircle2 aria-hidden="true" />
-                  {form.isActive ? "Guardar y activar" : "Guardar programa"}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
+                <div className="flex flex-wrap justify-between gap-3 border-t-2 border-[var(--lp-ink)] pt-3">
+                  <Button type="button" variant="outline" onClick={resetToDefaults}>
+                    <RotateCcw aria-hidden="true" />
+                    Valores sugeridos
+                  </Button>
+                  <Button type="submit" loading={configureProgram.isPending}>
+                    <CheckCircle2 aria-hidden="true" />
+                    {form.isActive ? "Guardar y activar" : "Guardar programa"}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+
+          {/* Simulador interactivo debajo del formulario */}
+          <PurchaseSimulatorCard
+            copPerPoint={copPerPoint}
+            pointsPerThousand={pointsPerThousand}
+            avgTicket={economic.avgTicket}
+            firstPurchaseBonusPoints={firstBonus}
+            recurrenceBonusPoints={recurrenceBonus}
+          />
+        </div>
 
         <div className="space-y-3.5">
           <Card>
@@ -678,21 +630,16 @@ function ProgramForm({
             <CardContent className="space-y-2.5 text-sm">
               <SummaryRow
                 label="Acumulación"
-                value={validNumbers ? `1 moneda por cada ${formatCOP(copPerPoint)}` : "—"}
+                value={`1 moneda por cada ${formatCOP(copPerPoint)}`}
               />
               <SummaryRow
                 label="Valor al canjear"
-                value={validNumbers ? `1 moneda = ${formatPointValueCOP(pointValueCop)}` : "—"}
+                value={`1 moneda = ${formatPointValueCOP(pointValueCop)}`}
               />
-              <SummaryRow
-                label="Cien monedas"
-                value={validNumbers ? formatCOP(pointValueCop * 100) : "—"}
-              />
+              <SummaryRow label="Cien monedas" value={formatCOP(pointValueCop * 100)} />
               <SummaryRow
                 label="Costo estimado"
-                value={
-                  validNumbers ? `${(estimatedCostRate * 100).toFixed(1)} % de las ventas` : "—"
-                }
+                value={`${(estimatedCostRate * 100).toFixed(1)} % de las ventas`}
               />
               <SummaryRow
                 label="Presupuesto declarado"
@@ -767,8 +714,7 @@ function ProgramForm({
               </div>
             )}
 
-          {validNumbers &&
-            Number.isFinite(budgetRate) &&
+          {Number.isFinite(budgetRate) &&
             budgetRate >= 0 &&
             (estimatedCostRate > budgetRate + 0.0005 ? (
               <div className="lp-tip-box flex items-start gap-2 rounded-none p-3 text-xs">
@@ -778,8 +724,8 @@ function ProgramForm({
                 />
                 <p>
                   El costo estimado de canje ({(estimatedCostRate * 100).toFixed(1)} %) supera el
-                  presupuesto declarado ({(budgetRate * 100).toFixed(1)} %). Ajusta la acumulación,
-                  el valor de la moneda o usa el cálculo automático según tu tasa.
+                  presupuesto declarado ({(budgetRate * 100).toFixed(1)} %). Sube la tasa de
+                  presupuesto si deseas alinear el cálculo.
                 </p>
               </div>
             ) : (
@@ -833,6 +779,63 @@ function ProgramForm({
       </div>
 
       <FrequentCriteriaCard business={business} program={program} />
+    </div>
+  );
+}
+
+function StackedFieldRow({
+  id,
+  label,
+  description,
+  extraHint,
+  error,
+  badge,
+  locked = false,
+  action,
+  children,
+}: {
+  id: string;
+  label: string;
+  description: string;
+  extraHint?: string;
+  error?: string;
+  badge?: string;
+  locked?: boolean;
+  action?: React.ReactNode;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      className={
+        locked
+          ? "grid gap-2.5 border-2 border-[var(--lp-ink)] bg-[var(--lp-paper-deep)] p-3 md:grid-cols-[240px_minmax(0,1fr)] md:items-center"
+          : "grid gap-2.5 border-2 border-[var(--lp-ink)] bg-card p-3 md:grid-cols-[240px_minmax(0,1fr)] md:items-center"
+      }
+    >
+      <div className="space-y-1.5">
+        <div className="flex flex-wrap items-center justify-between gap-1.5">
+          <Label htmlFor={id} className="text-sm font-semibold leading-tight">
+            {label}
+          </Label>
+          {badge && (
+            <Badge variant="outline" className="gap-1 font-mono text-[10px]">
+              {locked && <Lock className="size-2.5" aria-hidden="true" />}
+              {badge}
+            </Badge>
+          )}
+        </div>
+        {children}
+        {error && (
+          <p className="text-xs font-semibold text-destructive" role="alert">
+            {error}
+          </p>
+        )}
+        {action}
+      </div>
+      <div className="space-y-1 text-xs leading-relaxed text-muted-foreground md:border-l-2 md:border-[var(--lp-paper-deep)] md:pl-3.5">
+        <p>{description}</p>
+        {extraHint && <p className="font-mono font-semibold text-foreground">{extraHint}</p>}
+      </div>
     </div>
   );
 }

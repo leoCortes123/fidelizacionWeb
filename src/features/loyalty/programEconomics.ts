@@ -3,6 +3,28 @@ import type { BusinessEconomicProfile } from "@/types";
 
 export const SLUG_REGEX = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
+/** Equivalencia fija inicial de la plataforma: 100 monedas = $1.000 COP ($10/moneda). */
+export const FIXED_POINTS_PER_THOUSAND = 100;
+export const FIXED_POINT_VALUE_COP = 1000 / FIXED_POINTS_PER_THOUSAND;
+
+/**
+ * Calcula los COP que debe gastar un cliente para ganar 1 moneda cuando
+ * `pointsPerThousand` es fijo (por defecto 100 monedas = $1.000 COP).
+ * Ej.: 1 % -> $1.000, 2 % -> $500, 2,5 % -> $400, 5 % -> $200, 10 % -> $100.
+ */
+export function computeCopPerPointFromBudgetRate(
+  budgetRatePercent: number,
+  pointsPerThousand = FIXED_POINTS_PER_THOUSAND,
+): number {
+  if (!Number.isFinite(budgetRatePercent) || budgetRatePercent <= 0) {
+    return 1000;
+  }
+  const rate = budgetRatePercent / 100;
+  const pointValue = 1000 / pointsPerThousand;
+  const computed = Math.round(pointValue / rate);
+  return Math.max(100, Math.min(1_000_000, computed));
+}
+
 export const DAY_LABELS: Record<number, string> = {
   1: "Lun",
   2: "Mar",

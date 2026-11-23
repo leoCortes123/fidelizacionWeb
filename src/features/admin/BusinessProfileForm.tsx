@@ -4,10 +4,12 @@ import {
   CalendarDays,
   Camera,
   CheckCircle2,
+  Globe,
   ImageOff,
   Loader2,
   MapPin,
   Phone,
+  Share2,
   Trash2,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -41,6 +43,10 @@ import { ErrorState, LoadingScreen } from "@/components/shared/States";
 
 const phonePattern = /^\+?[0-9\s().-]{7,20}$/;
 const instagramPattern = /^@?[A-Za-z0-9._]{1,30}$/;
+const socialHandleOrUrlPattern = /^(@?[A-Za-z0-9._/@-]{2,120}|https?:\/\/[^\s]{4,120})$/;
+const safeSocialValue = (value: string) =>
+  value === "" ||
+  (socialHandleOrUrlPattern.test(value) && !value.includes("..") && !/^javascript:/i.test(value));
 const websitePattern = /^(https?:\/\/)?[^\s]+\.[^\s]{2,}$/;
 
 export const businessProfileSchema = z.object({
@@ -74,6 +80,26 @@ export const businessProfileSchema = z.object({
       (value) => value === "" || instagramPattern.test(value),
       "Escribe un usuario de Instagram válido.",
     ),
+  facebook: z
+    .string()
+    .trim()
+    .max(120, "El usuario o enlace de Facebook supera 120 caracteres.")
+    .refine(safeSocialValue, "Escribe un usuario o enlace de Facebook válido."),
+  tiktok: z
+    .string()
+    .trim()
+    .max(120, "El usuario o enlace de TikTok supera 120 caracteres.")
+    .refine(safeSocialValue, "Escribe un usuario o enlace de TikTok válido."),
+  twitter: z
+    .string()
+    .trim()
+    .max(120, "El usuario o enlace de X supera 120 caracteres.")
+    .refine(safeSocialValue, "Escribe un usuario o enlace de X (Twitter) válido."),
+  youtube: z
+    .string()
+    .trim()
+    .max(120, "El canal o enlace de YouTube supera 120 caracteres.")
+    .refine(safeSocialValue, "Escribe un canal o enlace de YouTube válido."),
   website: z
     .string()
     .trim()
@@ -112,6 +138,10 @@ function fromProfile(
     phoneWhatsapp: profile.phone_whatsapp ?? "",
     phone: profile.phone ?? "",
     instagram: profile.instagram ?? "",
+    facebook: profile.facebook ?? "",
+    tiktok: profile.tiktok ?? "",
+    twitter: profile.twitter ?? "",
+    youtube: profile.youtube ?? "",
     website: profile.website ?? "",
     timezone: profile.timezone || fallbackBusiness?.timezone || "America/Bogota",
     operatingDays: normalizeOperatingDays(
@@ -122,11 +152,15 @@ function fromProfile(
 }
 
 /**
- * Ficha del negocio: datos públicos, contacto, redes y logo. El logo se
- * comprime en el navegador y se sube al bucket `business-assets`; la base de
- * datos valida que la URL pertenece al negocio.
+ * Ficha del negocio: datos públicos, contacto, redes sociales y logo.
  */
-export function BusinessProfileForm({ business }: { business: Business }) {
+export function BusinessProfileForm({
+  business,
+  embeddedSocialLayout = false,
+}: {
+  business: Business;
+  embeddedSocialLayout?: boolean;
+}) {
   const profile = useBusinessProfile(business.id);
 
   if (profile.isLoading) return <LoadingScreen label="Cargando el perfil del negocio…" />;
@@ -139,15 +173,23 @@ export function BusinessProfileForm({ business }: { business: Business }) {
     );
   }
 
-  return <BusinessProfileFields business={business} profile={profile.data} />;
+  return (
+    <BusinessProfileFields
+      business={business}
+      profile={profile.data}
+      embeddedSocialLayout={embeddedSocialLayout}
+    />
+  );
 }
 
 function BusinessProfileFields({
   business,
   profile,
+  embeddedSocialLayout,
 }: {
   business: Business;
   profile: BusinessProfile;
+  embeddedSocialLayout: boolean;
 }) {
   const updateProfile = useUpdateBusinessProfile();
   const updateBusiness = useUpdateBusiness();
@@ -224,6 +266,10 @@ function BusinessProfileFields({
         phoneWhatsapp: parsed.data.phoneWhatsapp,
         phone: parsed.data.phone,
         instagram: parsed.data.instagram,
+        facebook: parsed.data.facebook,
+        tiktok: parsed.data.tiktok,
+        twitter: parsed.data.twitter,
+        youtube: parsed.data.youtube,
         website: parsed.data.website,
       });
       setForm({
@@ -288,68 +334,70 @@ function BusinessProfileFields({
         <CardHeader className="pb-2.5">
           <CardTitle className="flex items-center gap-2 text-base">
             <Building2 className="size-4 text-[var(--lp-accent-link)]" aria-hidden="true" />
-            Identidad del negocio
+            Identidad y redes del negocio
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3.5">
-          <div className="lp-subpanel flex flex-col gap-3 sm:flex-row sm:items-center">
-            <div className="grid size-16 shrink-0 place-items-center overflow-hidden rounded-none border-2 border-[var(--lp-ink)] bg-card">
-              {profile.logo_url ? (
-                <img
-                  src={profile.logo_url}
-                  alt={`Logo de ${profile.name}`}
-                  className="size-full object-cover"
-                />
-              ) : (
-                <ImageOff className="size-6 text-muted-foreground" aria-hidden="true" />
-              )}
-            </div>
-            <div className="min-w-0 flex-1 space-y-1">
-              <p className="text-sm font-semibold">Logo o foto del negocio</p>
-              <p className="text-xs text-muted-foreground">
-                JPEG, PNG o WebP. Se reduce a 1200 px y se sube de forma segura.
-              </p>
-              <div className="flex flex-wrap gap-2 pt-0.5">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  loading={uploading}
-                  onClick={() => fileInput.current?.click()}
-                >
-                  <Camera aria-hidden="true" />
-                  {profile.logo_url ? "Reemplazar logo" : "Subir logo"}
-                </Button>
-                {profile.logo_url && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => void handleRemoveLogo()}
-                    disabled={uploading}
-                  >
-                    <Trash2 aria-hidden="true" />
-                    Quitar
-                  </Button>
+        <CardContent className="space-y-4">
+          {!embeddedSocialLayout && (
+            <div className="lp-subpanel flex flex-col gap-3 sm:flex-row sm:items-center">
+              <div className="grid size-16 shrink-0 place-items-center overflow-hidden rounded-none border-2 border-[var(--lp-ink)] bg-card">
+                {profile.logo_url ? (
+                  <img
+                    src={profile.logo_url}
+                    alt={`Logo de ${profile.name}`}
+                    className="size-full object-cover"
+                  />
+                ) : (
+                  <ImageOff className="size-6 text-muted-foreground" aria-hidden="true" />
                 )}
               </div>
-              <input
-                ref={fileInput}
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                className="sr-only"
-                tabIndex={-1}
-                aria-label="Subir logo del negocio"
-                data-testid="logo-input"
-                onChange={(event) => void handleLogo(event)}
-              />
+              <div className="min-w-0 flex-1 space-y-1">
+                <p className="text-sm font-semibold">Logo o foto del negocio</p>
+                <p className="text-xs text-muted-foreground">
+                  JPEG, PNG o WebP. Se reduce a 1200 px y se sube de forma segura.
+                </p>
+                <div className="flex flex-wrap gap-2 pt-0.5">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    loading={uploading}
+                    onClick={() => fileInput.current?.click()}
+                  >
+                    <Camera aria-hidden="true" />
+                    {profile.logo_url ? "Reemplazar logo" : "Subir logo"}
+                  </Button>
+                  {profile.logo_url && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => void handleRemoveLogo()}
+                      disabled={uploading}
+                    >
+                      <Trash2 aria-hidden="true" />
+                      Quitar
+                    </Button>
+                  )}
+                </div>
+                <input
+                  ref={fileInput}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  className="sr-only"
+                  tabIndex={-1}
+                  aria-label="Subir logo del negocio"
+                  data-testid="logo-input"
+                  onChange={(event) => void handleLogo(event)}
+                />
+              </div>
+              {uploading && (
+                <Loader2 className="size-5 animate-spin text-muted-foreground" aria-hidden="true" />
+              )}
             </div>
-            {uploading && (
-              <Loader2 className="size-5 animate-spin text-muted-foreground" aria-hidden="true" />
-            )}
-          </div>
+          )}
 
-          <form onSubmit={handleSubmit} className="space-y-3.5" noValidate>
+          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
             <div className="grid gap-3 sm:grid-cols-2">
               <Field
                 id="business-name"
@@ -491,92 +539,181 @@ function BusinessProfileFields({
               </div>
             </div>
 
-            <div className="flex items-center gap-2 text-sm font-semibold">
-              <MapPin className="size-4 text-[var(--lp-accent-link)]" aria-hidden="true" />
-              Ubicación
-            </div>
-            <div className="grid gap-3 sm:grid-cols-3">
-              <Field id="business-address" label="Dirección" error={errors.address}>
-                <Input
-                  id="business-address"
-                  value={form.address}
-                  onChange={(event) => update("address", event.target.value)}
-                  autoComplete="street-address"
-                />
-              </Field>
-              <Field id="business-neighborhood" label="Barrio" error={errors.neighborhood}>
-                <Input
-                  id="business-neighborhood"
-                  value={form.neighborhood}
-                  onChange={(event) => update("neighborhood", event.target.value)}
-                />
-              </Field>
-              <Field id="business-city" label="Ciudad" error={errors.city}>
-                <Input
-                  id="business-city"
-                  value={form.city}
-                  onChange={(event) => update("city", event.target.value)}
-                  autoComplete="address-level2"
-                />
-              </Field>
+            <div className="space-y-2.5">
+              <div className="flex items-center gap-2 text-sm font-semibold">
+                <MapPin className="size-4 text-[var(--lp-accent-link)]" aria-hidden="true" />
+                Ubicación
+              </div>
+              <div className="grid gap-3 sm:grid-cols-3">
+                <Field id="business-address" label="Dirección" error={errors.address}>
+                  <Input
+                    id="business-address"
+                    value={form.address}
+                    onChange={(event) => update("address", event.target.value)}
+                    autoComplete="street-address"
+                  />
+                </Field>
+                <Field id="business-neighborhood" label="Barrio" error={errors.neighborhood}>
+                  <Input
+                    id="business-neighborhood"
+                    value={form.neighborhood}
+                    onChange={(event) => update("neighborhood", event.target.value)}
+                  />
+                </Field>
+                <Field id="business-city" label="Ciudad" error={errors.city}>
+                  <Input
+                    id="business-city"
+                    value={form.city}
+                    onChange={(event) => update("city", event.target.value)}
+                    autoComplete="address-level2"
+                  />
+                </Field>
+              </div>
             </div>
 
-            <div className="flex items-center gap-2 text-sm font-semibold">
-              <Phone className="size-4 text-[var(--lp-accent-link)]" aria-hidden="true" />
-              Contacto y redes
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Field
-                id="business-whatsapp"
-                label="WhatsApp"
-                help="Con indicativo, por ejemplo +57 300 123 4567."
-                error={errors.phoneWhatsapp}
-              >
-                <Input
+            <div className="space-y-2.5">
+              <div className="flex items-center gap-2 text-sm font-semibold">
+                <Phone className="size-4 text-[var(--lp-accent-link)]" aria-hidden="true" />
+                Contacto directo
+              </div>
+              <div className="grid gap-3 sm:grid-cols-3">
+                <Field
                   id="business-whatsapp"
-                  value={form.phoneWhatsapp}
-                  onChange={(event) => update("phoneWhatsapp", event.target.value)}
-                  inputMode="tel"
-                  autoComplete="tel"
-                />
-              </Field>
-              <Field id="business-phone" label="Teléfono fijo" error={errors.phone}>
-                <Input
-                  id="business-phone"
-                  value={form.phone}
-                  onChange={(event) => update("phone", event.target.value)}
-                  inputMode="tel"
-                />
-              </Field>
-              <Field
-                id="business-instagram"
-                label="Instagram"
-                help="Solo el usuario, con o sin @."
-                error={errors.instagram}
-              >
-                <Input
-                  id="business-instagram"
-                  value={form.instagram}
-                  onChange={(event) => update("instagram", event.target.value)}
-                  autoCapitalize="none"
-                  spellCheck={false}
-                />
-              </Field>
-              <Field
-                id="business-website"
-                label="Sitio web"
-                help="Si no incluyes https://, lo añadimos nosotros."
-                error={errors.website}
-              >
-                <Input
+                  label="WhatsApp"
+                  help="Con indicativo, por ejemplo +57 300 123 4567."
+                  error={errors.phoneWhatsapp}
+                >
+                  <Input
+                    id="business-whatsapp"
+                    value={form.phoneWhatsapp}
+                    onChange={(event) => update("phoneWhatsapp", event.target.value)}
+                    placeholder="+57 300 123 4567"
+                    inputMode="tel"
+                    autoComplete="tel"
+                  />
+                </Field>
+                <Field id="business-phone" label="Teléfono fijo" error={errors.phone}>
+                  <Input
+                    id="business-phone"
+                    value={form.phone}
+                    onChange={(event) => update("phone", event.target.value)}
+                    placeholder="601 234 5678"
+                    inputMode="tel"
+                  />
+                </Field>
+                <Field
                   id="business-website"
-                  value={form.website}
-                  onChange={(event) => update("website", event.target.value)}
-                  inputMode="url"
-                  autoCapitalize="none"
-                  spellCheck={false}
-                />
-              </Field>
+                  label="Sitio web"
+                  help="Si no incluyes https://, lo añadimos nosotros."
+                  error={errors.website}
+                >
+                  <div className="relative">
+                    <Globe
+                      className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+                      aria-hidden="true"
+                    />
+                    <Input
+                      id="business-website"
+                      className="pl-8"
+                      value={form.website}
+                      onChange={(event) => update("website", event.target.value)}
+                      placeholder="tunegocio.com"
+                      inputMode="url"
+                      autoCapitalize="none"
+                      spellCheck={false}
+                    />
+                  </div>
+                </Field>
+              </div>
+            </div>
+
+            <div className="lp-subpanel space-y-3">
+              <div className="flex items-center gap-2 text-sm font-semibold">
+                <Share2 className="size-4 text-[var(--lp-accent-link)]" aria-hidden="true" />
+                Redes sociales
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Conecta tus perfiles más populares para que tus clientes te encuentren y compartan
+                tus recompensas.
+              </p>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field
+                  id="business-instagram"
+                  label="Instagram"
+                  help="Solo el usuario, con o sin @."
+                  error={errors.instagram}
+                >
+                  <Input
+                    id="business-instagram"
+                    value={form.instagram}
+                    onChange={(event) => update("instagram", event.target.value)}
+                    placeholder="@tunegocio"
+                    autoCapitalize="none"
+                    spellCheck={false}
+                  />
+                </Field>
+                <Field
+                  id="business-facebook"
+                  label="Facebook"
+                  help="Página, usuario o enlace completo."
+                  error={errors.facebook}
+                >
+                  <Input
+                    id="business-facebook"
+                    value={form.facebook}
+                    onChange={(event) => update("facebook", event.target.value)}
+                    placeholder="facebook.com/tunegocio"
+                    autoCapitalize="none"
+                    spellCheck={false}
+                  />
+                </Field>
+                <Field
+                  id="business-tiktok"
+                  label="TikTok"
+                  help="Usuario con @ o enlace al perfil."
+                  error={errors.tiktok}
+                >
+                  <Input
+                    id="business-tiktok"
+                    value={form.tiktok}
+                    onChange={(event) => update("tiktok", event.target.value)}
+                    placeholder="@tunegocio"
+                    autoCapitalize="none"
+                    spellCheck={false}
+                  />
+                </Field>
+                <Field
+                  id="business-twitter"
+                  label="X (Twitter)"
+                  help="Usuario con @ o enlace al perfil."
+                  error={errors.twitter}
+                >
+                  <Input
+                    id="business-twitter"
+                    value={form.twitter}
+                    onChange={(event) => update("twitter", event.target.value)}
+                    placeholder="@tunegocio"
+                    autoCapitalize="none"
+                    spellCheck={false}
+                  />
+                </Field>
+                <Field
+                  id="business-youtube"
+                  label="YouTube"
+                  help="Canal (@tunegocio) o enlace completo."
+                  error={errors.youtube}
+                  className="sm:col-span-2"
+                >
+                  <Input
+                    id="business-youtube"
+                    value={form.youtube}
+                    onChange={(event) => update("youtube", event.target.value)}
+                    placeholder="@tunegocio o https://youtube.com/@tunegocio"
+                    autoCapitalize="none"
+                    spellCheck={false}
+                  />
+                </Field>
+              </div>
             </div>
 
             <div className="flex flex-wrap items-center justify-between gap-3 border-t-2 border-[var(--lp-ink)] pt-3">

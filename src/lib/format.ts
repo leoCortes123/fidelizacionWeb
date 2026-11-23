@@ -83,6 +83,84 @@ export function formatShortDateTimeBogota(value: string | null | undefined): str
   }).format(date);
 }
 
+const bogotaIsoDateFormatter = new Intl.DateTimeFormat("en-CA", {
+  timeZone: "America/Bogota",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+const bogotaTimeFormatter = new Intl.DateTimeFormat("es-CO", {
+  timeZone: "America/Bogota",
+  hour: "numeric",
+  minute: "2-digit",
+  hour12: true,
+});
+
+const bogotaDayFormatter = new Intl.DateTimeFormat("es-CO", {
+  timeZone: "America/Bogota",
+  day: "numeric",
+  month: "short",
+  year: "numeric",
+});
+
+function bogotaDayKey(date: Date): string {
+  return bogotaIsoDateFormatter.format(date);
+}
+
+/**
+ * Formatea una fecha en zona horaria `America/Bogota` con etiquetas humanas
+ * para el día ("Hoy", "Ayer" o fecha corta) y la hora bien legible.
+ */
+export function formatFriendlyDatePartsBogota(
+  value: string | null | undefined,
+  now: Date = new Date(),
+): { dayLabel: string; timeLabel: string; fullLabel: string } {
+  if (!value) return { dayLabel: "—", timeLabel: "", fullLabel: "—" };
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return { dayLabel: "—", timeLabel: "", fullLabel: "—" };
+
+  const targetKey = bogotaDayKey(date);
+  const todayKey = bogotaDayKey(now);
+  const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+  const yesterdayKey = bogotaDayKey(yesterday);
+
+  let dayLabel: string;
+  if (targetKey === todayKey) {
+    dayLabel = "Hoy";
+  } else if (targetKey === yesterdayKey) {
+    dayLabel = "Ayer";
+  } else {
+    dayLabel = bogotaDayFormatter.format(date);
+  }
+
+  const timeLabel = bogotaTimeFormatter.format(date);
+  return {
+    dayLabel,
+    timeLabel,
+    fullLabel: `${dayLabel}, ${timeLabel}`,
+  };
+}
+
+/**
+ * Determina el estado efectivo de reclamación de puntos de una compra según la
+ * vigencia de su QR: si está en `pending_claim` pero ya superó `expires_at`,
+ * se considera `expired`.
+ */
+export function effectivePurchaseStatus<T extends string>(
+  status: T,
+  expiresAt?: string | null,
+  nowMs: number = Date.now(),
+): T | "expired" {
+  if (status === "pending_claim" && expiresAt) {
+    const expMs = new Date(expiresAt).getTime();
+    if (Number.isFinite(expMs) && expMs <= nowMs) {
+      return "expired";
+    }
+  }
+  return status;
+}
+
 export function pointsPreview(
   amountCop: number,
   copPerPointUnit: number,

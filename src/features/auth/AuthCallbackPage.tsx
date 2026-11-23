@@ -5,8 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { FullPageLoader } from "@/components/shared/States";
 import { useAuth } from "./AuthProvider";
-import { safeNextPath } from "@/lib/config";
-import { clearPendingClaim } from "@/lib/pendingClaim";
+import { isNextPathCompatibleWithRoles, safeNextPath } from "@/lib/config";
+import { clearPendingClaim, pendingClaimPath } from "@/lib/pendingClaim";
 import { resolvePostLoginPath } from "@/lib/postLogin";
 
 export function AuthCallbackPage() {
@@ -20,17 +20,21 @@ export function AuthCallbackPage() {
   useEffect(() => {
     if (loading || rolesLoading || !rolesLoaded) return;
     if (!session) return;
-    const isGenericAdminHome = next === "/admin" || next === "/admin/dashboard";
-    if (next && !isGenericAdminHome) {
+    if (next && isNextPathCompatibleWithRoles(next, roles)) {
       if (!next.startsWith("/claim/")) {
         clearPendingClaim();
       }
       navigate(next, { replace: true });
       return;
     }
+    const pendingClaim = !next ? pendingClaimPath() : null;
+    if (pendingClaim) {
+      navigate(pendingClaim, { replace: true });
+      return;
+    }
     clearPendingClaim();
     let active = true;
-    void resolvePostLoginPath(roles).then((destination) => {
+    void resolvePostLoginPath(roles, session.user.id).then((destination) => {
       if (active) navigate(destination, { replace: true });
     });
     return () => {

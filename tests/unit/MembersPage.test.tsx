@@ -28,12 +28,26 @@ const fixture = vi.hoisted(() => ({
       business_id: "biz-1",
       user_id: "user-ana",
       full_name: "Ana Encargada",
+      nickname: "anaencargada",
+      phone: "+57 300 111 2222",
       email: "ana@example.test",
       role: "encargado",
       can_approve_redemptions: true,
       created_by: "user-admin",
       created_at: "2026-01-02T12:00:00.000Z",
       updated_at: "2026-01-02T12:00:00.000Z",
+    },
+    {
+      id: "mem-cliente",
+      business_id: "biz-1",
+      user_id: "user-cliente",
+      full_name: "Cliente Oculto",
+      email: "cliente@example.test",
+      role: "cliente",
+      can_approve_redemptions: false,
+      created_by: "user-admin",
+      created_at: "2026-01-03T12:00:00.000Z",
+      updated_at: "2026-01-03T12:00:00.000Z",
     },
   ] as BusinessMembershipWithProfile[],
 }));
@@ -85,11 +99,13 @@ describe("MembersPage", () => {
     });
   });
 
-  it("lista los miembros y alterna el permiso de aprobación", async () => {
+  it("oculta clientes, muestra el detalle del miembro y alterna permiso de aprobación", async () => {
     const user = userEvent.setup();
     renderPage();
 
     expect(screen.getByText("Ana Encargada")).toBeInTheDocument();
+    expect(screen.queryByText("Cliente Oculto")).not.toBeInTheDocument();
+
     const checkbox = screen.getByRole("checkbox", {
       name: /Puede aprobar redenciones/i,
     });
@@ -103,25 +119,28 @@ describe("MembersPage", () => {
         canApproveRedemptions: false,
       }),
     );
+
+    await user.click(screen.getByRole("button", { name: /Ver detalle/i }));
+    const dialog = within(screen.getByRole("dialog"));
+    expect(dialog.getByText("Detalle del miembro")).toBeInTheDocument();
+    expect(dialog.getByText("@anaencargada")).toBeInTheDocument();
+    expect(dialog.getByText("+57 300 111 2222")).toBeInTheDocument();
   });
 
-  it("genera un código QR de invitación para encargado con permiso de aprobación", async () => {
+  it("genera el QR de encargado directamente al abrir Añadir miembro sin selector de rol", async () => {
     const user = userEvent.setup();
     renderPage();
 
     await user.click(screen.getByRole("button", { name: /Añadir miembro/i }));
     const dialog = within(screen.getByRole("dialog"));
 
-    expect(dialog.queryByLabelText("Buscar persona")).not.toBeInTheDocument();
-
-    await user.click(dialog.getByRole("checkbox", { name: /Puede aprobar redenciones/i }));
-    await user.click(dialog.getByRole("button", { name: /Generar QR/i }));
+    expect(dialog.queryByRole("combobox", { name: /Rol en el negocio/i })).not.toBeInTheDocument();
 
     await waitFor(() => expect(createInvite).toHaveBeenCalledTimes(1));
     expect(createInvite).toHaveBeenCalledWith({
       businessId: "biz-1",
       role: "encargado",
-      canApproveRedemptions: true,
+      canApproveRedemptions: false,
     });
 
     expect(
@@ -130,45 +149,19 @@ describe("MembersPage", () => {
     expect(dialog.getByLabelText("Enlace de invitación de miembro")).toHaveValue(
       "https://fidelizacion01.vercel.app/login?mode=register&invite=inv_token_12345678901234567890",
     );
-  });
 
-  it("genera un QR para cliente sin permiso de aprobación y permite generar otro", async () => {
-    createInvite.mockResolvedValueOnce({
-      invite_id: "inv-2",
-      token: "inv_cliente_12345678901234567890",
-      business_id: "biz-1",
-      business_name: "Taquería El Fogón",
-      business_slug: "taqueria-el-fogon",
-      role: "cliente",
-      can_approve_redemptions: false,
-      expires_at: "2026-11-13T12:00:00.000Z",
-    });
+    // Activar permiso regenera el QR con aprobación habilitada
+    await user.click(dialog.getByRole("checkbox", { name: /Puede aprobar redenciones/i }));
+    await waitFor(() =>
+      expect(createInvite).toHaveBeenLastCalledWith({
+        businessId: "biz-1",
+        role: "encargado",
+        canApproveRedemptions: true,
+      }),
+    );
 
-    const user = userEvent.setup();
-    renderPage();
-
-    await user.click(screen.getByRole("button", { name: /Añadir miembro/i }));
-    const dialog = within(screen.getByRole("dialog"));
-
-    await user.click(dialog.getByRole("combobox", { name: /Rol en el negocio/i }));
-    await user.click(await screen.findByRole("option", { name: "Cliente" }));
-
-    expect(
-      dialog.queryByRole("checkbox", { name: /Puede aprobar redenciones/i }),
-    ).not.toBeInTheDocument();
-
-    await user.click(dialog.getByRole("button", { name: /Generar QR/i }));
-
-    await waitFor(() => expect(createInvite).toHaveBeenCalledTimes(1));
-    expect(createInvite).toHaveBeenCalledWith({
-      businessId: "biz-1",
-      role: "cliente",
-      canApproveRedemptions: false,
-    });
-
-    expect(await dialog.findByText(/Rol: Cliente/i)).toBeInTheDocument();
-
+    // Generar otro QR solicita inmediatamente otro código
     await user.click(dialog.getByRole("button", { name: /Generar otro QR/i }));
-    expect(dialog.getByRole("button", { name: /Generar QR/i })).toBeInTheDocument();
+    await waitFor(() => expect(createInvite).toHaveBeenCalledTimes(3));
   });
 });

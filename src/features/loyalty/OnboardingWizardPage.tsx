@@ -3,13 +3,13 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   ArrowLeft,
   ArrowRight,
-  Calculator,
   CalendarDays,
   Check,
   CheckCircle2,
   CircleDollarSign,
   Info,
   Link2,
+  Lock,
   RotateCcw,
   Save,
   Sparkles,
@@ -31,7 +31,7 @@ import {
 } from "@/features/loyalty/hooks";
 import { publicAppUrl } from "@/lib/config";
 import { errorMessage } from "@/lib/errors";
-import { formatCOP, formatNumber } from "@/lib/format";
+import { formatCOP, formatNumber, formatPointValueCOP } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -44,13 +44,16 @@ import { Field } from "@/components/shared/Field";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { ErrorState, ListSkeleton, LoadingScreen } from "@/components/shared/States";
 import { EconomicDataForm, isEconomicProfileEmpty } from "@/features/admin/EconomicDataForm";
+import { PurchaseSimulatorCard } from "@/features/loyalty/PurchaseSimulatorCard";
 import {
   analyzeEconomicProfile,
   analyzeProgramEconomics,
   COMMON_TIMEZONES,
+  computeCopPerPointFromBudgetRate,
   DAY_LABELS,
   DAY_PRESETS,
   estimateMonthlyOperationDays,
+  FIXED_POINTS_PER_THOUSAND,
   parseProgramDecimal,
   parseProgramInteger,
   SLUG_REGEX,
@@ -532,8 +535,8 @@ function Wizard({
     (product) => product.cost_cop === null || product.cost_cop <= 0,
   );
 
-  const copPerPoint = parseWizardInteger(draft.copPerPointUnit);
   const parsedBudgetRatePercent = parseWizardDecimal(draft.budgetRatePercent);
+  const copPerPoint = computeCopPerPointFromBudgetRate(parsedBudgetRatePercent);
   const estimatedMonthlyDays = estimateMonthlyOperationDays(draft.operatingDays);
   const { effectiveGrossMargin, monthlySales, monthlyGain, avgTicket, configuredMaxBudget } =
     economic;
@@ -542,10 +545,7 @@ function Wizard({
     referenceBudget,
     maxBudget,
     effectiveProgramBudget,
-    costPerPoint,
-    pointsPerThousand,
-    examplePurchasePoints,
-    exampleAvgTicketPoints,
+    pointValueCop,
     suggestedRateFromCap,
     utilityAbsorptionPct,
     netMarginAfterRewards,
@@ -553,15 +553,13 @@ function Wizard({
     economic,
     copPerPoint,
     budgetRatePercent: parsedBudgetRatePercent,
+    explicitPointsPerThousand: FIXED_POINTS_PER_THOUSAND,
   });
+  const pointsPerThousand = FIXED_POINTS_PER_THOUSAND;
+  const costPerPoint = pointValueCop ?? 10;
 
   function suggestedPoints(product: Product): number | null {
-    if (
-      product.cost_cop === null ||
-      product.cost_cop <= 0 ||
-      costPerPoint === null ||
-      costPerPoint <= 0
-    ) {
+    if (product.cost_cop === null || product.cost_cop <= 0 || costPerPoint <= 0) {
       return null;
     }
     const raw = product.cost_cop / costPerPoint;
@@ -655,9 +653,9 @@ function Wizard({
         pointsPerCopUnit: pointsPerThousand,
         pointsExpiryDays: expiryDays,
         budgetRate,
-        firstPurchaseBonusPoints: 0,
-        recurrenceBonusPoints: 0,
-        referralBonusPoints: 0,
+        firstPurchaseBonusPoints: program?.first_purchase_bonus_points ?? 0,
+        recurrenceBonusPoints: program?.recurrence_bonus_points ?? 0,
+        referralBonusPoints: program?.referral_bonus_points ?? 0,
         qrExpiryHours,
         isActive: true,
       });
@@ -1005,115 +1003,167 @@ function Wizard({
                 </CardHeader>
                 <CardContent className="space-y-3.5">
                   <p className="text-sm leading-relaxed text-muted-foreground">
-                    Configura cuántas monedas acumulan tus clientes por cada compra y qué parte de
-                    tus ventas destinas a premios. Con estas reglas se calcula el valor de cada
-                    moneda y podrás activar tu programa al instante.
+                    Configura qué parte de tus ventas destinas a premios y los plazos de vigencia.
+                    La equivalencia de monedas y los COP por moneda ganada se calculan
+                    automáticamente para cuidar tu margen.
                   </p>
 
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <Field
-                      id="onboarding-cop-per-point"
-                      label="COP por moneda ganada"
-                      hint={`1 moneda / ${formatCOP(copPerPoint || 0)} elegibles.`}
-                      help="¿Cuánto debe comprar un cliente para sumar 1 moneda? Define la equivalencia de compra a monedas."
-                    >
-                      <Input
-                        id="onboarding-cop-per-point"
-                        inputMode="numeric"
-                        value={draft.copPerPointUnit}
-                        onChange={(event) => patch({ copPerPointUnit: event.target.value })}
-                      />
-                    </Field>
-                    <Field
-                      id="onboarding-budget-rate"
-                      label="Tasa de presupuesto (%)"
-                      hint={
-                        referenceBudget !== null
-                          ? `≈ ${formatCOP(referenceBudget)}/mes sobre ventas est.`
-                          : "Recomendado: 1 % a 5 % de ventas."
-                      }
-                      help="Porcentaje de tus ventas mensuales destinado a recompensas (recomendado: 1 % a 5 %)."
-                    >
-                      <Input
-                        id="onboarding-budget-rate"
-                        inputMode="decimal"
-                        value={draft.budgetRatePercent}
-                        onChange={(event) =>
-                          patch({
-                            budgetRatePercent: event.target.value,
-                            budgetRateEdited: true,
-                          })
-                        }
-                      />
-                      {suggestedRateFromCap !== null &&
-                        parsedBudgetRatePercent !== suggestedRateFromCap && (
-                          <button
-                            type="button"
-                            onClick={() =>
-                              patch({
-                                budgetRatePercent: String(suggestedRateFromCap),
-                                budgetRateEdited: true,
-                              })
-                            }
-                            className="cursor-pointer text-xs font-semibold text-[var(--lp-accent-link)] underline-offset-2 hover:underline"
-                          >
-                            Ajustar al tope mensual ({suggestedRateFromCap} %)
-                          </button>
-                        )}
-                    </Field>
-                    <Field
-                      id="onboarding-expiry"
-                      label="Vencimiento de monedas (días)"
-                      hint="Ej. 365 días = 1 año."
-                      help="Plazo en días antes de que caduquen las monedas desde la compra que las generó. Incentiva visitas frecuentes."
-                    >
-                      <Input
-                        id="onboarding-expiry"
-                        inputMode="numeric"
-                        value={draft.pointsExpiryDays}
-                        onChange={(event) => patch({ pointsExpiryDays: event.target.value })}
-                      />
-                    </Field>
-                    <Field
-                      id="onboarding-qr"
-                      label="Vigencia del QR (horas)"
-                      hint="Ej. 24 horas desde la venta."
-                      help="Tiempo máximo durante el cual el QR de una venta sigue siendo válido para que el cliente lo escanee y sume sus monedas."
-                    >
-                      <Input
-                        id="onboarding-qr"
-                        inputMode="numeric"
-                        value={draft.qrExpiryHours}
-                        onChange={(event) => patch({ qrExpiryHours: event.target.value })}
-                      />
-                    </Field>
-                  </div>
-
-                  {examplePurchasePoints !== null && (
-                    <div className="lp-tip-box space-y-1 p-[var(--lp-pad-subpanel)] text-sm">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
-                        <span className="flex items-center gap-2 font-semibold text-foreground">
-                          <Calculator className="size-4 text-primary" aria-hidden="true" />
-                          Simulación rápida en caja
-                        </span>
-                        <span className="font-mono text-xs font-bold text-[var(--lp-tip-strong)]">
-                          Compra de {formatCOP(50000)} = {formatNumber(examplePurchasePoints)}{" "}
-                          monedas
-                          {costPerPoint !== null &&
-                            ` (costo est. ${formatCOP(Math.round(examplePurchasePoints * costPerPoint))})`}
-                        </span>
+                  <div className="space-y-2.5">
+                    {/* 1. Tasa de presupuesto */}
+                    <div className="grid gap-2.5 border-2 border-[var(--lp-ink)] bg-card p-3 md:grid-cols-[240px_minmax(0,1fr)] md:items-center">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="onboarding-budget-rate" className="text-sm font-semibold">
+                          Tasa de presupuesto (%)
+                        </Label>
+                        <Input
+                          id="onboarding-budget-rate"
+                          inputMode="decimal"
+                          value={draft.budgetRatePercent}
+                          onChange={(event) =>
+                            patch({
+                              budgetRatePercent: event.target.value,
+                              budgetRateEdited: true,
+                            })
+                          }
+                        />
+                        {suggestedRateFromCap !== null &&
+                          parsedBudgetRatePercent !== suggestedRateFromCap && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                patch({
+                                  budgetRatePercent: String(suggestedRateFromCap),
+                                  budgetRateEdited: true,
+                                })
+                              }
+                              className="cursor-pointer text-left text-xs font-semibold text-[var(--lp-accent-link)] underline-offset-2 hover:underline"
+                            >
+                              Ajustar al tope mensual ({suggestedRateFromCap} %)
+                            </button>
+                          )}
                       </div>
-                      {exampleAvgTicketPoints !== null && avgTicket !== null && (
-                        <p className="text-xs text-muted-foreground">
-                          En tu ticket promedio ({formatCOP(avgTicket)}), el cliente sumaría{" "}
-                          <strong>{formatNumber(exampleAvgTicketPoints)} moneda(s)</strong> por
-                          visita.
+                      <div className="space-y-1 text-xs leading-relaxed text-muted-foreground md:border-l-2 md:border-[var(--lp-paper-deep)] md:pl-3.5">
+                        <p>
+                          Porcentaje de tus ventas mensuales destinado a premios (recomendado entre
+                          1 % y 5 %). Al cambiarlo se recalcula automáticamente cuánto debe comprar
+                          el cliente para ganar 1 moneda.
                         </p>
-                      )}
+                        {referenceBudget !== null && (
+                          <p className="font-mono font-semibold text-foreground">
+                            ≈ {formatCOP(referenceBudget)}/mes sobre ventas estimadas.
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  )}
+
+                    {/* 2. Monedas por $1.000 (fijo) */}
+                    <div className="grid gap-2.5 border-2 border-[var(--lp-ink)] bg-[var(--lp-paper-deep)] p-3 md:grid-cols-[240px_minmax(0,1fr)] md:items-center">
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between gap-1.5">
+                          <Label
+                            htmlFor="onboarding-points-per-cop"
+                            className="text-sm font-semibold"
+                          >
+                            Monedas que equivalen a $1.000
+                          </Label>
+                          <Badge variant="outline" className="gap-1 font-mono text-[10px]">
+                            <Lock className="size-2.5" aria-hidden="true" />
+                            Fijo
+                          </Badge>
+                        </div>
+                        <Input
+                          id="onboarding-points-per-cop"
+                          inputMode="numeric"
+                          value={String(FIXED_POINTS_PER_THOUSAND)}
+                          readOnly
+                          disabled
+                          className="font-mono font-bold"
+                        />
+                      </div>
+                      <p className="text-xs leading-relaxed text-muted-foreground md:border-l-2 md:border-[var(--lp-paper-deep)] md:pl-3.5">
+                        Equivalencia fija inicial de Fideliapp:{" "}
+                        {formatNumber(FIXED_POINTS_PER_THOUSAND)} monedas equivalen siempre a $1.000
+                        COP en premios (1 moneda = {formatPointValueCOP(costPerPoint)}).
+                      </p>
+                    </div>
+
+                    {/* 3. COP por moneda ganada (calculado) */}
+                    <div className="grid gap-2.5 border-2 border-[var(--lp-ink)] bg-[var(--lp-paper-deep)] p-3 md:grid-cols-[240px_minmax(0,1fr)] md:items-center">
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between gap-1.5">
+                          <Label
+                            htmlFor="onboarding-cop-per-point"
+                            className="text-sm font-semibold"
+                          >
+                            COP por moneda ganada
+                          </Label>
+                          <Badge variant="outline" className="gap-1 font-mono text-[10px]">
+                            <Lock className="size-2.5" aria-hidden="true" />
+                            Calculado
+                          </Badge>
+                        </div>
+                        <Input
+                          id="onboarding-cop-per-point"
+                          inputMode="numeric"
+                          value={String(copPerPoint)}
+                          readOnly
+                          disabled
+                          className="font-mono font-bold"
+                        />
+                      </div>
+                      <p className="text-xs leading-relaxed text-muted-foreground md:border-l-2 md:border-[var(--lp-paper-deep)] md:pl-3.5">
+                        Se calcula automáticamente según tu tasa de presupuesto. Tus clientes
+                        ganarán 1 moneda por cada <strong>{formatCOP(copPerPoint)}</strong> en
+                        compras elegibles.
+                      </p>
+                    </div>
+
+                    {/* 4. Vencimiento de monedas */}
+                    <div className="grid gap-2.5 border-2 border-[var(--lp-ink)] bg-card p-3 md:grid-cols-[240px_minmax(0,1fr)] md:items-center">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="onboarding-expiry" className="text-sm font-semibold">
+                          Vencimiento de monedas (días)
+                        </Label>
+                        <Input
+                          id="onboarding-expiry"
+                          inputMode="numeric"
+                          value={draft.pointsExpiryDays}
+                          onChange={(event) => patch({ pointsExpiryDays: event.target.value })}
+                        />
+                      </div>
+                      <p className="text-xs leading-relaxed text-muted-foreground md:border-l-2 md:border-[var(--lp-paper-deep)] md:pl-3.5">
+                        Plazo en días antes de que caduquen las monedas desde la compra que las
+                        generó (ej. 365 días = 1 año). Incentiva visitas frecuentes.
+                      </p>
+                    </div>
+
+                    {/* 5. Vigencia del QR */}
+                    <div className="grid gap-2.5 border-2 border-[var(--lp-ink)] bg-card p-3 md:grid-cols-[240px_minmax(0,1fr)] md:items-center">
+                      <div className="space-y-1.5">
+                        <Label htmlFor="onboarding-qr" className="text-sm font-semibold">
+                          Vigencia del QR (horas)
+                        </Label>
+                        <Input
+                          id="onboarding-qr"
+                          inputMode="numeric"
+                          value={draft.qrExpiryHours}
+                          onChange={(event) => patch({ qrExpiryHours: event.target.value })}
+                        />
+                      </div>
+                      <p className="text-xs leading-relaxed text-muted-foreground md:border-l-2 md:border-[var(--lp-paper-deep)] md:pl-3.5">
+                        Tiempo máximo durante el cual el QR de una venta sigue activo para que el
+                        cliente reclame sus monedas. Pasado este tiempo los puntos expiran.
+                      </p>
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
+
+              <PurchaseSimulatorCard
+                copPerPoint={copPerPoint}
+                pointsPerThousand={pointsPerThousand}
+                avgTicket={avgTicket}
+              />
 
               <Card>
                 <CardHeader className="pb-2.5">
@@ -1241,7 +1291,7 @@ function Wizard({
                         Valor por moneda
                       </span>
                       <span className="mt-0.5 block font-mono text-sm font-bold tabular-nums">
-                        {costPerPoint !== null ? formatCOP(costPerPoint) : "Sin definir"}
+                        {costPerPoint !== null ? formatPointValueCOP(costPerPoint) : "Sin definir"}
                       </span>
                     </div>
                     <div className="lp-subpanel">
@@ -1291,7 +1341,8 @@ function Wizard({
                       )}
                     {costPerPoint !== null ? (
                       <p>
-                        Costo estimado por moneda: <strong>{formatCOP(costPerPoint)}</strong> (
+                        Costo estimado por moneda:{" "}
+                        <strong>{formatPointValueCOP(costPerPoint)}</strong> (
                         {formatNumber(pointsPerThousand)} monedas equivalen a $1.000 en premios).
                       </p>
                     ) : (

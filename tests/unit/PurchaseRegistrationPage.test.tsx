@@ -132,6 +132,10 @@ vi.mock("@/features/purchases/hooks", () => ({
     error: null,
     refetch: vi.fn(),
   }),
+  useRegeneratePurchaseQr: () => ({
+    mutateAsync: vi.fn(),
+    isPending: false,
+  }),
 }));
 
 function renderPage() {

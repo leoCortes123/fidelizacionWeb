@@ -1,8 +1,17 @@
-import { Package, ReceiptText, ShieldCheck, UserRound } from "lucide-react";
-import { useBusinessPurchaseDetail, useMyPurchaseDetail } from "./hooks";
-import { formatCOP, formatDateTimeBogota, formatPoints } from "@/lib/format";
-import type { PurchaseDetail } from "@/types";
+import { useState } from "react";
+import { Package, ReceiptText, RefreshCw, ShieldCheck, UserRound } from "lucide-react";
+import { toast } from "sonner";
+import { useBusinessPurchaseDetail, useMyPurchaseDetail, useRegeneratePurchaseQr } from "./hooks";
+import {
+  effectivePurchaseStatus,
+  formatCOP,
+  formatFriendlyDatePartsBogota,
+  formatPoints,
+} from "@/lib/format";
+import { errorMessage } from "@/lib/errors";
+import type { PurchaseDetail, PurchaseQrCreateResult } from "@/types";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -12,6 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import { ErrorState, LoadingScreen } from "@/components/shared/States";
 import { PurchaseStatusBadge } from "@/components/shared/StatusBadge";
+import { PurchaseQrDialog } from "./PurchaseQrDialog";
 
 export function PurchaseDetailDialog({
   open,
@@ -19,12 +29,14 @@ export function PurchaseDetailDialog({
   purchaseId,
   businessId,
   mode = "business",
+  onRegenerated,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   purchaseId: string | null;
   businessId?: string;
   mode?: "business" | "customer";
+  onRegenerated?: (qr: PurchaseQrCreateResult) => void;
 }) {
   const businessDetail = useBusinessPurchaseDetail(
     mode === "business" ? (businessId ?? "") : "",
@@ -32,35 +44,113 @@ export function PurchaseDetailDialog({
   );
   const customerDetail = useMyPurchaseDetail(mode === "customer" ? purchaseId : null);
   const query = mode === "business" ? businessDetail : customerDetail;
+  const [localQr, setLocalQr] = useState<PurchaseQrCreateResult | null>(null);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <ReceiptText className="size-5 text-muted-foreground" aria-hidden="true" />
-            Detalle de la venta
-          </DialogTitle>
-          <DialogDescription>Líneas, monedas y datos de la venta.</DialogDescription>
-        </DialogHeader>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <ReceiptText className="size-5 text-muted-foreground" aria-hidden="true" />
+              Detalle de la venta
+            </DialogTitle>
+            <DialogDescription>
+              Líneas, monedas y estado de reclamación de puntos.
+            </DialogDescription>
+          </DialogHeader>
 
-        {query.isLoading ? (
-          <LoadingScreen label="Cargando detalle…" />
-        ) : query.isError || !query.data ? (
-          <ErrorState
-            error={query.error ?? new Error("No encontramos la compra.")}
-            onRetry={() => void query.refetch()}
-          />
-        ) : (
-          <PurchaseDetailBody detail={query.data} />
-        )}
-      </DialogContent>
-    </Dialog>
+          {query.isLoading ? (
+            <LoadingScreen label="Cargando detalle…" />
+          ) : query.isError || !query.data ? (
+            <ErrorState
+              error={query.error ?? new Error("No encontramos la compra.")}
+              onRetry={() => void query.refetch()}
+            />
+          ) : (
+            <PurchaseDetailBody
+              detail={query.data}
+              regenerateSlot={
+                mode === "business" && businessId && purchaseId ? (
+                  <RegeneratePurchaseButton
+                    businessId={businessId}
+                    purchaseId={purchaseId}
+                    onSuccess={(qr) => {
+                      if (onRegenerated) {
+                        onRegenerated(qr);
+                      } else {
+                        onOpenChange(false);
+                        setLocalQr(qr);
+                      }
+                    }}
+                  />
+                ) : undefined
+              }
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <PurchaseQrDialog
+        open={Boolean(localQr)}
+        onOpenChange={(next) => {
+          if (!next) setLocalQr(null);
+        }}
+        result={localQr}
+        title="QR de venta regenerado"
+        description="El código anterior quedó invalidado. Muestra este nuevo QR antes de que venza el tiempo."
+      />
+    </>
   );
 }
 
-export function PurchaseDetailBody({ detail }: { detail: PurchaseDetail }) {
+function RegeneratePurchaseButton({
+  businessId,
+  purchaseId,
+  onSuccess,
+}: {
+  businessId: string;
+  purchaseId: string;
+  onSuccess: (qr: PurchaseQrCreateResult) => void;
+}) {
+  const regenerateQr = useRegeneratePurchaseQr(businessId);
+
+  async function handleRegenerate() {
+    try {
+      const qr = await regenerateQr.mutateAsync(purchaseId);
+      toast.success("QR regenerado. El código anterior dejó de ser válido.");
+      onSuccess(qr);
+    } catch (error) {
+      toast.error(errorMessage(error));
+    }
+  }
+
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      className="w-full"
+      loading={regenerateQr.isPending}
+      onClick={() => void handleRegenerate()}
+    >
+      <RefreshCw aria-hidden="true" />
+      Regenerar QR
+    </Button>
+  );
+}
+
+export function PurchaseDetailBody({
+  detail,
+  regenerateSlot,
+}: {
+  detail: PurchaseDetail;
+  regenerateSlot?: React.ReactNode;
+}) {
   const { purchase, business, customer, registrar } = detail;
+  const effStatus = effectivePurchaseStatus(purchase.status, purchase.expires_at);
+  const created = formatFriendlyDatePartsBogota(purchase.created_at);
+  const expires = formatFriendlyDatePartsBogota(purchase.expires_at);
+
   return (
     <div className="space-y-4">
       <div className="flex items-start justify-between gap-3 rounded-none border bg-muted/30 p-4">
@@ -69,14 +159,25 @@ export function PurchaseDetailBody({ detail }: { detail: PurchaseDetail }) {
             {business.name}
           </p>
           <p className="font-display text-3xl font-extrabold">{formatCOP(purchase.amount_cop)}</p>
-          <p className="text-xs text-muted-foreground">
-            {formatDateTimeBogota(purchase.created_at)}
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            <span className="font-semibold text-foreground">{created.dayLabel}</span> ·{" "}
+            <span className="font-mono font-bold tabular-nums">{created.timeLabel}</span>
           </p>
+          {effStatus === "pending_claim" && (
+            <p className="mt-0.5 text-[11px] text-muted-foreground">
+              QR vigente hasta {expires.dayLabel} · {expires.timeLabel}
+            </p>
+          )}
         </div>
-        <div className="shrink-0">
-          <PurchaseStatusBadge status={purchase.status} />
+        <div className="flex shrink-0 flex-col items-end gap-1">
+          <span className="font-mono text-[10px] font-bold uppercase text-muted-foreground">
+            Estado puntos
+          </span>
+          <PurchaseStatusBadge status={effStatus} />
         </div>
       </div>
+
+      {effStatus === "pending_claim" && regenerateSlot}
 
       <div className="grid gap-2 text-sm sm:grid-cols-2">
         <div className="min-w-0 rounded-none border p-3">

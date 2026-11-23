@@ -106,28 +106,29 @@ describe("ProgramPage", () => {
     configure.mockResolvedValue(unconfiguredProgram());
   });
 
-  it("carga valores sugeridos cuando el programa no está configurado", () => {
+  it("carga valores sugeridos con campos de equivalencia bloqueados", () => {
     renderPage();
 
     expect(screen.getByText("El programa aún no está configurado")).toBeInTheDocument();
     expect(screen.getByLabelText("COP por moneda ganada")).toHaveValue("1000");
+    expect(screen.getByLabelText("COP por moneda ganada")).toBeDisabled();
     expect(screen.getByLabelText("Monedas que equivalen a $1.000")).toHaveValue("100");
+    expect(screen.getByLabelText("Monedas que equivalen a $1.000")).toBeDisabled();
     expect(screen.getByLabelText("Vencimiento de monedas (días)")).toHaveValue("365");
     expect(screen.getByLabelText("Vigencia del QR (horas)")).toHaveValue("24");
     expect(screen.getAllByText(/1 moneda = \$/).length).toBeGreaterThan(0);
   });
 
-  it("guarda el programa con la tasa convertida y activo", async () => {
+  it("recalcula COP por moneda ganada automáticamente al cambiar la tasa y guarda activo", async () => {
     const user = userEvent.setup();
     renderPage();
-
-    const copInput = screen.getByLabelText("COP por moneda ganada");
-    await user.clear(copInput);
-    await user.type(copInput, "2000");
 
     const budget = screen.getByLabelText("Tasa de presupuesto (%)");
     await user.clear(budget);
     await user.type(budget, "2.5");
+
+    expect(screen.getByLabelText("COP por moneda ganada")).toHaveValue("400");
+    expect(screen.getByLabelText("Monedas que equivalen a $1.000")).toHaveValue("100");
 
     await user.click(screen.getByLabelText(/programa activo/i));
     await user.click(screen.getByRole("button", { name: "Guardar y activar" }));
@@ -136,7 +137,7 @@ describe("ProgramPage", () => {
     expect(configure).toHaveBeenCalledWith(
       expect.objectContaining({
         businessId: "biz-1",
-        copPerPointUnit: 2000,
+        copPerPointUnit: 400,
         pointsPerCopUnit: 100,
         pointsExpiryDays: 365,
         budgetRate: 0.025,
@@ -159,36 +160,36 @@ describe("ProgramPage", () => {
     expect(configure).not.toHaveBeenCalled();
   });
 
-  it("interpreta separadores de miles y coma decimal y calcula monedas según la tasa", async () => {
+  it("interpreta coma decimal en tasa de presupuesto y permite simular compras interactivas", async () => {
     const user = userEvent.setup();
     renderPage();
-
-    const copInput = screen.getByLabelText("COP por moneda ganada");
-    await user.clear(copInput);
-    await user.type(copInput, "2.000");
 
     const budget = screen.getByLabelText("Tasa de presupuesto (%)");
     await user.clear(budget);
     await user.type(budget, "2,5");
 
-    await user.click(
-      screen.getByRole("button", { name: /Calcular según tasa de presupuesto \(20 monedas\)/i }),
-    );
-    expect(screen.getByLabelText("Monedas que equivalen a $1.000")).toHaveValue("20");
+    expect(screen.getByLabelText("COP por moneda ganada")).toHaveValue("400");
+    expect(screen.getByTestId("simulator-coins")).toHaveTextContent("+125");
+
+    const simInput = screen.getByLabelText(/Valor de compra simulada/i);
+    await user.clear(simInput);
+    await user.type(simInput, "20000");
+    expect(screen.getByTestId("simulator-coins")).toHaveTextContent("+50");
+    expect(screen.getByTestId("simulator-reward-value")).toHaveTextContent("500");
 
     await user.click(screen.getByRole("button", { name: "Guardar programa" }));
 
     await waitFor(() => expect(configure).toHaveBeenCalledTimes(1));
     expect(configure).toHaveBeenCalledWith(
       expect.objectContaining({
-        copPerPointUnit: 2000,
-        pointsPerCopUnit: 20,
+        copPerPointUnit: 400,
+        pointsPerCopUnit: 100,
         budgetRate: 0.025,
       }),
     );
   });
 
-  it("integra datos económicos en la tasa sugerida, simulación en caja e impacto financiero", () => {
+  it("integra datos económicos en la tasa sugerida, simulador e impacto financiero", () => {
     economicData.current = {
       id: "eco-1",
       business_id: "biz-1",
@@ -213,14 +214,15 @@ describe("ProgramPage", () => {
     renderPage();
 
     expect(screen.getByLabelText("Tasa de presupuesto (%)")).toHaveValue("2");
-    expect(screen.getByText(/Simulación rápida en caja/)).toBeInTheDocument();
+    expect(screen.getByLabelText("COP por moneda ganada")).toHaveValue("500");
+    expect(screen.getByText(/Simulador de compra/i)).toBeInTheDocument();
     expect(screen.getByText(/En tu ticket promedio \(\$ 10\.000\)/)).toBeInTheDocument();
     expect(screen.getByText(/5\.200\.000/)).toBeInTheDocument();
     expect(screen.getAllByText(/6\.7 %/).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/28\.0 %/).length).toBeGreaterThan(0);
   });
 
-  it("muestra alerta incluso con tasa 0 % y formatea valores menores a 1 sin redondear a 0", async () => {
+  it("muestra alerta cuando falla el perfil económico y con tasa 0 %", async () => {
     const user = userEvent.setup();
     economicErrorState.isError = true;
     renderPage();
@@ -236,23 +238,5 @@ describe("ProgramPage", () => {
         /El costo estimado de canje \(1\.0 %\) supera el presupuesto declarado \(0\.0 %\)/i,
       ),
     ).toBeInTheDocument();
-
-    const copInput = screen.getByLabelText("COP por moneda ganada");
-    await user.clear(copInput);
-    await user.type(copInput, "3000");
-
-    const pointsInput = screen.getByLabelText("Monedas que equivalen a $1.000");
-    await user.clear(pointsInput);
-    await user.type(pointsInput, "5000");
-
-    expect(screen.getAllByText(/0,20/).length).toBeGreaterThan(0);
-    expect(screen.getByText(/0,33 moneda\(s\)/)).toBeInTheDocument();
-
-    await user.clear(pointsInput);
-    await user.type(pointsInput, "100");
-    await user.click(
-      screen.getByRole("button", { name: /Igualar al costo de canje \(0\.33 %\)/i }),
-    );
-    expect(budgetInput).toHaveValue("0.33");
   });
 });

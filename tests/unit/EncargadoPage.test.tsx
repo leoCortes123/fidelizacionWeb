@@ -142,6 +142,7 @@ vi.mock("@/features/loyalty/hooks", () => ({
   }),
   useApproveRedemption: () => ({ mutateAsync: approve, isPending: false }),
   useDeliverRedemption: () => ({ mutateAsync: deliver, isPending: false }),
+  useCancelRedemption: () => ({ mutateAsync: vi.fn(), isPending: false }),
 }));
 
 vi.mock("@/features/admin/hooks", () => ({
@@ -259,9 +260,15 @@ describe("EncargadoRedemptionsPage / EncargadoPage", () => {
     // Clic en la tarjeta de cliente para abrir el detalle
     await user.click(screen.getByText("Carlos Mendoza"));
     expect(await screen.findByText("Detalle del cliente")).toBeInTheDocument();
-    expect(screen.getByText("Historial de compras")).toBeInTheDocument();
-    expect(screen.getByText("Historial de recompensas reclamadas")).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /Compras/i })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /Movimientos/i })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: /Canjes/i })).toBeInTheDocument();
     expect(screen.getByText(/25\.000/)).toBeInTheDocument();
+
+    // Cambia a pestaña Canjes y verifica tabla tipo solicitudes
+    await user.click(screen.getByRole("tab", { name: /Canjes/i }));
+    expect(screen.getByRole("table")).toBeInTheDocument();
+    expect(screen.getByText("Taco gratis")).toBeInTheDocument();
 
     // Cerrar el modal
     const closeButtons = screen.getAllByRole("button", { name: /Cerrar/i });

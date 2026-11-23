@@ -60,8 +60,57 @@ export function safeNextPath(next: string | null | undefined, fallback = "/custo
 
 export function defaultPathForRoles(roles: string[]): string {
   if (roles.includes("admin")) return "/admin";
-  if (roles.includes("registrar")) return "/encargado";
+  if (roles.includes("registrar") || roles.includes("encargado")) return "/encargado";
   return "/customer";
+}
+
+/**
+ * Indica si la ruta `next` es una pantalla inicial genérica de algún portal.
+ * Al iniciar sesión con cualquier rol, estas rutas no deben forzar el portal
+ * de otro rol (por ejemplo `/customer` tras cerrar sesión), sino resolver el
+ * inicio real del usuario autenticado.
+ */
+export function isGenericPortalPath(path: string | null | undefined): boolean {
+  if (!path) return true;
+  const pathname = path.split("?")[0]?.split("#")[0]?.replace(/\/+$/, "") || "/";
+  return (
+    pathname === "/" ||
+    pathname === "/customer" ||
+    pathname === "/admin" ||
+    pathname === "/admin/dashboard" ||
+    pathname === "/encargado"
+  );
+}
+
+/**
+ * Verifica si una ruta específica (`next`) es compatible con los roles del
+ * usuario que acaba de iniciar sesión. Los flujos compartidos (`/claim`,
+ * `/join`, `/scan`, `/perfil`, `/business`, `/admin/onboarding`) siempre se
+ * conservan; las rutas internas de un portal incompatible se descartan para
+ * redirigir al inicio correspondiente al rol.
+ */
+export function isNextPathCompatibleWithRoles(
+  path: string | null | undefined,
+  roles: string[],
+): boolean {
+  if (!path || isGenericPortalPath(path)) return false;
+  const pathname = path.split("?")[0]?.split("#")[0] ?? "";
+  if (
+    pathname.startsWith("/claim/") ||
+    pathname.startsWith("/join/") ||
+    pathname.startsWith("/scan/") ||
+    pathname.startsWith("/admin/onboarding") ||
+    pathname.startsWith("/business/") ||
+    pathname === "/perfil"
+  ) {
+    return true;
+  }
+  const isAdmin = roles.includes("admin");
+  const isRegistrar = roles.includes("registrar") || roles.includes("encargado");
+  if (pathname.startsWith("/admin")) return isAdmin;
+  if (pathname.startsWith("/encargado")) return isAdmin || isRegistrar;
+  if (pathname.startsWith("/customer")) return !isAdmin && !isRegistrar;
+  return true;
 }
 
 /** Portal de inicio según el rol del usuario dentro de un negocio concreto. */

@@ -5,10 +5,10 @@ const purchaseLabels: Record<
   PurchaseStatus,
   { label: string; variant: "warning" | "success" | "muted" | "destructive" }
 > = {
-  pending_claim: { label: "Pendiente", variant: "warning" },
-  claimed: { label: "Reclamada", variant: "success" },
-  expired: { label: "Expirada", variant: "muted" },
-  cancelled: { label: "Cancelada", variant: "destructive" },
+  pending_claim: { label: "Pendientes", variant: "warning" },
+  claimed: { label: "Reclamados", variant: "success" },
+  expired: { label: "Expirados", variant: "muted" },
+  cancelled: { label: "Anulados", variant: "destructive" },
 };
 
 const redemptionLabels: Record<

@@ -155,6 +155,10 @@ const FIELD_LABELS: Record<string, string> = {
   frequent_period_days: "Ventana de evaluación (días)",
   gross_margin: "Margen bruto",
   instagram: "Instagram",
+  facebook: "Facebook",
+  tiktok: "TikTok",
+  twitter: "X (Twitter)",
+  youtube: "YouTube",
   invite_id: "Invitación",
   invited_by: "Invitado por",
   is_active: "Activa",
@@ -395,6 +399,14 @@ export const AUDIT_LABELS: Record<string, AuditLabel> = {
     "QR de compra generado",
     "Se creó un QR para que el cliente reclame las monedas de su compra.",
     QrCode,
+    "info",
+    "purchase",
+    "Compra",
+  ),
+  "purchase.qr_regenerated": op(
+    "QR de compra regenerado",
+    "Se generó un nuevo QR vigente para que el cliente reclame sus monedas pendientes.",
+    RefreshCw,
     "info",
     "purchase",
     "Compra",
@@ -742,6 +754,7 @@ export function auditSubject(entry: Pick<BusinessAuditLog, "operation" | "metada
     case "purchase.registered":
     case "purchase.qr_claimed":
     case "purchase.qr_created":
+    case "purchase.qr_regenerated":
     case "purchase.qr_cancelled": {
       const parts = [
         amount !== null ? `Compra por ${formatCOP(amount)}` : null,

@@ -1,19 +1,15 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { QRCodeCanvas } from "qrcode.react";
 import {
   CalendarClock,
   ChevronRight,
-  Copy,
-  Download,
   ImageIcon,
   ListOrdered,
   Minus,
   Plus,
-  PlusCircle,
-  Printer,
   QrCode,
   ReceiptText,
+  RefreshCw,
   ScanLine,
   Search,
   Sparkles,
@@ -23,19 +19,20 @@ import { useLoyaltyProgram, useProducts } from "@/features/loyalty/hooks";
 import {
   useBusinessPurchases,
   useCreatePurchaseQr,
+  useRegeneratePurchaseQr,
   type PurchaseItemInput,
 } from "@/features/purchases/hooks";
-import { claimUrl } from "@/lib/config";
 import { errorMessage } from "@/lib/errors";
 import { useFormDraft } from "@/lib/useFormDraft";
 import {
+  effectivePurchaseStatus,
   formatCOP,
   formatCopInput,
-  formatDateTimeBogota,
+  formatFriendlyDatePartsBogota,
   formatPoints,
   parseCopInput,
 } from "@/lib/format";
-import type { Business, Product, PurchaseQrCreateResult } from "@/types";
+import type { Business, BusinessPurchase, Product, PurchaseQrCreateResult } from "@/types";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -65,6 +62,7 @@ import { PurchaseStatusBadge } from "@/components/shared/StatusBadge";
 import { EmptyState, ErrorState, ListSkeleton } from "@/components/shared/States";
 import { BusinessGate } from "./BusinessGate";
 import { PurchaseDetailDialog } from "@/features/purchases/PurchaseDetailDialog";
+import { PurchaseQrDialog } from "@/features/purchases/PurchaseQrDialog";
 
 const RECENT_PAGE_SIZE = 5;
 
@@ -99,6 +97,7 @@ function PurchaseQrSection({ business }: { business: Business }) {
   const program = useLoyaltyProgram(business.id);
   const products = useProducts(business.id, true);
   const createPurchase = useCreatePurchaseQr(business.id);
+  const regenerateQr = useRegeneratePurchaseQr(business.id);
   const recent = useBusinessPurchases(business.id, 0, RECENT_PAGE_SIZE, "");
 
   const draft = useFormDraft<PurchaseDraft>({
@@ -118,8 +117,9 @@ function PurchaseQrSection({ business }: { business: Business }) {
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<PurchaseQrCreateResult | null>(null);
   const [qrOpen, setQrOpen] = useState(false);
+  const [qrDialogTitle, setQrDialogTitle] = useState("QR de la venta");
+  const [regeneratingId, setRegeneratingId] = useState<string | null>(null);
   const [selectedPurchaseId, setSelectedPurchaseId] = useState<string | null>(null);
-  const qrRef = useRef<HTMLCanvasElement | null>(null);
 
   useEffect(() => {
     if (amountText.trim() || Object.keys(quantities).length > 0) {
@@ -240,6 +240,7 @@ function PurchaseQrSection({ business }: { business: Business }) {
       { amountCop: effectiveAmount ?? 0, items },
       {
         onSuccess: (data) => {
+          setQrDialogTitle("QR de la venta");
           setResult(data);
           setQrOpen(true);
           setAmountText("");
@@ -258,22 +259,19 @@ function PurchaseQrSection({ business }: { business: Business }) {
     setError(null);
   }
 
-  async function copyClaimUrl() {
-    if (!result) return;
+  async function handleRegenerateRecent(purchase: BusinessPurchase) {
+    setRegeneratingId(purchase.id);
     try {
-      await navigator.clipboard.writeText(claimUrl(result.token));
-      toast.success("Enlace copiado");
-    } catch {
-      toast.error("No se pudo copiar el enlace.");
+      const qr = await regenerateQr.mutateAsync(purchase.id);
+      setQrDialogTitle("QR de venta regenerado");
+      setResult(qr);
+      setQrOpen(true);
+      toast.success("QR regenerado. El código anterior dejó de ser válido.");
+    } catch (mutationError) {
+      toast.error(errorMessage(mutationError));
+    } finally {
+      setRegeneratingId(null);
     }
-  }
-
-  function downloadQr() {
-    if (!qrRef.current || !result) return;
-    const link = document.createElement("a");
-    link.download = `qr-compra-${result.purchase_id.slice(0, 8)}.png`;
-    link.href = qrRef.current.toDataURL("image/png");
-    link.click();
   }
 
   if (program.isLoading) {
@@ -498,32 +496,58 @@ function PurchaseQrSection({ business }: { business: Business }) {
             />
           ) : (
             <ul className="divide-y">
-              {recent.data.map((purchase) => (
-                <li key={purchase.id}>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedPurchaseId(purchase.id)}
-                    className="flex w-full flex-wrap items-center justify-between gap-3 rounded-none py-3 text-left transition-colors hover:bg-[var(--lp-row-hover)] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-[-3px] focus-visible:outline-[var(--lp-focus-ring)] first:pt-0 last:pb-0"
-                    aria-label={`Ver detalle de la venta por ${formatCOP(purchase.amount_cop)}`}
+              {recent.data.map((purchase) => {
+                const effStatus = effectivePurchaseStatus(purchase.status, purchase.expires_at);
+                const created = formatFriendlyDatePartsBogota(purchase.created_at);
+                const isPending = effStatus === "pending_claim";
+
+                return (
+                  <li
+                    key={purchase.id}
+                    className="flex items-center gap-2 py-3 first:pt-0 last:pb-0"
                   >
-                    <div className="min-w-0">
-                      <p className="font-semibold">{formatCOP(purchase.amount_cop)}</p>
-                      <p className="truncate text-xs text-muted-foreground">
-                        {formatDateTimeBogota(purchase.created_at)} ·{" "}
-                        {purchase.customer_name ?? "Sin reclamar"}
-                        {purchase.items_count ? ` · ${purchase.items_count} ítem(s)` : ""}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs text-muted-foreground">
-                        {purchase.points_awarded > 0 ? formatPoints(purchase.points_awarded) : ""}
-                      </span>
-                      <PurchaseStatusBadge status={purchase.status} />
-                      <ChevronRight className="size-4 text-muted-foreground" aria-hidden="true" />
-                    </div>
-                  </button>
-                </li>
-              ))}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedPurchaseId(purchase.id)}
+                      className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-3 rounded-none text-left transition-colors hover:bg-[var(--lp-row-hover)] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-[-3px] focus-visible:outline-[var(--lp-focus-ring)]"
+                      aria-label={`Ver detalle de la venta por ${formatCOP(purchase.amount_cop)}`}
+                    >
+                      <div className="min-w-0">
+                        <p className="font-semibold">{formatCOP(purchase.amount_cop)}</p>
+                        <p className="truncate text-xs text-muted-foreground">
+                          <span className="font-semibold text-foreground">{created.dayLabel}</span>{" "}
+                          <span className="font-mono font-semibold tabular-nums">
+                            {created.timeLabel}
+                          </span>{" "}
+                          · {purchase.customer_name ?? "Sin reclamar"}
+                          {purchase.items_count ? ` · ${purchase.items_count} ítem(s)` : ""}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2.5">
+                        <span className="text-xs text-muted-foreground">
+                          {purchase.points_awarded > 0 ? formatPoints(purchase.points_awarded) : ""}
+                        </span>
+                        <PurchaseStatusBadge status={effStatus} />
+                        <ChevronRight className="size-4 text-muted-foreground" aria-hidden="true" />
+                      </div>
+                    </button>
+                    {isPending && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="shrink-0"
+                        loading={regeneratingId === purchase.id}
+                        disabled={regeneratingId !== null}
+                        onClick={() => void handleRegenerateRecent(purchase)}
+                      >
+                        <RefreshCw aria-hidden="true" />
+                        Regenerar QR
+                      </Button>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           )}
         </CardContent>
@@ -607,104 +631,24 @@ function PurchaseQrSection({ business }: { business: Business }) {
         </DialogContent>
       </Dialog>
 
-      <Dialog
-        open={qrOpen && Boolean(result)}
+      <PurchaseQrDialog
+        open={qrOpen}
         onOpenChange={(open) => {
           if (!open) handleNewPurchase();
         }}
-      >
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>QR de la venta</DialogTitle>
-            <DialogDescription>
-              Muestra este código al cliente para que sume sus monedas.
-            </DialogDescription>
-          </DialogHeader>
-
-          {result && (
-            <div className="print-area space-y-4">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="font-display text-2xl font-extrabold">
-                    {formatCOP(result.amount_cop)}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {formatDateTimeBogota(result.expires_at)} · vence en{" "}
-                    {program.data?.qr_expiry_hours ?? 24} h
-                  </p>
-                </div>
-                <PurchaseStatusBadge status="pending_claim" />
-              </div>
-
-              {result.items && result.items.length > 0 && (
-                <ul className="space-y-1 rounded-none bg-muted/40 p-3 text-xs">
-                  {result.items.map((item, index) => (
-                    <li
-                      key={item.id || `${item.name}-${index}`}
-                      className="flex justify-between gap-2"
-                    >
-                      <span className="min-w-0 break-words">
-                        {item.quantity} × {item.name}
-                        {item.is_combo && item.combo_detail.length > 0
-                          ? ` (${item.combo_detail
-                              .map((component) => `${component.quantity} ${component.name}`)
-                              .join(", ")})`
-                          : ""}
-                      </span>
-                      <span className="shrink-0 tabular-nums">
-                        {formatCOP(item.line_total_cop)}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-              )}
-
-              <div className="flex justify-center rounded-none bg-muted/40 p-4">
-                <QRCodeCanvas
-                  ref={qrRef}
-                  value={claimUrl(result.token)}
-                  size={216}
-                  marginSize={2}
-                  level="M"
-                  aria-label="Código QR para reclamar la compra"
-                />
-              </div>
-
-              <div className="text-center">
-                <p className="text-sm font-semibold">Escanéalo para sumar monedas</p>
-                <p className="text-xs text-muted-foreground">
-                  {formatPoints(result.points_preview)} estimadas
-                </p>
-              </div>
-
-              <span className="sr-only" data-testid="claim-url">
-                {claimUrl(result.token)}
-              </span>
-
-              <div className="grid grid-cols-2 gap-2 no-print">
-                <Button type="button" variant="outline" onClick={downloadQr}>
-                  <Download aria-hidden="true" />
-                  Descargar
-                </Button>
-                <Button type="button" variant="outline" onClick={() => window.print()}>
-                  <Printer aria-hidden="true" />
-                  Imprimir
-                </Button>
-              </div>
-              <div className="grid grid-cols-2 gap-2 no-print">
-                <Button type="button" variant="ghost" onClick={copyClaimUrl}>
-                  <Copy aria-hidden="true" />
-                  Copiar enlace
-                </Button>
-                <Button type="button" onClick={handleNewPurchase}>
-                  <PlusCircle aria-hidden="true" />
-                  Nueva venta
-                </Button>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+        result={result}
+        title={qrDialogTitle}
+        description={
+          qrDialogTitle === "QR de venta regenerado"
+            ? "El código anterior quedó invalidado. Muestra este nuevo QR antes de que venza el tiempo."
+            : "Muestra este código al cliente para que sume sus monedas."
+        }
+        expiryHours={
+          qrDialogTitle === "QR de la venta" ? (program.data?.qr_expiry_hours ?? 24) : undefined
+        }
+        primaryActionLabel="Nueva venta"
+        onPrimaryAction={handleNewPurchase}
+      />
 
       <PurchaseDetailDialog
         open={Boolean(selectedPurchaseId)}
@@ -714,6 +658,12 @@ function PurchaseQrSection({ business }: { business: Business }) {
         purchaseId={selectedPurchaseId}
         businessId={business.id}
         mode="business"
+        onRegenerated={(qr) => {
+          setSelectedPurchaseId(null);
+          setQrDialogTitle("QR de venta regenerado");
+          setResult(qr);
+          setQrOpen(true);
+        }}
       />
     </div>
   );

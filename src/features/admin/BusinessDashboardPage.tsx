@@ -187,86 +187,19 @@ export function BusinessDashboardPage() {
   return (
     <div className="space-y-3.5 sm:space-y-4 animate-fade-in">
       <PageHeader
-        kicker="PANEL OPERATIVO · ADMINISTRADOR"
-        title="Inicio"
-        description={`@${current.slug} · ${current.timezone}`}
-        actionsClassName={showCompleteConfig ? undefined : "hidden sm:flex"}
+        title={current.name}
+        titleClassName="text-2xl font-black tracking-tight sm:text-4xl"
         actions={
-          <>
-            {showCompleteConfig && (
-              <Button asChild size="sm">
-                <Link to="/admin/onboarding">
-                  <Rocket aria-hidden="true" />
-                  Completar configuración
-                </Link>
-              </Button>
-            )}
-            <Badge variant="default" className="hidden sm:inline-flex">
-              Administrador
-            </Badge>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setSelectedBusiness(null)}
-              className="hidden sm:inline-flex"
-            >
-              Cambiar negocio
+          showCompleteConfig ? (
+            <Button asChild size="sm">
+              <Link to="/admin/onboarding">
+                <Rocket aria-hidden="true" />
+                Completar configuración
+              </Link>
             </Button>
-          </>
+          ) : undefined
         }
       />
-
-      {/* Hero Operativo */}
-      <Card className="relative overflow-hidden border-[3px] border-[var(--lp-ink)] bg-[var(--lp-surface-elevated-deep)] text-[var(--lp-surface-elevated-text)] shadow-[5px_5px_0_var(--lp-blue)]">
-        <CardContent className="relative flex flex-col justify-between gap-3 p-3.5 sm:flex-row sm:items-center sm:gap-4 sm:p-4">
-          <div className="space-y-1.5">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-gold)] px-2 py-0.5 font-mono text-[11px] font-bold uppercase tracking-wider text-[#16262e] shadow-[var(--lp-shadow-sm)]">
-                <QrCode className="size-3" aria-hidden="true" />
-                Modo caja rápida
-              </span>
-              <span className="rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-surface-elevated)] px-2 py-0.5 font-mono text-xs font-semibold text-[var(--lp-gold)]">
-                {program.isLoading
-                  ? "Verificando programa…"
-                  : programUnconfigured
-                    ? "Programa pendiente de configurar"
-                    : program.data?.is_active
-                      ? `1 MONEDA / ${formatCOP(program.data.cop_per_point_unit)}`
-                      : "Programa inactivo"}
-              </span>
-            </div>
-            <h2 className="font-display text-lg font-extrabold tracking-tight text-[var(--lp-surface-elevated-text)] [text-shadow:2px_2px_0_#16262e] sm:text-xl">
-              Acredita monedas en segundos o aprueba canjes en mostrador
-            </h2>
-            <p className="max-w-2xl text-xs leading-snug text-[var(--lp-surface-elevated-soft)] sm:text-sm">
-              Genera un QR único por venta para que el cliente reclame sus monedas desde el celular.
-            </p>
-          </div>
-          <div className="flex shrink-0 flex-wrap gap-2">
-            <Button variant="secondary" asChild>
-              <Link to="/admin/purchases/new">
-                <QrCode aria-hidden="true" />
-                Generar QR de una venta
-              </Link>
-            </Button>
-            <Button
-              variant="outline"
-              asChild
-              className="border-[var(--lp-ink)] bg-[var(--lp-surface-elevated)] text-[var(--lp-surface-elevated-text)] hover:bg-[var(--lp-gold)] hover:text-[var(--lp-ink)]"
-            >
-              <Link to="/admin/redemptions">
-                <TicketCheck aria-hidden="true" />
-                Ver solicitudes
-                {data && data.pending_redemptions > 0 && (
-                  <span className="ml-1 border border-[var(--lp-ink)] bg-[var(--lp-gold)] px-1.5 py-0.5 font-mono text-[11px] font-bold text-[#16262e]">
-                    {data.pending_redemptions}
-                  </span>
-                )}
-              </Link>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Tier 1: KPIs operativos principales */}
       {summary.isLoading ? (

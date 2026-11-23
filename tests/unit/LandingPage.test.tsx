@@ -269,7 +269,7 @@ describe("Sitio público (mockup multipágina)", () => {
 
     await user.click(screen.getByRole("button", { name: /ir a mi cuenta/i }));
 
-    expect(resolvePostLoginPathMock).toHaveBeenCalledWith(["admin", "customer"]);
+    expect(resolvePostLoginPathMock).toHaveBeenCalledWith(["admin", "customer"], "admin-1");
     expect(navigateMock).toHaveBeenCalledWith("/admin/onboarding");
   });
 

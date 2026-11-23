@@ -38,6 +38,10 @@ export interface FakeBusiness {
   phoneWhatsapp?: string | null;
   phone?: string | null;
   instagram?: string | null;
+  facebook?: string | null;
+  tiktok?: string | null;
+  twitter?: string | null;
+  youtube?: string | null;
   website?: string | null;
   logoUrl?: string | null;
   createdBy: string;
@@ -585,12 +589,16 @@ function fakePurchaseDetail(state: FakeState, purchase: FakePurchase) {
   const business = state.businesses.find((item) => item.id === purchase.businessId);
   const customer = state.users.find((item) => item.id === purchase.customerId);
   const registrar = state.users.find((item) => item.id === purchase.registrarId);
+  const effectiveStatus =
+    purchase.status === "pending_claim" && new Date(purchase.expiresAt).getTime() <= Date.now()
+      ? "expired"
+      : purchase.status;
   return {
     purchase: {
       id: purchase.id,
       business_id: purchase.businessId,
       amount_cop: purchase.amount_cop,
-      status: purchase.status,
+      status: effectiveStatus,
       points_awarded: purchase.points_awarded,
       created_at: purchase.createdAt,
       expires_at: purchase.expiresAt,
@@ -1046,6 +1054,47 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           items: lines,
         });
       }
+      case "purchase_qr_regenerate": {
+        if (!isStaff) return fail(route, "forbidden");
+        const businessId = String(body.p_business_id ?? "");
+        const purchaseId = String(body.p_purchase_id ?? "");
+        const purchase = state.purchases.find(
+          (item) => item.id === purchaseId && item.businessId === businessId,
+        );
+        if (!purchase) return fail(route, "purchase_not_found");
+        if (purchase.status === "claimed") return fail(route, "purchase_already_claimed");
+        if (purchase.status === "cancelled") return fail(route, "purchase_cancelled");
+        if (purchase.status === "expired" || new Date(purchase.expiresAt).getTime() <= Date.now()) {
+          purchase.status = "expired";
+          return fail(route, "purchase_expired");
+        }
+        purchase.token = newToken();
+        const business = state.businesses.find((item) => item.id === businessId);
+        state.auditLogs.unshift({
+          id: `audit-${crypto.randomUUID().slice(0, 8)}`,
+          businessId,
+          actorEmail: user!.email,
+          operation: "purchase.qr_regenerated",
+          entityType: "purchase",
+          entityId: purchase.id,
+          metadata: {
+            amount_cop: purchase.amount_cop,
+            expires_at: purchase.expiresAt,
+          },
+          createdAt: now(),
+        });
+        return json(route, {
+          purchase_id: purchase.id,
+          token: purchase.token,
+          business_id: businessId,
+          business_name: business?.name ?? "Negocio",
+          amount_cop: purchase.amount_cop,
+          points_preview: purchasePoints(state, businessId, purchase.amount_cop),
+          expires_at: purchase.expiresAt,
+          status: "pending_claim",
+          items: purchase.items ?? [],
+        });
+      }
       case "purchase_qr_preview": {
         const tokenValue = String(body.p_token ?? "");
         const purchase = state.purchases.find((item) => item.token === tokenValue);
@@ -1168,9 +1217,14 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
         const status = body.p_status ? String(body.p_status) : "";
         const limit = Number(body.p_limit ?? 20);
         const offset = Number(body.p_offset ?? 0);
+        const effectiveStatusOf = (purchase: FakePurchase) =>
+          purchase.status === "pending_claim" &&
+          new Date(purchase.expiresAt).getTime() <= Date.now()
+            ? "expired"
+            : purchase.status;
         const rows = state.purchases
           .filter((purchase) => purchase.businessId === businessId)
-          .filter((purchase) => !status || purchase.status === status)
+          .filter((purchase) => !status || effectiveStatusOf(purchase) === status)
           .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         return json(
           route,
@@ -1180,7 +1234,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
             return {
               id: purchase.id,
               amount_cop: purchase.amount_cop,
-              status: purchase.status,
+              status: effectiveStatusOf(purchase),
               points_awarded: purchase.points_awarded,
               created_at: purchase.createdAt,
               expires_at: purchase.expiresAt,
@@ -1573,8 +1627,12 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
               .map((request) => ({
                 id: request.id,
                 reward_name: request.rewardName,
+                reward_type: request.rewardType,
+                reward_image_url: null,
                 points_spent: request.pointsSpent,
                 code: request.code,
+                origin: request.origin,
+                request_status: request.status,
                 status:
                   request.status === "delivered"
                     ? "redeemed"
@@ -1582,6 +1640,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
                       ? "cancelled"
                       : "pending_delivery",
                 created_at: request.createdAt,
+                approved_at: request.approvedAt ?? null,
                 delivered_at: request.deliveredAt ?? null,
                 cancelled_at: request.cancelledAt ?? null,
               })),
@@ -1854,6 +1913,10 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           phone_whatsapp: business.phoneWhatsapp ?? null,
           phone: business.phone ?? null,
           instagram: business.instagram ?? null,
+          facebook: business.facebook ?? null,
+          tiktok: business.tiktok ?? null,
+          twitter: business.twitter ?? null,
+          youtube: business.youtube ?? null,
           website: business.website ?? null,
           logo_url: business.logoUrl ?? null,
           updated_at: now(),
@@ -1885,6 +1948,10 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
         business.phoneWhatsapp = whatsapp ?? null;
         business.phone = nullable(body.p_phone)?.replace(/[\s().-]/g, "") ?? null;
         business.instagram = nullable(body.p_instagram)?.replace(/^@/, "") ?? null;
+        business.facebook = nullable(body.p_facebook);
+        business.tiktok = nullable(body.p_tiktok);
+        business.twitter = nullable(body.p_twitter);
+        business.youtube = nullable(body.p_youtube);
         business.website = nullable(body.p_website);
         return json(route, {
           business_id: business.id,
@@ -1897,6 +1964,10 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           phone_whatsapp: business.phoneWhatsapp,
           phone: business.phone,
           instagram: business.instagram,
+          facebook: business.facebook,
+          tiktok: business.tiktok,
+          twitter: business.twitter,
+          youtube: business.youtube,
           website: business.website,
         });
       }
@@ -2028,6 +2099,10 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
             city: business.city ?? null,
             phone_whatsapp: business.phoneWhatsapp ?? null,
             instagram: business.instagram ?? null,
+            facebook: business.facebook ?? null,
+            tiktok: business.tiktok ?? null,
+            twitter: business.twitter ?? null,
+            youtube: business.youtube ?? null,
             website: business.website ?? null,
           },
         ]);
@@ -2143,7 +2218,10 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
               id: m.id,
               user_id: m.userId,
               full_name: u?.name ?? "",
+              nickname: u?.nickname ?? null,
               email: u?.email ?? "",
+              phone: u?.phone ?? null,
+              avatar_url: null,
               role: m.role,
               can_approve_redemptions: m.canApproveRedemptions,
               created_at: m.createdAt || now(),

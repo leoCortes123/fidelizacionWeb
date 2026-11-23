@@ -1,18 +1,25 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, Mail, ReceiptText, TicketCheck, TrendingUp } from "lucide-react";
 import { useAdminCustomer } from "./hooks";
 import { useBusinessContext } from "@/features/loyalty/businessContext";
 import { PurchaseDetailDialog } from "@/features/purchases/PurchaseDetailDialog";
 import { formatCOP, formatDateTimeBogota, formatPoints } from "@/lib/format";
-import type { PointsMovementType } from "@/types";
+import type {
+  CustomerDetail,
+  LoyaltyRedemptionWithCustomer,
+  PointsMovementType,
+  RedemptionRequestStatus,
+} from "@/types";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { EntityAvatar } from "@/components/shared/EntityAvatar";
-import { FrequencyBadge, RedemptionStatusBadge } from "@/components/shared/StatusBadge";
+import { FrequencyBadge } from "@/components/shared/StatusBadge";
 import { EmptyState, ErrorState, LoadingScreen } from "@/components/shared/States";
+import { RedemptionsTable } from "./RedemptionsTable";
 
 const movementLabels: Record<PointsMovementType, string> = {
   purchase_credit: "Compra acreditada",
@@ -23,16 +30,61 @@ const movementLabels: Record<PointsMovementType, string> = {
   bonus_credit: "Bono acreditado",
 };
 
-/**
- * Detalle de un cliente del negocio. Los canjes se consultan en modo lectura;
- * la operación de canje vive en Solicitudes y en el QR del cliente (Fase 6).
- */
+function mapFallbackRedemptions(
+  data: CustomerDetail,
+  businessId: string,
+): LoyaltyRedemptionWithCustomer[] {
+  return data.redemptions.map((item) => {
+    const requestStatus: RedemptionRequestStatus =
+      item.request_status ??
+      (item.status === "redeemed"
+        ? "delivered"
+        : item.status === "cancelled"
+          ? "cancelled"
+          : "pending");
+    return {
+      id: item.id,
+      business_id: businessId,
+      account_id: "",
+      customer_id: data.profile.id,
+      customer_email: data.profile.email,
+      customer_nickname: data.profile.nickname ?? null,
+      customer_avatar_url: data.profile.avatar_url ?? null,
+      reward_id: "",
+      reward_name: item.reward_name,
+      reward_type: item.reward_type ?? "free_product",
+      reward_image_url: item.reward_image_url ?? null,
+      points_spent: item.points_spent,
+      status: requestStatus,
+      code: item.code,
+      origin: item.origin ?? "manual",
+      idempotency_key: "",
+      created_by: data.profile.id,
+      created_at: item.created_at,
+      approved_by: null,
+      approved_at: item.approved_at ?? null,
+      delivered_at: item.delivered_at ?? null,
+      cancelled_at: item.cancelled_at ?? null,
+      cancellation_reason: null,
+    };
+  });
+}
+
 export function CustomerDetailPage() {
   const { id } = useParams();
-  const { selectedBusiness } = useBusinessContext();
+  const { selectedBusiness, selectedRole, canApproveRedemptions } = useBusinessContext();
   const businessId = selectedBusiness?.id ?? "";
   const customer = useAdminCustomer(businessId, id);
   const [detailId, setDetailId] = useState<string | null>(null);
+
+  const canAct =
+    selectedRole === "admin" || (selectedRole === "encargado" && canApproveRedemptions);
+  const canCancel = selectedRole === "admin";
+
+  const customerRedemptions = useMemo(() => {
+    if (!customer.data) return [];
+    return mapFallbackRedemptions(customer.data, businessId);
+  }, [businessId, customer.data]);
 
   if (customer.isLoading) return <LoadingScreen label="Cargando cliente…" />;
   if (customer.isError || !customer.data) {
@@ -129,144 +181,139 @@ export function CustomerDetailPage() {
         </CardContent>
       </Card>
 
-      <div className="grid gap-5 lg:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <ReceiptText className="size-4 text-muted-foreground" aria-hidden="true" />
-              Compras
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {data.purchases.length === 0 ? (
-              <EmptyState
-                title="Sin compras"
-                description="Este cliente aún no tiene compras en el negocio."
-                icon={ReceiptText}
-                className="border-0 bg-transparent py-6"
-              />
-            ) : (
-              <ul className="divide-y">
-                {data.purchases.map((purchase) => (
-                  <li
-                    key={purchase.id}
-                    className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0"
-                  >
-                    <div className="min-w-0">
-                      <p className="font-semibold">{formatCOP(purchase.amount_cop)}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatDateTimeBogota(purchase.claimed_at)}
-                        {purchase.items_count
-                          ? ` · ${purchase.items_count} ítem(s)`
-                          : " · sin detalle"}
-                      </p>
-                    </div>
-                    <div className="flex shrink-0 items-center gap-2">
-                      <Badge variant="success">+{purchase.points_awarded} monedas</Badge>
-                      {purchase.items_count ? (
-                        <Button variant="ghost" size="sm" onClick={() => setDetailId(purchase.id)}>
-                          Detalle
-                        </Button>
-                      ) : null}
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <TrendingUp className="size-4 text-muted-foreground" aria-hidden="true" />
-              Movimientos de monedas
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {data.movements.length === 0 ? (
-              <EmptyState
-                title="Sin movimientos"
-                description="Aún no hay créditos ni débitos."
-                icon={TrendingUp}
-                className="border-0 bg-transparent py-6"
-              />
-            ) : (
-              <ul className="divide-y">
-                {data.movements.map((movement) => (
-                  <li
-                    key={movement.id}
-                    className="flex items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0"
-                  >
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium">
-                        {movementLabels[movement.movement_type] ?? movement.movement_type}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatDateTimeBogota(movement.created_at)}
-                      </p>
-                    </div>
-                    <span
-                      className={
-                        movement.points >= 0
-                          ? "shrink-0 text-sm font-bold text-[var(--lp-green-text)]"
-                          : "shrink-0 text-sm font-bold text-destructive"
-                      }
-                    >
-                      {movement.points > 0 ? "+" : ""}
-                      {movement.points}
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-base">
-            <TicketCheck className="size-4 text-muted-foreground" aria-hidden="true" />
-            Canjes del cliente
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {data.redemptions.length === 0 ? (
-            <EmptyState
-              title="Sin canjes"
-              description="Cuando el cliente solicite una recompensa aparecerá aquí."
-              icon={TicketCheck}
-              className="border-0 bg-transparent py-6"
-            />
-          ) : (
-            <ul className="divide-y">
-              {data.redemptions.map((redemption) => (
-                <li
-                  key={redemption.id}
-                  className="flex flex-col gap-2 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
-                >
-                  <div className="min-w-0">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-semibold">{redemption.reward_name}</p>
-                      <RedemptionStatusBadge status={redemption.status} />
-                    </div>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {formatDateTimeBogota(redemption.created_at)} · −{redemption.points_spent}{" "}
-                      monedas
-                      {redemption.cancelled_at
-                        ? ` · anulado ${formatDateTimeBogota(redemption.cancelled_at)}`
-                        : ""}
-                    </p>
-                  </div>
-                  <Button asChild variant="outline" size="sm" className="self-start">
-                    <Link to="/admin/redemptions">Ver en Solicitudes</Link>
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </CardContent>
+        <Tabs defaultValue="purchases">
+          <CardHeader className="pb-3">
+            <TabsList className="flex w-full overflow-x-auto sm:grid sm:grid-cols-3">
+              <TabsTrigger value="purchases" className="gap-1.5 whitespace-nowrap">
+                <ReceiptText className="size-4 shrink-0" aria-hidden="true" />
+                Compras
+                <Badge variant="outline" className="ml-1 font-mono text-[10px]">
+                  {data.purchases.length}
+                </Badge>
+              </TabsTrigger>
+              <TabsTrigger value="movements" className="gap-1.5 whitespace-nowrap">
+                <TrendingUp className="size-4 shrink-0" aria-hidden="true" />
+                Movimientos de monedas
+                <Badge variant="outline" className="ml-1 font-mono text-[10px]">
+                  {data.movements.length}
+                </Badge>
+              </TabsTrigger>
+              <TabsTrigger value="redemptions" className="gap-1.5 whitespace-nowrap">
+                <TicketCheck className="size-4 shrink-0" aria-hidden="true" />
+                Canjes
+                <Badge variant="outline" className="ml-1 font-mono text-[10px]">
+                  {customerRedemptions.length}
+                </Badge>
+              </TabsTrigger>
+            </TabsList>
+          </CardHeader>
+
+          <CardContent>
+            <TabsContent value="purchases" className="mt-0">
+              {data.purchases.length === 0 ? (
+                <EmptyState
+                  title="Sin compras"
+                  description="Este cliente aún no tiene compras en el negocio."
+                  icon={ReceiptText}
+                  className="border-0 bg-transparent py-6"
+                />
+              ) : (
+                <ul className="divide-y">
+                  {data.purchases.map((purchase) => (
+                    <li
+                      key={purchase.id}
+                      className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0"
+                    >
+                      <div className="min-w-0">
+                        <p className="font-semibold">{formatCOP(purchase.amount_cop)}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {formatDateTimeBogota(purchase.claimed_at)}
+                          {purchase.items_count
+                            ? ` · ${purchase.items_count} ítem(s)`
+                            : " · sin detalle"}
+                        </p>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2">
+                        <Badge variant="success">+{purchase.points_awarded} monedas</Badge>
+                        {purchase.items_count ? (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setDetailId(purchase.id)}
+                          >
+                            Detalle
+                          </Button>
+                        ) : null}
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </TabsContent>
+
+            <TabsContent value="movements" className="mt-0">
+              {data.movements.length === 0 ? (
+                <EmptyState
+                  title="Sin movimientos"
+                  description="Aún no hay créditos ni débitos."
+                  icon={TrendingUp}
+                  className="border-0 bg-transparent py-6"
+                />
+              ) : (
+                <ul className="divide-y">
+                  {data.movements.map((movement) => (
+                    <li
+                      key={movement.id}
+                      className="flex items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0"
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium">
+                          {movementLabels[movement.movement_type] ?? movement.movement_type}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {formatDateTimeBogota(movement.created_at)}
+                        </p>
+                      </div>
+                      <span
+                        className={
+                          movement.points >= 0
+                            ? "shrink-0 text-sm font-bold text-[var(--lp-green-text)]"
+                            : "shrink-0 text-sm font-bold text-destructive"
+                        }
+                      >
+                        {movement.points > 0 ? "+" : ""}
+                        {movement.points}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </TabsContent>
+
+            <TabsContent value="redemptions" className="mt-0">
+              {customerRedemptions.length === 0 ? (
+                <EmptyState
+                  title="Sin canjes"
+                  description="Cuando el cliente solicite una recompensa aparecerá aquí."
+                  icon={TicketCheck}
+                  className="border-0 bg-transparent py-6"
+                />
+              ) : (
+                <RedemptionsTable
+                  businessId={businessId}
+                  rows={customerRedemptions}
+                  showCustomerColumn={false}
+                  canAct={canAct}
+                  canCancel={canCancel}
+                  onActionComplete={() => {
+                    void customer.refetch();
+                  }}
+                />
+              )}
+            </TabsContent>
+          </CardContent>
+        </Tabs>
       </Card>
 
       <PurchaseDetailDialog

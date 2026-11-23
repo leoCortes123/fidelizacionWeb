@@ -47,7 +47,7 @@ function syncDocumentTheme(target: "light" | "dark", persist: boolean) {
  * muestra una luna creciente con estrellas en modo claro (para pasar a oscuro)
  * y un sol dorado sombreado en modo oscuro (para pasar a claro).
  */
-function PixelThemeIcon({ isDark }: { isDark: boolean }) {
+export function PixelThemeIcon({ isDark }: { isDark: boolean }) {
   if (isDark) {
     // Sol pixel art 32-bit con contorno negro (#0f172a / #16262e) en rayos y disco
     return (
@@ -145,7 +145,13 @@ function PixelThemeIcon({ isDark }: { isDark: boolean }) {
   );
 }
 
-export function ThemeToggleButton() {
+export function ThemeToggleButton({
+  variant = "landing",
+  className,
+}: {
+  variant?: "landing" | "shell";
+  className?: string;
+} = {}) {
   const themeContext = useOptionalTheme();
   const [localDark, setLocalDark] = useState<boolean>(() => readIsDark());
   const isDark = themeContext ? themeContext.theme === "dark" : localDark;
@@ -175,10 +181,20 @@ export function ThemeToggleButton() {
     setLocalDark(nextScheme === "dark");
   };
 
+  const shellClasses =
+    "inline-flex h-9 min-w-9 cursor-pointer items-center justify-center rounded-none border-2 border-[var(--lp-ink)] px-2 shadow-[var(--lp-shadow-sm)] transition-colors focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--lp-focus-ring)] [@media(pointer:coarse)]:h-11 [@media(pointer:coarse)]:min-w-11 " +
+    (isDark
+      ? "bg-[var(--lp-cream)] text-[var(--lp-text-main)] hover:bg-[var(--lp-paper-deep)]"
+      : "bg-[var(--lp-ink)] text-[var(--lp-surface-elevated-text)] hover:bg-[var(--lp-surface-elevated-deep)]");
+
   return (
     <button
       type="button"
-      className="btn btn-light btn-xs theme-toggle-btn"
+      className={
+        variant === "shell"
+          ? `${shellClasses}${className ? ` ${className}` : ""}`
+          : `btn btn-light btn-xs theme-toggle-btn${className ? ` ${className}` : ""}`
+      }
       onClick={handleToggle}
       aria-label={isDark ? "Cambiar a modo claro" : "Cambiar a modo oscuro"}
       title={isDark ? "Modo claro" : "Modo oscuro"}

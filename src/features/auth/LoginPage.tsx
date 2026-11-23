@@ -31,6 +31,7 @@ import {
   brandName,
   brandTagline,
   businessHomePath,
+  isNextPathCompatibleWithRoles,
   isSupabaseConfigured,
   safeNextPath,
 } from "@/lib/config";
@@ -201,20 +202,21 @@ export function LoginPage() {
   const inviteCallbackPath = inviteToken
     ? `/login?invite=${encodeURIComponent(inviteToken)}`
     : null;
-  const isGenericAdminHome = next === "/admin" || next === "/admin/dashboard";
   const effectiveNext = inviteCallbackPath
     ? inviteCallbackPath
     : mode === "register"
-      ? accountType === "admin"
-        ? appendBusinessNameToPath(
-            next.startsWith("/admin/onboarding") || next.startsWith("/business")
-              ? next
-              : "/admin/onboarding",
-            businessName,
-          )
-        : next.startsWith("/admin") || next.startsWith("/business")
-          ? "/customer"
-          : next
+      ? next.startsWith("/claim/")
+        ? next
+        : accountType === "admin"
+          ? appendBusinessNameToPath(
+              next.startsWith("/admin/onboarding") || next.startsWith("/business")
+                ? next
+                : "/admin/onboarding",
+              businessName,
+            )
+          : next.startsWith("/admin") || next.startsWith("/business")
+            ? "/customer"
+            : next
       : next;
 
   useEffect(() => {
@@ -312,15 +314,21 @@ export function LoginPage() {
     if (inviteToken) return;
 
     if (mode === "register") {
-      navigate(effectiveNext, { replace: true });
-      return;
-    }
-    if (hasNextParam && next !== "/customer" && !isGenericAdminHome) {
+      if (
+        effectiveNext.startsWith("/admin/onboarding") ||
+        effectiveNext.startsWith("/claim/") ||
+        effectiveNext.startsWith("/join/") ||
+        (hasNextParam && isNextPathCompatibleWithRoles(effectiveNext, roles))
+      ) {
+        navigate(effectiveNext, { replace: true });
+        return;
+      }
+    } else if (hasNextParam && isNextPathCompatibleWithRoles(next, roles)) {
       navigate(next, { replace: true });
       return;
     }
     let active = true;
-    void resolvePostLoginPath(roles).then((destination) => {
+    void resolvePostLoginPath(roles, session.user.id).then((destination) => {
       if (active) navigate(destination, { replace: true });
     });
     return () => {
@@ -337,7 +345,6 @@ export function LoginPage() {
     next,
     effectiveNext,
     hasNextParam,
-    isGenericAdminHome,
     mode,
     navigate,
   ]);
@@ -532,7 +539,7 @@ export function LoginPage() {
                 className="pixel-btn pixel-btn-dark w-full"
                 disabled={rolesLoading || !rolesLoaded}
                 onClick={() => {
-                  void resolvePostLoginPath(roles).then((destination) => {
+                  void resolvePostLoginPath(roles, session.user.id).then((destination) => {
                     navigate(destination, { replace: true });
                   });
                 }}

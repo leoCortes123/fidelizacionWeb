@@ -148,6 +148,10 @@ export interface BusinessProfilePayload {
   phoneWhatsapp: string;
   phone: string;
   instagram: string;
+  facebook?: string;
+  tiktok?: string;
+  twitter?: string;
+  youtube?: string;
   website: string;
 }
 
@@ -165,6 +169,10 @@ export function useUpdateBusinessProfile() {
         p_phone_whatsapp: params.phoneWhatsapp,
         p_phone: params.phone,
         p_instagram: params.instagram,
+        p_facebook: params.facebook ?? "",
+        p_tiktok: params.tiktok ?? "",
+        p_twitter: params.twitter ?? "",
+        p_youtube: params.youtube ?? "",
         p_website: params.website,
       }),
     onSuccess: (_, vars) => {

@@ -63,13 +63,16 @@ describe("EncargadoShell", () => {
     vi.clearAllMocks();
   });
 
-  it("renderiza el panel superior (header) con el nombre del negocio y badge de encargado", () => {
+  it("renderiza el panel superior fijo con Fideliapp y accesos directos de perfil, tema y salida", () => {
     renderShell();
 
     const header = screen.getByTestId("app-header");
     expect(header).toBeInTheDocument();
-    expect(header).toHaveTextContent("Taquería El Fogón");
-    expect(header).toHaveTextContent("ENCARGADO · NEGOCIO");
+    expect(header).toHaveTextContent("Fideliapp");
+    expect(header).not.toHaveTextContent("ENCARGADO · NEGOCIO");
+    expect(screen.getByRole("link", { name: /Mi perfil/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Cerrar sesión/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Cambiar a modo oscuro/i })).toBeInTheDocument();
   });
 
   it("renderiza el menú inferior móvil con Inicio, Generar venta y Solicitudes", () => {
@@ -85,7 +88,9 @@ describe("EncargadoShell", () => {
     expect(ventaLink.some((l) => l.getAttribute("href") === "/encargado/venta")).toBe(true);
 
     const solicitudesLink = screen.getAllByRole("link", { name: /Solicitudes/i });
-    expect(solicitudesLink.some((l) => l.getAttribute("href") === "/encargado/solicitudes")).toBe(true);
+    expect(solicitudesLink.some((l) => l.getAttribute("href") === "/encargado/solicitudes")).toBe(
+      true,
+    );
   });
 
   it("muestra el botón flotante FAB para registrar venta en el dashboard", () => {

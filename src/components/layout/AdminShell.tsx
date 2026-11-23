@@ -1,6 +1,7 @@
-import { useRef, useState, type ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { Link, NavLink, Outlet, useLocation, type NavLinkRenderProps } from "react-router-dom";
 import {
+  ArrowRight,
   ClipboardList,
   Gift,
   Home,
@@ -10,13 +11,13 @@ import {
   QrCode,
   ReceiptText,
   Settings2,
+  Sparkles,
   TicketCheck,
   UserRound,
   Users,
 } from "lucide-react";
 import { Brand } from "@/components/shared/Brand";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -30,7 +31,6 @@ import { usePortalTheme } from "@/components/theme/ThemeProvider";
 import { cn } from "@/lib/utils";
 import { UserMenu } from "./UserMenu";
 import { PurchaseFab } from "./Fab";
-import { useHideOnScroll } from "./useHideOnScroll";
 
 type AdminNavItem = {
   to: string;
@@ -86,8 +86,6 @@ function navClass(isActive: boolean) {
 export function AdminShell({ children }: { children?: ReactNode }) {
   usePortalTheme("admin");
   const { pathname } = useLocation();
-  const scrollRef = useRef<HTMLElement | null>(null);
-  const headerHidden = useHideOnScroll(scrollRef);
   const [moreOpen, setMoreOpen] = useState(false);
   const businessContext = useOptionalBusinessContext();
   const headerBusinessName =
@@ -105,23 +103,32 @@ export function AdminShell({ children }: { children?: ReactNode }) {
   return (
     <div className="flex h-dvh overflow-hidden">
       <aside className="hidden h-dvh w-56 shrink-0 flex-col border-r-[3px] border-[var(--lp-ink)] bg-[var(--lp-paper-deep)] md:flex xl:w-60">
-        <div className="border-b-[3px] border-[var(--lp-ink)] bg-card p-3">
-          <Brand
-            compact
-            name={headerBusinessName}
-            tagline={headerBusinessName ? null : undefined}
-            linkTo="/admin/dashboard"
-          />
-          <div className="mt-1.5 flex items-center gap-2">
-            <Badge variant="default">ADMIN · NEGOCIO</Badge>
-          </div>
+        <div className="border-b-[3px] border-[var(--lp-ink)] bg-card px-3 py-3">
+          <Brand compact linkTo="/admin/dashboard" />
         </div>
 
-        <div className="px-2.5 py-2">
-          <Button asChild className="w-full justify-start">
+        <div className="px-2.5 py-3">
+          <Button
+            asChild
+            className="group h-auto min-h-[46px] w-full justify-between gap-2 border-[3px] border-[var(--lp-ink)] bg-primary px-3 py-2.5 text-[15px] font-extrabold text-primary-foreground shadow-[4px_4px_0_var(--lp-ink)] transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0_var(--lp-ink)] active:translate-x-0.5 active:translate-y-0.5 active:shadow-[2px_2px_0_var(--lp-ink)]"
+          >
             <Link to="/admin/purchases/new">
-              <QrCode aria-hidden="true" />
-              Registrar venta
+              <span className="flex items-center gap-2.5">
+                <span className="grid size-7 shrink-0 place-items-center border-2 border-[var(--lp-ink)] bg-[var(--lp-gold)] text-[#16262e] shadow-[2px_2px_0_var(--lp-ink)]">
+                  <QrCode className="size-4" aria-hidden="true" />
+                </span>
+                <span className="flex items-center gap-1.5">
+                  Registrar venta
+                  <Sparkles
+                    className="size-3.5 text-[var(--lp-gold)] transition-transform group-hover:scale-110"
+                    aria-hidden="true"
+                  />
+                </span>
+              </span>
+              <ArrowRight
+                className="size-4 shrink-0 transition-transform group-hover:translate-x-0.5"
+                aria-hidden="true"
+              />
             </Link>
           </Button>
         </div>
@@ -145,27 +152,16 @@ export function AdminShell({ children }: { children?: ReactNode }) {
             );
           })}
         </nav>
-
-        <div className="border-t-[3px] border-[var(--lp-ink)] bg-card p-2.5">
-          <UserMenu />
-        </div>
       </aside>
 
       <div className="flex h-dvh min-w-0 flex-1 flex-col">
         <header
           data-testid="app-header"
-          inert={headerHidden || undefined}
-          aria-hidden={headerHidden || undefined}
-          className={cn(
-            "z-30 shrink-0 overflow-hidden border-b-[3px] border-[var(--lp-ink)] bg-[var(--lp-header-bg)] backdrop-blur-[6px] transition-[max-height,transform,opacity] duration-300 ease-out no-print",
-            headerHidden
-              ? "invisible pointer-events-none max-h-0 -translate-y-full border-transparent opacity-0"
-              : "max-h-40 opacity-100",
-          )}
+          className="z-30 shrink-0 border-b-[3px] border-[var(--lp-ink)] bg-[var(--lp-header-bg)] backdrop-blur-[6px] no-print"
         >
           <div className="flex h-12 items-center justify-between gap-3 px-4">
             <div className="min-w-0 md:hidden">
-              <Brand compact name={headerBusinessName} linkTo="/admin/dashboard" />
+              <Brand compact linkTo="/admin/dashboard" />
             </div>
             <p className="hidden items-center gap-2 font-mono text-xs font-semibold uppercase text-[var(--lp-ink-soft)] md:flex">
               <span
@@ -185,7 +181,6 @@ export function AdminShell({ children }: { children?: ReactNode }) {
         </header>
 
         <main
-          ref={scrollRef}
           className="min-h-0 flex-1 overflow-y-auto overscroll-contain scroll-pb-28 md:scroll-pb-10"
           id="contenido-principal"
         >
@@ -237,7 +232,7 @@ export function AdminShell({ children }: { children?: ReactNode }) {
       </nav>
 
       <Dialog open={moreOpen} onOpenChange={setMoreOpen}>
-        <DialogContent className="max-h-[85dvh]">
+        <DialogContent>
           <DialogHeader>
             <DialogTitle>Más opciones</DialogTitle>
             <DialogDescription>Accesos del negocio.</DialogDescription>

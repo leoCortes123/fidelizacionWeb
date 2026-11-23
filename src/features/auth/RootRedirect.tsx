@@ -14,6 +14,7 @@ export function RootRedirect() {
   const [target, setTarget] = useState<string | null>(null);
 
   useEffect(() => {
+    if (loading) return;
     if (!session) {
       setTarget("/login");
       return;
@@ -21,7 +22,8 @@ export function RootRedirect() {
     if (rolesLoading || !rolesLoaded) return;
 
     let active = true;
-    void resolvePostLoginPath(roles)
+    setTarget(null);
+    void resolvePostLoginPath(roles, session.user.id)
       .then((path) => {
         if (active) setTarget(path);
       })
@@ -32,7 +34,7 @@ export function RootRedirect() {
     return () => {
       active = false;
     };
-  }, [roles, rolesLoaded, rolesLoading, session]);
+  }, [loading, roles, rolesLoaded, rolesLoading, session]);
 
   if (loading || (session && (rolesLoading || !rolesLoaded))) {
     return <FullPageLoader label="Cargando tu cuenta…" />;

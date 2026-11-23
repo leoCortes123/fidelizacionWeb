@@ -8,6 +8,8 @@ import {
   PackageCheck,
   QrCode,
   ReceiptText,
+  RefreshCw,
+  Sparkles,
   TicketCheck,
   Users,
 } from "lucide-react";
@@ -18,16 +20,28 @@ import {
   useBusinesses,
   useLoyaltyRedemptions,
 } from "@/features/loyalty/hooks";
-import { useBusinessPurchases } from "@/features/purchases/hooks";
+import { useBusinessPurchases, useRegeneratePurchaseQr } from "@/features/purchases/hooks";
 import { PurchaseDetailDialog } from "@/features/purchases/PurchaseDetailDialog";
-import { formatCOP, formatDateTimeBogota, formatPoints } from "@/lib/format";
+import { PurchaseQrDialog } from "@/features/purchases/PurchaseQrDialog";
+import {
+  effectivePurchaseStatus,
+  formatCOP,
+  formatDateTimeBogota,
+  formatFriendlyDatePartsBogota,
+  formatPoints,
+} from "@/lib/format";
 import { errorMessage } from "@/lib/errors";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState, ErrorState, ListSkeleton } from "@/components/shared/States";
 import { PurchaseStatusBadge, RedemptionRequestStatusBadge } from "@/components/shared/StatusBadge";
-import type { Business, LoyaltyRedemptionWithCustomer } from "@/types";
+import type {
+  Business,
+  BusinessPurchase,
+  LoyaltyRedemptionWithCustomer,
+  PurchaseQrCreateResult,
+} from "@/types";
 
 export function EncargadoDashboardPage() {
   const businesses = useBusinesses();
@@ -109,7 +123,10 @@ function EncargadoDashboardSection({ business }: { business: Business }) {
   const purchases = useBusinessPurchases(business.id, 0, 5, "");
 
   const approveRedemption = useApproveRedemption();
+  const regenerateQr = useRegeneratePurchaseQr(business.id);
   const [selectedPurchaseId, setSelectedPurchaseId] = useState<string | null>(null);
+  const [regeneratingId, setRegeneratingId] = useState<string | null>(null);
+  const [regeneratedQr, setRegeneratedQr] = useState<PurchaseQrCreateResult | null>(null);
   const [approvingId, setApprovingId] = useState<string | null>(null);
 
   const pendingRows = pending.data ?? [];
@@ -141,6 +158,19 @@ function EncargadoDashboardSection({ business }: { business: Business }) {
     }
   }
 
+  async function handleRegenerate(purchase: BusinessPurchase) {
+    setRegeneratingId(purchase.id);
+    try {
+      const qr = await regenerateQr.mutateAsync(purchase.id);
+      setRegeneratedQr(qr);
+      toast.success("QR regenerado. El código anterior dejó de ser válido.");
+    } catch (error) {
+      toast.error(errorMessage(error));
+    } finally {
+      setRegeneratingId(null);
+    }
+  }
+
   return (
     <div className="space-y-4 animate-fade-in">
       {/* Encabezado operativo */}
@@ -153,7 +183,7 @@ function EncargadoDashboardSection({ business }: { business: Business }) {
             />
             Terminal de caja · {dateLabel}
           </div>
-          <h1 className="mt-1 font-display text-xl font-black tracking-tight [text-shadow:var(--lp-h1-shadow)] sm:text-2xl">
+          <h1 className="mt-1 font-display text-2xl font-black tracking-tight [text-shadow:var(--lp-h1-shadow)] sm:text-3xl">
             {business.name}
           </h1>
           <p className="text-sm text-muted-foreground">
@@ -161,10 +191,19 @@ function EncargadoDashboardSection({ business }: { business: Business }) {
           </p>
         </div>
 
-        <Button asChild>
+        <Button
+          asChild
+          className="group h-auto min-h-[46px] gap-2 border-[3px] border-[var(--lp-ink)] px-4 py-2.5 text-[15px] font-extrabold shadow-[4px_4px_0_var(--lp-ink)] transition-all hover:-translate-x-0.5 hover:-translate-y-0.5 hover:shadow-[5px_5px_0_var(--lp-ink)]"
+        >
           <Link to="/encargado/venta">
-            <QrCode className="size-4" aria-hidden="true" />
+            <span className="grid size-7 shrink-0 place-items-center border-2 border-[var(--lp-ink)] bg-[var(--lp-gold)] text-[#16262e] shadow-[2px_2px_0_var(--lp-ink)]">
+              <QrCode className="size-4" aria-hidden="true" />
+            </span>
             Registrar venta
+            <Sparkles
+              className="size-3.5 text-[var(--lp-gold)] transition-transform group-hover:scale-110"
+              aria-hidden="true"
+            />
           </Link>
         </Button>
       </div>
@@ -363,32 +402,58 @@ function EncargadoDashboardSection({ business }: { business: Business }) {
             />
           ) : (
             <ul className="divide-y">
-              {recentPurchases.map((purchase) => (
-                <li key={purchase.id}>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedPurchaseId(purchase.id)}
-                    className="flex w-full flex-wrap items-center justify-between gap-3 rounded-none py-3 text-left transition-colors hover:bg-[var(--lp-row-hover)] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-[-3px] focus-visible:outline-[var(--lp-focus-ring)] first:pt-0 last:pb-0"
-                    aria-label={`Ver detalle de la venta por ${formatCOP(purchase.amount_cop)}`}
+              {recentPurchases.map((purchase) => {
+                const effStatus = effectivePurchaseStatus(purchase.status, purchase.expires_at);
+                const created = formatFriendlyDatePartsBogota(purchase.created_at);
+                const isPending = effStatus === "pending_claim";
+
+                return (
+                  <li
+                    key={purchase.id}
+                    className="flex items-center gap-2 py-3 first:pt-0 last:pb-0"
                   >
-                    <div className="min-w-0">
-                      <p className="font-semibold">{formatCOP(purchase.amount_cop)}</p>
-                      <p className="truncate text-xs text-muted-foreground">
-                        {formatDateTimeBogota(purchase.created_at)} ·{" "}
-                        {purchase.customer_name ?? "Sin reclamar"}
-                        {purchase.items_count ? ` · ${purchase.items_count} ítem(s)` : ""}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-3">
-                      <span className="text-xs text-muted-foreground">
-                        {purchase.points_awarded > 0 ? formatPoints(purchase.points_awarded) : ""}
-                      </span>
-                      <PurchaseStatusBadge status={purchase.status} />
-                      <ChevronRight className="size-4 text-muted-foreground" aria-hidden="true" />
-                    </div>
-                  </button>
-                </li>
-              ))}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedPurchaseId(purchase.id)}
+                      className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-3 rounded-none text-left transition-colors hover:bg-[var(--lp-row-hover)] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-[-3px] focus-visible:outline-[var(--lp-focus-ring)]"
+                      aria-label={`Ver detalle de la venta por ${formatCOP(purchase.amount_cop)}`}
+                    >
+                      <div className="min-w-0">
+                        <p className="font-semibold">{formatCOP(purchase.amount_cop)}</p>
+                        <p className="truncate text-xs text-muted-foreground">
+                          <span className="font-semibold text-foreground">{created.dayLabel}</span>{" "}
+                          <span className="font-mono font-semibold tabular-nums">
+                            {created.timeLabel}
+                          </span>{" "}
+                          · {purchase.customer_name ?? "Sin reclamar"}
+                          {purchase.items_count ? ` · ${purchase.items_count} ítem(s)` : ""}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2.5">
+                        <span className="text-xs text-muted-foreground">
+                          {purchase.points_awarded > 0 ? formatPoints(purchase.points_awarded) : ""}
+                        </span>
+                        <PurchaseStatusBadge status={effStatus} />
+                        <ChevronRight className="size-4 text-muted-foreground" aria-hidden="true" />
+                      </div>
+                    </button>
+                    {isPending && (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="shrink-0"
+                        loading={regeneratingId === purchase.id}
+                        disabled={regeneratingId !== null}
+                        onClick={() => void handleRegenerate(purchase)}
+                      >
+                        <RefreshCw aria-hidden="true" />
+                        Regenerar QR
+                      </Button>
+                    )}
+                  </li>
+                );
+              })}
             </ul>
           )}
         </CardContent>
@@ -402,6 +467,20 @@ function EncargadoDashboardSection({ business }: { business: Business }) {
         purchaseId={selectedPurchaseId}
         businessId={business.id}
         mode="business"
+        onRegenerated={(qr) => {
+          setSelectedPurchaseId(null);
+          setRegeneratedQr(qr);
+        }}
+      />
+
+      <PurchaseQrDialog
+        open={Boolean(regeneratedQr)}
+        onOpenChange={(open) => {
+          if (!open) setRegeneratedQr(null);
+        }}
+        result={regeneratedQr}
+        title="QR de venta regenerado"
+        description="El código anterior quedó invalidado. Muestra este nuevo QR antes de que venza el tiempo."
       />
     </div>
   );

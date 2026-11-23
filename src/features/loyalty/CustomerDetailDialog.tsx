@@ -1,10 +1,19 @@
-import { Calendar, Mail, ReceiptText, TicketCheck, UserRound } from "lucide-react";
+import { useMemo } from "react";
+import { Calendar, Mail, ReceiptText, TicketCheck, TrendingUp, UserRound } from "lucide-react";
 import { useAdminCustomer } from "@/features/admin/hooks";
+import { RedemptionsTable } from "@/features/admin/RedemptionsTable";
+import { useBusinessContext } from "@/features/loyalty/businessContext";
 import { formatCOP, formatDateTimeBogota, formatPoints } from "@/lib/format";
-import type { CustomerDetail } from "@/types";
+import type {
+  CustomerDetail,
+  LoyaltyRedemptionWithCustomer,
+  PointsMovementType,
+  RedemptionRequestStatus,
+} from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -15,11 +24,16 @@ import {
 } from "@/components/ui/dialog";
 import { EmptyState, ErrorState, LoadingScreen } from "@/components/shared/States";
 import { EntityAvatar } from "@/components/shared/EntityAvatar";
-import {
-  FrequencyBadge,
-  PurchaseStatusBadge,
-  RedemptionStatusBadge,
-} from "@/components/shared/StatusBadge";
+import { FrequencyBadge, PurchaseStatusBadge } from "@/components/shared/StatusBadge";
+
+const movementLabels: Record<PointsMovementType, string> = {
+  purchase_credit: "Compra acreditada",
+  redemption_debit: "Canje",
+  redemption_refund: "Devolución de canje",
+  expiry_debit: "Vencimiento de monedas",
+  admin_adjustment: "Ajuste administrativo",
+  bonus_credit: "Bono acreditado",
+};
 
 interface CustomerDetailDialogProps {
   open: boolean;
@@ -38,7 +52,7 @@ export function CustomerDetailDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-2xl">
+      <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <UserRound className="size-5 text-primary" aria-hidden="true" />
@@ -57,7 +71,11 @@ export function CustomerDetailDialog({
             onRetry={() => void customer.refetch()}
           />
         ) : (
-          <CustomerDetailContent data={customer.data} />
+          <CustomerDetailContent
+            data={customer.data}
+            businessId={businessId}
+            onRefresh={() => void customer.refetch()}
+          />
         )}
 
         <DialogFooter className="mt-4">
@@ -70,12 +88,60 @@ export function CustomerDetailDialog({
   );
 }
 
-function CustomerDetailContent({ data }: { data: CustomerDetail }) {
-  const { profile, purchases, redemptions } = data;
+function CustomerDetailContent({
+  data,
+  businessId,
+  onRefresh,
+}: {
+  data: CustomerDetail;
+  businessId: string;
+  onRefresh: () => void;
+}) {
+  const { profile, purchases, movements, redemptions } = data;
+  const { selectedRole, canApproveRedemptions } = useBusinessContext();
+  const canAct =
+    selectedRole === "admin" || (selectedRole === "encargado" && canApproveRedemptions);
+  const canCancel = selectedRole === "admin";
+
+  const customerRedemptions = useMemo<LoyaltyRedemptionWithCustomer[]>(() => {
+    return redemptions.map((item) => {
+      const requestStatus: RedemptionRequestStatus =
+        item.request_status ??
+        (item.status === "redeemed"
+          ? "delivered"
+          : item.status === "cancelled"
+            ? "cancelled"
+            : "pending");
+      return {
+        id: item.id,
+        business_id: businessId,
+        account_id: "",
+        customer_id: profile.id,
+        customer_email: profile.email,
+        customer_nickname: profile.nickname ?? null,
+        customer_avatar_url: profile.avatar_url ?? null,
+        reward_id: "",
+        reward_name: item.reward_name,
+        reward_type: item.reward_type ?? "free_product",
+        reward_image_url: item.reward_image_url ?? null,
+        points_spent: item.points_spent,
+        status: requestStatus,
+        code: item.code,
+        origin: item.origin ?? "manual",
+        idempotency_key: "",
+        created_by: profile.id,
+        created_at: item.created_at,
+        approved_by: null,
+        approved_at: item.approved_at ?? null,
+        delivered_at: item.delivered_at ?? null,
+        cancelled_at: item.cancelled_at ?? null,
+        cancellation_reason: null,
+      };
+    });
+  }, [businessId, profile, redemptions]);
 
   return (
     <div className="space-y-5 animate-fade-in">
-      {/* 1. Datos básicos del cliente y saldo */}
       <Card className="border-[3px] border-[var(--lp-ink)] bg-[var(--lp-surface-elevated-deep)] text-[var(--lp-surface-elevated-text)] shadow-[5px_5px_0_var(--lp-ink)]">
         <CardContent className="space-y-4 p-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -147,109 +213,122 @@ function CustomerDetailContent({ data }: { data: CustomerDetail }) {
         </CardContent>
       </Card>
 
-      {/* 2. Historial de compras */}
       <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-base font-bold flex items-center gap-2">
-              <ReceiptText className="size-4 text-primary" aria-hidden="true" />
-              Historial de compras
-            </CardTitle>
-            <Badge variant="outline" className="font-mono text-xs">
-              {purchases.length} compra(s)
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {purchases.length === 0 ? (
-            <EmptyState
-              title="Sin compras registradas"
-              description="Este cliente aún no ha registrado compras en el negocio."
-              icon={ReceiptText}
-              className="border-0 bg-transparent py-4"
-            />
-          ) : (
-            <div className="max-h-56 overflow-y-auto divide-y pr-1">
-              {purchases.map((purchase) => (
-                <div
-                  key={purchase.id}
-                  className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0"
-                >
-                  <div className="min-w-0 space-y-0.5">
-                    <p className="font-semibold text-foreground">
-                      {formatCOP(purchase.amount_cop)}
-                    </p>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {formatDateTimeBogota(purchase.claimed_at)}
-                      {purchase.items_count ? ` · ${purchase.items_count} ítem(s)` : ""}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <Badge variant="success">+{formatPoints(purchase.points_awarded)}</Badge>
-                    <PurchaseStatusBadge status={purchase.status} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
-      </Card>
+        <Tabs defaultValue="purchases">
+          <CardHeader className="pb-3">
+            <TabsList className="flex w-full overflow-x-auto sm:grid sm:grid-cols-3">
+              <TabsTrigger value="purchases" className="gap-1.5 whitespace-nowrap">
+                <ReceiptText className="size-4 shrink-0" aria-hidden="true" />
+                Compras ({purchases.length})
+              </TabsTrigger>
+              <TabsTrigger value="movements" className="gap-1.5 whitespace-nowrap">
+                <TrendingUp className="size-4 shrink-0" aria-hidden="true" />
+                Movimientos ({movements.length})
+              </TabsTrigger>
+              <TabsTrigger value="redemptions" className="gap-1.5 whitespace-nowrap">
+                <TicketCheck className="size-4 shrink-0" aria-hidden="true" />
+                Canjes ({customerRedemptions.length})
+              </TabsTrigger>
+            </TabsList>
+          </CardHeader>
 
-      {/* 3. Historial de recompensas reclamadas */}
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-base font-bold flex items-center gap-2">
-              <TicketCheck className="size-4 text-primary" aria-hidden="true" />
-              Historial de recompensas reclamadas
-            </CardTitle>
-            <Badge variant="outline" className="font-mono text-xs">
-              {redemptions.length} canje(s)
-            </Badge>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {redemptions.length === 0 ? (
-            <EmptyState
-              title="Sin recompensas reclamadas"
-              description="El cliente todavía no ha solicitado ni reclamado recompensas."
-              icon={TicketCheck}
-              className="border-0 bg-transparent py-4"
-            />
-          ) : (
-            <div className="max-h-56 overflow-y-auto divide-y pr-1">
-              {redemptions.map((redemption) => (
-                <div
-                  key={redemption.id}
-                  className="flex flex-col gap-1.5 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between"
-                >
-                  <div className="min-w-0 space-y-0.5">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <p className="font-semibold text-foreground">{redemption.reward_name}</p>
-                      <RedemptionStatusBadge status={redemption.status} />
+          <CardContent>
+            <TabsContent value="purchases" className="mt-0">
+              {purchases.length === 0 ? (
+                <EmptyState
+                  title="Sin compras registradas"
+                  description="Este cliente aún no ha registrado compras en el negocio."
+                  icon={ReceiptText}
+                  className="border-0 bg-transparent py-4"
+                />
+              ) : (
+                <div className="divide-y">
+                  {purchases.map((purchase) => (
+                    <div
+                      key={purchase.id}
+                      className="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0"
+                    >
+                      <div className="min-w-0 space-y-0.5">
+                        <p className="font-semibold text-foreground">
+                          {formatCOP(purchase.amount_cop)}
+                        </p>
+                        <p className="truncate text-xs text-muted-foreground">
+                          {formatDateTimeBogota(purchase.claimed_at)}
+                          {purchase.items_count ? ` · ${purchase.items_count} ítem(s)` : ""}
+                        </p>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2">
+                        <Badge variant="success">+{formatPoints(purchase.points_awarded)}</Badge>
+                        <PurchaseStatusBadge status={purchase.status} />
+                      </div>
                     </div>
-                    <p className="text-xs text-muted-foreground truncate">
-                      Código: <span className="font-mono">{redemption.code}</span> · Solicitado:{" "}
-                      {formatDateTimeBogota(redemption.created_at)}
-                      {redemption.delivered_at
-                        ? ` · Entregado: ${formatDateTimeBogota(redemption.delivered_at)}`
-                        : ""}
-                      {redemption.cancelled_at
-                        ? ` · Cancelado: ${formatDateTimeBogota(redemption.cancelled_at)}`
-                        : ""}
-                    </p>
-                  </div>
-                  <Badge
-                    variant="secondary"
-                    className="self-start sm:self-auto shrink-0 font-mono text-xs"
-                  >
-                    -{formatPoints(redemption.points_spent)}
-                  </Badge>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
-        </CardContent>
+              )}
+            </TabsContent>
+
+            <TabsContent value="movements" className="mt-0">
+              {movements.length === 0 ? (
+                <EmptyState
+                  title="Sin movimientos"
+                  description="Aún no hay créditos ni débitos de monedas."
+                  icon={TrendingUp}
+                  className="border-0 bg-transparent py-4"
+                />
+              ) : (
+                <div className="divide-y">
+                  {movements.map((movement) => (
+                    <div
+                      key={movement.id}
+                      className="flex items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0"
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-medium">
+                          {movementLabels[movement.movement_type] ?? movement.movement_type}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {formatDateTimeBogota(movement.created_at)}
+                        </p>
+                      </div>
+                      <span
+                        className={
+                          movement.points >= 0
+                            ? "shrink-0 text-sm font-bold text-[var(--lp-green-text)]"
+                            : "shrink-0 text-sm font-bold text-destructive"
+                        }
+                      >
+                        {movement.points > 0 ? "+" : ""}
+                        {movement.points}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+
+            <TabsContent value="redemptions" className="mt-0">
+              {customerRedemptions.length === 0 ? (
+                <EmptyState
+                  title="Sin canjes"
+                  description="El cliente todavía no ha solicitado ni reclamado recompensas."
+                  icon={TicketCheck}
+                  className="border-0 bg-transparent py-4"
+                />
+              ) : (
+                <RedemptionsTable
+                  businessId={businessId}
+                  rows={customerRedemptions}
+                  showCustomerColumn={false}
+                  canAct={canAct}
+                  canCancel={canCancel}
+                  onActionComplete={() => {
+                    onRefresh();
+                  }}
+                />
+              )}
+            </TabsContent>
+          </CardContent>
+        </Tabs>
       </Card>
     </div>
   );

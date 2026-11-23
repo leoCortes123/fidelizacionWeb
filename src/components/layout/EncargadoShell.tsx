@@ -1,8 +1,6 @@
-import { useRef } from "react";
 import { Link, NavLink, Outlet } from "react-router-dom";
-import { Home, ReceiptText, TicketCheck, Wrench } from "lucide-react";
+import { Home, QrCode, Sparkles, TicketCheck, Wrench } from "lucide-react";
 import { Brand } from "@/components/shared/Brand";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { BusinessSwitcher } from "@/features/loyalty/BusinessSwitcher";
 import { useOptionalBusinessContext } from "@/features/loyalty/businessContext";
@@ -11,7 +9,6 @@ import { usePortalTheme } from "@/components/theme/ThemeProvider";
 import { cn } from "@/lib/utils";
 import { UserMenu } from "./UserMenu";
 import { PurchaseFab } from "./Fab";
-import { useHideOnScroll } from "./useHideOnScroll";
 
 type EncargadoNavItem = {
   to: string;
@@ -19,6 +16,7 @@ type EncargadoNavItem = {
   shortLabel: string;
   icon: typeof Home;
   end?: boolean;
+  featured?: boolean;
 };
 
 const navItems: EncargadoNavItem[] = [
@@ -27,7 +25,8 @@ const navItems: EncargadoNavItem[] = [
     to: "/encargado/venta",
     label: "Generar venta",
     shortLabel: "Generar venta",
-    icon: ReceiptText,
+    icon: QrCode,
+    featured: true,
   },
   {
     to: "/encargado/solicitudes",
@@ -41,46 +40,17 @@ export function EncargadoShell() {
   usePortalTheme("admin");
   const { roles } = useAuth();
   const businessContext = useOptionalBusinessContext();
-  const headerBusinessName =
-    businessContext?.selectedBusiness?.name ??
-    businessContext?.businesses.find((business) => business.role === "encargado")?.name ??
-    businessContext?.businesses[0]?.name;
-  const scrollRef = useRef<HTMLElement | null>(null);
-  const headerHidden = useHideOnScroll(scrollRef);
   const isAdmin = businessContext?.selectedRole === "admin" || roles.includes("admin");
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden">
       <header
         data-testid="app-header"
-        inert={headerHidden || undefined}
-        aria-hidden={headerHidden || undefined}
-        className={cn(
-          "z-30 shrink-0 overflow-hidden border-b-[3px] border-[var(--lp-ink)] bg-[var(--lp-header-bg)] backdrop-blur-[6px] transition-[max-height,transform,opacity] duration-300 ease-out no-print",
-          headerHidden
-            ? "invisible pointer-events-none max-h-0 -translate-y-full border-transparent opacity-0"
-            : "max-h-40 opacity-100",
-        )}
+        className="z-30 shrink-0 border-b-[3px] border-[var(--lp-ink)] bg-[var(--lp-header-bg)] backdrop-blur-[6px] no-print"
       >
         <div className="mx-auto flex h-12 w-full max-w-[var(--lp-shell-max-w)] items-center justify-between gap-3 px-4 sm:px-5">
           <div className="flex min-w-0 items-center gap-2">
-            <Brand
-              compact
-              className="sm:hidden"
-              linkTo="/encargado"
-              name={headerBusinessName}
-              tagline={headerBusinessName ? null : undefined}
-            />
-            <Brand
-              compact
-              className="hidden sm:flex"
-              linkTo="/encargado"
-              name={headerBusinessName}
-              tagline={headerBusinessName ? null : undefined}
-            />
-            <Badge variant="default" className="hidden sm:inline-flex text-[10px]">
-              ENCARGADO · NEGOCIO
-            </Badge>
+            <Brand compact linkTo="/encargado" />
           </div>
 
           <nav
@@ -94,15 +64,28 @@ export function EncargadoShell() {
                 end={item.end}
                 className={({ isActive }) =>
                   cn(
-                    "flex min-h-9 items-center gap-2 rounded-none border-2 px-2.5 py-1.5 font-mono text-xs font-bold uppercase tracking-wide transition-all duration-150",
-                    isActive
-                      ? "border-[var(--lp-ink)] bg-[var(--lp-gold)] text-[#16262e] shadow-[var(--lp-shadow-sm)]"
-                      : "border-transparent text-[var(--lp-ink-soft)] hover:border-[var(--lp-ink)] hover:bg-card hover:text-foreground hover:shadow-[var(--lp-shadow-sm)]",
+                    "flex items-center gap-2 rounded-none border-2 font-mono font-bold uppercase tracking-wide transition-all duration-150",
+                    item.featured
+                      ? cn(
+                          "min-h-10 px-3.5 py-2 text-[13px] shadow-[3px_3px_0_var(--lp-ink)]",
+                          isActive
+                            ? "border-[var(--lp-ink)] bg-[var(--lp-gold)] text-[#16262e]"
+                            : "border-[var(--lp-ink)] bg-primary text-primary-foreground hover:-translate-y-0.5 hover:shadow-[4px_4px_0_var(--lp-ink)]",
+                        )
+                      : cn(
+                          "min-h-9 px-2.5 py-1.5 text-xs",
+                          isActive
+                            ? "border-[var(--lp-ink)] bg-[var(--lp-gold)] text-[#16262e] shadow-[var(--lp-shadow-sm)]"
+                            : "border-transparent text-[var(--lp-ink-soft)] hover:border-[var(--lp-ink)] hover:bg-card hover:text-foreground hover:shadow-[var(--lp-shadow-sm)]",
+                        ),
                   )
                 }
               >
                 <item.icon className="size-4" aria-hidden="true" />
                 {item.label}
+                {item.featured && (
+                  <Sparkles className="size-3.5 text-[var(--lp-gold)]" aria-hidden="true" />
+                )}
               </NavLink>
             ))}
           </nav>
@@ -126,7 +109,6 @@ export function EncargadoShell() {
       </header>
 
       <main
-        ref={scrollRef}
         className="min-h-0 flex-1 overflow-y-auto overscroll-contain scroll-pb-28 md:scroll-pb-14"
         id="contenido-principal"
       >

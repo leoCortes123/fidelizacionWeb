@@ -128,6 +128,7 @@ describe("RedemptionsPage del administrador", () => {
     expect(screen.getByRole("button", { name: "Rechazar" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Cancelar" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Confirmar entrega" })).toBeInTheDocument();
+    expect(screen.queryByRole("link", { name: /Registrar venta/i })).not.toBeInTheDocument();
   });
 
   it("muestra el origen y filtra por QR escaneado", async () => {

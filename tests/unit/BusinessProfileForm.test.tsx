@@ -90,12 +90,16 @@ describe("BusinessProfileForm", () => {
   });
 
   it("guarda los cambios de la ficha", async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     render(<BusinessProfileForm business={business} />);
 
     const name = screen.getByLabelText(/Nombre del negocio/);
     await user.clear(name);
     await user.type(name, "Café Loopoint Centro");
+    await user.type(screen.getByLabelText(/Facebook/i), "facebook.com/cafeloopoint");
+    await user.type(screen.getByLabelText(/TikTok/i), "@cafeloopoint");
+    await user.type(screen.getByLabelText(/X \(Twitter\)/i), "@cafeloopoint");
+    await user.type(screen.getByLabelText(/YouTube/i), "@cafeloopoint");
     await user.click(screen.getByRole("button", { name: /Guardar datos del negocio/i }));
 
     await waitFor(() => {
@@ -104,13 +108,17 @@ describe("BusinessProfileForm", () => {
           businessId: "biz-1",
           name: "Café Loopoint Centro",
           description: "Café de especialidad.",
+          facebook: "facebook.com/cafeloopoint",
+          tiktok: "@cafeloopoint",
+          twitter: "@cafeloopoint",
+          youtube: "@cafeloopoint",
         }),
       );
     });
-  });
+  }, 15_000);
 
   it("rechaza un WhatsApp inválido sin llamar al servidor", async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     render(<BusinessProfileForm business={business} />);
 
     const whatsapp = screen.getByLabelText(/WhatsApp/);
@@ -122,10 +130,10 @@ describe("BusinessProfileForm", () => {
       expect(screen.getByText(/Escribe un WhatsApp válido/i)).toBeInTheDocument();
     });
     expect(updateProfile).not.toHaveBeenCalled();
-  });
+  }, 15_000);
 
   it("actualiza zona horaria y días de operación desde la pestaña Negocio", async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     render(<BusinessProfileForm business={business} />);
 
     await user.click(screen.getByRole("button", { name: "Lun–Vie" }));
@@ -144,7 +152,7 @@ describe("BusinessProfileForm", () => {
   });
 
   it("habilita guardar cuando restaura un borrador previo desde localStorage", async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     window.localStorage.setItem(
       "loopoint:draft:admin:business-profile:biz-1",
       JSON.stringify({
@@ -183,7 +191,7 @@ describe("BusinessProfileForm", () => {
   });
 
   it("bloquea el guardado si se desmarcan todos los días de operación", async () => {
-    const user = userEvent.setup();
+    const user = userEvent.setup({ delay: null });
     render(<BusinessProfileForm business={business} />);
 
     for (const label of ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"]) {

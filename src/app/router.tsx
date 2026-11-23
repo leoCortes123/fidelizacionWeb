@@ -13,6 +13,7 @@ import { Brand } from "@/components/shared/Brand";
 import { SignOutButton } from "@/components/shared/SignOutButton";
 import { ErrorState, FullPageLoader } from "@/components/shared/States";
 import { Button } from "@/components/ui/button";
+import { ThemeToggleButton } from "@/features/landing/ThemeToggleButton";
 import { BusinessProvider, useBusinessContext } from "@/features/loyalty/businessContext";
 import { businessHomePath } from "@/lib/config";
 const HomePage = lazy(() =>
@@ -116,6 +117,7 @@ function OnboardingRoute() {
                   <Link to="/business/select">Mis negocios</Link>
                 </Button>
               )}
+              <ThemeToggleButton variant="shell" />
               <SignOutButton variant="outline" size="sm" />
             </div>
           </div>

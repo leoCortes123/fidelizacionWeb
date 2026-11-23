@@ -15,7 +15,7 @@ const DialogOverlay = React.forwardRef<
   <DialogPrimitive.Overlay
     ref={ref}
     className={cn(
-      "fixed inset-0 z-50 bg-[#16262e]/75 backdrop-blur-[2px] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      "fixed inset-0 z-50 overflow-hidden overscroll-contain bg-[#16262e]/75 backdrop-blur-[2px] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       className,
     )}
     {...props}
@@ -32,7 +32,7 @@ const DialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed inset-0 z-50 m-auto grid h-fit max-h-[calc(100dvh-1.5rem)] w-[calc(100%-1rem)] max-w-lg gap-3 overflow-y-auto overflow-x-hidden overscroll-contain rounded-none border-[3px] border-[var(--lp-ink)] bg-card p-4 text-card-foreground shadow-[var(--lp-shadow-xl)] duration-200 sm:max-h-[90dvh] sm:w-[calc(100%-2rem)] sm:p-5 [&>*]:min-w-0 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
+        "fixed inset-y-0 left-0 z-50 flex h-[100dvh] w-[calc(100vw-2rem)] max-w-lg flex-col gap-3.5 overflow-y-auto overflow-x-hidden overscroll-contain rounded-none border-r-[3px] border-[var(--lp-ink)] bg-card p-4 text-card-foreground shadow-[6px_0_0_var(--lp-ink)] duration-200 sm:p-6 [&>*]:min-w-0 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:slide-out-to-left data-[state=open]:slide-in-from-left",
         className,
       )}
       {...props}
@@ -48,13 +48,22 @@ const DialogContent = React.forwardRef<
 DialogContent.displayName = DialogPrimitive.Content.displayName;
 
 const DialogHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn("flex flex-col space-y-1.5 pr-9 text-left", className)} {...props} />
+  <div
+    className={cn(
+      "flex flex-col space-y-1.5 border-b-2 border-[var(--lp-paper-deep)] pb-3 pr-10 text-left",
+      className,
+    )}
+    {...props}
+  />
 );
 DialogHeader.displayName = "DialogHeader";
 
 const DialogFooter = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
-    className={cn("flex flex-col-reverse gap-2 sm:flex-row sm:justify-end", className)}
+    className={cn(
+      "mt-auto flex flex-col-reverse gap-2 border-t-2 border-[var(--lp-paper-deep)] pt-3 sm:flex-row sm:justify-end",
+      className,
+    )}
     {...props}
   />
 );

@@ -67,6 +67,7 @@ describe("RequireBusinessRole", () => {
     ctx.businesses = [business];
     ctx.selectedBusiness = business;
     ctx.selectedRole = "admin";
+    ctx.setSelectedBusiness.mockReset();
   });
 
   it("deja pasar al rol permitido en el negocio seleccionado", () => {
@@ -117,5 +118,29 @@ describe("RequireBusinessRole", () => {
     renderGuard(["admin"]);
     expect(screen.queryByText("Panel privado")).not.toBeInTheDocument();
     expect(screen.getByText("Portal del cliente")).toBeInTheDocument();
+  });
+
+  it("cambia automáticamente al único negocio con rol permitido si el seleccionado tiene rol distinto", () => {
+    const customerBusiness: Business = {
+      ...business,
+      id: "biz-cliente",
+      name: "Café",
+      slug: "cafe",
+      role: "cliente",
+    };
+    const adminBusiness: Business = {
+      ...business,
+      id: "biz-admin",
+      name: "Taquería Admin",
+      slug: "taqueria-admin",
+      role: "admin",
+    };
+    ctx.businesses = [customerBusiness, adminBusiness];
+    ctx.selectedBusiness = customerBusiness;
+    ctx.selectedRole = "cliente";
+
+    renderGuard(["admin"]);
+    expect(screen.queryByText("Portal del cliente")).not.toBeInTheDocument();
+    expect(ctx.setSelectedBusiness).toHaveBeenCalledWith(adminBusiness);
   });
 });
