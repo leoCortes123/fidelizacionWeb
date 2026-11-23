@@ -58,10 +58,15 @@ describe("LandingPage", () => {
     expect(
       screen.getByRole("heading", { level: 1, name: /Programa de puntos para tu negocio/i }),
     ).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /Crear mi programa de puntos/i })).toHaveAttribute(
-      "href",
-      "/admin/onboarding?new=1",
-    );
+    const startCta = screen.getByRole("link", { name: /Crear mi programa de puntos/i });
+    expect(startCta).toHaveAttribute("href", "/admin/onboarding?new=1");
+    expect(startCta).toHaveClass("btn", "btn-start");
+
+    const howItWorksCta = screen.getByRole("link", { name: /Ver cómo funciona/i });
+    expect(howItWorksCta).toHaveAttribute("href", "#como-funciona");
+    expect(howItWorksCta).toHaveClass("btn", "btn-primary");
+    expect(startCta.parentElement).toBe(howItWorksCta.parentElement);
+
     expect(screen.getByRole("link", { name: /Soy cliente: crear cuenta/i })).toHaveAttribute(
       "href",
       "/login?mode=register",
@@ -108,7 +113,7 @@ describe("LandingPage", () => {
     expect(thirdPanel).not.toHaveAttribute("hidden");
   });
 
-  it("permite navegar las pestañas con teclado y pausar las animaciones", async () => {
+  it("permite navegar las pestañas con teclado y no muestra botones de pausa/reproducir", async () => {
     const user = userEvent.setup();
     render(
       <MemoryRouter>
@@ -128,16 +133,8 @@ describe("LandingPage", () => {
     await user.keyboard("{Home}");
     expect(firstTab).toHaveAttribute("aria-selected", "true");
 
-    const pauseBtn = screen.getByRole("button", { name: /Pausar animación/i });
-    const playBtn = screen.getByRole("button", { name: /Reproducir animación/i });
-    expect(pauseBtn).toHaveAttribute("aria-pressed", "false");
-    expect(playBtn).toHaveAttribute("aria-pressed", "true");
-    await user.click(pauseBtn);
-    expect(pauseBtn).toHaveAttribute("aria-pressed", "true");
-    expect(playBtn).toHaveAttribute("aria-pressed", "false");
-    await user.click(playBtn);
-    expect(pauseBtn).toHaveAttribute("aria-pressed", "false");
-    expect(playBtn).toHaveAttribute("aria-pressed", "true");
+    expect(screen.queryByRole("button", { name: /Pausar animación/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Reproducir animación/i })).not.toBeInTheDocument();
   });
 
   it("mantiene el JSON-LD FAQPage de index.html sincronizado con las preguntas visibles", () => {

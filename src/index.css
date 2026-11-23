@@ -4,6 +4,7 @@
 
 @layer base {
   :root {
+    color-scheme: light dark;
     /* Paleta Loopoint SaaS: Slate limpio + Azul Cobalto + Ámbar Oro */
     --background: 210 40% 98%;
     --foreground: 222 47% 11%;

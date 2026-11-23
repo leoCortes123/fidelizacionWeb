@@ -9,17 +9,16 @@ import {
 } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
+  ArrowDown,
   ArrowRight,
   Check,
   ChevronLeft,
   ChevronRight,
   ClipboardList,
-  Download,
   Gift,
+  Globe,
   Megaphone,
-  Pause,
   PiggyBank,
-  Play,
   QrCode,
   SlidersHorizontal,
   Smartphone,
@@ -32,6 +31,7 @@ import {
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { InstallPwaButton } from "@/components/pwa/InstallPwaButton";
+import { EatersBackground } from "@/features/landing/EatersBackground";
 import {
   adminFeatures,
   businessTypes,
@@ -81,7 +81,6 @@ export function LandingPage() {
   const navigate = useNavigate();
   const [navigatingAccount, setNavigatingAccount] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
-  const [animationsPaused, setAnimationsPaused] = useState(false);
   const tabListRef = useRef<HTMLDivElement | null>(null);
   const tabRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const panelStackRef = useRef<HTMLDivElement | null>(null);
@@ -120,22 +119,20 @@ export function LandingPage() {
     return () => stack.removeEventListener("beforematch", onBeforeMatch);
   }, [lastStep]);
 
-  const goToStep = (index: number, focus = false) => {
+  const prevBtnRef = useRef<HTMLButtonElement | null>(null);
+  const nextBtnRef = useRef<HTMLButtonElement | null>(null);
+
+  const goToStep = (index: number, focusTarget: "tab" | "arrow" | false = false) => {
     const next = Math.max(0, Math.min(lastStep, index));
     setActiveStep(next);
-    const nextTab = tabRefs.current[next];
-    if (focus) nextTab?.focus();
-    const tabList = tabListRef.current;
-    if (tabList && nextTab && tabList.scrollWidth > tabList.clientWidth) {
-      // Desplaza solo el carrusel horizontal de pestañas sin saltar el scroll vertical de la página.
-      const targetLeft = nextTab.offsetLeft - (tabList.clientWidth - nextTab.offsetWidth) / 2;
-      const prefersReduced =
-        typeof window !== "undefined" &&
-        window.matchMedia?.("(prefers-reduced-motion: reduce)").matches === true;
-      tabList.scrollTo?.({
-        left: Math.max(0, targetLeft),
-        behavior: prefersReduced ? "auto" : "smooth",
-      });
+    if (focusTarget === "tab") {
+      tabRefs.current[next]?.focus();
+    } else if (focusTarget === "arrow") {
+      if (next === 0) {
+        nextBtnRef.current?.focus();
+      } else if (next === lastStep) {
+        prevBtnRef.current?.focus();
+      }
     }
   };
 
@@ -150,7 +147,7 @@ export function LandingPage() {
     };
     if (event.key in keyMap) {
       event.preventDefault();
-      goToStep(keyMap[event.key], true);
+      goToStep(keyMap[event.key], "tab");
     }
   };
 
@@ -164,7 +161,8 @@ export function LandingPage() {
   };
 
   return (
-    <div className={`retro-landing ${animationsPaused ? "is-paused" : ""}`}>
+    <div className="retro-landing">
+      <EatersBackground />
       <a className="skip-link" href="#contenido">
         Saltar al contenido
       </a>
@@ -212,37 +210,39 @@ export function LandingPage() {
               </span>
               Software de fidelización para negocios
             </p>
-            <h1 id="hero-title">
-              Programa de puntos <span className="highlight">para tu negocio.</span>
-            </h1>
-            <p className="lead">
-              <strong>{brand}</strong> es una app de fidelización de clientes para cafeterías,
-              restaurantes y comercios locales. Registras cada venta con un QR, tus clientes suman
-              monedas en su celular y las canjean por recompensas que tú defines. Sin tarjetas de
-              papel, sin hardware extra y con control de presupuesto.
-            </p>
 
-            {!isSupabaseConfigured && (
-              <div className="supabase-note">
-                <Alert variant="warning">
-                  <AlertTitle>Falta configurar Supabase</AlertTitle>
-                  <AlertDescription>
-                    Copia <code>.env.example</code> a <code>.env</code> y define
-                    <code> VITE_SUPABASE_URL</code> y<code> VITE_SUPABASE_ANON_KEY</code> para
-                    activar el inicio de sesión y los datos reales.
-                  </AlertDescription>
-                </Alert>
+            <div className="hero-main">
+              <h1 id="hero-title">
+                Programa de puntos <span className="highlight">para tu negocio.</span>
+              </h1>
+              <p className="lead">
+                <strong>{brand}</strong> es tu app de fidelización con QR: registras la venta, tus
+                clientes suman monedas en su celular y las canjean por premios, sin tarjetas de
+                papel.
+              </p>
+
+              {!isSupabaseConfigured && (
+                <div className="supabase-note">
+                  <Alert variant="warning">
+                    <AlertTitle>Falta configurar Supabase</AlertTitle>
+                    <AlertDescription>
+                      Copia <code>.env.example</code> a <code>.env</code> y define
+                      <code> VITE_SUPABASE_URL</code> y<code> VITE_SUPABASE_ANON_KEY</code> para
+                      activar el inicio de sesión y los datos reales.
+                    </AlertDescription>
+                  </Alert>
+                </div>
+              )}
+
+              <div className="hero-buttons">
+                <Link className="btn btn-start btn-hero" to={REGISTER_BUSINESS}>
+                  Crear mi programa de puntos <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                </Link>
+                <a className="btn btn-primary btn-hero" href="#como-funciona">
+                  Ver cómo funciona <ArrowDown className="h-4 w-4" aria-hidden="true" />
+                </a>
               </div>
-            )}
-
-            <div className="hero-buttons">
-              <Link className="btn btn-primary btn-lg" to={REGISTER_BUSINESS}>
-                Crear mi programa de puntos <ArrowRight className="h-4 w-4" aria-hidden="true" />
-              </Link>
             </div>
-            <a className="text-link" href="#como-funciona">
-              Ver cómo funciona paso a paso ↓
-            </a>
 
             <ul className="hero-proof" aria-label="Ventajas principales">
               <li>
@@ -260,31 +260,8 @@ export function LandingPage() {
           <div className="hero-art">
             <div className="hero-frame">
               <Suspense fallback={<AnimationFallback />}>
-                <ProcessAnimation
-                  paused={animationsPaused}
-                  label="Animación del ciclo de fidelización: venta, escaneo, progreso, canje y recompensa"
-                />
+                <ProcessAnimation label="Animación del ciclo de fidelización: venta, escaneo, progreso, canje y recompensa" />
               </Suspense>
-            </div>
-            <div className="motion-controls" role="group" aria-label="Controles de animación">
-              <button
-                type="button"
-                className="motion-btn"
-                aria-label="Pausar animación"
-                aria-pressed={animationsPaused}
-                onClick={() => setAnimationsPaused(true)}
-              >
-                <Pause className="h-3.5 w-3.5" aria-hidden="true" /> Pausar
-              </button>
-              <button
-                type="button"
-                className="motion-btn"
-                aria-label="Reproducir animación"
-                aria-pressed={!animationsPaused}
-                onClick={() => setAnimationsPaused(false)}
-              >
-                <Play className="h-3.5 w-3.5" aria-hidden="true" /> Reproducir
-              </button>
             </div>
           </div>
         </section>
@@ -316,31 +293,79 @@ export function LandingPage() {
           </div>
 
           <div className="manual">
-            <div
-              className="manual-tabs"
-              ref={tabListRef}
-              role="tablist"
-              aria-label="Pasos del proceso"
-            >
-              {manualSteps.map((s, idx) => (
+            <div className="manual-stepper">
+              <div className="manual-sign-row">
                 <button
-                  key={s.moment}
-                  ref={(el) => {
-                    tabRefs.current[idx] = el;
-                  }}
-                  id={`paso-tab-${s.moment}`}
+                  ref={prevBtnRef}
                   type="button"
-                  role="tab"
-                  aria-selected={idx === activeStep}
-                  tabIndex={idx === activeStep ? 0 : -1}
-                  className="manual-tab"
-                  onClick={() => goToStep(idx)}
-                  onKeyDown={onTabKeyDown}
+                  className="btn btn-light manual-arrow-btn"
+                  onClick={() => goToStep(activeStep - 1, "arrow")}
+                  disabled={activeStep === 0}
+                  aria-label="Paso anterior"
                 >
-                  <span className="manual-tab-num">0{s.moment}</span>
-                  <span className="manual-tab-label">{s.tab}</span>
+                  <ChevronLeft className="h-4 w-4" aria-hidden="true" />
+                  <span className="manual-arrow-text">Anterior</span>
                 </button>
-              ))}
+
+                <div className="manual-sign" role="status" aria-live="polite" aria-atomic="true">
+                  <div className="manual-sign-meta">
+                    <span className="manual-sign-badge">
+                      PASO 0{step.moment} DE 0{manualSteps.length}
+                    </span>
+                    <span
+                      className={`actor actor-${step.actor === "Cliente" ? "client" : "staff"}`}
+                    >
+                      {step.actor}
+                    </span>
+                  </div>
+                  <div className="manual-sign-main">
+                    <span className="manual-sign-num">0{step.moment}</span>
+                    <div className="manual-sign-copy">
+                      <strong className="manual-sign-tab">{step.tab}</strong>
+                      <span className="manual-sign-subtitle">{step.title}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  ref={nextBtnRef}
+                  type="button"
+                  className="btn btn-light manual-arrow-btn"
+                  onClick={() => goToStep(activeStep + 1, "arrow")}
+                  disabled={activeStep === lastStep}
+                  aria-label="Paso siguiente"
+                >
+                  <span className="manual-arrow-text">Siguiente</span>
+                  <ChevronRight className="h-4 w-4" aria-hidden="true" />
+                </button>
+              </div>
+
+              <div
+                className="manual-pagination"
+                ref={tabListRef}
+                role="tablist"
+                aria-label="Pasos del proceso"
+              >
+                {manualSteps.map((s, idx) => (
+                  <button
+                    key={s.moment}
+                    ref={(el) => {
+                      tabRefs.current[idx] = el;
+                    }}
+                    id={`paso-tab-${s.moment}`}
+                    type="button"
+                    role="tab"
+                    aria-selected={idx === activeStep}
+                    tabIndex={idx === activeStep ? 0 : -1}
+                    className="manual-page-dot"
+                    onClick={() => goToStep(idx)}
+                    onKeyDown={onTabKeyDown}
+                  >
+                    <span className="manual-page-num">0{s.moment}</span>
+                    <span className="manual-page-label">{s.tab}</span>
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="manual-body">
@@ -349,7 +374,6 @@ export function LandingPage() {
                   <ProcessAnimation
                     moment={step.moment}
                     showCaption={false}
-                    paused={animationsPaused}
                     label={`Escena del paso ${step.moment}: ${step.title}`}
                   />
                 </Suspense>
@@ -398,30 +422,6 @@ export function LandingPage() {
                       </div>
                     </article>
                   ))}
-                </div>
-
-                <div className="manual-nav">
-                  <button
-                    type="button"
-                    className="btn btn-light btn-sm"
-                    onClick={() => goToStep(activeStep - 1)}
-                    disabled={activeStep === 0}
-                  >
-                    <ChevronLeft className="h-4 w-4" aria-hidden="true" /> Anterior
-                  </button>
-                  <span className="manual-dots" aria-hidden="true">
-                    {manualSteps.map((s, idx) => (
-                      <span key={s.moment} className={idx === activeStep ? "on" : ""} />
-                    ))}
-                  </span>
-                  <button
-                    type="button"
-                    className="btn btn-light btn-sm"
-                    onClick={() => goToStep(activeStep + 1)}
-                    disabled={activeStep === lastStep}
-                  >
-                    Siguiente <ChevronRight className="h-4 w-4" aria-hidden="true" />
-                  </button>
                 </div>
               </div>
             </div>
@@ -539,30 +539,25 @@ export function LandingPage() {
         <section id="app" className="wrap retro-section" aria-labelledby="app-title">
           <div className="app-band">
             <div className="app-band-copy">
-              <p className="kicker kicker-light">VENTAJA CLAVE · APP INSTALABLE</p>
-              <h2 id="app-title">Descarga la app y lleva {brand} en el bolsillo</h2>
+              <p className="kicker kicker-light">
+                SIN TIENDAS DE APPS · DIRECTO DESDE EL NAVEGADOR
+              </p>
+              <h2 id="app-title">Úsala como app sin buscarla en Play Store ni App Store</h2>
               <p className="app-band-lead">
-                Tanto tu equipo en caja como tus clientes pueden instalar {brand} como aplicación en
-                el celular, tablet o computador, directo desde el navegador y sin pasar por tiendas.
+                {brand} es una <strong>app web</strong>: no se descarga desde una tienda de
+                aplicaciones. Puedes usarla ya mismo desde internet o guardarla en la pantalla de tu
+                celular o computador en 10 segundos.
               </p>
               <ul className="app-perks">
                 <li>
                   <span className="app-perk-ico" aria-hidden="true">
-                    <Download />
+                    <Globe />
                   </span>
                   <div>
-                    <strong>Instalación inmediata</strong>
-                    <span>Sin descargas pesadas ni aprobaciones de tiendas de aplicaciones.</span>
-                  </div>
-                </li>
-                <li>
-                  <span className="app-perk-ico" aria-hidden="true">
-                    <Zap />
-                  </span>
-                  <div>
-                    <strong>Más rápido en caja</strong>
+                    <strong>No está en tiendas (y eso es una ventaja)</strong>
                     <span>
-                      Abre el panel con un toque para generar QR y aprobar canjes en segundos.
+                      No pierdes tiempo buscando en Google Play o App Store ni ocupas memoria con
+                      descargas pesadas.
                     </span>
                   </div>
                 </li>
@@ -571,16 +566,59 @@ export function LandingPage() {
                     <Smartphone />
                   </span>
                   <div>
-                    <strong>Siempre visible para tu cliente</strong>
+                    <strong>Se guarda como un ícono más</strong>
                     <span>
-                      Tu negocio queda en la pantalla de inicio con sus monedas y recompensas.
+                      Al instalarla desde aquí, queda un acceso directo con el logo de {brand} en tu
+                      pantalla de inicio.
+                    </span>
+                  </div>
+                </li>
+                <li>
+                  <span className="app-perk-ico" aria-hidden="true">
+                    <Zap />
+                  </span>
+                  <div>
+                    <strong>Funciona igual para caja y clientes</strong>
+                    <span>
+                      Tu equipo abre el panel de ventas con un toque y tus clientes revisan sus
+                      monedas sin actualizar nada.
                     </span>
                   </div>
                 </li>
               </ul>
             </div>
             <div className="app-band-panel">
-              <p className="app-band-badge">★ LISTO EN ANDROID, IOS Y PC ★</p>
+              <p className="app-band-badge">★ ¿CÓMO GUARDARLA EN 10 SEGUNDOS? ★</p>
+              <ol className="app-steps">
+                <li>
+                  <span className="app-step-num" aria-hidden="true">
+                    1
+                  </span>
+                  <span>
+                    Toca el botón <strong>Descargar app</strong> de abajo.
+                  </span>
+                </li>
+                <li>
+                  <span className="app-step-num" aria-hidden="true">
+                    2
+                  </span>
+                  <span>
+                    En <strong>Android o PC</strong>, acepta <strong>&ldquo;Instalar&rdquo;</strong>{" "}
+                    (o en el menú ⋮). En <strong>iPhone/iPad</strong>, toca{" "}
+                    <strong>Compartir</strong> y elige{" "}
+                    <strong>&ldquo;Agregar a pantalla de inicio&rdquo;</strong>.
+                  </span>
+                </li>
+                <li>
+                  <span className="app-step-num" aria-hidden="true">
+                    3
+                  </span>
+                  <span>
+                    ¡Listo! Ya puedes abrir <strong>{brand}</strong> desde tu pantalla como
+                    cualquier otra app.
+                  </span>
+                </li>
+              </ol>
               <div className="app-band-actions">
                 <InstallPwaButton className="btn btn-download btn-lg" label="Descargar app" />
                 <Link className="btn btn-light btn-lg" to="/login?mode=register">
@@ -588,7 +626,7 @@ export function LandingPage() {
                 </Link>
               </div>
               <p className="app-band-note">
-                Si ya la instalaste en este dispositivo, ábrela desde tu pantalla de inicio.
+                ¿Prefieres no guardarla? Úsala igual directo desde el navegador, sin instalar nada.
               </p>
             </div>
           </div>
@@ -611,7 +649,7 @@ export function LandingPage() {
         </section>
 
         {/* CTA FINAL */}
-        <section className="wrap retro-section">
+        <section className="wrap retro-section cta-section">
           <div className="cta">
             <div className="cta-coin-wrap" aria-hidden="true">
               <img src="/fideliapp-coin.png" alt="" width={48} height={48} className="cta-coin" />

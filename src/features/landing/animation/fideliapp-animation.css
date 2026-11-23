@@ -26,7 +26,7 @@
 
   position: relative;
   width: 100%;
-  max-width: 540px;
+  max-width: 580px;
   margin: 0 auto;
   background: transparent;
   color: var(--fa-ink);
@@ -51,13 +51,15 @@
   box-sizing: border-box;
 }
 
-/* Barra HUD superior retro */
+/* Barra HUD superior retro (siempre en una sola línea: título a la izquierda, botones a la derecha) */
 .fa-stage-hud {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  padding: 7px 11px;
+  flex-wrap: nowrap;
+  min-height: 46px;
+  gap: clamp(6px, 1.8cqi, 12px);
+  padding: 6px clamp(7px, 2cqi, 12px);
   margin-bottom: 6px;
   background: var(--fa-hud-bg);
   color: var(--fa-cream);
@@ -69,16 +71,26 @@
 
 .fa-hud-stage {
   font-family: var(--fa-font-pixel);
-  font-size: clamp(8.5px, 2.15cqi, 11px);
+  font-size: clamp(6.5px, 1.6vw, 10px);
   color: var(--fa-gold);
-  letter-spacing: 0.03em;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  text-align: left;
   white-space: nowrap;
+  min-inline-size: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .fa-hud-dots {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  justify-content: flex-end;
+  flex-wrap: nowrap;
+  flex: 0 0 auto;
+  margin-inline-start: auto;
+  gap: clamp(3px, 0.9cqi, 6px);
 }
 
 .fa-hud-dot {
@@ -86,14 +98,14 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 26px;
-  min-height: 26px;
-  border: 2.5px solid #000000;
+  min-width: clamp(22px, 5cqi, 28px);
+  min-height: clamp(24px, 4.8cqi, 26px);
+  border: 2px solid #000000;
   background: var(--fa-cream);
   color: var(--fa-ink);
   font-family: var(--fa-font-pixel);
-  font-size: clamp(8.5px, 2cqi, 10.5px);
-  padding: clamp(4px, 1cqi, 6px) clamp(7px, 1.8cqi, 10px);
+  font-size: clamp(6.5px, 1.5vw, 9.5px);
+  padding: clamp(3px, 0.8cqi, 5px) clamp(4px, 1.1cqi, 7px);
   cursor: pointer;
   line-height: 1;
   box-shadow:
@@ -108,37 +120,22 @@
     color 0.08s steps(2);
 }
 
+@supports (font-size: 1cqi) {
+  .fa-hud-stage {
+    font-size: clamp(6.5px, 1.9cqi, 10px);
+  }
+
+  .fa-hud-dot {
+    font-size: clamp(6.5px, 1.75cqi, 9.5px);
+  }
+}
+
 .fa-hud-dot:hover,
 .fa-hud-dot:focus-visible {
   background: var(--fa-gold);
   color: var(--fa-ink);
   outline: 2px solid var(--fa-gold);
   outline-offset: 2px;
-}
-
-@container (max-width: 420px) {
-  .fa-stage-hud {
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 6px;
-    padding: 6px 8px;
-  }
-
-  .fa-hud-stage {
-    font-size: clamp(7.5px, 2.2cqi, 9.5px);
-    text-align: center;
-  }
-
-  .fa-hud-dots {
-    gap: 4px;
-  }
-
-  .fa-hud-dot {
-    font-size: clamp(7.5px, 2cqi, 9px);
-    min-width: 26px;
-    min-height: 26px;
-    padding: 4px 5px;
-  }
 }
 
 .fa-hud-dot:active {
