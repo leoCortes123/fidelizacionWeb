@@ -1,28 +1,15 @@
 # Fideliapp
 
-> Fideliapp es un software de fidelización de clientes para negocios locales (cafeterías, restaurantes, panaderías, comidas rápidas, tiendas de barrio, barberías). Permite crear un programa de puntos: el negocio registra cada venta con un QR, el cliente suma monedas en su celular y las canjea por recompensas definidas por el negocio. Funciona en celular y tablet, sin hardware adicional ni integración con la caja. Disponible en español (Colombia), importes en pesos COP.
+> Fideliapp es un software de fidelización de clientes para negocios locales en Colombia. Permite crear un programa de puntos con código QR: el encargado registra cada venta, el cliente suma monedas en su celular (sin mezclar saldos entre negocios) y las canjea por recompensas definidas por el negocio. Funciona en celular, tablet o PC como PWA instalable, sin hardware adicional. Importes en pesos colombianos (COP) y zona horaria America/Bogota.
 
-## Cómo funciona (5 pasos)
-1. Venta: el encargado registra el valor de la compra y la app genera un QR único para esa venta.
-2. Escaneo: el cliente escanea el QR y recibe monedas según las reglas del programa (con campañas de multiplicador o bono si están activas).
-3. Progreso: el cliente ve su saldo, la barra de progreso hacia el siguiente premio, el catálogo de recompensas, la carta y su historial de movimientos.
-4. Canje: el cliente solicita la recompensa, las monedas quedan reservadas y un encargado con permiso aprueba el canje desde la lista de solicitudes o escaneando el QR.
-5. Fidelización: se entrega el premio, el saldo se actualiza y el administrador ve métricas, costo de recompensas y presupuesto.
+## Páginas públicas del sitio
+- [Inicio](https://fidelizacion01.vercel.app/): resumen del producto, animación interactiva del ciclo de 5 pasos, explorador por rol (Administrador, Encargado, Cliente) y descarga PWA.
+- [Cómo funciona](https://fidelizacion01.vercel.app/como-funciona): manual operativo de 5 pasos (Venta, Escaneo, Progreso, Canje, Fidelización) y puesta en marcha en 3 pasos.
+- [Funciones y Roadmap](https://fidelizacion01.vercel.app/funciones): módulos visuales de operación QR, campañas, economía/auditoría y próximas funciones.
+- [Planes y Precios](https://fidelizacion01.vercel.app/precios): Player 1 · Gratis (1 local, acumular puntos y redimir recompensas), Level Up · Pro (campañas, cumpleaños próximamente y difusiones por canales permitidos próximamente) y Modo Arcade · Suite (plataforma de juegos para clientes, comandera, facturación y chatbot IA próximamente).
+- [Preguntas frecuentes](https://fidelizacion01.vercel.app/preguntas): respuestas directas con buscador y filtros por categoría.
 
-## Funciones para administradores
-- Recompensas con costo en monedas y carta de productos/combos.
-- Reglas de acumulación y vencimiento de monedas (se consumen primero las más antiguas).
-- Campañas con multiplicador o bono, fecha de inicio y fin y compra mínima.
-- Equipo de encargados con permisos para registrar ventas y aprobar canjes.
-- Panel económico: presupuesto de recompensas, alertas y márgenes.
-- Historial por cliente y auditoría de operaciones.
-- Multiempresa: varios negocios con una misma cuenta.
-- Afiliación de clientes por enlace o QR.
-
-## Puesta en marcha
-Asistente de 3 pasos: datos del negocio, datos económicos, programa y activación.
-
-## Enlaces
-- [Inicio y manual de uso](https://fidelizacion01.vercel.app/)
+## Accesos a la aplicación
 - [Registrar un negocio](https://fidelizacion01.vercel.app/admin/onboarding?new=1)
+- [Iniciar sesión](https://fidelizacion01.vercel.app/login)
 - [Crear cuenta de cliente](https://fidelizacion01.vercel.app/login?mode=register)

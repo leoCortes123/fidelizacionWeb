@@ -1,6 +1,9 @@
 {
   "rewrites": [
-    { "source": "/((?!assets/|icons/|sw\\.js|workbox-).*)", "destination": "/index.html" }
+    {
+      "source": "/((?!assets/|icons/|art/|sw\\.js|workbox-|theme-init\\.js|robots\\.txt|sitemap\\.xml|llms\\.txt|manifest\\.webmanifest|fideliapp-coin\\.png|favicon\\.svg).*)",
+      "destination": "/index.html"
+    }
   ],
   "headers": [
     {

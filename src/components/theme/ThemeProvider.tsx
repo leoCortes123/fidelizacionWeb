@@ -51,6 +51,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       // Sin almacenamiento: el tema sigue funcionando en esta sesión.
     }
 
+    const colorSchemeMeta = document.querySelector<HTMLMetaElement>('meta[name="color-scheme"]');
+    if (colorSchemeMeta) {
+      colorSchemeMeta.content = theme === systemTheme() ? "light dark" : theme;
+    }
+
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) {
       const isWarmPortal = root.dataset.portal === "customer" || root.dataset.portal === "admin";
@@ -67,6 +72,17 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     }
   }, [theme]);
 
+  useEffect(() => {
+    const onStorage = (event: StorageEvent) => {
+      if (event.key !== THEME_STORAGE_KEY) return;
+      const next: Theme =
+        event.newValue === "dark" || event.newValue === "light" ? event.newValue : systemTheme();
+      setThemeState(next);
+    };
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
+  }, []);
+
   const setTheme = useCallback((next: Theme) => setThemeState(next), []);
   const toggleTheme = useCallback(
     () => setThemeState((current) => (current === "dark" ? "light" : "dark")),
@@ -82,6 +98,10 @@ export function useTheme() {
   const context = useContext(ThemeContext);
   if (!context) throw new Error("useTheme debe usarse dentro de ThemeProvider");
   return context;
+}
+
+export function useOptionalTheme() {
+  return useContext(ThemeContext);
 }
 
 /**

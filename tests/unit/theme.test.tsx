@@ -69,7 +69,9 @@ describe("ThemeProvider", () => {
 
     const html = readFileSync(htmlPath, "utf8");
     expect(html).toContain('<script src="/theme-init.js"></script>');
-    expect(html).not.toMatch(/<script(?![^>]*\bsrc=)[^>]*>[\s\S]*?<\/script>/i);
+    expect(html).not.toMatch(
+      /<script(?![^>]*\b(?:src=|type=["']application\/ld\+json["']))[^>]*>[\s\S]*?<\/script>/i,
+    );
 
     const scriptContent = readFileSync(scriptPath, "utf8");
     expect(scriptContent).toContain('localStorage.getItem("loopoint:theme")');

@@ -39,7 +39,7 @@
     />
     <title>Fideliapp · Software de fidelización y programa de puntos para negocios</title>
     <!-- Datos estructurados (no ejecutables; compatibles con CSP script-src 'self').
-         FAQPage debe coincidir con `faqs` de src/features/landing/landingContent.ts -->
+         FAQPage debe coincidir con `faqs` de src/features/landing/webContent.ts -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
@@ -101,7 +101,23 @@
                 "name": "¿Cómo funciona el sistema de puntos para clientes?",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "El encargado registra la venta y la app genera un QR. El cliente lo escanea y recibe monedas según tus reglas. Cuando junta suficientes monedas solicita una recompensa, tu equipo aprueba el canje y entrega el premio."
+                  "text": "El encargado registra la venta y la app genera un QR único. El cliente lo escanea y recibe monedas según tus reglas. Cuando junta suficientes monedas solicita una recompensa, tu equipo aprueba el canje y entrega el premio."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "¿Qué incluye el plan Player 1 · Gratis?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "El plan Player 1 · Gratis permite operar 1 solo local con las funciones esenciales de fidelización: acumular monedas por venta con código QR y redimir recompensas en caja."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "¿Qué diferencia hay entre Level Up · Pro y Modo Arcade · Suite?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Level Up · Pro añade creación de campañas (promociones, bonos y próximamente cumpleaños) y difusiones por los canales permitidos por el usuario. Modo Arcade · Suite sumará próximamente la plataforma de juegos para clientes y la aplicación completa de administración desde comandera hasta facturación."
                 }
               },
               {
@@ -109,7 +125,7 @@
                 "name": "¿Mis clientes tienen que descargar una app?",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "No es obligatorio. Fideliapp funciona desde el navegador del celular y además se puede instalar como app desde la misma página, sin pasar por una tienda de aplicaciones."
+                  "text": "No es obligatorio. Fideliapp funciona desde el navegador del celular y además se puede instalar como app (PWA) desde la misma página, sin pasar por una tienda de aplicaciones."
                 }
               },
               {
@@ -118,14 +134,6 @@
                 "acceptedAnswer": {
                   "@type": "Answer",
                   "text": "No. Basta con el celular o la tablet del negocio para generar los QR de venta y aprobar canjes. No se requiere hardware adicional ni integración con tu caja."
-                }
-              },
-              {
-                "@type": "Question",
-                "name": "¿Puedo controlar cuánto me cuestan las recompensas?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "Sí. Defines el costo en monedas de cada premio, límites de canje por cliente y periodo, y un presupuesto. El panel económico te muestra el gasto y te alerta antes de superarlo."
                 }
               },
               {
@@ -141,15 +149,23 @@
                 "name": "¿Las monedas vencen?",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "Tú decides la vigencia en la configuración del programa. Cuando hay vencimiento, se consumen primero las monedas más antiguas y cada vencimiento queda registrado en el historial de movimientos."
+                  "text": "Tú decides la vigencia en la configuración del programa. Cuando hay vencimiento, se consumen primero las monedas más antiguas (FIFO) y cada vencimiento queda registrado en el historial de movimientos."
                 }
               },
               {
                 "@type": "Question",
-                "name": "¿Puedo administrar varios negocios con la misma cuenta?",
+                "name": "¿El saldo de un cliente se mezcla entre diferentes negocios?",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "Sí. Fideliapp es multiempresa: puedes registrar varios negocios y cada uno tiene su propio programa, carta, recompensas y equipo."
+                  "text": "No. Cada negocio tiene su propia billetera de monedas, su propia carta y su catálogo de recompensas. El cliente ve todos sus negocios afiliados en un solo lugar, pero con saldos independientes."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "¿Qué pasa si un cliente intenta escanear el mismo QR de venta dos veces?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "El sistema valida que cada QR corresponda a una única venta y solo permite reclamarlo una vez. Los intentos repetidos son rechazados automáticamente en la base de datos."
                 }
               }
             ]

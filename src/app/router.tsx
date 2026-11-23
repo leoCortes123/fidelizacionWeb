@@ -15,9 +15,29 @@ import { ErrorState, FullPageLoader } from "@/components/shared/States";
 import { Button } from "@/components/ui/button";
 import { BusinessProvider, useBusinessContext } from "@/features/loyalty/businessContext";
 import { businessHomePath } from "@/lib/config";
-const LandingPage = lazy(() =>
-  import("@/features/auth/LandingPage").then((module) => ({
-    default: module.LandingPage,
+const HomePage = lazy(() =>
+  import("@/features/landing/pages/HomePage").then((module) => ({
+    default: module.HomePage,
+  })),
+);
+const HowItWorksPage = lazy(() =>
+  import("@/features/landing/pages/HowItWorksPage").then((module) => ({
+    default: module.HowItWorksPage,
+  })),
+);
+const FeaturesPage = lazy(() =>
+  import("@/features/landing/pages/FeaturesPage").then((module) => ({
+    default: module.FeaturesPage,
+  })),
+);
+const PricingPage = lazy(() =>
+  import("@/features/landing/pages/PricingPage").then((module) => ({
+    default: module.PricingPage,
+  })),
+);
+const FaqPage = lazy(() =>
+  import("@/features/landing/pages/FaqPage").then((module) => ({
+    default: module.FaqPage,
   })),
 );
 import { useAuth } from "@/features/auth/AuthProvider";
@@ -262,7 +282,11 @@ export function AppRoutes() {
   return (
     <Suspense fallback={<FullPageLoader label="Cargando la página…" />}>
       <Routes>
-        <Route path="/" element={<LandingPage />} />
+        <Route path="/" element={<HomePage />} />
+        <Route path="/como-funciona" element={<HowItWorksPage />} />
+        <Route path="/funciones" element={<FeaturesPage />} />
+        <Route path="/precios" element={<PricingPage />} />
+        <Route path="/preguntas" element={<FaqPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/auth/callback" element={<AuthCallbackPage />} />
         <Route path="/claim/:token" element={<ClaimPage />} />

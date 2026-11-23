@@ -118,9 +118,9 @@ describe("EatersBackground", () => {
     mockCtx.clearRect.mockClear();
     mockCtx.fillRect.mockClear();
 
-    // Avanza suficientes ticks (100 ms max delta × 20 = 2000 ms > MAX_STEP_INTERVAL_MS)
+    // Avanza suficientes ticks (100 ms max delta × 26 = 2600 ms > MAX_STEP_INTERVAL_MS = 2333 ms)
     let ts = 100;
-    for (let step = 0; step < 20; step++) {
+    for (let step = 0; step < 26; step++) {
       const pending = Array.from(rafCallbacks.entries());
       rafCallbacks.clear();
       for (const [, cb] of pending) {

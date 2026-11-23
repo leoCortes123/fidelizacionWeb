@@ -48,6 +48,10 @@ async function waitForServer(timeoutMs = 30_000) {
 
 const routes = [
   { path: "/", expected: /Programa de puntos para tu negocio/i },
+  { path: "/como-funciona", expected: /en tu negocio/i },
+  { path: "/funciones", expected: /por tu negocio/i },
+  { path: "/precios", expected: /Elige la capa ideal/i },
+  { path: "/preguntas", expected: /Preguntas frecuentes/i },
   { path: "/login", expected: /Entra a tus monedas/i },
   { path: "/ruta-inexistente", expected: /Página no encontrada/i },
 ];

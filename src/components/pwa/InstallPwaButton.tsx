@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Download } from "lucide-react";
 import { toast } from "sonner";
+import { PixelDownloadIcon } from "@/features/landing/PixelIcons";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -139,7 +139,7 @@ export function InstallPwaButton({
 
   return (
     <button type="button" className={className} onClick={() => void handleInstallClick()}>
-      <Download className="h-4 w-4 shrink-0" aria-hidden="true" />
+      <PixelDownloadIcon size={16} className="shrink-0" />
       <span>{label}</span>
     </button>
   );

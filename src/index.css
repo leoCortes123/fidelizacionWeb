@@ -28,6 +28,14 @@
     --radius: 0px;
   }
 
+  :root:has(> head > meta[name="color-scheme"][content="dark"]) {
+    color-scheme: dark;
+  }
+
+  :root:has(> head > meta[name="color-scheme"][content="light"]) {
+    color-scheme: light;
+  }
+
   /* Modo oscuro Loopoint: Slate nocturno con contraste verificado >= 4.5:1 */
   .dark {
     --background: 222 47% 7%;
@@ -228,14 +236,6 @@
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
-  }
-
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
   }
 }
 

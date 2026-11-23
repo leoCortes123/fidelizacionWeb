@@ -21,15 +21,15 @@ const DY = [-1, -1, -1, 0, 0, 1, 1, 1] as const;
 
 const GUTTER = 1;
 /**
- * Ritmo ambiental muy pausado (850–1750 ms por paso) e inicio ya propagado por
- * todo el lienzo para acompañar el fondo sin concentrar ni distraer la mirada
- * respecto a los textos y la animación principal (WCAG 2.3.1).
+ * Ritmo ambiental muy pausado (1133–2333 ms por paso, -25% velocidad) e inicio ya
+ * propagado por todo el lienzo para acompañar el fondo sin concentrar ni distraer
+ * la mirada respecto a los textos y la animación principal (WCAG 2.3.1).
  */
-const MIN_STEP_INTERVAL_MS = 850;
-const MAX_STEP_INTERVAL_MS = 1750;
+const MIN_STEP_INTERVAL_MS = 1133;
+const MAX_STEP_INTERVAL_MS = 2333;
 const REGROW_TRIGGER_RATIO = 0.92;
 const REGROW_STOP_RATIO = 0.25;
-const REGROW_STEP_MS = 320;
+const REGROW_STEP_MS = 427;
 const INITIAL_EATEN_TARGET_RATIO = 0.48;
 const MAX_PREWARM_ROUNDS = 45;
 const RESIZE_DEBOUNCE_MS = 150;

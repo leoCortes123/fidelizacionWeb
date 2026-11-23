@@ -1,5 +1,9 @@
 User-agent: *
 Allow: /
+Allow: /como-funciona
+Allow: /funciones
+Allow: /precios
+Allow: /preguntas
 Disallow: /admin
 Disallow: /customer
 Disallow: /encargado
