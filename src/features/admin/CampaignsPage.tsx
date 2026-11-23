@@ -20,9 +20,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
+import { Field } from "@/components/shared/Field";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { EmptyState, ErrorState, ListSkeleton } from "@/components/shared/States";
 import { BusinessGate } from "@/features/admin/BusinessGate";
@@ -299,26 +299,26 @@ function CampaignsSection({ business }: { business: Business }) {
             ))}
           </div>
 
-          <div className="hidden overflow-x-auto rounded-none border-2 border-[var(--lp-ink)] bg-card shadow-[4px_4px_0_var(--lp-ink)] md:block">
+          <div className="hidden overflow-x-auto rounded-none border-2 border-[var(--lp-ink)] bg-card shadow-[var(--lp-shadow-lg)] md:block">
             <table className="w-full text-sm">
               <thead className="border-b-[3px] border-[var(--lp-ink)] bg-[var(--lp-surface-elevated-deep)] text-left font-mono text-xs font-bold uppercase tracking-wide text-[var(--lp-gold)]">
                 <tr>
-                  <th scope="col" className="px-4 py-3">
+                  <th scope="col" className="h-9 px-3">
                     Campaña
                   </th>
-                  <th scope="col" className="px-4 py-3">
+                  <th scope="col" className="h-9 px-3">
                     Beneficio
                   </th>
-                  <th scope="col" className="px-4 py-3 text-right">
+                  <th scope="col" className="h-9 px-3 text-right">
                     Compra mínima
                   </th>
-                  <th scope="col" className="px-4 py-3">
+                  <th scope="col" className="h-9 px-3">
                     Vigencia
                   </th>
-                  <th scope="col" className="px-4 py-3">
+                  <th scope="col" className="h-9 px-3">
                     Estado
                   </th>
-                  <th scope="col" className="px-4 py-3 text-right">
+                  <th scope="col" className="h-9 px-3 text-right">
                     Acciones
                   </th>
                 </tr>
@@ -329,13 +329,13 @@ function CampaignsSection({ business }: { business: Business }) {
                     key={campaign.id}
                     className="transition-colors hover:bg-[var(--lp-row-hover)]"
                   >
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-2">
                       <p className="font-semibold">{campaign.name}</p>
                       {campaign.description && (
                         <p className="text-xs text-muted-foreground">{campaign.description}</p>
                       )}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-2">
                       <p className="font-medium">x{campaign.multiplier}</p>
                       {campaign.bonus_points > 0 && (
                         <p className="text-xs text-muted-foreground">
@@ -343,12 +343,12 @@ function CampaignsSection({ business }: { business: Business }) {
                         </p>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-right tabular-nums">
+                    <td className="px-3 py-2 text-right tabular-nums">
                       {campaign.min_purchase_amount > 0
                         ? formatCOP(campaign.min_purchase_amount)
                         : "—"}
                     </td>
-                    <td className="px-4 py-3 text-xs text-muted-foreground">
+                    <td className="px-3 py-2 text-xs text-muted-foreground">
                       <p>Desde {formatDateTimeBogota(campaign.valid_from)}</p>
                       <p>
                         {campaign.valid_until
@@ -356,12 +356,12 @@ function CampaignsSection({ business }: { business: Business }) {
                           : "Sin fecha de fin"}
                       </p>
                     </td>
-                    <td className="px-4 py-3">{statusBadge(campaign)}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex justify-end gap-2">
+                    <td className="px-3 py-2">{statusBadge(campaign)}</td>
+                    <td className="px-3 py-2">
+                      <div className="flex justify-end gap-1.5">
                         <Button
                           variant="ghost"
-                          size="icon"
+                          size="icon-sm"
                           onClick={() => openEdit(campaign)}
                           aria-label={`Editar ${campaign.name}`}
                         >
@@ -369,7 +369,7 @@ function CampaignsSection({ business }: { business: Business }) {
                         </Button>
                         <Button
                           variant="ghost"
-                          size="icon"
+                          size="icon-sm"
                           onClick={() => void toggle(campaign)}
                           aria-label={
                             campaign.is_active
@@ -381,7 +381,7 @@ function CampaignsSection({ business }: { business: Business }) {
                         </Button>
                         <Button
                           variant="ghost"
-                          size="icon"
+                          size="icon-sm"
                           onClick={() => setDeleteTarget(campaign)}
                           aria-label={`Eliminar ${campaign.name}`}
                         >
@@ -403,7 +403,7 @@ function CampaignsSection({ business }: { business: Business }) {
       </p>
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>{editing ? "Detalle de la campaña" : "Nueva campaña"}</DialogTitle>
             <DialogDescription>
@@ -411,10 +411,14 @@ function CampaignsSection({ business }: { business: Business }) {
               Solo aplica dentro de la vigencia.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={save} className="min-w-0 space-y-4" noValidate>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="min-w-0 space-y-2 sm:col-span-2">
-                <Label htmlFor="campaign-name">Nombre</Label>
+          <form onSubmit={save} className="min-w-0 space-y-3" noValidate>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <Field
+                id="campaign-name"
+                label="Nombre"
+                error={errors.name}
+                className="sm:col-span-2"
+              >
                 <Input
                   id="campaign-name"
                   value={form.name}
@@ -422,23 +426,25 @@ function CampaignsSection({ business }: { business: Business }) {
                   maxLength={120}
                   aria-invalid={Boolean(errors.name)}
                 />
-                {errors.name && (
-                  <p className="text-xs font-medium text-destructive" role="alert">
-                    {errors.name}
-                  </p>
-                )}
-              </div>
-              <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="campaign-description">Descripción (opcional)</Label>
+              </Field>
+              <Field
+                id="campaign-description"
+                label="Descripción (opcional)"
+                className="sm:col-span-2"
+              >
                 <Textarea
                   id="campaign-description"
                   value={form.description}
                   onChange={(event) => update("description", event.target.value)}
                   maxLength={500}
                 />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="campaign-multiplier">Multiplicador</Label>
+              </Field>
+              <Field
+                id="campaign-multiplier"
+                label="Multiplicador"
+                error={errors.multiplier}
+                hint="x2 duplica las monedas. Entre 1 y 10."
+              >
                 <Input
                   id="campaign-multiplier"
                   inputMode="decimal"
@@ -446,18 +452,13 @@ function CampaignsSection({ business }: { business: Business }) {
                   onChange={(event) => update("multiplier", event.target.value)}
                   aria-invalid={Boolean(errors.multiplier)}
                 />
-                {errors.multiplier ? (
-                  <p className="text-xs font-medium text-destructive" role="alert">
-                    {errors.multiplier}
-                  </p>
-                ) : (
-                  <p className="text-xs text-muted-foreground">
-                    x2 duplica las monedas. Entre 1 y 10.
-                  </p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="campaign-bonus">Bono de monedas</Label>
+              </Field>
+              <Field
+                id="campaign-bonus"
+                label="Bono de monedas"
+                error={errors.bonusPoints}
+                hint="Se suma después del multiplicador."
+              >
                 <Input
                   id="campaign-bonus"
                   inputMode="numeric"
@@ -465,18 +466,12 @@ function CampaignsSection({ business }: { business: Business }) {
                   onChange={(event) => update("bonusPoints", event.target.value)}
                   aria-invalid={Boolean(errors.bonusPoints)}
                 />
-                {errors.bonusPoints ? (
-                  <p className="text-xs font-medium text-destructive" role="alert">
-                    {errors.bonusPoints}
-                  </p>
-                ) : (
-                  <p className="text-xs text-muted-foreground">
-                    Se suma después del multiplicador.
-                  </p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="campaign-min-purchase">Compra mínima (COP)</Label>
+              </Field>
+              <Field
+                id="campaign-min-purchase"
+                label="Compra mínima (COP)"
+                error={errors.minPurchase}
+              >
                 <Input
                   id="campaign-min-purchase"
                   inputMode="numeric"
@@ -485,14 +480,8 @@ function CampaignsSection({ business }: { business: Business }) {
                   onChange={(event) => update("minPurchase", event.target.value)}
                   aria-invalid={Boolean(errors.minPurchase)}
                 />
-                {errors.minPurchase && (
-                  <p className="text-xs font-medium text-destructive" role="alert">
-                    {errors.minPurchase}
-                  </p>
-                )}
-              </div>
-              <div className="min-w-0 space-y-2">
-                <Label htmlFor="campaign-from">Inicio</Label>
+              </Field>
+              <Field id="campaign-from" label="Inicio" error={errors.validFrom}>
                 <Input
                   id="campaign-from"
                   type="datetime-local"
@@ -500,14 +489,8 @@ function CampaignsSection({ business }: { business: Business }) {
                   onChange={(event) => update("validFrom", event.target.value)}
                   aria-invalid={Boolean(errors.validFrom)}
                 />
-                {errors.validFrom && (
-                  <p className="text-xs font-medium text-destructive" role="alert">
-                    {errors.validFrom}
-                  </p>
-                )}
-              </div>
-              <div className="min-w-0 space-y-2">
-                <Label htmlFor="campaign-until">Fin (opcional)</Label>
+              </Field>
+              <Field id="campaign-until" label="Fin (opcional)" error={errors.validUntil}>
                 <Input
                   id="campaign-until"
                   type="datetime-local"
@@ -515,12 +498,7 @@ function CampaignsSection({ business }: { business: Business }) {
                   onChange={(event) => update("validUntil", event.target.value)}
                   aria-invalid={Boolean(errors.validUntil)}
                 />
-                {errors.validUntil && (
-                  <p className="text-xs font-medium text-destructive" role="alert">
-                    {errors.validUntil}
-                  </p>
-                )}
-              </div>
+              </Field>
             </div>
 
             <label className="flex items-center gap-2 text-sm font-medium">
@@ -592,12 +570,12 @@ function CampaignCard({
           type="button"
           onClick={onSelect}
           aria-label={`Ver detalle de ${campaign.name}`}
-          className="flex w-full min-w-0 items-start gap-3 p-4 text-left transition-colors hover:bg-primary/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring dark:hover:bg-primary/[0.14]"
+          className="flex w-full min-w-0 items-start gap-3 p-3.5 text-left transition-colors hover:bg-[var(--lp-row-hover)] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-[-3px] focus-visible:outline-[var(--lp-focus-ring)]"
         >
-          <div className="flex size-14 shrink-0 items-center justify-center border border-primary/20 bg-background/80 text-primary dark:border-primary/30 dark:bg-card/80">
+          <div className="flex size-14 shrink-0 items-center justify-center border-2 border-[var(--lp-ink)] bg-card text-primary">
             <Megaphone className="size-5" aria-hidden="true" />
           </div>
-          <div className="min-w-0 flex-1 space-y-1.5">
+          <div className="min-w-0 flex-1 space-y-1">
             <div className="flex items-start justify-between gap-2">
               <p className="min-w-0 break-words font-semibold leading-snug">{campaign.name}</p>
               <span className="shrink-0 whitespace-nowrap font-semibold tabular-nums text-primary">
@@ -632,7 +610,7 @@ function CampaignCard({
           </div>
         </button>
 
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-primary/15 bg-primary/[0.06] px-4 py-2.5 dark:border-primary/25 dark:bg-primary/[0.14]">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t-2 border-[var(--lp-ink)] bg-[var(--lp-paper-deep)] px-3.5 py-2">
           <Button
             type="button"
             variant="outline"

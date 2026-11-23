@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/select";
+import { HelpHint } from "@/components/shared/HelpHint";
 import type { BusinessEconomicProfile, EconomicDataStatus, EconomicField } from "@/types";
 
 export { parseEconomicNumber } from "@/lib/format";
@@ -533,19 +535,19 @@ export function EconomicDataForm({
 
   return (
     <Card>
-      <CardHeader className="pb-4">
-        <CardTitle className="flex items-center gap-2.5">
-          <span className="grid size-9 shrink-0 place-items-center rounded-none bg-primary/10 text-primary">
+      <CardHeader className="pb-2.5">
+        <CardTitle className="flex items-center gap-2 text-base">
+          <span className="grid size-8 shrink-0 place-items-center rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-gold)] text-[#16262e]">
             <CircleDollarSign className="size-4" aria-hidden="true" />
           </span>
           <span>{title}</span>
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-          <p className="text-sm leading-relaxed text-muted-foreground">{intro}</p>
+        <form onSubmit={handleSubmit} className="space-y-3.5" noValidate>
+          <p className="text-xs leading-snug text-muted-foreground sm:text-sm">{intro}</p>
 
-          <div className="grid gap-3 sm:gap-4 lg:grid-cols-2">
+          <div className="grid gap-3 lg:grid-cols-2 2xl:grid-cols-3">
             {ECONOMIC_FIELDS.map((config) => {
               const id = `economic-${config.field}`;
               const statusId = `${id}-status`;
@@ -583,26 +585,29 @@ export function EconomicDataForm({
                 <div
                   key={config.field}
                   className={cn(
-                    "flex flex-col justify-between gap-3 rounded-none border p-3.5 transition-colors sm:p-4",
+                    "flex flex-col justify-between gap-2 rounded-none border-2 border-[var(--lp-ink)] border-t-4 p-3 transition-colors",
                     fieldError
-                      ? "border-destructive/60 bg-destructive/5 dark:border-red-800 dark:bg-red-950/25"
+                      ? "border-t-[var(--lp-red-dark)] bg-[var(--lp-danger-bg)]"
                       : autoInvalid
-                        ? "border-amber-200/90 bg-amber-50/30 dark:border-amber-900/70 dark:bg-amber-950/15"
+                        ? "border-t-[var(--lp-gold-dark)] bg-[var(--lp-tip-bg)]"
                         : fieldStatus === "confirmed"
-                          ? "border-emerald-200/90 bg-emerald-50/30 dark:border-emerald-900/70 dark:bg-emerald-950/15"
+                          ? "border-t-[var(--lp-green-cta)] bg-card"
                           : fieldStatus === "estimated"
-                            ? "border-amber-200/90 bg-amber-50/30 dark:border-amber-900/70 dark:bg-amber-950/15"
-                            : "border-border bg-muted/20",
+                            ? "border-t-[var(--lp-gold)] bg-[var(--lp-tip-bg)]"
+                            : "border-t-[var(--lp-ink-soft)] bg-[var(--lp-paper-deep)]",
                   )}
                 >
-                  <div className="space-y-2">
+                  <div className="space-y-1.5">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0 space-y-1">
-                        <Label htmlFor={id} className="leading-snug">
-                          {config.label}
-                        </Label>
+                        <div className="flex items-center gap-1.5">
+                          <Label htmlFor={id} className="leading-tight">
+                            {config.label}
+                          </Label>
+                          <HelpHint text={config.hint} />
+                        </div>
                         {isAuto && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary">
+                          <span className="inline-flex items-center gap-1 rounded-none border border-[var(--lp-ink)] bg-[var(--lp-gold-soft)] px-1.5 py-0.5 font-mono text-[10px] font-bold uppercase text-[#16262e]">
                             <Sparkles className="size-3" aria-hidden="true" />
                             {config.field === "monthly_operation_days"
                               ? "Calculado según tu horario"
@@ -615,51 +620,72 @@ export function EconomicDataForm({
                       </Badge>
                     </div>
 
-                    <Input
-                      id={id}
-                      inputMode={config.kind === "percent" ? "decimal" : "numeric"}
-                      placeholder={
-                        !autoStatus && fieldStatus === "unknown"
-                          ? "Sin dato"
-                          : (config.placeholder ?? "0")
-                      }
-                      value={values[config.field]}
-                      onChange={(event) => updateValue(config.field, event.target.value)}
-                      aria-invalid={Boolean(fieldError)}
-                      aria-describedby={autoStatus ? `${feedbackId} ${statusBadgeId}` : feedbackId}
-                    />
+                    <div
+                      className={cn(
+                        !autoStatus ? "grid gap-2 sm:grid-cols-[minmax(0,1fr)_136px]" : undefined,
+                      )}
+                    >
+                      <Input
+                        id={id}
+                        inputMode={config.kind === "percent" ? "decimal" : "numeric"}
+                        placeholder={
+                          !autoStatus && fieldStatus === "unknown"
+                            ? "Sin dato"
+                            : (config.placeholder ?? "0")
+                        }
+                        value={values[config.field]}
+                        onChange={(event) => updateValue(config.field, event.target.value)}
+                        aria-invalid={Boolean(fieldError)}
+                        aria-describedby={
+                          autoStatus ? `${feedbackId} ${statusBadgeId}` : feedbackId
+                        }
+                      />
+
+                      {!autoStatus && (
+                        <div className="min-w-0 space-y-1">
+                          <Label
+                            htmlFor={statusId}
+                            className="text-xs text-muted-foreground sm:sr-only"
+                          >
+                            Estado del dato
+                          </Label>
+                          <NativeSelect
+                            id={statusId}
+                            value={fieldStatus}
+                            onChange={(event) =>
+                              updateStatus(config.field, event.target.value as EconomicDataStatus)
+                            }
+                          >
+                            {ECONOMIC_STATUS_OPTIONS.map((option) => (
+                              <option key={option.value} value={option.value}>
+                                {option.label}
+                              </option>
+                            ))}
+                          </NativeSelect>
+                        </div>
+                      )}
+                    </div>
 
                     {fieldError ? (
                       <p
                         id={feedbackId}
-                        className="text-xs font-medium text-destructive"
+                        className="text-xs font-semibold text-[var(--lp-red-text)]"
                         role="alert"
                       >
                         {fieldError}
                       </p>
                     ) : (
-                      <div className="space-y-1">
-                        <div
-                          className={cn(
-                            autoStatus &&
-                              previewValue &&
-                              "flex items-baseline justify-between gap-2",
-                          )}
-                        >
-                          <p
-                            id={feedbackId}
-                            className="text-xs leading-relaxed text-muted-foreground"
-                          >
-                            {config.hint}
-                          </p>
-                          {autoStatus && previewValue && (
-                            <span className="shrink-0 font-mono text-xs font-bold tabular-nums text-foreground">
+                      <div id={feedbackId} className="space-y-1">
+                        {previewValue && (
+                          <p className="flex items-center justify-between gap-2 font-mono text-xs text-muted-foreground">
+                            <span>Valor interpretado</span>
+                            <span className="font-bold tabular-nums text-foreground">
                               {previewValue}
                             </span>
-                          )}
-                        </div>
+                          </p>
+                        )}
                         {config.field === "gross_margin" && gainExceedsSales && (
-                          <p className="text-xs font-medium text-amber-700 dark:text-amber-400">
+                          <p className="text-xs font-semibold text-[var(--lp-tip-strong)]">
                             La ganancia diaria supera las ventas diarias; ajusta los valores para
                             calcular el margen.
                           </p>
@@ -668,7 +694,7 @@ export function EconomicDataForm({
                           <button
                             type="button"
                             onClick={recalculateGrossMargin}
-                            className="cursor-pointer text-xs font-semibold text-primary underline-offset-2 hover:underline"
+                            className="cursor-pointer text-xs font-semibold text-[var(--lp-accent-link)] underline-offset-2 hover:underline"
                           >
                             Usar margen calculado ({expectedComputedMargin} %)
                           </button>
@@ -676,54 +702,19 @@ export function EconomicDataForm({
                       </div>
                     )}
                   </div>
-
-                  {!autoStatus && (
-                    <div className="flex items-end justify-between gap-3 border-t border-border/60 pt-3">
-                      <div className="min-w-0 flex-1 space-y-1">
-                        <Label htmlFor={statusId} className="text-xs text-muted-foreground">
-                          Estado del dato
-                        </Label>
-                        <select
-                          id={statusId}
-                          value={fieldStatus}
-                          onChange={(event) =>
-                            updateStatus(config.field, event.target.value as EconomicDataStatus)
-                          }
-                          className="flex h-10 w-full cursor-pointer rounded-none border-2 border-input bg-card px-2.5 py-1.5 text-base font-medium text-foreground shadow-[2px_2px_0_var(--lp-ink)] hover:border-[var(--lp-focus-ring)] focus-visible:border-[var(--lp-focus-ring)] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--lp-focus-ring)] dark:bg-[var(--lp-paper-deep)] md:text-sm"
-                        >
-                          {ECONOMIC_STATUS_OPTIONS.map((option) => (
-                            <option key={option.value} value={option.value}>
-                              {option.label}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-
-                      {previewValue && (
-                        <div className="shrink-0 text-right">
-                          <span className="block text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
-                            Valor
-                          </span>
-                          <span className="font-mono text-xs font-bold tabular-nums text-foreground">
-                            {previewValue}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  )}
                 </div>
               );
             })}
           </div>
 
           {hasLiveSummary && (
-            <div className="space-y-3 rounded-none border border-primary/25 bg-primary/[0.03] p-3.5 sm:p-4">
-              <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-primary">
+            <div className="lp-subpanel space-y-2.5">
+              <div className="flex items-center gap-2 font-mono text-xs font-bold uppercase tracking-wider text-[var(--lp-accent-link)]">
                 <Calculator className="size-3.5" aria-hidden="true" />
                 <span>Análisis calculado automáticamente</span>
               </div>
               <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
-                <div className="rounded-none border border-border/70 bg-background/80 p-2.5">
+                <div className="rounded-none border-2 border-[var(--lp-ink)] bg-card p-2.5">
                   <span className="block text-[11px] text-muted-foreground">
                     Ventas mensuales est.
                   </span>
@@ -731,7 +722,7 @@ export function EconomicDataForm({
                     {monthlySales !== null ? formatCOP(monthlySales) : "—"}
                   </span>
                 </div>
-                <div className="rounded-none border border-border/70 bg-background/80 p-2.5">
+                <div className="rounded-none border-2 border-[var(--lp-ink)] bg-card p-2.5">
                   <span className="block text-[11px] text-muted-foreground">
                     Ganancia mensual est.
                   </span>
@@ -739,13 +730,13 @@ export function EconomicDataForm({
                     {monthlyGain !== null ? formatCOP(monthlyGain) : "—"}
                   </span>
                 </div>
-                <div className="rounded-none border border-border/70 bg-background/80 p-2.5">
+                <div className="rounded-none border-2 border-[var(--lp-ink)] bg-card p-2.5">
                   <span className="block text-[11px] text-muted-foreground">Ticket promedio</span>
                   <span className="mt-0.5 block font-mono text-sm font-bold tabular-nums">
                     {avgTicket !== null ? formatCOP(avgTicket) : "—"}
                   </span>
                 </div>
-                <div className="rounded-none border border-border/70 bg-background/80 p-2.5">
+                <div className="rounded-none border-2 border-[var(--lp-ink)] bg-card p-2.5">
                   <span className="block text-[11px] text-muted-foreground">
                     Peso del presupuesto
                   </span>
@@ -761,7 +752,7 @@ export function EconomicDataForm({
             </div>
           )}
 
-          <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border/70 pt-4">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-t-2 border-[var(--lp-ink)] pt-3">
             <div>{draft.hasDraft && <Badge variant="muted">Borrador guardado</Badge>}</div>
             <Button type="submit" loading={upsert.isPending}>
               {submitLabel}

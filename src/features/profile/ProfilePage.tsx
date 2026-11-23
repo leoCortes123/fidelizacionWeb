@@ -38,8 +38,6 @@ import { Field } from "@/components/shared/Field";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { ErrorState, LoadingScreen } from "@/components/shared/States";
 import { ProfileAvatarSvg } from "@/features/customer/pixelSprites";
-import "@/features/customer/customerRetro.css";
-import { cn } from "@/lib/utils";
 
 const profileTabs = [
   { value: "negocio", label: "Negocio", icon: Building2 },
@@ -283,35 +281,24 @@ export function ProfilePage() {
   }
 
   const personalForm = (
-    <form
-      onSubmit={handleSubmit}
-      className={cn(isCustomerPortal ? "profile-form" : "space-y-4")}
-      noValidate
-    >
-      <div
-        className={cn(
-          "flex flex-wrap items-center justify-between gap-3 p-3.5 text-sm sm:p-4",
-          isCustomerPortal
-            ? "pixel-box-dark"
-            : "rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-paper-deep)] shadow-[3px_3px_0_var(--lp-ink)]",
-        )}
-      >
+    <form onSubmit={handleSubmit} className="space-y-3.5" noValidate>
+      <div className="lp-subpanel flex flex-wrap items-center justify-between gap-3 text-sm shadow-[var(--lp-shadow-md)]">
         <div className="flex min-w-0 items-center gap-3">
           {currentAvatarUrl ? (
             <img
               src={currentAvatarUrl}
               alt={data.full_name || data.email}
-              className="size-14 shrink-0 rounded-full border border-border object-cover"
+              className="size-12 shrink-0 rounded-none border-2 border-[var(--lp-ink)] object-cover shadow-[var(--lp-shadow-sm)]"
             />
           ) : (
-            <div className="grid size-14 shrink-0 place-items-center rounded-full border border-border bg-muted text-muted-foreground">
-              <UserRound className="size-6" aria-hidden="true" />
+            <div className="grid size-12 shrink-0 place-items-center rounded-none border-2 border-[var(--lp-ink)] bg-card text-foreground shadow-[var(--lp-shadow-sm)]">
+              <UserRound className="size-5" aria-hidden="true" />
             </div>
           )}
           <div className="min-w-0">
             <p className="truncate font-bold">{data.full_name || "Sin nombre"}</p>
             <p className="break-all font-mono text-xs text-muted-foreground">{data.email}</p>
-            <p className="mt-1 text-xs text-muted-foreground">
+            <p className="mt-0.5 text-xs text-muted-foreground">
               {data.business_count} negocio(s) · en Fideliapp desde{" "}
               {formatDateBogota(data.created_at)}
             </p>
@@ -355,11 +342,11 @@ export function ProfilePage() {
         </div>
       </div>
 
-      <div className={cn(isCustomerPortal ? "form-grid-2" : "space-y-4")}>
+      <div className="grid gap-3 sm:grid-cols-2">
         <Field
           id="full-name"
           label={showBusinessTabs ? "Nombre de administrador" : "Nombre completo"}
-          hint="Así te verá el negocio en su equipo y en las listas internas."
+          help="Así te verá el negocio en su equipo y en las listas internas."
           error={errors.fullName}
           required
         >
@@ -368,7 +355,6 @@ export function ProfilePage() {
             value={form?.fullName ?? ""}
             onChange={(event) => update("fullName", event.target.value)}
             autoComplete="name"
-            className={isCustomerPortal ? "form-input" : undefined}
             aria-invalid={Boolean(errors.fullName)}
           />
         </Field>
@@ -378,10 +364,10 @@ export function ProfilePage() {
           label={showBusinessTabs ? "Alias de administrador" : "Alias público"}
           hint={
             canChangeNickname
-              ? `Te quedan ${data.nickname_changes_left} de 2 cambios. El alias no aparece en los QR ni en datos de canje.`
+              ? `Te quedan ${data.nickname_changes_left} de 2 cambios.`
               : "Ya usaste tus 2 cambios de alias. El alias actual se mantiene."
           }
-          help="Se usa para identificarte en las listas del negocio. Solo minúsculas, números, punto, guion y guion bajo."
+          help="Se usa para identificarte en las listas del negocio. Solo minúsculas, números, punto, guion y guion bajo. El alias no aparece en los QR ni en datos de canje."
           error={errors.nickname}
         >
           <div className="relative">
@@ -391,7 +377,7 @@ export function ProfilePage() {
             />
             <Input
               id="nickname"
-              className={cn("pl-8", isCustomerPortal && "form-input")}
+              className="pl-8"
               value={form?.nickname ?? ""}
               onChange={(event) => update("nickname", event.target.value.toLowerCase())}
               disabled={!canChangeNickname}
@@ -418,18 +404,15 @@ export function ProfilePage() {
             </>
           ) : availability.data ? (
             <>
-              <BadgeCheck
-                className="size-4 text-emerald-700 dark:text-emerald-300"
-                aria-hidden="true"
-              />
-              <span className="text-emerald-700 dark:text-emerald-400">
+              <BadgeCheck className="size-4 text-[var(--lp-green-text)]" aria-hidden="true" />
+              <span className="font-semibold text-[var(--lp-green-text)]">
                 @{normalizedNickname} está disponible.
               </span>
             </>
           ) : availability.data === false ? (
             <>
-              <CircleAlert className="size-4 text-destructive" aria-hidden="true" />
-              <span className="text-destructive">
+              <CircleAlert className="size-4 text-[var(--lp-red-text)]" aria-hidden="true" />
+              <span className="font-semibold text-[var(--lp-red-text)]">
                 @{normalizedNickname} no está disponible o está reservado.
               </span>
             </>
@@ -437,11 +420,11 @@ export function ProfilePage() {
         </div>
       )}
 
-      <div className={cn(isCustomerPortal ? "form-grid-2" : "grid gap-4 sm:grid-cols-2")}>
+      <div className="grid gap-3 sm:grid-cols-2">
         <Field
           id="phone"
           label="Número de teléfono"
-          hint="Opcional. Útil para contacto o atención en tienda."
+          help="Opcional. Útil para contacto o atención en tienda."
           error={errors.phone}
         >
           <div className="relative">
@@ -452,7 +435,7 @@ export function ProfilePage() {
             <Input
               id="phone"
               type="tel"
-              className={cn("pl-8", isCustomerPortal && "form-input")}
+              className="pl-8"
               value={form?.phone ?? ""}
               onChange={(event) => update("phone", event.target.value)}
               placeholder="+57 300 123 4567"
@@ -466,7 +449,7 @@ export function ProfilePage() {
         <Field
           id="birth-date"
           label="Fecha de cumpleaños"
-          hint="Opcional. Para beneficios especiales en tu cumpleaños."
+          help="Opcional. Para beneficios especiales en tu cumpleaños."
           error={errors.birthDate}
         >
           <div className="relative">
@@ -477,7 +460,7 @@ export function ProfilePage() {
             <Input
               id="birth-date"
               type="date"
-              className={cn("pl-8", isCustomerPortal && "form-input")}
+              className="pl-8"
               value={form?.birthDate ?? ""}
               onChange={(event) => update("birthDate", event.target.value)}
               max={todayBogota()}
@@ -488,12 +471,12 @@ export function ProfilePage() {
         </Field>
       </div>
 
-      <div className="flex justify-end pt-1">
+      <div className="flex justify-end pt-0.5">
         <Button
           type="submit"
+          variant={isCustomerPortal ? "success" : "default"}
           loading={updateProfile.isPending}
           disabled={!dirty}
-          className={isCustomerPortal ? "pixel-btn pixel-btn-xp" : undefined}
         >
           <Save aria-hidden="true" />
           Guardar perfil
@@ -609,7 +592,7 @@ export function ProfilePage() {
             })}
           </TabsList>
 
-          <TabsContent value="negocio" className="mt-4 space-y-5">
+          <TabsContent value="negocio" className="mt-3 space-y-4">
             {personalCard}
             <BusinessGate
               headingAs="h2"
@@ -619,24 +602,25 @@ export function ProfilePage() {
               emptyDescription="Registra un negocio para configurar su ficha."
             >
               {(business) => (
-                <div className="space-y-4">
-                  <PageHeader
-                    as="h2"
-                    title="Negocio"
-                    description="Define el nombre visible para tus clientes, enlace de afiliación, horarios de operación, ubicación, contacto y logo."
-                  />
+                <div className="space-y-3">
+                  <div className="flex flex-wrap items-baseline justify-between gap-2 px-4 sm:px-0">
+                    <h2 className="font-display text-lg font-extrabold tracking-tight">Negocio</h2>
+                    <p className="text-xs text-muted-foreground">
+                      Identidad pública, horario y ubicación de {business.name}.
+                    </p>
+                  </div>
                   <BusinessProfileForm key={business.id} business={business} />
                 </div>
               )}
             </BusinessGate>
           </TabsContent>
 
-          <TabsContent value="programa" className="mt-4">
-            <ProgramPage headingAs="h2" />
+          <TabsContent value="programa" className="mt-3">
+            <ProgramPage headingAs="h2" embedded />
           </TabsContent>
 
-          <TabsContent value="economico" className="mt-4">
-            <EconomicPage headingAs="h2" />
+          <TabsContent value="economico" className="mt-3">
+            <EconomicPage headingAs="h2" embedded />
           </TabsContent>
         </Tabs>
       ) : (

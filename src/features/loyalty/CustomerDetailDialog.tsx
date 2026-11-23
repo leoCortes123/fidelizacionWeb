@@ -133,7 +133,7 @@ function CustomerDetailContent({ data }: { data: CustomerDetail }) {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/20 pt-3 text-xs text-[var(--lp-surface-elevated-soft)]">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-t-2 border-[var(--lp-ink)] pt-3 text-xs text-[var(--lp-surface-elevated-soft)]">
             <span>
               <strong>{data.purchase_count}</strong> compras registradas · Total gastado:{" "}
               <strong>{formatCOP(data.total_spent)}</strong>

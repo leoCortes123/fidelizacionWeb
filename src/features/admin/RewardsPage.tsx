@@ -36,6 +36,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { Field } from "@/components/shared/Field";
 import { EmptyState, ErrorState, ListSkeleton, LoadingScreen } from "@/components/shared/States";
 import type { Business, LoyaltyReward, LoyaltyRewardType, Product } from "@/types";
 
@@ -247,8 +248,8 @@ export function RewardsPage() {
         />
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {list.map((business) => (
-            <Card key={business.id} className="cursor-pointer transition-shadow hover:shadow-md">
-              <CardContent className="p-6 text-center">
+            <Card key={business.id} className="lp-card-interactive cursor-pointer">
+              <CardContent className="p-[var(--lp-pad-card)] text-center">
                 <Gift className="mx-auto mb-3 size-12 text-primary" aria-hidden="true" />
                 <h3 className="font-semibold">{business.name}</h3>
                 <p className="text-xs text-muted-foreground">{business.slug}</p>
@@ -522,14 +523,14 @@ function RewardsSection({ business }: { business: Business }) {
             ))}
           </div>
 
-          <ul className="hidden divide-y rounded-none border px-4 md:block">
+          <ul className="hidden divide-y-2 divide-[var(--lp-paper-deep)] rounded-none border-2 border-[var(--lp-ink)] bg-card px-4 shadow-[var(--lp-shadow-lg)] md:block">
             {rewardsData.map((reward) => (
               <li
                 key={reward.id}
-                className="py-3 sm:flex sm:items-center sm:justify-between sm:gap-4"
+                className="py-2.5 sm:flex sm:items-center sm:justify-between sm:gap-4"
               >
                 <div className="flex min-w-0 items-start gap-3">
-                  <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden border border-primary/20 bg-background/80 text-primary dark:border-primary/30 dark:bg-card/80">
+                  <div className="flex size-11 shrink-0 items-center justify-center overflow-hidden border-2 border-[var(--lp-ink)] bg-[var(--lp-paper-deep)] text-primary">
                     {reward.image_url ? (
                       <img
                         src={reward.image_url}
@@ -593,10 +594,10 @@ function RewardsSection({ business }: { business: Business }) {
                     </div>
                   </div>
                 </div>
-                <div className="mt-2 flex gap-2 sm:mt-0">
+                <div className="mt-2 flex gap-1.5 sm:mt-0">
                   <Button
                     variant="ghost"
-                    size="icon"
+                    size="icon-sm"
                     onClick={() => openEdit(reward)}
                     aria-label={`Editar ${reward.name}`}
                   >
@@ -604,7 +605,7 @@ function RewardsSection({ business }: { business: Business }) {
                   </Button>
                   <Button
                     variant="ghost"
-                    size="icon"
+                    size="icon-sm"
                     onClick={() => void toggleReward(reward)}
                     aria-label={
                       reward.is_active ? `Desactivar ${reward.name}` : `Activar ${reward.name}`
@@ -624,16 +625,15 @@ function RewardsSection({ business }: { business: Business }) {
       )}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>{editing ? "Detalle de la recompensa" : "Nueva recompensa"}</DialogTitle>
             <DialogDescription>
               Configura el beneficio, las monedas requeridas y sus límites de uso.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={saveReward} className="space-y-4" noValidate>
-            <div className="space-y-2">
-              <Label htmlFor="reward-name">Nombre</Label>
+          <form onSubmit={saveReward} className="space-y-3" noValidate>
+            <Field id="reward-name" label="Nombre" error={errors.name}>
               <Input
                 id="reward-name"
                 value={form.name}
@@ -642,30 +642,19 @@ function RewardsSection({ business }: { business: Business }) {
                 maxLength={120}
                 aria-invalid={Boolean(errors.name)}
               />
-              {errors.name && (
-                <p className="text-xs font-medium text-destructive" role="alert">
-                  {errors.name}
-                </p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="reward-description">Descripción</Label>
+            </Field>
+            <Field id="reward-description" label="Descripción" error={errors.description}>
               <Textarea
                 id="reward-description"
                 value={form.description}
                 onChange={(event) => update("description", event.target.value)}
                 maxLength={500}
               />
-              {errors.description && (
-                <p className="text-xs font-medium text-destructive" role="alert">
-                  {errors.description}
-                </p>
-              )}
-            </div>
-            <div className="space-y-2">
+            </Field>
+            <div className="space-y-1">
               <Label>Foto de la recompensa</Label>
-              <div className="flex flex-wrap items-center gap-3 rounded-none border border-border bg-muted/30 p-3">
-                <div className="flex size-14 shrink-0 items-center justify-center overflow-hidden border border-border bg-background text-muted-foreground">
+              <div className="lp-subpanel flex flex-wrap items-center gap-3">
+                <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden border-2 border-[var(--lp-ink)] bg-card text-muted-foreground">
                   {form.imageUrl ? (
                     <img
                       src={form.imageUrl}
@@ -715,9 +704,8 @@ function RewardsSection({ business }: { business: Business }) {
               </div>
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="reward-type">Tipo de recompensa</Label>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Field id="reward-type" label="Tipo de recompensa">
                 <Select
                   value={form.type}
                   onValueChange={(value) => update("type", value as LoyaltyRewardType)}
@@ -733,9 +721,8 @@ function RewardsSection({ business }: { business: Business }) {
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="reward-points">Monedas requeridas</Label>
+              </Field>
+              <Field id="reward-points" label="Monedas requeridas" error={errors.pointsRequired}>
                 <Input
                   id="reward-points"
                   inputMode="numeric"
@@ -744,19 +731,13 @@ function RewardsSection({ business }: { business: Business }) {
                   required
                   aria-invalid={Boolean(errors.pointsRequired)}
                 />
-                {errors.pointsRequired && (
-                  <p className="text-xs font-medium text-destructive" role="alert">
-                    {errors.pointsRequired}
-                  </p>
-                )}
-              </div>
+              </Field>
             </div>
 
             {showProduct && (
-              <div className="space-y-2">
-                <Label htmlFor="reward-product">Producto que se entrega</Label>
+              <Field id="reward-product" label="Producto que se entrega" error={errors.productId}>
                 {(products.data ?? []).length === 0 ? (
-                  <p className="lp-tip-box rounded-none p-3 text-xs">
+                  <p className="lp-tip-box rounded-none p-2.5 text-xs">
                     La carta está vacía. Crea un producto en <strong>Carta</strong> antes de usar
                     una recompensa de producto gratis.
                   </p>
@@ -778,17 +759,16 @@ function RewardsSection({ business }: { business: Business }) {
                     </SelectContent>
                   </Select>
                 )}
-                {errors.productId && (
-                  <p className="text-xs font-medium text-destructive" role="alert">
-                    {errors.productId}
-                  </p>
-                )}
-              </div>
+              </Field>
             )}
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="reward-min-purchase">Compra mínima (COP)</Label>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Field
+                id="reward-min-purchase"
+                label="Compra mínima (COP)"
+                error={errors.minPurchaseAmount}
+                hint="0 = sin mínimo."
+              >
                 <Input
                   id="reward-min-purchase"
                   inputMode="numeric"
@@ -797,21 +777,18 @@ function RewardsSection({ business }: { business: Business }) {
                   onChange={(event) => update("minPurchaseAmount", event.target.value)}
                   aria-invalid={Boolean(errors.minPurchaseAmount)}
                 />
-                {errors.minPurchaseAmount ? (
-                  <p className="text-xs font-medium text-destructive" role="alert">
-                    {errors.minPurchaseAmount}
-                  </p>
-                ) : (
-                  <p className="text-xs text-muted-foreground">0 = sin mínimo.</p>
-                )}
-              </div>
+              </Field>
               {showAmount && (
-                <div className="space-y-2">
-                  <Label htmlFor="reward-max-discount">
-                    {form.type === "fixed_discount"
+                <Field
+                  id="reward-max-discount"
+                  label={
+                    form.type === "fixed_discount"
                       ? "Importe del descuento (COP)"
-                      : "Descuento máximo (COP)"}
-                  </Label>
+                      : "Descuento máximo (COP)"
+                  }
+                  error={errors.maxDiscountAmount}
+                  hint="Tope del beneficio."
+                >
                   <Input
                     id="reward-max-discount"
                     inputMode="numeric"
@@ -819,18 +796,14 @@ function RewardsSection({ business }: { business: Business }) {
                     onChange={(event) => update("maxDiscountAmount", event.target.value)}
                     aria-invalid={Boolean(errors.maxDiscountAmount)}
                   />
-                  {errors.maxDiscountAmount ? (
-                    <p className="text-xs font-medium text-destructive" role="alert">
-                      {errors.maxDiscountAmount}
-                    </p>
-                  ) : (
-                    <p className="text-xs text-muted-foreground">Tope del beneficio.</p>
-                  )}
-                </div>
+                </Field>
               )}
               {showPercentage && (
-                <div className="space-y-2">
-                  <Label htmlFor="reward-percentage">Porcentaje de descuento (%)</Label>
+                <Field
+                  id="reward-percentage"
+                  label="Porcentaje de descuento (%)"
+                  error={errors.discountPercentage}
+                >
                   <Input
                     id="reward-percentage"
                     inputMode="numeric"
@@ -839,27 +812,24 @@ function RewardsSection({ business }: { business: Business }) {
                     onChange={(event) => update("discountPercentage", event.target.value)}
                     aria-invalid={Boolean(errors.discountPercentage)}
                   />
-                  {errors.discountPercentage && (
-                    <p className="text-xs font-medium text-destructive" role="alert">
-                      {errors.discountPercentage}
-                    </p>
-                  )}
-                </div>
+                </Field>
               )}
             </div>
 
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="min-w-0 space-y-2">
-                <Label htmlFor="reward-valid-from">Vigente desde (opcional)</Label>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <Field id="reward-valid-from" label="Vigente desde (opcional)">
                 <Input
                   id="reward-valid-from"
                   type="date"
                   value={form.validFrom}
                   onChange={(event) => update("validFrom", event.target.value)}
                 />
-              </div>
-              <div className="min-w-0 space-y-2">
-                <Label htmlFor="reward-valid-until">Vigente hasta (opcional)</Label>
+              </Field>
+              <Field
+                id="reward-valid-until"
+                label="Vigente hasta (opcional)"
+                error={errors.validUntil}
+              >
                 <Input
                   id="reward-valid-until"
                   type="date"
@@ -867,19 +837,17 @@ function RewardsSection({ business }: { business: Business }) {
                   onChange={(event) => update("validUntil", event.target.value)}
                   aria-invalid={Boolean(errors.validUntil)}
                 />
-                {errors.validUntil && (
-                  <p className="text-xs font-medium text-destructive" role="alert">
-                    {errors.validUntil}
-                  </p>
-                )}
-              </div>
+              </Field>
             </div>
 
-            <div className="space-y-3 rounded-none border p-3.5 sm:p-4">
+            <div className="lp-subpanel space-y-2.5">
               <h3 className="text-sm font-semibold">Límites de uso (opcional)</h3>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="reward-max-customer">Máximo por cliente</Label>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field
+                  id="reward-max-customer"
+                  label="Máximo por cliente"
+                  error={errors.maxRedemptionsPerCustomer}
+                >
                   <Input
                     id="reward-max-customer"
                     inputMode="numeric"
@@ -887,14 +855,12 @@ function RewardsSection({ business }: { business: Business }) {
                     onChange={(event) => update("maxRedemptionsPerCustomer", event.target.value)}
                     aria-invalid={Boolean(errors.maxRedemptionsPerCustomer)}
                   />
-                  {errors.maxRedemptionsPerCustomer && (
-                    <p className="text-xs font-medium text-destructive" role="alert">
-                      {errors.maxRedemptionsPerCustomer}
-                    </p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="reward-total-limit">Límite total</Label>
+                </Field>
+                <Field
+                  id="reward-total-limit"
+                  label="Límite total"
+                  error={errors.totalRedemptionLimit}
+                >
                   <Input
                     id="reward-total-limit"
                     inputMode="numeric"
@@ -902,14 +868,12 @@ function RewardsSection({ business }: { business: Business }) {
                     onChange={(event) => update("totalRedemptionLimit", event.target.value)}
                     aria-invalid={Boolean(errors.totalRedemptionLimit)}
                   />
-                  {errors.totalRedemptionLimit && (
-                    <p className="text-xs font-medium text-destructive" role="alert">
-                      {errors.totalRedemptionLimit}
-                    </p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="reward-max-period">Máximo por periodo</Label>
+                </Field>
+                <Field
+                  id="reward-max-period"
+                  label="Máximo por periodo"
+                  error={errors.maxRedemptionsPerPeriod}
+                >
                   <Input
                     id="reward-max-period"
                     inputMode="numeric"
@@ -917,14 +881,12 @@ function RewardsSection({ business }: { business: Business }) {
                     onChange={(event) => update("maxRedemptionsPerPeriod", event.target.value)}
                     aria-invalid={Boolean(errors.maxRedemptionsPerPeriod)}
                   />
-                  {errors.maxRedemptionsPerPeriod && (
-                    <p className="text-xs font-medium text-destructive" role="alert">
-                      {errors.maxRedemptionsPerPeriod}
-                    </p>
-                  )}
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="reward-period-days">Días del periodo</Label>
+                </Field>
+                <Field
+                  id="reward-period-days"
+                  label="Días del periodo"
+                  error={errors.redemptionPeriodDays}
+                >
                   <Input
                     id="reward-period-days"
                     inputMode="numeric"
@@ -932,12 +894,7 @@ function RewardsSection({ business }: { business: Business }) {
                     onChange={(event) => update("redemptionPeriodDays", event.target.value)}
                     aria-invalid={Boolean(errors.redemptionPeriodDays)}
                   />
-                  {errors.redemptionPeriodDays && (
-                    <p className="text-xs font-medium text-destructive" role="alert">
-                      {errors.redemptionPeriodDays}
-                    </p>
-                  )}
-                </div>
+                </Field>
               </div>
               <p className="text-xs text-muted-foreground">
                 Deja vacío para no limitar. El periodo se cuenta desde cada canje.
@@ -963,7 +920,7 @@ function RewardsSection({ business }: { business: Business }) {
                   disabled={upsertReward.isPending}
                   className={
                     editing.is_active
-                      ? "border-destructive/40 text-destructive hover:bg-destructive/10 sm:mr-auto"
+                      ? "border-[var(--lp-red-dark)] text-[var(--lp-red-text)] hover:bg-[var(--lp-danger-bg)] sm:mr-auto"
                       : "sm:mr-auto"
                   }
                 >
@@ -1014,9 +971,9 @@ function RewardCard({
           type="button"
           onClick={onSelect}
           aria-label={`Ver detalle de ${reward.name}`}
-          className="flex w-full min-w-0 items-start gap-3 p-4 text-left transition-colors hover:bg-primary/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring dark:hover:bg-primary/[0.14]"
+          className="flex w-full min-w-0 items-start gap-3 p-3.5 text-left transition-colors hover:bg-[var(--lp-row-hover)] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-[-3px] focus-visible:outline-[var(--lp-focus-ring)]"
         >
-          <div className="flex size-14 shrink-0 items-center justify-center overflow-hidden border border-primary/20 bg-background/80 text-primary dark:border-primary/30 dark:bg-card/80">
+          <div className="flex size-14 shrink-0 items-center justify-center overflow-hidden border-2 border-[var(--lp-ink)] bg-card text-primary">
             {reward.image_url ? (
               <img src={reward.image_url} alt={reward.name} className="size-full object-cover" />
             ) : (

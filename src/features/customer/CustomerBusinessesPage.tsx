@@ -163,11 +163,10 @@ export function CustomerBusinessesPage() {
                     setInvitationError(null);
                   }}
                   placeholder="mi-negocio"
-                  className="form-input"
                   aria-invalid={invitationError ? true : undefined}
                   aria-describedby={invitationError ? "invitation-link-error" : undefined}
                 />
-                <Button type="submit" className="pixel-btn pixel-btn-dark shrink-0">
+                <Button type="submit" className="shrink-0">
                   <Link2 aria-hidden="true" />
                   Abrir invitación
                 </Button>

@@ -88,7 +88,7 @@ export function ClaimPage() {
       <ClaimLayout>
         <Card>
           <CardContent className="space-y-4 p-6 text-center">
-            <span className="mx-auto grid size-14 place-items-center rounded-full bg-destructive/10 text-destructive">
+            <span className="mx-auto grid size-14 place-items-center rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-danger-bg)] text-[var(--lp-danger-text)] shadow-[var(--lp-shadow-sm)]">
               <CircleAlert className="size-7" aria-hidden="true" />
             </span>
             <h1 className="font-display text-2xl font-extrabold">Enlace de compra inválido</h1>
@@ -114,7 +114,7 @@ export function ClaimPage() {
       <ClaimLayout>
         <Card>
           <CardContent className="space-y-4 p-6 text-center">
-            <span className="mx-auto grid size-14 place-items-center rounded-full bg-destructive/10 text-destructive">
+            <span className="mx-auto grid size-14 place-items-center rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-danger-bg)] text-[var(--lp-danger-text)] shadow-[var(--lp-shadow-sm)]">
               <CircleAlert className="size-7" aria-hidden="true" />
             </span>
             <h1 className="font-display text-2xl font-extrabold">No pudimos abrir este QR</h1>
@@ -196,7 +196,7 @@ export function ClaimPage() {
       <ClaimLayout>
         <Card>
           <CardContent className="space-y-4 p-6 text-center">
-            <span className="mx-auto grid size-14 place-items-center rounded-full bg-muted text-muted-foreground">
+            <span className="mx-auto grid size-14 place-items-center rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-paper-deep)] text-foreground shadow-[var(--lp-shadow-sm)]">
               <QrCode className="size-7" aria-hidden="true" />
             </span>
             <h1 className="font-display text-2xl font-extrabold">

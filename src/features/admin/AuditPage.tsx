@@ -269,7 +269,7 @@ function AuditSection({ business }: { business: Business }) {
                   {chip.label}
                   <button
                     type="button"
-                    className="rounded-full p-0.5 hover:bg-background/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="rounded-none p-0.5 hover:bg-background/60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--lp-focus-ring)]"
                     onClick={() => removeFilter(chip.key)}
                     aria-label={`Quitar filtro ${chip.label}`}
                   >
@@ -386,7 +386,7 @@ function AuditTableRow({ entry, onDetail }: { entry: BusinessAuditLog; onDetail:
         <div className="flex items-start gap-3">
           <span
             className={cn(
-              "mt-0.5 grid size-9 shrink-0 place-items-center rounded-full",
+              "mt-0.5 grid size-8 shrink-0 place-items-center rounded-none border-2 border-[var(--lp-ink)] shadow-[var(--lp-shadow-sm)]",
               styles.icon,
             )}
           >
@@ -437,7 +437,10 @@ function AuditCard({ entry, onDetail }: { entry: BusinessAuditLog; onDetail: () 
       <CardContent className="space-y-3 p-4">
         <div className="flex items-start gap-3">
           <span
-            className={cn("grid size-10 shrink-0 place-items-center rounded-full", styles.icon)}
+            className={cn(
+              "grid size-9 shrink-0 place-items-center rounded-none border-2 border-[var(--lp-ink)] shadow-[var(--lp-shadow-sm)]",
+              styles.icon,
+            )}
           >
             <Icon className="size-5" aria-hidden="true" />
           </span>
@@ -483,7 +486,10 @@ function AuditDetail({ entry }: { entry: BusinessAuditLog }) {
       <DialogHeader>
         <div className="flex items-start gap-3 pr-6">
           <span
-            className={cn("grid size-10 shrink-0 place-items-center rounded-full", styles.icon)}
+            className={cn(
+              "grid size-9 shrink-0 place-items-center rounded-none border-2 border-[var(--lp-ink)] shadow-[var(--lp-shadow-sm)]",
+              styles.icon,
+            )}
           >
             <Icon className="size-5" aria-hidden="true" />
           </span>

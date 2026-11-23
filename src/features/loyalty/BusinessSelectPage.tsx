@@ -16,14 +16,14 @@ export function BusinessSelectPage() {
 
   if (businesses.isLoading) {
     return (
-      <div className="mx-auto max-w-4xl px-0 py-4 sm:px-6 sm:py-8">
+      <div className="mx-auto max-w-[var(--lp-shell-max-w)] px-0 py-4 sm:px-5 sm:py-6">
         <ListSkeleton rows={3} />
       </div>
     );
   }
   if (businesses.isError) {
     return (
-      <div className="mx-auto max-w-4xl px-0 py-4 sm:px-6 sm:py-8">
+      <div className="mx-auto max-w-[var(--lp-shell-max-w)] px-0 py-4 sm:px-5 sm:py-6">
         <ErrorState error={businesses.error} onRetry={() => void businesses.refetch()} />
       </div>
     );
@@ -32,7 +32,7 @@ export function BusinessSelectPage() {
   const list = businesses.data ?? [];
 
   return (
-    <div className="mx-auto max-w-4xl space-y-4 px-0 py-4 sm:space-y-5 sm:px-6 sm:py-8 animate-fade-in">
+    <div className="mx-auto max-w-[var(--lp-shell-max-w)] space-y-4 px-0 py-4 sm:space-y-4 sm:px-5 sm:py-6 animate-fade-in">
       <PageHeader
         title="Selecciona tu negocio"
         description="Elige el negocio con el que deseas trabajar o registra uno nuevo."

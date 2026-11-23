@@ -4,18 +4,18 @@ import { AlertCircle, CheckCircle2, Info, TriangleAlert } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const alertVariants = cva(
-  "relative w-full rounded-none border-2 border-[var(--lp-ink)] p-3.5 text-sm shadow-[3px_3px_0_var(--lp-ink)] sm:p-4 [&>svg]:absolute [&>svg]:left-3.5 [&>svg]:top-3.5 sm:[&>svg]:left-4 sm:[&>svg]:top-4 [&>svg]:size-4 [&>svg~*]:pl-6 sm:[&>svg~*]:pl-7",
+  "relative w-full rounded-none border-2 border-[var(--lp-ink)] p-3 text-sm shadow-[var(--lp-shadow-md)] sm:p-3.5 [&>svg]:absolute [&>svg]:left-3 [&>svg]:top-3 sm:[&>svg]:left-3.5 sm:[&>svg]:top-3.5 [&>svg]:size-4 [&>svg~*]:pl-6 sm:[&>svg~*]:pl-6",
   {
     variants: {
       variant: {
         default: "bg-card text-foreground",
         destructive:
-          "bg-[#fee2e2] text-[#7f1d1d] [&>svg]:text-[#991b1b] dark:bg-[#4c1d1b] dark:text-[#ffdad4] dark:[&>svg]:text-[#ffbab0]",
+          "bg-[var(--lp-danger-bg)] text-[var(--lp-danger-text)] [&>svg]:text-[var(--lp-red-text)]",
         success:
-          "bg-[#dcfce7] text-[#14532d] [&>svg]:text-[#15803d] dark:bg-[#143d27] dark:text-[#d1fae5] dark:[&>svg]:text-[#86efac]",
+          "bg-[var(--lp-success-bg)] text-[var(--lp-success-text)] [&>svg]:text-[var(--lp-green-text)]",
         warning:
           "border-[var(--lp-tip-border)] bg-[var(--lp-tip-bg)] text-foreground [&>svg]:text-[var(--lp-tip-strong)]",
-        info: "bg-[#dbeafe] text-[#16262e] [&>svg]:text-[#1765cc] dark:bg-[#1d394b] dark:text-[#fff8e6] dark:[&>svg]:text-[#fad24b]",
+        info: "bg-[var(--lp-info-bg)] text-[var(--lp-info-text)] [&>svg]:text-[var(--lp-accent-link)]",
       },
     },
     defaultVariants: { variant: "default" },

@@ -22,7 +22,7 @@ export function EntityAvatar({
   fallbackText,
   icon: Icon,
   sizeClassName = "size-9",
-  roundedClassName = "rounded-full",
+  roundedClassName = "rounded-none",
   className,
 }: EntityAvatarProps) {
   if (src) {
@@ -31,7 +31,7 @@ export function EntityAvatar({
         src={src}
         alt={alt}
         className={cn(
-          "shrink-0 border-2 border-[var(--lp-ink)] bg-muted object-cover",
+          "shrink-0 border-2 border-[var(--lp-ink)] bg-muted object-cover shadow-[var(--lp-shadow-sm)]",
           sizeClassName,
           roundedClassName,
           className,
@@ -43,7 +43,7 @@ export function EntityAvatar({
   return (
     <span
       className={cn(
-        "grid shrink-0 place-items-center border-2 border-[var(--lp-ink)] bg-[var(--lp-paper-deep)] text-xs font-bold text-foreground",
+        "grid shrink-0 place-items-center border-2 border-[var(--lp-ink)] bg-[var(--lp-paper-deep)] text-xs font-bold text-foreground shadow-[var(--lp-shadow-sm)]",
         sizeClassName,
         roundedClassName,
         className,

@@ -42,7 +42,7 @@ export function BusinessSwitcher({
         <img
           src={selectedBusiness.logo_url}
           alt={selectedBusiness.name}
-          className="size-6 shrink-0 rounded-none border border-border object-cover"
+          className="size-6 shrink-0 rounded-none border-2 border-[var(--lp-ink)] object-cover"
         />
       ) : (
         <Building2 className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
@@ -59,7 +59,7 @@ export function BusinessSwitcher({
         }}
       >
         <SelectTrigger
-          className="h-9 w-full min-w-0 text-xs sm:w-[12.5rem]"
+          className="w-full min-w-0 text-base sm:w-[12.5rem] md:text-xs"
           aria-label="Cambiar de negocio"
         >
           <SelectValue placeholder="Elegir negocio" />

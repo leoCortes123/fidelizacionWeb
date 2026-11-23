@@ -209,7 +209,7 @@ export function CustomerDetailPage() {
                     <span
                       className={
                         movement.points >= 0
-                          ? "shrink-0 text-sm font-bold text-emerald-700 dark:text-emerald-300"
+                          ? "shrink-0 text-sm font-bold text-[var(--lp-green-text)]"
                           : "shrink-0 text-sm font-bold text-destructive"
                       }
                     >

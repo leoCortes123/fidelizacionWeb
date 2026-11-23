@@ -120,7 +120,7 @@ export function CustomerBusinessHomePage() {
           icon={Building2}
           className="pixel-box"
           action={
-            <Button asChild className="pixel-btn pixel-btn-dark">
+            <Button asChild>
               <Link to="/customer">Ver mis negocios</Link>
             </Button>
           }
@@ -685,7 +685,6 @@ export function CustomerBusinessHomePage() {
                       variant="outline"
                       onClick={() => setRedeemDialog(null)}
                       disabled={requestRedemption.isPending}
-                      className="pixel-btn pixel-btn-secondary"
                     >
                       Cancelar
                     </Button>
@@ -693,7 +692,7 @@ export function CustomerBusinessHomePage() {
                       type="submit"
                       loading={requestRedemption.isPending}
                       disabled={!redeemDialog.reward.can_redeem}
-                      className="pixel-btn pixel-btn-xp flex-1"
+                      className="flex-1"
                     >
                       Confirmar solicitud
                     </Button>

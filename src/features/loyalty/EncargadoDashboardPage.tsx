@@ -142,7 +142,7 @@ function EncargadoDashboardSection({ business }: { business: Business }) {
   }
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-4 animate-fade-in">
       {/* Encabezado operativo */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -153,7 +153,7 @@ function EncargadoDashboardSection({ business }: { business: Business }) {
             />
             Terminal de caja · {dateLabel}
           </div>
-          <h1 className="mt-1 font-display text-2xl font-black tracking-tight [text-shadow:var(--lp-h1-shadow)] sm:text-3xl">
+          <h1 className="mt-1 font-display text-xl font-black tracking-tight [text-shadow:var(--lp-h1-shadow)] sm:text-2xl">
             {business.name}
           </h1>
           <p className="text-sm text-muted-foreground">
@@ -161,7 +161,7 @@ function EncargadoDashboardSection({ business }: { business: Business }) {
           </p>
         </div>
 
-        <Button asChild className="h-11">
+        <Button asChild>
           <Link to="/encargado/venta">
             <QrCode className="size-4" aria-hidden="true" />
             Registrar venta
@@ -173,20 +173,17 @@ function EncargadoDashboardSection({ business }: { business: Business }) {
       <div className="grid gap-3 sm:grid-cols-3">
         {/* Solicitudes pendientes */}
         <Card className={pendingRows.length > 0 ? "bg-[var(--lp-tip-bg)]" : ""}>
-          <CardContent className="p-4 sm:p-5">
+          <CardContent className="p-[var(--lp-pad-card)]">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Por aprobar
               </span>
-              <TicketCheck
-                className="size-4 text-amber-600 dark:text-amber-400"
-                aria-hidden="true"
-              />
+              <TicketCheck className="size-4 text-[var(--lp-tip-strong)]" aria-hidden="true" />
             </div>
-            <p className="mt-2 font-display text-3xl font-extrabold text-foreground">
+            <p className="mt-1.5 font-display text-2xl font-extrabold text-foreground sm:text-3xl">
               {pendingRows.length}
             </p>
-            <p className="mt-1 text-xs text-muted-foreground">
+            <p className="mt-0.5 text-xs text-muted-foreground">
               {pendingRows.length === 1
                 ? "1 solicitud esperando aprobación"
                 : `${pendingRows.length} solicitudes esperando aprobación`}
@@ -195,7 +192,7 @@ function EncargadoDashboardSection({ business }: { business: Business }) {
               variant="link"
               size="sm"
               asChild
-              className="mt-2 h-auto p-0 font-semibold text-primary"
+              className="mt-1.5 h-auto min-h-0 p-0 font-semibold text-primary"
             >
               <Link to="/encargado/solicitudes">
                 Ir a solicitudes <ArrowRight className="ml-1 size-3" />
@@ -208,24 +205,21 @@ function EncargadoDashboardSection({ business }: { business: Business }) {
         <Card
           className={
             approvedRows.length > 0
-              ? "border-emerald-400/80 bg-emerald-50/30 dark:bg-emerald-950/20"
+              ? "border-t-[4px] border-t-[var(--lp-green-cta)] bg-[var(--lp-success-bg)]"
               : ""
           }
         >
-          <CardContent className="p-4 sm:p-5">
+          <CardContent className="p-[var(--lp-pad-card)]">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Por entregar
               </span>
-              <PackageCheck
-                className="size-4 text-emerald-600 dark:text-emerald-400"
-                aria-hidden="true"
-              />
+              <PackageCheck className="size-4 text-[var(--lp-green-text)]" aria-hidden="true" />
             </div>
-            <p className="mt-2 font-display text-3xl font-extrabold text-foreground">
+            <p className="mt-1.5 font-display text-2xl font-extrabold text-foreground sm:text-3xl">
               {approvedRows.length}
             </p>
-            <p className="mt-1 text-xs text-muted-foreground">
+            <p className="mt-0.5 text-xs text-muted-foreground">
               {approvedRows.length === 1
                 ? "1 recompensa lista para entregar"
                 : `${approvedRows.length} recompensas listas para entregar`}
@@ -234,7 +228,7 @@ function EncargadoDashboardSection({ business }: { business: Business }) {
               variant="link"
               size="sm"
               asChild
-              className="mt-2 h-auto p-0 font-semibold text-primary"
+              className="mt-1.5 h-auto min-h-0 p-0 font-semibold text-primary"
             >
               <Link to="/encargado/solicitudes">
                 Ver mostrador <ArrowRight className="ml-1 size-3" />
@@ -245,24 +239,24 @@ function EncargadoDashboardSection({ business }: { business: Business }) {
 
         {/* Clientes por puntos */}
         <Card>
-          <CardContent className="p-4 sm:p-5">
+          <CardContent className="p-[var(--lp-pad-card)]">
             <div className="flex items-center justify-between">
               <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                 Fidelización
               </span>
               <Users className="size-4 text-primary" aria-hidden="true" />
             </div>
-            <p className="mt-2 font-display text-lg font-bold text-foreground">
+            <p className="mt-1.5 font-display text-lg font-bold text-foreground">
               Ranking de clientes
             </p>
-            <p className="mt-1 text-xs text-muted-foreground">
+            <p className="mt-0.5 text-xs text-muted-foreground">
               Consulta a los clientes ordenados por monedas acumuladas.
             </p>
             <Button
               variant="link"
               size="sm"
               asChild
-              className="mt-2 h-auto p-0 font-semibold text-primary"
+              className="mt-1.5 h-auto min-h-0 p-0 font-semibold text-primary"
             >
               <Link to="/encargado/solicitudes">
                 Ver lista de clientes <ArrowRight className="ml-1 size-3" />
@@ -374,7 +368,7 @@ function EncargadoDashboardSection({ business }: { business: Business }) {
                   <button
                     type="button"
                     onClick={() => setSelectedPurchaseId(purchase.id)}
-                    className="flex w-full flex-wrap items-center justify-between gap-3 rounded-none py-3 text-left transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary first:pt-0 last:pb-0"
+                    className="flex w-full flex-wrap items-center justify-between gap-3 rounded-none py-3 text-left transition-colors hover:bg-[var(--lp-row-hover)] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-[-3px] focus-visible:outline-[var(--lp-focus-ring)] first:pt-0 last:pb-0"
                     aria-label={`Ver detalle de la venta por ${formatCOP(purchase.amount_cop)}`}
                   >
                     <div className="min-w-0">

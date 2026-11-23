@@ -14,7 +14,7 @@ const SelectTrigger = React.forwardRef<
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
-      "flex h-10 w-full cursor-pointer items-center justify-between rounded-none border-2 border-input bg-card px-2.5 py-1.5 text-base font-medium text-foreground shadow-[2px_2px_0_var(--lp-ink)] ring-offset-background transition-colors placeholder:text-muted-foreground hover:border-[var(--lp-focus-ring)] focus:border-[var(--lp-focus-ring)] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--lp-focus-ring)] focus:ring-2 focus:ring-ring/30 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[var(--lp-paper-deep)] md:text-sm [&>span]:truncate",
+      "flex h-[var(--lp-control-h)] w-full cursor-pointer items-center justify-between rounded-none border-2 border-[var(--lp-input-border)] bg-card px-2.5 py-1 text-base font-medium text-foreground shadow-[var(--lp-shadow-sm)] transition-[border-color,box-shadow] placeholder:text-muted-foreground hover:border-[var(--lp-focus-ring)] focus:border-[var(--lp-focus-ring)] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--lp-focus-ring)] disabled:cursor-not-allowed disabled:opacity-50 dark:bg-[var(--lp-paper-deep)] md:text-sm [&>span]:truncate",
       className,
     )}
     {...props}
@@ -26,6 +26,21 @@ const SelectTrigger = React.forwardRef<
   </SelectPrimitive.Trigger>
 ));
 SelectTrigger.displayName = SelectPrimitive.Trigger.displayName;
+
+const NativeSelect = React.forwardRef<
+  HTMLSelectElement,
+  React.SelectHTMLAttributes<HTMLSelectElement>
+>(({ className, ...props }, ref) => (
+  <select
+    ref={ref}
+    className={cn(
+      "flex h-[var(--lp-control-h)] w-full cursor-pointer rounded-none border-2 border-[var(--lp-input-border)] bg-card px-2.5 py-1 text-base font-medium text-foreground shadow-[var(--lp-shadow-sm)] transition-[border-color,box-shadow] hover:border-[var(--lp-focus-ring)] focus-visible:border-[var(--lp-focus-ring)] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--lp-focus-ring)] disabled:cursor-not-allowed disabled:bg-muted disabled:opacity-60 dark:bg-[var(--lp-paper-deep)] md:text-sm",
+      className,
+    )}
+    {...props}
+  />
+));
+NativeSelect.displayName = "NativeSelect";
 
 const SelectScrollUpButton = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.ScrollUpButton>,
@@ -133,6 +148,7 @@ const SelectSeparator = React.forwardRef<
 SelectSeparator.displayName = SelectPrimitive.Separator.displayName;
 
 export {
+  NativeSelect,
   Select,
   SelectGroup,
   SelectValue,

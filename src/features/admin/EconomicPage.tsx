@@ -33,7 +33,13 @@ import {
 } from "./EconomicDataForm";
 import type { Business, BusinessEconomicDashboard, EconomicDataStatus } from "@/types";
 
-export function EconomicPage({ headingAs = "h1" }: { headingAs?: "h1" | "h2" }) {
+export function EconomicPage({
+  headingAs = "h1",
+  embedded = false,
+}: {
+  headingAs?: "h1" | "h2";
+  embedded?: boolean;
+}) {
   return (
     <BusinessGate
       headingAs={headingAs}
@@ -43,13 +49,26 @@ export function EconomicPage({ headingAs = "h1" }: { headingAs?: "h1" | "h2" }) 
       emptyDescription="Registra un negocio para calcular su presupuesto de recompensas."
     >
       {(business) => (
-        <EconomicSection key={business.id} business={business} headingAs={headingAs} />
+        <EconomicSection
+          key={business.id}
+          business={business}
+          headingAs={headingAs}
+          embedded={embedded}
+        />
       )}
     </BusinessGate>
   );
 }
 
-function EconomicSection({ business, headingAs }: { business: Business; headingAs: "h1" | "h2" }) {
+function EconomicSection({
+  business,
+  headingAs,
+  embedded,
+}: {
+  business: Business;
+  headingAs: "h1" | "h2";
+  embedded: boolean;
+}) {
   const profile = useBusinessEconomicProfile(business.id);
   const dashboard = useBusinessEconomicDashboard(business.id);
 
@@ -66,12 +85,23 @@ function EconomicSection({ business, headingAs }: { business: Business; headingA
   const suggestedOperationDays = estimateMonthlyOperationDays(business.operating_days);
 
   return (
-    <div className="space-y-4 sm:space-y-5 animate-fade-in">
-      <PageHeader
-        as={headingAs}
-        title="Panel económico"
-        description="Todos estos datos son opcionales: registrarlos nos ayuda a hacer el análisis financiero de tu negocio y calcular el presupuesto ideal y recompensas rentables. Es una estimación comercial, no un costo contable."
-      />
+    <div className="space-y-3.5 animate-fade-in">
+      {embedded ? (
+        <div className="flex flex-wrap items-baseline justify-between gap-2 px-4 sm:px-0">
+          <h2 className="font-display text-lg font-extrabold tracking-tight text-foreground">
+            Panel económico
+          </h2>
+          <p className="text-xs text-muted-foreground">
+            Estimación comercial opcional para calcular presupuesto y recompensas rentables.
+          </p>
+        </div>
+      ) : (
+        <PageHeader
+          as={headingAs}
+          title="Panel económico"
+          description="Todos estos datos son opcionales: registrarlos nos ayuda a hacer el análisis financiero de tu negocio y calcular el presupuesto ideal y recompensas rentables. Es una estimación comercial, no un costo contable."
+        />
+      )}
 
       <EconomicDataForm
         key={`${profile.data?.updated_at ?? "new"}:${suggestedOperationDays}`}

@@ -667,23 +667,23 @@ export const LEGACY_AUDIT_LABELS: Record<string, AuditLabel> = {
 
 export const AUDIT_SEVERITY_STYLES: Record<AuditSeverity, { icon: string; label: string }> = {
   success: {
-    icon: "bg-emerald-100 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300",
+    icon: "bg-[var(--lp-success-bg)] text-[var(--lp-success-text)]",
     label: "Positiva",
   },
   info: {
-    icon: "bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300",
+    icon: "bg-[var(--lp-info-bg)] text-[var(--lp-info-text)]",
     label: "Informativa",
   },
   warning: {
-    icon: "bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-300",
+    icon: "bg-[var(--lp-gold)] text-[#16262e]",
     label: "Requiere atención",
   },
   danger: {
-    icon: "bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300",
+    icon: "bg-[var(--lp-danger-bg)] text-[var(--lp-danger-text)]",
     label: "Crítica",
   },
   neutral: {
-    icon: "bg-muted text-muted-foreground",
+    icon: "bg-[var(--lp-paper-deep)] text-foreground",
     label: "Neutra",
   },
 };

@@ -103,7 +103,7 @@ export function BusinessJoinPage() {
           <Brand />
           <Card>
             <CardContent className="space-y-3 p-8">
-              <span className="mx-auto grid size-12 place-items-center rounded-full bg-muted text-muted-foreground">
+              <span className="mx-auto grid size-12 place-items-center rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-paper-deep)] text-foreground shadow-[var(--lp-shadow-sm)]">
                 <MapPin className="size-5" aria-hidden="true" />
               </span>
               <h1 className="font-display text-xl font-extrabold">No encontramos este negocio</h1>

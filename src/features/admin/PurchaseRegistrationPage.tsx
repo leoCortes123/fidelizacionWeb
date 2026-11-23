@@ -503,7 +503,7 @@ function PurchaseQrSection({ business }: { business: Business }) {
                   <button
                     type="button"
                     onClick={() => setSelectedPurchaseId(purchase.id)}
-                    className="flex w-full flex-wrap items-center justify-between gap-3 rounded-none py-3 text-left transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary first:pt-0 last:pb-0"
+                    className="flex w-full flex-wrap items-center justify-between gap-3 rounded-none py-3 text-left transition-colors hover:bg-[var(--lp-row-hover)] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-[-3px] focus-visible:outline-[var(--lp-focus-ring)] first:pt-0 last:pb-0"
                     aria-label={`Ver detalle de la venta por ${formatCOP(purchase.amount_cop)}`}
                   >
                     <div className="min-w-0">
@@ -733,7 +733,7 @@ function ProductPickerCard({
       <Card variant="tinted" className="overflow-hidden">
         <CardContent className="p-0">
           <div className="flex items-start gap-3 p-3.5">
-            <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden border border-primary/20 bg-background/80 dark:border-primary/30 dark:bg-card/80">
+            <div className="flex size-12 shrink-0 items-center justify-center overflow-hidden border-2 border-[var(--lp-ink)] bg-card">
               {product.image_url ? (
                 <img
                   src={product.image_url}
@@ -766,7 +766,7 @@ function ProductPickerCard({
             </div>
           </div>
 
-          <div className="flex items-center justify-between gap-3 border-t border-primary/15 bg-primary/[0.06] px-3.5 py-2 dark:border-primary/25 dark:bg-primary/[0.14]">
+          <div className="flex items-center justify-between gap-3 border-t-2 border-[var(--lp-ink)] bg-[var(--lp-paper-deep)] px-3.5 py-2">
             <p className="text-sm font-semibold tabular-nums">{formatCOP(product.price_cop)}</p>
             <div className="flex shrink-0 items-center gap-1">
               <Button

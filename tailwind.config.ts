@@ -8,7 +8,7 @@ export default {
     container: {
       center: true,
       padding: "1rem",
-      screens: { "2xl": "1280px" },
+      screens: { "2xl": "1360px" },
     },
     extend: {
       colors: {
@@ -50,6 +50,12 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      boxShadow: {
+        "pixel-sm": "var(--lp-shadow-sm)",
+        "pixel-md": "var(--lp-shadow-md)",
+        "pixel-lg": "var(--lp-shadow-lg)",
+        "pixel-xl": "var(--lp-shadow-xl)",
       },
       fontFamily: {
         sans: [

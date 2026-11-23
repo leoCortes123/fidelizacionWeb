@@ -1,52 +1,50 @@
 /* Landing Fideliapp orientada a administradores · estilo retro pixel-art.
    Alcance limitado a .retro-landing. Mobile-friendly: breakpoints 920px / 640px / 400px. */
 .retro-landing {
-  /* Paleta 65/25/10 compatible con modo claro y oscuro (.dark):
-     Base Slate (claro / slate-teal en oscuro), Amarillo dorado de marca y Azul para CTA/confirmación;
-     Rojo relegado (<2%) solo a indicadores negativos en comparativa. */
-  --ink: #16262e;
-  --text-main: #16262e;
-  --ink-soft: #36505c;
-  --muted: #55707d;
-  --paper: #edf3f5;
-  --paper-deep: #dce7ec;
-  --cream: #ffffff;
-  --surface-elevated: #2b4652;
-  --surface-elevated-deep: #233b46;
-  --surface-elevated-text: #fff8e6;
-  --surface-elevated-soft: #d5e4ea;
-  --surface-elevated-muted: #9ebbc6;
-  --grid-line: rgba(22, 38, 46, 0.045);
-  --header-bg: rgba(237, 243, 245, 0.95);
-  --mobile-cta-bg: rgba(237, 243, 245, 0.97);
-  --gold: #fad24b;
-  --gold-dark: #e8bc2c;
-  --gold-soft: #fce49d;
-  --gold-ink: #7a5300;
-  --blue: #1765cc;
-  --blue-hover: #124fa3;
-  --green: #169c35;
-  --green-cta: #15803d;
-  --green-cta-hover: #116630;
-  --green-badge: #24d04a;
-  --red: #d9412e;
-  --highlight-bg: #fad24b;
-  --highlight-text: #16262e;
+  /* Paleta 65/25/10 consumida desde la única fuente de verdad (src/index.css) */
+  --ink: var(--lp-ink);
+  --text-main: var(--lp-text-main);
+  --ink-soft: var(--lp-ink-soft);
+  --muted: var(--lp-landing-muted);
+  --paper: var(--lp-paper);
+  --paper-deep: var(--lp-paper-deep);
+  --cream: var(--lp-cream);
+  --surface-elevated: var(--lp-surface-elevated);
+  --surface-elevated-deep: var(--lp-surface-elevated-deep);
+  --surface-elevated-text: var(--lp-surface-elevated-text);
+  --surface-elevated-soft: var(--lp-surface-elevated-soft);
+  --surface-elevated-muted: var(--lp-surface-elevated-muted);
+  --grid-line: var(--lp-grid-line);
+  --header-bg: var(--lp-header-bg);
+  --mobile-cta-bg: var(--lp-mobile-cta-bg);
+  --gold: var(--lp-gold);
+  --gold-dark: var(--lp-gold-dark);
+  --gold-soft: var(--lp-gold-soft);
+  --gold-ink: var(--lp-gold-ink);
+  --blue: var(--lp-blue);
+  --blue-hover: var(--lp-blue-hover);
+  --green: var(--lp-green);
+  --green-cta: var(--lp-green-cta);
+  --green-cta-hover: var(--lp-green-cta-hover);
+  --green-badge: var(--lp-green-badge);
+  --red: var(--lp-red);
+  --highlight-bg: var(--lp-gold);
+  --highlight-text: var(--lp-ink);
   --highlight-shadow: none;
   --highlight-pad: 0.04em 0.22em;
-  --highlight-box-shadow: 3px 3px 0 var(--ink);
-  --h1-shadow: 2px 2px 0 var(--cream), 4px 4px 0 rgba(22, 38, 46, 0.14);
+  --highlight-box-shadow: var(--lp-shadow-md);
+  --h1-shadow: var(--lp-h1-shadow);
   --lead-text: var(--text-main);
   --lead-strong: var(--accent-link);
   --lead-shadow: 0 1px 0 rgba(255, 255, 255, 0.96), 0 0 14px rgba(237, 243, 245, 0.96);
-  --tip-bg: #fff6d6;
-  --tip-border: #16262e;
-  --tip-strong: #7a5300;
-  --accent-link: #1250a3;
-  --focus-ring: #1765cc;
-  --dot-inactive: #dce7ec;
-  --nav-hover-text: #16262e;
-  --tab-hover-bg: #dce7ec;
+  --tip-bg: var(--lp-tip-bg);
+  --tip-border: var(--lp-tip-border);
+  --tip-strong: var(--lp-tip-strong);
+  --accent-link: var(--lp-accent-link);
+  --focus-ring: var(--lp-focus-ring);
+  --dot-inactive: var(--lp-dot-inactive);
+  --nav-hover-text: var(--lp-nav-hover-text);
+  --tab-hover-bg: var(--lp-tab-hover-bg);
   --header-h: 56px;
   --ticker-h: 42px;
   --footer-h: 78px;
@@ -86,49 +84,15 @@
 }
 
 .dark .retro-landing {
-  --ink: #16262e;
-  --text-main: #fff8e6;
-  --ink-soft: #d5e4ea;
-  --muted: #bcd3dc;
-  --paper: #2b4652;
-  --paper-deep: #233b46;
-  --cream: #385a68;
-  --surface-elevated: #385a68;
-  --surface-elevated-deep: #233b46;
-  --surface-elevated-text: #fff8e6;
-  --surface-elevated-soft: #d5e4ea;
-  --surface-elevated-muted: #bcd3dc;
-  --grid-line: rgba(255, 248, 230, 0.04);
-  --header-bg: rgba(35, 59, 70, 0.96);
-  --mobile-cta-bg: rgba(35, 59, 70, 0.97);
-  --gold: #fad24b;
-  --gold-dark: #e8bc2c;
-  --gold-soft: #fce49d;
-  --gold-ink: #fad24b;
-  --blue: #1a6ad6;
-  --blue-hover: #1455b0;
-  --green: #24d04a;
-  --green-cta: #16833c;
-  --green-cta-hover: #126a30;
-  --green-badge: #24d04a;
-  --red: #ff8577;
   --highlight-bg: transparent;
-  --highlight-text: #fad24b;
-  --highlight-shadow: 3px 3px 0 var(--ink);
+  --highlight-text: var(--lp-gold);
+  --highlight-shadow: var(--lp-shadow-md);
   --highlight-pad: 0;
   --highlight-box-shadow: none;
-  --h1-shadow: 3px 3px 0 var(--ink);
+  --h1-shadow: var(--lp-shadow-md);
   --lead-text: var(--surface-elevated-text);
   --lead-strong: var(--gold);
   --lead-shadow: 2px 2px 0 var(--ink), 0 0 12px rgba(22, 38, 46, 0.8);
-  --tip-bg: #233b46;
-  --tip-border: #fad24b;
-  --tip-strong: #fad24b;
-  --accent-link: #fad24b;
-  --focus-ring: #fad24b;
-  --dot-inactive: #4f7a8a;
-  --nav-hover-text: #fad24b;
-  --tab-hover-bg: #466e7e;
 
   --eater-tile: var(--eater-tile-dark);
   --eater-eaten: var(--eater-eaten-dark);
@@ -993,7 +957,7 @@
   background: var(--cream);
   border: 3px solid var(--ink);
   box-shadow: 6px 6px 0 var(--ink);
-  padding: 26px;
+  padding: 20px;
 }
 
 .retro-landing .manual-meta {
@@ -1791,8 +1755,8 @@
   }
 
   .retro-landing .hero {
-    min-block-size: calc(100vh - var(--header-h) - var(--ticker-h));
-    min-block-size: calc(100dvh - var(--header-h) - var(--ticker-h));
+    min-block-size: min(calc(100vh - var(--header-h) - var(--ticker-h)), 940px);
+    min-block-size: min(calc(100dvh - var(--header-h) - var(--ticker-h)), 940px);
     grid-template-rows: 1fr;
     align-items: stretch;
     padding-top: clamp(12px, calc(16vh - 84px), 104px);
@@ -1873,8 +1837,8 @@
   }
 
   .retro-landing .retro-section {
-    min-block-size: calc(100vh - var(--header-h));
-    min-block-size: calc(100dvh - var(--header-h));
+    min-block-size: min(calc(100vh - var(--header-h)), 880px);
+    min-block-size: min(calc(100dvh - var(--header-h)), 880px);
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -2242,10 +2206,10 @@
     line-height: 1.4;
   }
 
-  /* Cierre: CTA final + footer completan juntos la última pantalla de 1vh */
+  /* Cierre: CTA final + footer completan juntos la última pantalla sin vacíos en QHD */
   .retro-landing .cta-section {
-    min-block-size: calc(100vh - var(--header-h) - var(--footer-h));
-    min-block-size: calc(100dvh - var(--header-h) - var(--footer-h));
+    min-block-size: min(calc(100vh - var(--header-h) - var(--footer-h)), 720px);
+    min-block-size: min(calc(100dvh - var(--header-h) - var(--footer-h)), 720px);
   }
 
   .retro-landing .cta {
@@ -2913,7 +2877,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding: 22px;
+  padding: 18px;
   background: var(--cream);
   border: 3px solid var(--ink);
   box-shadow: 4px 4px 0 var(--ink);
@@ -3021,7 +2985,7 @@
   background: var(--cream);
   border: 3px solid var(--ink);
   box-shadow: 4px 4px 0 var(--ink);
-  padding: 22px;
+  padding: 18px;
 }
 
 .retro-landing .roadmap-head {
@@ -3401,8 +3365,8 @@
 .retro-landing .pricing-card {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 22px;
+  gap: 12px;
+  padding: 18px;
   background: var(--cream);
   border: 3px solid var(--ink);
   box-shadow: 5px 5px 0 var(--ink);
@@ -3527,13 +3491,13 @@
   padding-inline: 8px;
   min-width: 34px;
   justify-content: center;
-  background: #16262e;
-  color: #fff8e6;
-  border-color: #16262e;
+  background: var(--lp-ink);
+  color: var(--lp-surface-elevated-text);
+  border-color: var(--lp-ink);
 }
 
 .retro-landing .theme-toggle-btn:hover {
-  background: #233b46;
+  background: var(--lp-surface-elevated-deep);
 }
 
 .dark .retro-landing .theme-toggle-btn {
@@ -3645,7 +3609,7 @@
   position: relative;
   width: 100%;
   aspect-ratio: 1 / 1;
-  background: #edf3f5;
+  background: var(--lp-stage-paper);
   border: 3px solid var(--ink);
   box-shadow: 8px 8px 0 var(--ink);
   overflow: hidden;
@@ -3680,10 +3644,15 @@
 
 @media (min-width: 921px) {
   .retro-landing .hero.hero-subpage {
-    min-block-size: calc(100vh - var(--header-h));
-    min-block-size: calc(100dvh - var(--header-h));
+    min-block-size: min(calc(100vh - var(--header-h)), 940px);
+    min-block-size: min(calc(100dvh - var(--header-h)), 940px);
     padding-top: clamp(16px, calc(13vh - 64px), 84px);
     padding-bottom: clamp(14px, 2vh, 24px);
+  }
+
+  .retro-landing .faq-search {
+    min-height: 40px;
+    padding: 6px 12px;
   }
 
   .retro-landing .hero.hero-subpage .hero-frame-static {
@@ -3777,7 +3746,7 @@
   overflow: hidden;
   border: 3px solid var(--ink);
   box-shadow: 4px 4px 0 var(--ink);
-  background: #edf3f5;
+  background: var(--lp-stage-paper);
 }
 
 .retro-landing .pricing-art-wrap .pixel-art-viewport {
@@ -3903,7 +3872,7 @@
 }
 
 .retro-landing .pixel-art-toggle:focus-visible {
-  outline-color: #1765cc;
+  outline-color: var(--focus-ring);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -4060,5 +4029,35 @@
     opacity: 0;
     translate: 0 -10px;
     scale: 0.7;
+  }
+}
+
+/* Protección táctil (WCAG 2.5.5) y mejor aprovechamiento horizontal en pantallas >= 1440px */
+@media (pointer: coarse) {
+  .retro-landing .faq-search {
+    min-height: 48px;
+    padding: 10px 14px;
+  }
+
+  .retro-landing .filter-chip,
+  .retro-landing .nav-actions .btn-xs {
+    min-height: 44px;
+  }
+}
+
+@media (min-width: 1440px) {
+  .retro-landing .wrap {
+    max-width: 1280px;
+  }
+
+  .retro-landing .manual-wrap {
+    max-width: 1320px;
+  }
+
+  .retro-landing .section-head p:not(.kicker),
+  .retro-landing .lead,
+  .retro-landing .faq-item p,
+  .retro-landing .roadmap-summary {
+    max-width: 65ch;
   }
 }

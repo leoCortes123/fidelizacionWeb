@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import type { BusinessClosestRewardInfo } from "@/features/loyalty/hooks";
 import { formatLoopoints, formatNumber } from "@/lib/format";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 export function PixelHeartIcon() {
@@ -204,13 +205,12 @@ export function PlayerCard({ items }: { items: BusinessClosestRewardInfo[] }) {
                 ? `${business.pending_redemptions} canje(s) en curso`
                 : `@${business.slug}`}
             </span>
-            <Link
-              to={`/customer/business/${business.business_id}`}
-              className="retro-btn retro-btn-red text-xs"
-            >
-              {hasReadyReward ? "Canjear ahora" : "Ver negocio"}
-              <ArrowRight className="size-3.5" aria-hidden="true" />
-            </Link>
+            <Button asChild variant="destructive" size="sm">
+              <Link to={`/customer/business/${business.business_id}`}>
+                {hasReadyReward ? "Canjear ahora" : "Ver negocio"}
+                <ArrowRight className="size-3.5" aria-hidden="true" />
+              </Link>
+            </Button>
           </div>
         </div>
       </div>

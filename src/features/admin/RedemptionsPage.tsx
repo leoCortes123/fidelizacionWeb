@@ -113,8 +113,8 @@ export function RedemptionsPage() {
         />
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {list.map((business) => (
-            <Card key={business.id} className="cursor-pointer transition-shadow hover:shadow-md">
-              <CardContent className="p-4 text-center sm:p-6">
+            <Card key={business.id} className="lp-card-interactive cursor-pointer">
+              <CardContent className="p-[var(--lp-pad-card)] text-center">
                 <TicketCheck className="mx-auto mb-3 size-12 text-primary" aria-hidden="true" />
                 <h3 className="font-semibold">{business.name}</h3>
                 <p className="text-xs text-muted-foreground">{business.slug}</p>
@@ -298,29 +298,29 @@ function RedemptionsSection({ business }: { business: Business }) {
           icon={TicketCheck}
         />
       ) : (
-        <div className="overflow-x-auto rounded-none border-2 border-[var(--lp-ink)] bg-card shadow-[4px_4px_0_var(--lp-ink)]">
+        <div className="overflow-x-auto rounded-none border-2 border-[var(--lp-ink)] bg-card shadow-[var(--lp-shadow-lg)]">
           <table className="w-full text-sm">
             <thead className="border-b-[3px] border-[var(--lp-ink)] bg-[var(--lp-surface-elevated-deep)] text-left font-mono text-xs font-bold uppercase tracking-wide text-[var(--lp-gold)]">
               <tr>
-                <th scope="col" className="px-4 py-3">
+                <th scope="col" className="h-9 px-3">
                   Cliente
                 </th>
-                <th scope="col" className="px-4 py-3">
+                <th scope="col" className="h-9 px-3">
                   Recompensa
                 </th>
-                <th scope="col" className="px-4 py-3 text-right">
+                <th scope="col" className="h-9 px-3 text-right">
                   Monedas
                 </th>
-                <th scope="col" className="px-4 py-3">
+                <th scope="col" className="h-9 px-3">
                   Origen
                 </th>
-                <th scope="col" className="px-4 py-3">
+                <th scope="col" className="h-9 px-3">
                   Fecha
                 </th>
-                <th scope="col" className="px-4 py-3">
+                <th scope="col" className="h-9 px-3">
                   Estado
                 </th>
-                <th scope="col" className="px-4 py-3 text-right">
+                <th scope="col" className="h-9 px-3 text-right">
                   Acciones
                 </th>
               </tr>
@@ -331,7 +331,7 @@ function RedemptionsSection({ business }: { business: Business }) {
                   key={redemption.id}
                   className="transition-colors hover:bg-[var(--lp-row-hover)]"
                 >
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-2">
                     <div className="flex items-center gap-2.5">
                       <EntityAvatar
                         src={redemption.customer_avatar_url}
@@ -350,7 +350,7 @@ function RedemptionsSection({ business }: { business: Business }) {
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-2">
                     <div className="flex items-center gap-2.5">
                       <EntityAvatar
                         src={redemption.reward_image_url}
@@ -367,24 +367,24 @@ function RedemptionsSection({ business }: { business: Business }) {
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-right tabular-nums">
+                  <td className="px-3 py-2 text-right tabular-nums">
                     {formatPoints(redemption.points_spent)}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-2">
                     <OriginBadge origin={redemption.origin} />
                   </td>
-                  <td className="px-4 py-3 text-xs text-muted-foreground">
+                  <td className="px-3 py-2 text-xs text-muted-foreground">
                     {formatDateTimeBogota(redemption.created_at)}
                     {redemption.delivered_at && (
-                      <span className="block text-emerald-700 dark:text-emerald-300">
+                      <span className="block text-[var(--lp-green-text)]">
                         Entregado {formatDateTimeBogota(redemption.delivered_at)}
                       </span>
                     )}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-2">
                     <RedemptionRequestStatusBadge status={redemption.status} />
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 py-2">
                     <div className="flex flex-wrap justify-end gap-2">
                       {redemption.status === "pending" && canAct && (
                         <>

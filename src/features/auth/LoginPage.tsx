@@ -17,6 +17,7 @@ import {
 import { toast } from "sonner";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { usePortalTheme } from "@/components/theme/ThemeProvider";
@@ -566,9 +567,9 @@ export function LoginPage() {
         </div>
       </header>
 
-      <main className="flex-1 min-h-0 overflow-y-auto px-3 py-4 sm:px-6 sm:py-8">
+      <main className="flex-1 min-h-0 overflow-y-auto px-3 py-3 sm:px-6 sm:py-4">
         <div className="mx-auto flex min-h-full w-full max-w-[960px] items-center">
-          <div className="grid w-full items-stretch gap-5 lg:grid-cols-12 lg:gap-6">
+          <div className="grid w-full items-stretch gap-4 lg:grid-cols-12 lg:gap-5">
             {/* Panel arcade izquierdo (desktop) */}
             <section
               aria-label={`Beneficios de ${brand}`}
@@ -585,7 +586,7 @@ export function LoginPage() {
                 </span>
               </div>
 
-              <div className="flex flex-1 flex-col justify-between gap-5 bg-[var(--cream)] p-6">
+              <div className="flex flex-1 flex-col justify-between gap-4 bg-[var(--cream)] p-5">
                 <div className="space-y-4">
                   <span className="retro-kicker w-fit">
                     <Sparkles className="size-3.5" aria-hidden="true" />
@@ -701,8 +702,8 @@ export function LoginPage() {
 
             {/* Formulario principal derecho */}
             <section className="flex items-center justify-center lg:col-span-7">
-              <div className="w-full max-w-[460px] space-y-3.5">
-                <div className="pixel-box p-4 sm:p-6">
+              <div className="w-full max-w-[460px] space-y-2.5">
+                <div className="pixel-box p-4 sm:p-5">
                   <div
                     role="tablist"
                     aria-label="Modo de acceso"
@@ -743,7 +744,7 @@ export function LoginPage() {
                     role="tabpanel"
                     aria-labelledby={mode === "login" ? "tab-login" : "tab-register"}
                   >
-                    <div className="mb-5 space-y-2">
+                    <div className="mb-3.5 space-y-1.5">
                       <span className="retro-kicker">
                         {hasInvite
                           ? "Invitación por código QR"
@@ -753,7 +754,7 @@ export function LoginPage() {
                               ? "Registro de administrador"
                               : "Registro de cliente"}
                       </span>
-                      <h1 className="font-['Space_Grotesk'] text-2xl font-bold tracking-tight text-[var(--ink)] sm:text-[26px]">
+                      <h1 className="font-['Space_Grotesk'] text-xl font-bold tracking-tight text-[var(--ink)] sm:text-2xl">
                         {hasInvite
                           ? mode === "login"
                             ? "Inicia sesión para unirte"
@@ -775,7 +776,7 @@ export function LoginPage() {
                       </p>
                     </div>
 
-                    <div className="space-y-4">
+                    <div className="space-y-3">
                       {hasInvite && (
                         <>
                           {invitePreviewLoading ? (
@@ -939,9 +940,10 @@ export function LoginPage() {
                         </div>
                       )}
 
-                      <button
+                      <Button
                         type="button"
-                        className="pixel-btn pixel-btn-secondary w-full py-2.5"
+                        variant="outline"
+                        className="w-full"
                         onClick={handleGoogle}
                         disabled={submitting || loading || inviteBlocked || invitePreviewLoading}
                       >
@@ -951,7 +953,7 @@ export function LoginPage() {
                           <GoogleIcon />
                         )}
                         Continuar con Google
-                      </button>
+                      </Button>
 
                       <div className="relative flex items-center gap-3">
                         <div className="flex-1 border-t-2 border-dashed border-[var(--dash-line)]" />
@@ -961,7 +963,7 @@ export function LoginPage() {
                         <div className="flex-1 border-t-2 border-dashed border-[var(--dash-line)]" />
                       </div>
 
-                      <form onSubmit={handleSubmit} className="space-y-3.5" noValidate>
+                      <form onSubmit={handleSubmit} className="space-y-3" noValidate>
                         {mode === "register" && (
                           <div className="form-field">
                             <Label htmlFor="full-name" className="form-label">
@@ -971,7 +973,6 @@ export function LoginPage() {
                               id="full-name"
                               name="name"
                               autoComplete="name"
-                              className="form-input"
                               value={fullName}
                               onChange={(event) => {
                                 setFullName(event.target.value);
@@ -1017,7 +1018,6 @@ export function LoginPage() {
                               id="business-name"
                               name="businessName"
                               autoComplete="organization"
-                              className="form-input"
                               value={businessName}
                               onChange={(event) => {
                                 setBusinessName(event.target.value);
@@ -1062,7 +1062,6 @@ export function LoginPage() {
                             type="email"
                             inputMode="email"
                             autoComplete="email"
-                            className="form-input"
                             value={email}
                             onChange={(event) => {
                               setEmail(event.target.value);
@@ -1117,7 +1116,7 @@ export function LoginPage() {
                               }}
                               placeholder="Mínimo 6 caracteres"
                               minLength={6}
-                              className="form-input form-input-with-trailing"
+                              className="pr-10"
                               aria-invalid={Boolean(fieldErrors.password)}
                               aria-describedby={fieldErrors.password ? "password-error" : undefined}
                               required
@@ -1129,7 +1128,7 @@ export function LoginPage() {
                                 showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
                               }
                               aria-pressed={showPassword}
-                              className="absolute right-1 top-1/2 grid size-11 -translate-y-1/2 cursor-pointer place-items-center text-[var(--ink-muted)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]"
+                              className="absolute right-0.5 top-1/2 grid size-11 -translate-y-1/2 cursor-pointer place-items-center text-[var(--ink-muted)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)] md:size-8 [@media(pointer:coarse)]:size-11"
                             >
                               {showPassword ? (
                                 <EyeOff className="size-4" aria-hidden="true" />
@@ -1149,25 +1148,18 @@ export function LoginPage() {
                           )}
                         </div>
 
-                        <button
+                        <Button
                           type="submit"
-                          className="pixel-btn pixel-btn-dark w-full py-3"
+                          className="w-full"
+                          loading={submitting}
                           disabled={submitting || inviteBlocked || invitePreviewLoading}
-                          aria-busy={submitting || undefined}
                         >
-                          {submitting ? (
-                            <>
-                              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                              <span>Procesando…</span>
-                            </>
-                          ) : mode === "login" ? (
-                            "Entrar con correo"
-                          ) : !hasInvite && accountType === "admin" ? (
-                            "Crear cuenta de administrador"
-                          ) : (
-                            "Crear cuenta"
-                          )}
-                        </button>
+                          {mode === "login"
+                            ? "Entrar con correo"
+                            : !hasInvite && accountType === "admin"
+                              ? "Crear cuenta de administrador"
+                              : "Crear cuenta"}
+                        </Button>
                       </form>
 
                       <p className="text-center text-sm text-[var(--ink-muted)]">

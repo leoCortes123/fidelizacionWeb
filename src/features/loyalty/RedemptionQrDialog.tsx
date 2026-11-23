@@ -87,7 +87,7 @@ export function RedemptionQrDialog({
 
           {usable && token ? (
             <div className="flex flex-col items-center gap-3">
-              <div className="rounded-none border bg-white p-4 shadow-sm">
+              <div className="rounded-none border-2 border-[var(--lp-ink)] bg-white p-3.5 shadow-[var(--lp-shadow-md)]">
                 <QRCodeCanvas
                   value={scanUrl}
                   size={220}
@@ -98,10 +98,10 @@ export function RedemptionQrDialog({
               </div>
               <div
                 className={cn(
-                  "flex items-center gap-2 rounded-none border-2 border-[var(--lp-ink)] px-3 py-1 font-mono text-xs font-bold uppercase shadow-[2px_2px_0_var(--lp-ink)]",
+                  "flex items-center gap-2 rounded-none border-2 border-[var(--lp-ink)] px-3 py-1 font-mono text-xs font-bold uppercase shadow-[var(--lp-shadow-sm)]",
                   countdown.remainingMs < 60 * 60 * 1000
                     ? "bg-[var(--lp-gold)] text-[#16262e]"
-                    : "bg-[#dcfce7] text-[#14532d] dark:bg-[#143d27] dark:text-[#86efac]",
+                    : "bg-[var(--lp-success-bg)] text-[var(--lp-success-text)]",
                 )}
                 role="timer"
                 aria-live="polite"

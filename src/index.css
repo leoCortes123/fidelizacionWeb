@@ -16,7 +16,11 @@
     --lp-muted: #48626f;
     --lp-paper: #edf3f5;
     --lp-paper-deep: #dce7ec;
+    --lp-stage-paper: #edf3f5;
+    --lp-stage-paper-deep: #dce7ec;
+    --lp-stage-muted: #48626f;
     --lp-cream: #ffffff;
+    --lp-cream-alt: #f4f8fa;
     --lp-surface-elevated: #2b4652;
     --lp-surface-elevated-deep: #233b46;
     --lp-surface-elevated-text: #fff8e6;
@@ -24,6 +28,13 @@
     --lp-surface-elevated-muted: #9ebbc6;
     --lp-grid-line: rgba(22, 38, 46, 0.045);
     --lp-header-bg: rgba(237, 243, 245, 0.95);
+    --lp-nav-bg: rgba(237, 243, 245, 0.96);
+    --lp-mobile-cta-bg: rgba(237, 243, 245, 0.97);
+    --lp-dash-line: #9ebbc6;
+    --lp-input-border: #16262e;
+    --lp-dot-inactive: #dce7ec;
+    --lp-nav-hover-text: #16262e;
+    --lp-landing-muted: #48626f;
     --lp-gold: #fad24b;
     --lp-gold-dark: #e8bc2c;
     --lp-gold-soft: #fce49d;
@@ -34,8 +45,17 @@
     --lp-green-cta: #15803d;
     --lp-green-cta-hover: #116630;
     --lp-green-badge: #24d04a;
+    --lp-green-text: #15803d;
     --lp-red: #d9412e;
     --lp-red-dark: #c43220;
+    --lp-red-hover: #a62919;
+    --lp-red-text: #b02918;
+    --lp-success-bg: #dcfce7;
+    --lp-success-text: #14532d;
+    --lp-danger-bg: #fee2e2;
+    --lp-danger-text: #7f1d1d;
+    --lp-info-bg: #dbeafe;
+    --lp-info-text: #16262e;
     --lp-tip-bg: #fff6d6;
     --lp-tip-border: #16262e;
     --lp-tip-strong: #7a5300;
@@ -44,6 +64,26 @@
     --lp-focus-ring: #1765cc;
     --lp-tab-hover-bg: #dce7ec;
     --lp-h1-shadow: 2px 2px 0 var(--lp-cream), 4px 4px 0 rgba(22, 38, 46, 0.14);
+
+    /* Bordes y sombras canónicos pixel-art */
+    --lp-border-sm: 2px;
+    --lp-border-md: 3px;
+    --lp-shadow-sm: 2px 2px 0 var(--lp-ink);
+    --lp-shadow-md: 3px 3px 0 var(--lp-ink);
+    --lp-shadow-lg: 4px 4px 0 var(--lp-ink);
+    --lp-shadow-xl: 6px 6px 0 var(--lp-ink);
+
+    /* Escala discreta de densidad (múltiplos de 4px / 2px; móvil/táctil por defecto) */
+    --lp-space-field-label: 4px;
+    --lp-space-field-gap: 12px;
+    --lp-space-group-gap: 16px;
+    --lp-space-section-gap: 16px;
+    --lp-pad-card: 14px;
+    --lp-pad-subpanel: 12px;
+    --lp-control-h: 44px;
+    --lp-btn-h: 44px;
+    --lp-btn-h-sm: 44px;
+    --lp-shell-max-w: 1360px;
 
     --lp-accent-control-light: #1765cc;
     --lp-accent-control-dark: #fad24b;
@@ -98,6 +138,7 @@
     --lp-paper: #2b4652;
     --lp-paper-deep: #233b46;
     --lp-cream: #385a68;
+    --lp-cream-alt: #31515e;
     --lp-surface-elevated: #385a68;
     --lp-surface-elevated-deep: #233b46;
     --lp-surface-elevated-text: #fff8e6;
@@ -105,6 +146,13 @@
     --lp-surface-elevated-muted: #bcd3dc;
     --lp-grid-line: rgba(255, 248, 230, 0.04);
     --lp-header-bg: rgba(35, 59, 70, 0.96);
+    --lp-nav-bg: rgba(35, 59, 70, 0.97);
+    --lp-mobile-cta-bg: rgba(35, 59, 70, 0.97);
+    --lp-dash-line: #6d92a1;
+    --lp-input-border: #9ebbc6;
+    --lp-dot-inactive: #4f7a8a;
+    --lp-nav-hover-text: #fad24b;
+    --lp-landing-muted: #bcd3dc;
     --lp-gold: #fad24b;
     --lp-gold-dark: #e8bc2c;
     --lp-gold-soft: #fce49d;
@@ -115,8 +163,16 @@
     --lp-green-cta: #16833c;
     --lp-green-cta-hover: #126a30;
     --lp-green-badge: #24d04a;
+    --lp-green-text: #86efac;
     --lp-red: #ff8577;
     --lp-red-dark: #c43220;
+    --lp-red-text: #ffbab0;
+    --lp-success-bg: #143d27;
+    --lp-success-text: #86efac;
+    --lp-danger-bg: #4c1d1b;
+    --lp-danger-text: #ffdad4;
+    --lp-info-bg: #1d394b;
+    --lp-info-text: #fff8e6;
     --lp-tip-bg: #233b46;
     --lp-tip-border: #fad24b;
     --lp-tip-strong: #fad24b;
@@ -149,6 +205,39 @@
     --border: 200 35% 13%;
     --input: 197 26% 70%;
     --ring: 46 95% 64%;
+  }
+
+  /* Densidad para escritorio estándar (>= 768px) */
+  @media (min-width: 768px) {
+    :root {
+      --lp-space-section-gap: 20px;
+      --lp-pad-card: 16px;
+      --lp-control-h: 36px;
+      --lp-btn-h: 36px;
+      --lp-btn-h-sm: 32px;
+    }
+  }
+
+  /* Densidad para escritorio de baja altura (ej. 1366x768) */
+  @media (min-width: 1024px) and (max-height: 820px) {
+    :root {
+      --lp-space-field-gap: 10px;
+      --lp-space-group-gap: 12px;
+      --lp-space-section-gap: 16px;
+      --lp-pad-card: 12px;
+      --lp-pad-subpanel: 10px;
+      --lp-control-h: 34px;
+      --lp-btn-h: 34px;
+    }
+  }
+
+  /* Protección táctil obligatoria (WCAG 2.5.5) en dispositivos con puntero grueso */
+  @media (pointer: coarse) {
+    :root {
+      --lp-control-h: 44px;
+      --lp-btn-h: 44px;
+      --lp-btn-h-sm: 44px;
+    }
   }
 
   @supports (color: light-dark(white, black)) {
@@ -310,6 +399,26 @@
     background-color: var(--lp-tip-bg);
     border: 2px dashed var(--lp-tip-border);
     color: var(--lp-text-main);
+  }
+
+  .lp-subpanel {
+    border-radius: 0;
+    border: var(--lp-border-sm) solid var(--lp-ink);
+    background-color: var(--lp-paper-deep);
+    padding: var(--lp-pad-subpanel);
+  }
+
+  .lp-card-interactive {
+    transition:
+      transform 140ms ease,
+      box-shadow 140ms ease,
+      background-color 140ms ease;
+  }
+
+  .lp-card-interactive:hover {
+    transform: translate(-1px, -1px);
+    box-shadow: 5px 5px 0 var(--lp-ink);
+    background-color: var(--lp-tip-bg);
   }
 
   .lp-progress-ticks {

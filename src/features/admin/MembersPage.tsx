@@ -16,7 +16,9 @@ import { formatDateTimeBogota } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Field } from "@/components/shared/Field";
 import {
   Dialog,
   DialogContent,
@@ -74,8 +76,8 @@ export function MembersPage() {
         />
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {list.map((business) => (
-            <Card key={business.id} className="cursor-pointer hover:shadow-md transition-shadow">
-              <CardContent className="p-6 text-center">
+            <Card key={business.id} className="lp-card-interactive cursor-pointer">
+              <CardContent className="p-[var(--lp-pad-card)] text-center">
                 <Users className="mx-auto size-12 text-primary mb-3" aria-hidden="true" />
                 <h3 className="font-semibold">{business.name}</h3>
                 <p className="text-xs text-muted-foreground">{business.slug}</p>
@@ -264,10 +266,9 @@ export function MembersPage() {
           </DialogHeader>
 
           {!invite ? (
-            <form onSubmit={generateInviteQr} className="space-y-4" noValidate>
-              <div className="space-y-4 rounded-none border border-border bg-muted/20 p-4">
-                <div className="space-y-2">
-                  <Label htmlFor="member-role">Rol en el negocio</Label>
+            <form onSubmit={generateInviteQr} className="space-y-3" noValidate>
+              <div className="lp-subpanel space-y-3">
+                <Field id="member-role" label="Rol en el negocio">
                   <Select
                     value={role}
                     onValueChange={(value) => {
@@ -284,7 +285,7 @@ export function MembersPage() {
                       <SelectItem value="cliente">Cliente</SelectItem>
                     </SelectContent>
                   </Select>
-                </div>
+                </Field>
 
                 {role === "encargado" && (
                   <label className="flex cursor-pointer items-start gap-2 text-sm font-medium">
@@ -322,7 +323,7 @@ export function MembersPage() {
               </DialogFooter>
             </form>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div className="flex flex-wrap items-center justify-center gap-2">
                 <Badge variant="secondary">Rol: {roleLabels[invite.role]}</Badge>
                 {invite.role === "encargado" && invite.can_approve_redemptions && (
@@ -330,8 +331,8 @@ export function MembersPage() {
                 )}
               </div>
 
-              <div className="flex flex-col items-center gap-3">
-                <div className="rounded-none border-2 border-[var(--lp-ink)] bg-white p-4 shadow-[4px_4px_0_var(--lp-ink)]">
+              <div className="flex flex-col items-center gap-2.5">
+                <div className="rounded-none border-2 border-[var(--lp-ink)] bg-white p-3.5 shadow-[var(--lp-shadow-lg)]">
                   <QRCodeCanvas
                     value={inviteUrl}
                     size={220}
@@ -346,7 +347,7 @@ export function MembersPage() {
                 </p>
               </div>
 
-              <div className="space-y-2 rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-paper-deep)] p-3">
+              <div className="lp-subpanel space-y-1.5">
                 <Label
                   htmlFor="member-invite-url"
                   className="font-mono text-xs uppercase tracking-wide"
@@ -354,13 +355,13 @@ export function MembersPage() {
                   Enlace de invitación
                 </Label>
                 <div className="flex gap-2">
-                  <input
+                  <Input
                     id="member-invite-url"
                     readOnly
                     value={inviteUrl}
                     aria-label="Enlace de invitación de miembro"
                     onFocus={(event) => event.currentTarget.select()}
-                    className="h-10 min-w-0 flex-1 rounded-none border-2 border-input bg-card px-2.5 py-1 font-mono text-xs text-foreground shadow-[2px_2px_0_var(--lp-ink)] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--lp-focus-ring)] dark:bg-[var(--lp-paper-deep)]"
+                    className="min-w-0 flex-1 font-mono text-base sm:text-xs"
                   />
                   <Button
                     type="button"
@@ -369,10 +370,7 @@ export function MembersPage() {
                     onClick={() => void copyInviteUrl()}
                   >
                     {copiedUrl ? (
-                      <Check
-                        className="text-emerald-700 dark:text-emerald-300"
-                        aria-hidden="true"
-                      />
+                      <Check className="text-[var(--lp-green-text)]" aria-hidden="true" />
                     ) : (
                       <Copy aria-hidden="true" />
                     )}

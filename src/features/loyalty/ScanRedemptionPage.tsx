@@ -276,12 +276,14 @@ function ScanSuccess({ result }: { result: RedemptionRedeemResult }) {
 
   return (
     <Card className="animate-fade-in overflow-hidden">
-      <div className="bg-emerald-500/10 px-6 py-8 text-center">
-        <span className="mx-auto grid size-16 place-items-center rounded-full bg-emerald-500 text-white shadow-lg">
-          <CheckCircle2 className="size-9" aria-hidden="true" />
+      <div className="border-b-[3px] border-[var(--lp-ink)] bg-[var(--lp-surface-elevated-deep)] px-6 py-6 text-center text-[var(--lp-surface-elevated-text)]">
+        <span className="mx-auto grid size-14 place-items-center rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-green-cta)] text-white shadow-[var(--lp-shadow-md)]">
+          <CheckCircle2 className="size-8" aria-hidden="true" />
         </span>
-        <h1 className="mt-4 text-2xl font-extrabold">Entrega confirmada</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <h1 className="mt-3 text-2xl font-extrabold [text-shadow:2px_2px_0_#16262e]">
+          Entrega confirmada
+        </h1>
+        <p className="mt-1 text-sm text-[var(--lp-surface-elevated-soft)]">
           El canje quedó registrado y las monedas fueron consumidas.
         </p>
       </div>
@@ -416,7 +418,7 @@ function ManualTokenCard({
       <Card>
         <CardContent className="space-y-4 p-6">
           <div className="text-center">
-            <span className="mx-auto grid size-12 place-items-center rounded-full bg-destructive/10 text-destructive">
+            <span className="mx-auto grid size-12 place-items-center rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-danger-bg)] text-[var(--lp-danger-text)] shadow-[var(--lp-shadow-sm)]">
               <AlertTriangle className="size-6" aria-hidden="true" />
             </span>
             <h1 className="mt-3 text-xl font-extrabold">{title}</h1>

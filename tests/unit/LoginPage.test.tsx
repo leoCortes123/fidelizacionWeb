@@ -569,10 +569,12 @@ describe("LoginPage", () => {
     expect(container.querySelector(".app-navbar")).not.toBeNull();
     expect(container.querySelector(".pixel-box")).not.toBeNull();
     expect(container.querySelector("#tab-login.store-tab-btn.active")).not.toBeNull();
-    expect(container.querySelector("#email.form-input")).not.toBeNull();
-    expect(
-      container.querySelector("button[type='submit'].pixel-btn.pixel-btn-dark"),
-    ).not.toBeNull();
+    const emailInput = container.querySelector("#email");
+    expect(emailInput).not.toBeNull();
+    expect(emailInput).not.toHaveClass("form-input");
+    const submitBtn = container.querySelector("button[type='submit']");
+    expect(submitBtn).not.toBeNull();
+    expect(submitBtn).toHaveClass("border-[var(--lp-ink)]");
 
     unmount();
     expect(document.documentElement.dataset.portal).toBeUndefined();

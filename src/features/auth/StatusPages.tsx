@@ -12,7 +12,7 @@ export function UnauthorizedPage() {
           <div className="flex justify-center">
             <Brand />
           </div>
-          <span className="mx-auto grid size-14 place-items-center rounded-none border-2 border-[var(--lp-ink)] bg-[#fee2e2] text-[#991b1b] shadow-[3px_3px_0_var(--lp-ink)] dark:bg-[#4c1d1b] dark:text-[#ffbab0]">
+          <span className="mx-auto grid size-14 place-items-center rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-danger-bg)] text-[var(--lp-danger-text)] shadow-[var(--lp-shadow-md)]">
             <ShieldAlert className="size-7" aria-hidden="true" />
           </span>
           <div className="space-y-1">

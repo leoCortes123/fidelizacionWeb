@@ -39,6 +39,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/select";
+import { Field } from "@/components/shared/Field";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { ErrorState, ListSkeleton, LoadingScreen } from "@/components/shared/States";
 import { EconomicDataForm, isEconomicProfileEmpty } from "@/features/admin/EconomicDataForm";
@@ -195,15 +197,15 @@ export function OnboardingWizardPage({ newBusinessMode = false }: { newBusinessM
 
   if (!isNewFlow && adminBusinesses.length > 1 && !selectedBusiness) {
     return (
-      <div className="space-y-4 sm:space-y-5 animate-fade-in">
+      <div className="space-y-3.5 sm:space-y-4 animate-fade-in">
         <PageHeader
           title="Selecciona un negocio"
           description="Elige el negocio que deseas configurar paso a paso."
         />
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {adminBusinesses.map((business) => (
-            <Card key={business.id} className="cursor-pointer transition-shadow hover:shadow-md">
-              <CardContent className="p-4 text-center sm:p-6">
+            <Card key={business.id} className="lp-card-interactive cursor-pointer">
+              <CardContent className="p-[var(--lp-pad-card)] text-center">
                 <Store className="mx-auto mb-3 size-12 text-primary" aria-hidden="true" />
                 <h3 className="font-semibold">{business.name}</h3>
                 <p className="text-xs text-muted-foreground">{business.slug}</p>
@@ -692,7 +694,7 @@ function Wizard({
   const isSavingBusiness = registerBusiness.isPending || updateBusiness.isPending;
 
   return (
-    <div className="space-y-4 sm:space-y-5 animate-fade-in">
+    <div className="space-y-3.5 sm:space-y-4 animate-fade-in">
       <PageHeader
         kicker="CONFIGURACIÓN INICIAL"
         title="Configuración inicial"
@@ -701,15 +703,15 @@ function Wizard({
 
       {/* Progreso y navegación entre pasos */}
       <Card>
-        <CardContent className="space-y-4 p-4 sm:p-5">
+        <CardContent className="space-y-3 p-[var(--lp-pad-card)]">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 font-mono text-xs font-semibold text-primary">
+            <Badge variant="warning">
               Paso {step + 1} de {STEPS.length}
-            </span>
+            </Badge>
             <span className="text-sm font-semibold text-foreground">{STEPS[step]?.label}</span>
           </div>
 
-          <ol className="grid gap-0 sm:grid-cols-3" aria-label="Pasos de configuración">
+          <ol className="grid gap-2 sm:grid-cols-3" aria-label="Pasos de configuración">
             {STEPS.map((item, index) => {
               const current = index === step;
               const done = index < step;
@@ -722,25 +724,25 @@ function Wizard({
                     aria-current={current ? "step" : undefined}
                     aria-disabled={locked || undefined}
                     className={cn(
-                      "flex min-h-12 w-full items-center gap-3 rounded-none border px-3 py-2 text-left transition-all duration-150 focus-visible:relative focus-visible:z-10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                      "flex min-h-11 w-full items-center gap-2.5 rounded-none border-2 border-[var(--lp-ink)] px-3 py-2 text-left transition-all duration-150 focus-visible:relative focus-visible:z-10 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--lp-focus-ring)]",
                       locked ? "cursor-not-allowed opacity-60" : "cursor-pointer",
                       current
-                        ? "relative z-10 border-primary bg-primary text-primary-foreground shadow-sm shadow-primary/25"
+                        ? "relative z-10 bg-[var(--lp-gold)] text-[#16262e] shadow-[var(--lp-shadow-sm)]"
                         : done
-                          ? "border-emerald-200 bg-emerald-50/70 text-emerald-950 hover:bg-emerald-50 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-100"
-                          : "border-border bg-muted/30 text-muted-foreground hover:border-foreground/40 hover:bg-muted/60 hover:text-foreground dark:hover:border-border",
+                          ? "bg-[var(--lp-success-bg)] text-[var(--lp-success-text)] hover:bg-[var(--lp-tip-bg)]"
+                          : "bg-[var(--lp-paper-deep)] text-muted-foreground hover:bg-card hover:text-foreground",
                     )}
                   >
                     {done && <span className="sr-only">Paso {index + 1} completado: </span>}
                     <span
                       aria-hidden={done || undefined}
                       className={cn(
-                        "grid size-7 shrink-0 place-items-center rounded-none font-mono text-xs font-bold",
+                        "grid size-7 shrink-0 place-items-center rounded-none border-2 border-[var(--lp-ink)] font-mono text-xs font-bold",
                         current
-                          ? "bg-primary-foreground/15 text-primary-foreground"
+                          ? "bg-[var(--lp-surface-elevated-deep)] text-[var(--lp-gold)]"
                           : done
-                            ? "bg-emerald-600 text-white"
-                            : "bg-background text-muted-foreground",
+                            ? "bg-[var(--lp-green-cta)] text-white"
+                            : "bg-card text-muted-foreground",
                       )}
                     >
                       {done ? <Check className="size-4" aria-hidden="true" /> : index + 1}
@@ -752,7 +754,11 @@ function Wizard({
                       <span
                         className={cn(
                           "mt-0.5 block truncate text-[11px]",
-                          current ? "text-primary-foreground/95" : "text-muted-foreground",
+                          current
+                            ? "text-[#16262e]/85"
+                            : done
+                              ? "text-[var(--lp-success-text)]/85"
+                              : "text-muted-foreground",
                         )}
                       >
                         {item.shortHint}
@@ -773,28 +779,31 @@ function Wizard({
         </Alert>
       )}
 
-      <div className="grid gap-4 sm:gap-6 xl:grid-cols-[minmax(0,1fr)_320px] xl:items-start">
+      <div className="grid gap-3.5 sm:gap-4 xl:grid-cols-[minmax(0,1fr)_310px] xl:items-start">
         {/* Columna principal del paso activo */}
-        <div className="min-w-0 space-y-4 sm:space-y-5">
+        <div className="min-w-0 space-y-3.5 sm:space-y-4">
           {step === 0 && (
             <Card>
-              <CardHeader className="pb-3 sm:pb-4">
+              <CardHeader className="pb-2.5">
                 <CardTitle className="flex items-center gap-2.5">
-                  <span className="grid size-9 shrink-0 place-items-center rounded-none bg-primary/10 text-primary">
+                  <span className="grid size-8 shrink-0 place-items-center rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-gold)] text-[#16262e] shadow-[var(--lp-shadow-sm)]">
                     <Store className="size-4" aria-hidden="true" />
                   </span>
                   <span>Paso 1 · Datos del negocio</span>
                 </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4 sm:space-y-5">
+              <CardContent className="space-y-3.5">
                 <p className="text-sm leading-relaxed text-muted-foreground">
                   Define el nombre público de tu negocio, el enlace único con el que se registrarán
                   tus clientes y los días en los que atiendes.
                 </p>
 
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="space-y-1.5">
-                    <Label htmlFor="onboarding-name">Nombre del negocio</Label>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <Field
+                    id="onboarding-name"
+                    label="Nombre del negocio"
+                    help="Es el nombre visible para tus clientes en su billetera de monedas y códigos QR."
+                  >
                     <Input
                       id="onboarding-name"
                       value={draft.name}
@@ -802,15 +811,18 @@ function Wizard({
                       placeholder="Ej. Café Aurora"
                       maxLength={120}
                     />
-                    <p className="text-xs text-muted-foreground">
-                      Es el nombre visible para tus clientes en su billetera de monedas y códigos
-                      QR.
-                    </p>
-                  </div>
+                  </Field>
 
                   {!business ? (
-                    <div className="space-y-1.5">
-                      <Label htmlFor="onboarding-slug">Slug (identificador en URL)</Label>
+                    <Field
+                      id="onboarding-slug"
+                      label="Slug (identificador en URL)"
+                      error={
+                        !slugValid
+                          ? "Solo minúsculas, números y guiones. Único por negocio."
+                          : undefined
+                      }
+                    >
                       <Input
                         id="onboarding-slug"
                         value={draft.slug}
@@ -819,50 +831,53 @@ function Wizard({
                         aria-invalid={!slugValid}
                         maxLength={80}
                       />
-                      <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-                        <span
-                          className={cn(
-                            !slugValid ? "font-medium text-destructive" : "text-muted-foreground",
-                          )}
-                        >
-                          Solo minúsculas, números y guiones. Único por negocio.
-                        </span>
-                        <span className="inline-flex max-w-full items-center gap-1 break-all rounded-none bg-muted px-2 py-0.5 font-mono text-[11px] text-foreground">
+                      <div className="flex flex-wrap items-center justify-between gap-2 pt-0.5 text-xs">
+                        {slugValid && (
+                          <span className="text-muted-foreground">
+                            Solo minúsculas, números y guiones. Único por negocio.
+                          </span>
+                        )}
+                        <span className="inline-flex max-w-full items-center gap-1 break-all rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-paper-deep)] px-2 py-0.5 font-mono text-[11px] text-foreground">
                           <Link2 className="size-3 shrink-0 text-primary" aria-hidden="true" />
                           /join/{previewSlug}
                         </span>
                       </div>
-                    </div>
+                    </Field>
                   ) : (
-                    <div className="space-y-1.5">
-                      <Label>Enlace de invitación</Label>
-                      <div className="flex min-h-9 items-center gap-2 rounded-none border border-border/80 bg-muted/40 px-3 py-1.5 font-mono text-xs text-foreground">
+                    <Field
+                      id="onboarding-join-url"
+                      label="Enlace de invitación"
+                      help="Identificador único asignado al crear el negocio."
+                    >
+                      <div
+                        id="onboarding-join-url"
+                        className="flex min-h-[var(--lp-control-h)] items-center gap-2 rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-paper-deep)] px-2.5 py-1 font-mono text-xs text-foreground"
+                      >
                         <Link2 className="size-3.5 shrink-0 text-primary" aria-hidden="true" />
                         <span className="truncate">{joinPreviewUrl}</span>
                       </div>
-                      <p className="text-xs text-muted-foreground">
-                        Identificador único asignado al crear el negocio.
-                      </p>
-                    </div>
+                    </Field>
                   )}
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="onboarding-timezone">Zona horaria</Label>
-                  <select
+                <Field
+                  id="onboarding-timezone"
+                  label="Zona horaria"
+                  help="Se usa para mostrar las fechas en tu hora local y calcular vencimientos."
+                >
+                  <NativeSelect
                     id="onboarding-timezone"
                     value={draft.timezone}
                     onChange={(event) => patch({ timezone: event.target.value })}
-                    className="flex h-10 w-full cursor-pointer rounded-none border-2 border-input bg-card px-2.5 py-1.5 text-base font-medium text-foreground shadow-[2px_2px_0_var(--lp-ink)] transition-colors hover:border-[var(--lp-focus-ring)] focus-visible:border-[var(--lp-focus-ring)] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--lp-focus-ring)] dark:bg-[var(--lp-paper-deep)] md:text-sm"
                   >
                     {timezoneOptions.map((zone) => (
                       <option key={zone} value={zone}>
                         {zone}
                       </option>
                     ))}
-                  </select>
+                  </NativeSelect>
                   <div
-                    className="flex flex-wrap gap-1.5"
+                    className="flex flex-wrap gap-1.5 pt-1"
                     role="group"
                     aria-label="Zonas horarias frecuentes"
                   >
@@ -875,10 +890,10 @@ function Wizard({
                           aria-pressed={active}
                           onClick={() => patch({ timezone: zone.value })}
                           className={cn(
-                            "min-h-8 cursor-pointer rounded-none border px-2.5 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                            "min-h-11 cursor-pointer rounded-none border-2 border-[var(--lp-ink)] px-2.5 py-1 font-mono text-xs font-bold transition-colors focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--lp-focus-ring)] md:min-h-8 [@media(pointer:coarse)]:min-h-11",
                             active
-                              ? "border-primary bg-primary/10 text-primary"
-                              : "border-border bg-muted/40 text-muted-foreground hover:bg-muted hover:text-foreground",
+                              ? "bg-[var(--lp-gold)] text-[#16262e] shadow-[var(--lp-shadow-sm)]"
+                              : "bg-[var(--lp-paper-deep)] text-muted-foreground hover:bg-card hover:text-foreground",
                           )}
                         >
                           {zone.label}
@@ -886,12 +901,9 @@ function Wizard({
                       );
                     })}
                   </div>
-                  <p className="text-xs text-muted-foreground">
-                    Se usa para mostrar las fechas en tu hora local y calcular vencimientos.
-                  </p>
-                </div>
+                </Field>
 
-                <div className="space-y-3 rounded-none border border-border/80 bg-muted/20 p-3.5 sm:p-4">
+                <div className="lp-subpanel space-y-2.5">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <Label className="flex items-center gap-2">
                       <CalendarDays className="size-4 text-primary" aria-hidden="true" />
@@ -903,7 +915,7 @@ function Wizard({
                           key={preset.label}
                           type="button"
                           onClick={() => patch({ operatingDays: [...preset.days] })}
-                          className="cursor-pointer rounded-none border border-border bg-background px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                          className="min-h-11 cursor-pointer rounded-none border-2 border-[var(--lp-ink)] bg-card px-2 py-0.5 font-mono text-xs font-bold text-foreground transition-colors hover:bg-[var(--lp-tip-bg)] md:min-h-7 [@media(pointer:coarse)]:min-h-11"
                         >
                           {preset.label}
                         </button>
@@ -922,10 +934,10 @@ function Wizard({
                           aria-pressed={selected}
                           onClick={() => toggleDay(value)}
                           className={cn(
-                            "min-h-10 cursor-pointer rounded-none border px-2.5 py-1.5 text-sm font-semibold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:min-h-11 sm:px-3 sm:py-2",
+                            "min-h-11 cursor-pointer rounded-none border-2 border-[var(--lp-ink)] px-2 py-1 text-sm font-bold transition-all duration-150 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--lp-focus-ring)] md:min-h-9 [@media(pointer:coarse)]:min-h-11",
                             selected
-                              ? "border-primary bg-primary text-primary-foreground shadow-sm"
-                              : "border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground",
+                              ? "bg-[var(--lp-gold)] text-[#16262e] shadow-[var(--lp-shadow-sm)]"
+                              : "bg-card text-muted-foreground hover:bg-[var(--lp-tip-bg)] hover:text-foreground",
                           )}
                         >
                           {label}
@@ -939,7 +951,7 @@ function Wizard({
                   </p>
                 </div>
 
-                <div className="flex justify-end border-t border-border/70 pt-4">
+                <div className="flex justify-end border-t-2 border-[var(--lp-ink)] pt-3.5">
                   <Button
                     type="button"
                     onClick={() => void saveBusinessStep()}
@@ -954,7 +966,7 @@ function Wizard({
           )}
 
           {step === 1 && business && (
-            <div className="space-y-4 sm:space-y-5">
+            <div className="space-y-3.5 sm:space-y-4">
               <EconomicDataForm
                 key={`${business.id}:${profile && !isEconomicProfileEmpty(profile) ? profile.updated_at : "empty"}:${estimatedMonthlyDays}`}
                 businessId={business.id}
@@ -981,39 +993,47 @@ function Wizard({
           )}
 
           {step === 2 && business && (
-            <div className="space-y-4 sm:space-y-5">
+            <div className="space-y-3.5 sm:space-y-4">
               <Card>
-                <CardHeader className="pb-3 sm:pb-4">
+                <CardHeader className="pb-2.5">
                   <CardTitle className="flex items-center gap-2.5">
-                    <span className="grid size-9 shrink-0 place-items-center rounded-none bg-primary/10 text-primary">
+                    <span className="grid size-8 shrink-0 place-items-center rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-gold)] text-[#16262e] shadow-[var(--lp-shadow-sm)]">
                       <CircleDollarSign className="size-4" aria-hidden="true" />
                     </span>
                     <span>Paso 3 · Programa y activación</span>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4 sm:space-y-5">
+                <CardContent className="space-y-3.5">
                   <p className="text-sm leading-relaxed text-muted-foreground">
                     Configura cuántas monedas acumulan tus clientes por cada compra y qué parte de
                     tus ventas destinas a premios. Con estas reglas se calcula el valor de cada
                     moneda y podrás activar tu programa al instante.
                   </p>
 
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="space-y-1.5">
-                      <Label htmlFor="onboarding-cop-per-point">COP por moneda ganada</Label>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <Field
+                      id="onboarding-cop-per-point"
+                      label="COP por moneda ganada"
+                      hint={`1 moneda / ${formatCOP(copPerPoint || 0)} elegibles.`}
+                      help="¿Cuánto debe comprar un cliente para sumar 1 moneda? Define la equivalencia de compra a monedas."
+                    >
                       <Input
                         id="onboarding-cop-per-point"
                         inputMode="numeric"
                         value={draft.copPerPointUnit}
                         onChange={(event) => patch({ copPerPointUnit: event.target.value })}
                       />
-                      <p className="text-xs leading-relaxed text-muted-foreground">
-                        ¿Cuánto debe comprar un cliente para sumar 1 moneda? Ahora mismo gana{" "}
-                        <strong>1 moneda por cada {formatCOP(copPerPoint || 0)}</strong> elegibles.
-                      </p>
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label htmlFor="onboarding-budget-rate">Tasa de presupuesto (%)</Label>
+                    </Field>
+                    <Field
+                      id="onboarding-budget-rate"
+                      label="Tasa de presupuesto (%)"
+                      hint={
+                        referenceBudget !== null
+                          ? `≈ ${formatCOP(referenceBudget)}/mes sobre ventas est.`
+                          : "Recomendado: 1 % a 5 % de ventas."
+                      }
+                      help="Porcentaje de tus ventas mensuales destinado a recompensas (recomendado: 1 % a 5 %)."
+                    >
                       <Input
                         id="onboarding-budget-rate"
                         inputMode="decimal"
@@ -1025,12 +1045,6 @@ function Wizard({
                           })
                         }
                       />
-                      <p className="text-xs leading-relaxed text-muted-foreground">
-                        Porcentaje de tus ventas mensuales destinado a recompensas (recomendado: 1 %
-                        a 5 %).{" "}
-                        {referenceBudget !== null &&
-                          `Equivale a ≈ ${formatCOP(referenceBudget)}/mes sobre tus ventas estimadas.`}
-                      </p>
                       {suggestedRateFromCap !== null &&
                         parsedBudgetRatePercent !== suggestedRateFromCap && (
                           <button
@@ -1041,48 +1055,48 @@ function Wizard({
                                 budgetRateEdited: true,
                               })
                             }
-                            className="cursor-pointer text-xs font-semibold text-primary underline-offset-2 hover:underline"
+                            className="cursor-pointer text-xs font-semibold text-[var(--lp-accent-link)] underline-offset-2 hover:underline"
                           >
                             Ajustar al tope mensual ({suggestedRateFromCap} %)
                           </button>
                         )}
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label htmlFor="onboarding-expiry">Vencimiento de monedas (días)</Label>
+                    </Field>
+                    <Field
+                      id="onboarding-expiry"
+                      label="Vencimiento de monedas (días)"
+                      hint="Ej. 365 días = 1 año."
+                      help="Plazo en días antes de que caduquen las monedas desde la compra que las generó. Incentiva visitas frecuentes."
+                    >
                       <Input
                         id="onboarding-expiry"
                         inputMode="numeric"
                         value={draft.pointsExpiryDays}
                         onChange={(event) => patch({ pointsExpiryDays: event.target.value })}
                       />
-                      <p className="text-xs leading-relaxed text-muted-foreground">
-                        Plazo en días antes de que caduquen las monedas desde la compra que las
-                        generó (ej. 365 días = 1 año). Incentiva visitas frecuentes.
-                      </p>
-                    </div>
-                    <div className="space-y-1.5">
-                      <Label htmlFor="onboarding-qr">Vigencia del QR (horas)</Label>
+                    </Field>
+                    <Field
+                      id="onboarding-qr"
+                      label="Vigencia del QR (horas)"
+                      hint="Ej. 24 horas desde la venta."
+                      help="Tiempo máximo durante el cual el QR de una venta sigue siendo válido para que el cliente lo escanee y sume sus monedas."
+                    >
                       <Input
                         id="onboarding-qr"
                         inputMode="numeric"
                         value={draft.qrExpiryHours}
                         onChange={(event) => patch({ qrExpiryHours: event.target.value })}
                       />
-                      <p className="text-xs leading-relaxed text-muted-foreground">
-                        Tiempo máximo durante el cual el QR de una venta sigue siendo válido para
-                        que el cliente lo escanee y sume sus monedas (ej. 24 horas).
-                      </p>
-                    </div>
+                    </Field>
                   </div>
 
                   {examplePurchasePoints !== null && (
-                    <div className="space-y-1.5 rounded-none border border-primary/20 bg-primary/5 px-3.5 py-2.5 text-sm sm:px-4 sm:py-3">
+                    <div className="lp-tip-box space-y-1 p-[var(--lp-pad-subpanel)] text-sm">
                       <div className="flex flex-wrap items-center justify-between gap-2">
-                        <span className="flex items-center gap-2 font-medium text-foreground">
+                        <span className="flex items-center gap-2 font-semibold text-foreground">
                           <Calculator className="size-4 text-primary" aria-hidden="true" />
                           Simulación rápida en caja
                         </span>
-                        <span className="font-mono text-xs font-bold text-primary">
+                        <span className="font-mono text-xs font-bold text-[var(--lp-tip-strong)]">
                           Compra de {formatCOP(50000)} = {formatNumber(examplePurchasePoints)}{" "}
                           monedas
                           {costPerPoint !== null &&
@@ -1102,10 +1116,10 @@ function Wizard({
               </Card>
 
               <Card>
-                <CardHeader className="pb-3">
+                <CardHeader className="pb-2.5">
                   <div className="flex items-center justify-between gap-2">
                     <CardTitle className="flex items-center gap-2 text-base">
-                      <Sparkles className="size-4 text-amber-500" aria-hidden="true" />
+                      <Sparkles className="size-4 text-[var(--lp-gold-ink)]" aria-hidden="true" />
                       Recompensas sugeridas
                     </CardTitle>
                     {productsWithCost.length > 0 && (
@@ -1115,9 +1129,9 @@ function Wizard({
                     )}
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-3">
+                <CardContent className="space-y-2.5">
                   {productsWithCost.length === 0 ? (
-                    <p className="rounded-none border border-dashed p-4 text-sm leading-relaxed text-muted-foreground">
+                    <p className="lp-tip-box p-[var(--lp-pad-subpanel)] text-sm leading-relaxed text-muted-foreground">
                       Puedes activar el programa ahora mismo sin premios iniciales y luego añadir
                       tus productos en <strong>Carta</strong> y tus recompensas personalizadas en{" "}
                       <strong>Recompensas</strong> desde el panel de administración.
@@ -1131,13 +1145,13 @@ function Wizard({
                         <div
                           key={product.id}
                           className={cn(
-                            "grid gap-3 rounded-none border p-3.5 transition-colors sm:grid-cols-[auto_minmax(0,1fr)_145px] sm:items-center sm:p-4",
+                            "grid gap-3 rounded-none border-2 border-[var(--lp-ink)] p-[var(--lp-pad-subpanel)] transition-colors sm:grid-cols-[auto_minmax(0,1fr)_145px] sm:items-center",
                             isIncluded
-                              ? "border-primary/40 bg-primary/[0.03]"
-                              : "border-border bg-muted/20 opacity-75",
+                              ? "bg-[var(--lp-tip-bg)] shadow-[var(--lp-shadow-sm)]"
+                              : "bg-[var(--lp-paper-deep)] opacity-75",
                           )}
                         >
-                          <label className="flex min-h-10 min-w-10 cursor-pointer items-center justify-center rounded-none hover:bg-muted/60">
+                          <label className="flex min-h-10 min-w-10 cursor-pointer items-center justify-center rounded-none hover:bg-card/60">
                             <input
                               type="checkbox"
                               checked={isIncluded}
@@ -1153,13 +1167,13 @@ function Wizard({
                               className="size-4 cursor-pointer rounded-none border-input accent-primary"
                             />
                           </label>
-                          <div className="min-w-0 space-y-1">
+                          <div className="min-w-0 space-y-0.5">
                             <p className="truncate font-semibold">{product.name} gratis</p>
                             <p className="text-xs text-muted-foreground">
                               Costo {formatCOP(product.cost_cop ?? 0)} · Precio{" "}
                               {formatCOP(product.price_cop)}
                             </p>
-                            <p className="text-xs font-medium text-primary">
+                            <p className="text-xs font-medium text-[var(--lp-accent-link)]">
                               Monedas sugeridas: {formatNumber(suggested)} (editable)
                             </p>
                           </div>
@@ -1198,15 +1212,15 @@ function Wizard({
               </Card>
 
               <Card>
-                <CardHeader className="pb-3">
+                <CardHeader className="pb-2.5">
                   <CardTitle className="flex items-center gap-2 text-base">
                     <Info className="size-4 text-primary" aria-hidden="true" />
                     Análisis financiero y supuestos
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4 text-sm">
-                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                    <div className="rounded-none border border-border/80 bg-muted/25 p-3">
+                <CardContent className="space-y-3.5 text-sm">
+                  <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-4">
+                    <div className="lp-subpanel">
                       <span className="block text-[11px] font-medium text-muted-foreground">
                         Ventas mensuales est.
                       </span>
@@ -1214,7 +1228,7 @@ function Wizard({
                         {monthlySales !== null ? formatCOP(monthlySales) : "Sin estimación"}
                       </span>
                     </div>
-                    <div className="rounded-none border border-border/80 bg-muted/25 p-3">
+                    <div className="lp-subpanel">
                       <span className="block text-[11px] font-medium text-muted-foreground">
                         Presupuesto máximo usado
                       </span>
@@ -1222,7 +1236,7 @@ function Wizard({
                         {maxBudget !== null ? formatCOP(maxBudget) : "Sin dato"}
                       </span>
                     </div>
-                    <div className="rounded-none border border-border/80 bg-muted/25 p-3">
+                    <div className="lp-subpanel">
                       <span className="block text-[11px] font-medium text-muted-foreground">
                         Valor por moneda
                       </span>
@@ -1230,7 +1244,7 @@ function Wizard({
                         {costPerPoint !== null ? formatCOP(costPerPoint) : "Sin definir"}
                       </span>
                     </div>
-                    <div className="rounded-none border border-border/80 bg-muted/25 p-3">
+                    <div className="lp-subpanel">
                       <span className="block text-[11px] font-medium text-muted-foreground">
                         Impacto en utilidad
                       </span>
@@ -1240,7 +1254,7 @@ function Wizard({
                     </div>
                   </div>
 
-                  <div className="space-y-2 leading-relaxed">
+                  <div className="space-y-1.5 leading-relaxed">
                     <p>
                       Los clientes ganan 1 moneda por cada{" "}
                       <strong>{formatCOP(copPerPoint || 0)}</strong> de compra elegible.
@@ -1261,7 +1275,7 @@ function Wizard({
                         Ventas mensuales estimadas: <strong>{formatCOP(monthlySales)}</strong>.
                       </p>
                     ) : (
-                      <p className="text-amber-700 dark:text-amber-400">
+                      <p className="font-medium text-[var(--lp-tip-strong)]">
                         No se pueden calcular las ventas mensuales: faltan ventas diarias o días de
                         operación en el paso 2 (Datos económicos).
                       </p>
@@ -1269,7 +1283,7 @@ function Wizard({
                     {configuredMaxBudget !== null &&
                       referenceBudget !== null &&
                       referenceBudget > configuredMaxBudget && (
-                        <p className="text-amber-700 dark:text-amber-400">
+                        <p className="font-medium text-[var(--lp-tip-strong)]">
                           Con esta tasa ({draft.budgetRatePercent} %), el presupuesto estimado (
                           {formatCOP(referenceBudget)}) supera el tope mensual que definiste (
                           {formatCOP(configuredMaxBudget)}).
@@ -1281,7 +1295,7 @@ function Wizard({
                         {formatNumber(pointsPerThousand)} monedas equivalen a $1.000 en premios).
                       </p>
                     ) : (
-                      <p className="text-amber-700 dark:text-amber-400">
+                      <p className="font-medium text-[var(--lp-tip-strong)]">
                         No se puede calcular el costo por moneda (tasa de presupuesto en 0 % o valor
                         por moneda inválido), así que no hay propuesta de monedas.
                       </p>
@@ -1348,15 +1362,15 @@ function Wizard({
         </div>
 
         {/* Barra lateral de resumen en vivo (desktop) */}
-        <aside className="space-y-4 xl:sticky xl:top-6" aria-label="Resumen en vivo">
+        <aside className="space-y-3.5 xl:sticky xl:top-6" aria-label="Resumen en vivo">
           <Card className="overflow-hidden">
-            <div className="border-b border-border/80 bg-muted/40 px-5 py-3.5">
-              <p className="text-xs font-bold uppercase tracking-wider text-primary">
+            <div className="border-b-2 border-[var(--lp-ink)] bg-[var(--lp-surface-elevated-deep)] px-4 py-2.5">
+              <p className="font-mono text-xs font-bold uppercase tracking-wider text-[var(--lp-gold)]">
                 Resumen del programa
               </p>
             </div>
-            <CardContent className="space-y-4 p-4 text-sm sm:p-5">
-              <div className="space-y-1">
+            <CardContent className="space-y-3 p-[var(--lp-pad-card)] text-sm">
+              <div className="space-y-0.5">
                 <p className="text-xs text-muted-foreground">Negocio</p>
                 <p className="truncate font-semibold">
                   {draft.name || business?.name || "Sin nombre aún"}
@@ -1370,9 +1384,9 @@ function Wizard({
                 </p>
               </div>
 
-              <div className="h-px bg-border/70" />
+              <div className="border-t-2 border-dashed border-[var(--lp-dash-line)]" />
 
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 <p className="text-xs text-muted-foreground">Datos económicos (opcional)</p>
                 <p className="font-semibold tabular-nums">
                   {monthlySales !== null
@@ -1387,9 +1401,9 @@ function Wizard({
                 </p>
               </div>
 
-              <div className="h-px bg-border/70" />
+              <div className="border-t-2 border-dashed border-[var(--lp-dash-line)]" />
 
-              <div className="space-y-1">
+              <div className="space-y-0.5">
                 <p className="text-xs text-muted-foreground">Regla de acumulación</p>
                 <p className="font-mono text-sm font-bold tabular-nums text-primary">
                   1 MONEDA /{" "}
@@ -1405,7 +1419,7 @@ function Wizard({
                 </p>
               </div>
 
-              <div className="h-px bg-border/70" />
+              <div className="border-t-2 border-dashed border-[var(--lp-dash-line)]" />
 
               <div className="space-y-2 text-xs text-muted-foreground">
                 <p className="leading-relaxed">
@@ -1416,7 +1430,7 @@ function Wizard({
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="h-8 w-full justify-start px-2 text-xs text-muted-foreground"
+                  className="w-full justify-start px-2 text-xs text-muted-foreground"
                   onClick={restart}
                 >
                   <RotateCcw className="size-3.5" aria-hidden="true" />

@@ -445,7 +445,7 @@ export function SettingsPage() {
                         <p className="flex items-center gap-2 text-sm font-semibold">
                           <span
                             className={cn(
-                              "grid size-6 shrink-0 place-items-center rounded-full",
+                              "grid size-6 shrink-0 place-items-center rounded-none border-2 border-[var(--lp-ink)]",
                               AUDIT_SEVERITY_STYLES[label.severity].icon,
                             )}
                           >

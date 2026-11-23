@@ -4,6 +4,7 @@ import { Building2, Gift, TicketCheck } from "lucide-react";
 import { useMyLoyaltyRedemptions } from "@/features/loyalty/hooks";
 import { useBusinessContext } from "@/features/loyalty/businessContext";
 import { formatDateTimeBogota, formatPoints } from "@/lib/format";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -155,17 +156,17 @@ export function RedemptionsPage() {
                     </p>
 
                     {pending && (
-                      <p className="text-xs text-amber-800 dark:text-amber-300">
+                      <p className="text-xs font-medium text-[var(--lp-gold-ink)]">
                         Tu solicitud está pendiente. El encargado la revisará y aprobará en caja.
                       </p>
                     )}
                     {redemption.status === "approved" && (
-                      <p className="text-xs text-sky-800 dark:text-sky-300">
+                      <p className="text-xs font-medium text-[var(--lp-accent-link)]">
                         El encargado ya aprobó tu canje. Acércate a caja para confirmar la entrega.
                       </p>
                     )}
                     {redemption.status === "delivered" && redemption.delivered_at && (
-                      <p className="text-xs text-emerald-700 dark:text-emerald-300">
+                      <p className="text-xs font-medium text-[var(--lp-green-text)]">
                         Entregado el {formatDateTimeBogota(redemption.delivered_at)}
                       </p>
                     )}
@@ -198,7 +199,7 @@ export function RedemptionsPage() {
       )}
 
       <Dialog open={detail !== null} onOpenChange={() => setDetail(null)}>
-        <DialogContent className="border-[3px] border-[var(--border-color)] bg-[var(--cream)] shadow-[6px_6px_0_var(--shadow-color)]">
+        <DialogContent className="border-[3px] border-[var(--lp-ink)] bg-[var(--lp-cream)] shadow-[var(--lp-shadow-xl)]">
           <DialogHeader>
             <DialogTitle className="font-display text-lg font-bold">
               {detail?.reward_name}
@@ -209,38 +210,38 @@ export function RedemptionsPage() {
             </DialogDescription>
           </DialogHeader>
           {detail && (
-            <div className="space-y-4">
+            <div className="space-y-3">
               {(detail.reward_image_url || detail.business_logo_url) && (
-                <div className="modal-hero-img border-[3px] border-[var(--border-color)] bg-[var(--paper-deep)]">
+                <div className="h-40 w-full overflow-hidden border-2 border-[var(--lp-ink)] bg-[var(--lp-paper-deep)]">
                   <img
                     src={(detail.reward_image_url || detail.business_logo_url)!}
                     alt={detail.reward_image_url ? detail.reward_name : detail.business_name}
-                    className="card-hero-bg-img"
+                    className="size-full object-cover"
                   />
                 </div>
               )}
               <dl className="grid grid-cols-[auto,1fr] gap-x-4 gap-y-2 text-sm">
-                <dt className="font-mono text-xs font-bold uppercase text-[var(--text-muted)]">
+                <dt className="font-mono text-xs font-bold uppercase text-muted-foreground">
                   Estado
                 </dt>
                 <dd>
                   <RedemptionRequestStatusBadge status={detail.status} />
                 </dd>
-                <dt className="font-mono text-xs font-bold uppercase text-[var(--text-muted)]">
+                <dt className="font-mono text-xs font-bold uppercase text-muted-foreground">
                   Monedas
                 </dt>
                 <dd className="font-mono font-bold">{formatPoints(detail.points_spent)}</dd>
-                <dt className="font-mono text-xs font-bold uppercase text-[var(--text-muted)]">
+                <dt className="font-mono text-xs font-bold uppercase text-muted-foreground">
                   Código
                 </dt>
                 <dd className="min-w-0 break-all font-mono text-xs">{detail.code}</dd>
-                <dt className="font-mono text-xs font-bold uppercase text-[var(--text-muted)]">
+                <dt className="font-mono text-xs font-bold uppercase text-muted-foreground">
                   Solicitado
                 </dt>
                 <dd>{formatDateTimeBogota(detail.created_at)}</dd>
                 {detail.approved_at && (
                   <>
-                    <dt className="font-mono text-xs font-bold uppercase text-[var(--text-muted)]">
+                    <dt className="font-mono text-xs font-bold uppercase text-muted-foreground">
                       Aprobado
                     </dt>
                     <dd>{formatDateTimeBogota(detail.approved_at)}</dd>
@@ -248,7 +249,7 @@ export function RedemptionsPage() {
                 )}
                 {detail.delivered_at && (
                   <>
-                    <dt className="font-mono text-xs font-bold uppercase text-[var(--text-muted)]">
+                    <dt className="font-mono text-xs font-bold uppercase text-muted-foreground">
                       Entregado
                     </dt>
                     <dd>{formatDateTimeBogota(detail.delivered_at)}</dd>
@@ -256,7 +257,7 @@ export function RedemptionsPage() {
                 )}
                 {detail.cancelled_at && (
                   <>
-                    <dt className="font-mono text-xs font-bold uppercase text-[var(--text-muted)]">
+                    <dt className="font-mono text-xs font-bold uppercase text-muted-foreground">
                       Cancelado
                     </dt>
                     <dd>{formatDateTimeBogota(detail.cancelled_at)}</dd>
@@ -266,13 +267,9 @@ export function RedemptionsPage() {
             </div>
           )}
           <DialogFooter>
-            <button
-              type="button"
-              className="pixel-btn pixel-btn-secondary"
-              onClick={() => setDetail(null)}
-            >
+            <Button type="button" variant="outline" onClick={() => setDetail(null)}>
               Cerrar
-            </button>
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

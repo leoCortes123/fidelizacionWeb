@@ -62,7 +62,7 @@ export function EncargadoShell() {
             : "max-h-40 opacity-100",
         )}
       >
-        <div className="mx-auto flex h-16 w-full max-w-5xl items-center justify-between gap-3 px-4">
+        <div className="mx-auto flex h-12 w-full max-w-[var(--lp-shell-max-w)] items-center justify-between gap-3 px-4 sm:px-5">
           <div className="flex min-w-0 items-center gap-2">
             <Brand
               compact
@@ -72,6 +72,7 @@ export function EncargadoShell() {
               tagline={headerBusinessName ? null : undefined}
             />
             <Brand
+              compact
               className="hidden sm:flex"
               linkTo="/encargado"
               name={headerBusinessName}
@@ -93,10 +94,10 @@ export function EncargadoShell() {
                 end={item.end}
                 className={({ isActive }) =>
                   cn(
-                    "flex items-center gap-2 rounded-none border-2 px-3 py-2 font-mono text-xs font-bold uppercase tracking-wide transition-all duration-150",
+                    "flex min-h-9 items-center gap-2 rounded-none border-2 px-2.5 py-1.5 font-mono text-xs font-bold uppercase tracking-wide transition-all duration-150",
                     isActive
-                      ? "border-[var(--lp-ink)] bg-[var(--lp-gold)] text-[#16262e] shadow-[2px_2px_0_var(--lp-ink)]"
-                      : "border-transparent text-[var(--lp-ink-soft)] hover:border-[var(--lp-ink)] hover:bg-card hover:text-foreground hover:shadow-[2px_2px_0_var(--lp-ink)]",
+                      ? "border-[var(--lp-ink)] bg-[var(--lp-gold)] text-[#16262e] shadow-[var(--lp-shadow-sm)]"
+                      : "border-transparent text-[var(--lp-ink-soft)] hover:border-[var(--lp-ink)] hover:bg-card hover:text-foreground hover:shadow-[var(--lp-shadow-sm)]",
                   )
                 }
               >
@@ -119,7 +120,7 @@ export function EncargadoShell() {
             <UserMenu compact />
           </div>
         </div>
-        <div className="border-t-2 border-[var(--lp-ink)] px-4 py-2 md:hidden">
+        <div className="border-t-2 border-[var(--lp-ink)] px-4 py-1.5 md:hidden">
           <BusinessSwitcher />
         </div>
       </header>
@@ -129,7 +130,7 @@ export function EncargadoShell() {
         className="min-h-0 flex-1 overflow-y-auto overscroll-contain scroll-pb-28 md:scroll-pb-14"
         id="contenido-principal"
       >
-        <div className="mx-auto w-full max-w-5xl px-4 pb-24 pt-4 sm:px-6 md:py-6 md:pb-14">
+        <div className="mx-auto w-full max-w-[var(--lp-shell-max-w)] px-4 pb-24 pt-3 sm:px-5 md:py-4 md:pb-10">
           <Outlet />
         </div>
       </main>

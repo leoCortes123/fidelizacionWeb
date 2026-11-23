@@ -34,6 +34,7 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { CardSkeleton, EmptyState, ErrorState, ListSkeleton } from "@/components/shared/States";
@@ -98,10 +99,10 @@ export function BusinessDashboardPage() {
               }}
               className="group cursor-pointer rounded-none text-left focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--lp-focus-ring)]"
             >
-              <Card className="h-full border-l-4 border-l-primary transition-colors duration-150 group-hover:bg-[var(--lp-tip-bg)]">
-                <CardContent className="space-y-4 p-4 sm:p-6">
+              <Card className="lp-card-interactive h-full border-l-4 border-l-primary">
+                <CardContent className="space-y-3 p-4">
                   <div className="flex items-center gap-3">
-                    <span className="grid size-11 shrink-0 place-items-center rounded-none bg-primary/10 text-primary">
+                    <span className="grid size-10 shrink-0 place-items-center rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-gold)] text-[#16262e]">
                       <Building2 className="size-5" aria-hidden="true" />
                     </span>
                     <div className="min-w-0">
@@ -111,7 +112,7 @@ export function BusinessDashboardPage() {
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center justify-between border-t border-border/70 pt-3 text-xs font-semibold text-primary">
+                  <div className="flex items-center justify-between border-t-2 border-[var(--lp-ink)] pt-2.5 text-xs font-semibold text-[var(--lp-accent-link)]">
                     <span>Entrar al panel</span>
                     <ArrowRight
                       className="size-4 transition-transform group-hover:translate-x-0.5"
@@ -184,7 +185,7 @@ export function BusinessDashboardPage() {
     !program.isLoading && !program.isError && Boolean(program.data && !program.data.is_active);
 
   return (
-    <div className="space-y-4 sm:space-y-5 animate-fade-in">
+    <div className="space-y-3.5 sm:space-y-4 animate-fade-in">
       <PageHeader
         kicker="PANEL OPERATIVO · ADMINISTRADOR"
         title="Inicio"
@@ -216,15 +217,15 @@ export function BusinessDashboardPage() {
       />
 
       {/* Hero Operativo */}
-      <Card className="relative overflow-hidden border-[3px] border-[var(--lp-ink)] bg-[var(--lp-surface-elevated-deep)] text-[var(--lp-surface-elevated-text)] shadow-[6px_6px_0_var(--lp-blue)]">
-        <CardContent className="relative flex flex-col justify-between gap-4 p-4 sm:flex-row sm:items-center sm:gap-5 sm:p-6">
-          <div className="space-y-2.5">
+      <Card className="relative overflow-hidden border-[3px] border-[var(--lp-ink)] bg-[var(--lp-surface-elevated-deep)] text-[var(--lp-surface-elevated-text)] shadow-[5px_5px_0_var(--lp-blue)]">
+        <CardContent className="relative flex flex-col justify-between gap-3 p-3.5 sm:flex-row sm:items-center sm:gap-4 sm:p-4">
+          <div className="space-y-1.5">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-gold)] px-2.5 py-0.5 font-mono text-[11px] font-bold uppercase tracking-wider text-[#16262e] shadow-[2px_2px_0_var(--lp-ink)]">
+              <span className="inline-flex items-center gap-1.5 rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-gold)] px-2 py-0.5 font-mono text-[11px] font-bold uppercase tracking-wider text-[#16262e] shadow-[var(--lp-shadow-sm)]">
                 <QrCode className="size-3" aria-hidden="true" />
                 Modo caja rápida
               </span>
-              <span className="rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-surface-elevated)] px-2.5 py-0.5 font-mono text-xs font-semibold text-[var(--lp-gold)]">
+              <span className="rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-surface-elevated)] px-2 py-0.5 font-mono text-xs font-semibold text-[var(--lp-gold)]">
                 {program.isLoading
                   ? "Verificando programa…"
                   : programUnconfigured
@@ -234,14 +235,14 @@ export function BusinessDashboardPage() {
                       : "Programa inactivo"}
               </span>
             </div>
-            <h2 className="font-display text-xl font-extrabold tracking-tight text-[var(--lp-surface-elevated-text)] [text-shadow:2px_2px_0_#16262e] sm:text-2xl">
+            <h2 className="font-display text-lg font-extrabold tracking-tight text-[var(--lp-surface-elevated-text)] [text-shadow:2px_2px_0_#16262e] sm:text-xl">
               Acredita monedas en segundos o aprueba canjes en mostrador
             </h2>
-            <p className="max-w-2xl text-sm text-[var(--lp-surface-elevated-soft)]">
+            <p className="max-w-2xl text-xs leading-snug text-[var(--lp-surface-elevated-soft)] sm:text-sm">
               Genera un QR único por venta para que el cliente reclame sus monedas desde el celular.
             </p>
           </div>
-          <div className="flex shrink-0 flex-wrap gap-2.5">
+          <div className="flex shrink-0 flex-wrap gap-2">
             <Button variant="secondary" asChild>
               <Link to="/admin/purchases/new">
                 <QrCode aria-hidden="true" />
@@ -251,7 +252,7 @@ export function BusinessDashboardPage() {
             <Button
               variant="outline"
               asChild
-              className="border-[var(--lp-ink)] bg-[var(--lp-surface-elevated)] text-[var(--lp-surface-elevated-text)] hover:bg-[var(--lp-tab-hover-bg)] hover:text-[var(--lp-gold)]"
+              className="border-[var(--lp-ink)] bg-[var(--lp-surface-elevated)] text-[var(--lp-surface-elevated-text)] hover:bg-[var(--lp-gold)] hover:text-[var(--lp-ink)]"
             >
               <Link to="/admin/redemptions">
                 <TicketCheck aria-hidden="true" />
@@ -269,11 +270,11 @@ export function BusinessDashboardPage() {
 
       {/* Tier 1: KPIs operativos principales */}
       {summary.isLoading ? (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
-          <CardSkeleton className="h-32" />
-          <CardSkeleton className="h-32" />
-          <CardSkeleton className="h-32" />
-          <CardSkeleton className="h-32" />
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <CardSkeleton className="h-28" />
+          <CardSkeleton className="h-28" />
+          <CardSkeleton className="h-28" />
+          <CardSkeleton className="h-28" />
         </div>
       ) : summary.isError || !data ? (
         <ErrorState
@@ -282,7 +283,7 @@ export function BusinessDashboardPage() {
         />
       ) : (
         <>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <KpiCard
               icon={ReceiptText}
               label="Ventas de hoy"
@@ -306,30 +307,30 @@ export function BusinessDashboardPage() {
               actionHref={data.pending_redemptions > 0 ? "/admin/redemptions" : undefined}
               actionLabel={data.pending_redemptions > 0 ? "Atender canjes" : undefined}
             />
-            <Card className="relative min-w-0 overflow-hidden border-t-4 border-t-primary">
-              <CardContent className="space-y-2 p-3.5 sm:space-y-2.5 sm:p-5">
+            <Card className="relative min-w-0 overflow-hidden border-t-4 border-t-[var(--lp-blue)]">
+              <CardContent className="space-y-1.5 p-3 sm:p-3.5">
                 <div className="flex items-start justify-between gap-2">
-                  <p className="min-w-0 text-[11px] font-semibold uppercase leading-snug tracking-wider text-muted-foreground sm:text-xs">
+                  <p className="min-w-0 font-mono text-[11px] font-bold uppercase leading-snug tracking-wider text-muted-foreground">
                     Clientes frecuentes
                   </p>
-                  <span className="grid size-7 shrink-0 place-items-center rounded-none bg-primary/10 text-primary sm:size-8">
-                    <Users className="size-3.5 sm:size-4" aria-hidden="true" />
+                  <span className="grid size-7 shrink-0 place-items-center rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-info-bg)] text-[var(--lp-accent-link)]">
+                    <Users className="size-3.5" aria-hidden="true" />
                   </span>
                 </div>
-                <p className="truncate font-display text-lg font-extrabold tabular-nums leading-tight tracking-tight min-[400px]:text-xl sm:text-3xl">
+                <p className="truncate font-display text-lg font-extrabold tabular-nums leading-tight tracking-tight min-[400px]:text-xl sm:text-2xl">
                   {formatNumber(data.frequent_customers)}
                 </p>
-                <div className="space-y-1.5">
+                <div className="space-y-1">
                   <p className="truncate text-xs text-muted-foreground">
                     {formatNumber(data.active_customers)} activos de{" "}
                     {formatNumber(data.customers_total)}
                   </p>
                   <div
                     aria-hidden="true"
-                    className="h-1.5 w-full overflow-hidden rounded-full bg-muted"
+                    className="h-2 w-full overflow-hidden rounded-none border border-[var(--lp-ink)] bg-[var(--lp-paper-deep)]"
                   >
                     <div
-                      className="h-full rounded-full bg-primary transition-[width] duration-500"
+                      className="h-full rounded-none bg-[var(--lp-blue)] transition-[width] duration-500"
                       style={{ width: `${activeCustomerRatio}%` }}
                     />
                   </div>
@@ -339,26 +340,29 @@ export function BusinessDashboardPage() {
           </div>
 
           {/* Tier 2: Bento asimétrico de economía, actividad e invitación */}
-          <div className="grid gap-4 sm:gap-5 lg:grid-cols-12">
-            <div className="space-y-4 sm:space-y-5 lg:col-span-7">
+          <div className="grid gap-3.5 sm:gap-4 lg:grid-cols-12">
+            <div className="space-y-3.5 sm:space-y-4 lg:col-span-7">
               {/* Economía y telemetría de monedas */}
               <Card>
-                <CardHeader className="pb-3">
+                <CardHeader className="pb-2.5">
                   <CardTitle className="flex items-center gap-2 text-base">
-                    <Coins className="size-4 text-primary" aria-hidden="true" />
+                    <Coins className="size-4 text-[var(--lp-accent-link)]" aria-hidden="true" />
                     Economía de monedas
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4 sm:space-y-5">
-                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                    <div className="rounded-none border border-border/80 bg-muted/25 p-3.5">
+                <CardContent className="space-y-3">
+                  <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
+                    <div className="lp-subpanel">
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-xs font-medium text-muted-foreground">
                           Monedas en circulación
                         </span>
-                        <Coins className="size-3.5 text-primary" aria-hidden="true" />
+                        <Coins
+                          className="size-3.5 text-[var(--lp-accent-link)]"
+                          aria-hidden="true"
+                        />
                       </div>
-                      <p className="mt-1.5 font-display text-xl font-extrabold tabular-nums">
+                      <p className="mt-1 font-display text-xl font-extrabold tabular-nums">
                         {formatNumber(data.points_outstanding)}
                       </p>
                       <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
@@ -366,17 +370,14 @@ export function BusinessDashboardPage() {
                       </p>
                     </div>
 
-                    <div className="rounded-none border border-border/80 bg-muted/25 p-3.5">
+                    <div className="lp-subpanel">
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-xs font-medium text-muted-foreground">
                           Monedas canjeadas
                         </span>
-                        <Gift
-                          className="size-3.5 text-emerald-700 dark:text-emerald-300"
-                          aria-hidden="true"
-                        />
+                        <Gift className="size-3.5 text-[var(--lp-green-text)]" aria-hidden="true" />
                       </div>
-                      <p className="mt-1.5 font-display text-xl font-extrabold tabular-nums">
+                      <p className="mt-1 font-display text-xl font-extrabold tabular-nums">
                         {formatNumber(data.points_redeemed_total)}
                       </p>
                       <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
@@ -386,14 +387,14 @@ export function BusinessDashboardPage() {
                       </p>
                     </div>
 
-                    <div className="rounded-none border border-border/80 bg-muted/25 p-3.5">
+                    <div className="lp-subpanel">
                       <div className="flex items-center justify-between gap-2">
                         <span className="text-xs font-medium text-muted-foreground">
                           QR de venta pendientes
                         </span>
                         <QrCode className="size-3.5 text-[var(--lp-gold-ink)]" aria-hidden="true" />
                       </div>
-                      <p className="mt-1.5 font-display text-xl font-extrabold tabular-nums">
+                      <p className="mt-1 font-display text-xl font-extrabold tabular-nums">
                         {formatNumber(data.pending_qr_count)}
                       </p>
                       <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
@@ -403,10 +404,13 @@ export function BusinessDashboardPage() {
                   </div>
 
                   {/* Medidor de presupuesto */}
-                  <div className="space-y-2 rounded-none border border-border/80 bg-muted/20 p-3.5 sm:p-4">
+                  <div className="lp-subpanel space-y-2">
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                        <Wallet className="size-3.5 text-primary" aria-hidden="true" />
+                      <span className="flex items-center gap-2 font-mono text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                        <Wallet
+                          className="size-3.5 text-[var(--lp-accent-link)]"
+                          aria-hidden="true"
+                        />
                         Presupuesto comprometido
                       </span>
                       <span className="font-mono text-sm font-bold tabular-nums text-foreground">
@@ -422,7 +426,7 @@ export function BusinessDashboardPage() {
                       <span>Del presupuesto mensual</span>
                       <Link
                         to="/admin/perfil?tab=economico"
-                        className="font-semibold text-primary hover:underline"
+                        className="font-semibold text-[var(--lp-accent-link)] hover:underline"
                       >
                         Ver detalle económico →
                       </Link>
@@ -433,9 +437,9 @@ export function BusinessDashboardPage() {
 
               {/* Actividad reciente */}
               <Card>
-                <CardHeader className="flex-row items-center justify-between space-y-0 pb-3">
+                <CardHeader className="flex-row items-center justify-between space-y-0 pb-2.5">
                   <CardTitle className="flex items-center gap-2 text-base">
-                    <Sparkles className="size-4 text-primary" aria-hidden="true" />
+                    <Sparkles className="size-4 text-[var(--lp-accent-link)]" aria-hidden="true" />
                     Actividad reciente
                   </CardTitle>
                   <Button variant="ghost" size="sm" asChild>
@@ -451,11 +455,11 @@ export function BusinessDashboardPage() {
                   ) : activity.isError ? (
                     <ErrorState error={activity.error} onRetry={() => void activity.refetch()} />
                   ) : !activity.data || activity.data.length === 0 ? (
-                    <div className="rounded-none border border-dashed border-border bg-muted/20 p-5 text-center sm:p-6">
+                    <div className="rounded-none border-2 border-dashed border-[var(--lp-ink)] bg-[var(--lp-paper-deep)] p-4 text-center">
                       <p className="text-sm text-muted-foreground">
                         Aún no hay compras ni canjes. Genera el primer QR de venta.
                       </p>
-                      <Button asChild size="sm" variant="outline" className="mt-3">
+                      <Button asChild size="sm" variant="outline" className="mt-2.5">
                         <Link to="/admin/purchases/new">
                           <QrCode aria-hidden="true" />
                           Registrar primera venta
@@ -463,18 +467,18 @@ export function BusinessDashboardPage() {
                       </Button>
                     </div>
                   ) : (
-                    <ul className="divide-y divide-border/70">
+                    <ul className="divide-y-2 divide-[var(--lp-paper-deep)]">
                       {activity.data.map((item) => (
                         <li
                           key={`${item.kind}-${item.id}`}
-                          className="flex items-start gap-3.5 py-3.5 first:pt-1 last:pb-1"
+                          className="flex items-start gap-3 py-2.5 first:pt-0.5 last:pb-0.5"
                         >
                           <span
                             className={cn(
-                              "grid size-9 shrink-0 place-items-center rounded-none",
+                              "grid size-8 shrink-0 place-items-center rounded-none border-2 border-[var(--lp-ink)]",
                               item.kind === "purchase"
-                                ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"
-                                : "bg-primary/10 text-primary",
+                                ? "bg-[var(--lp-success-bg)] text-[var(--lp-success-text)]"
+                                : "bg-[var(--lp-info-bg)] text-[var(--lp-accent-link)]",
                             )}
                           >
                             {item.kind === "purchase" ? (
@@ -505,9 +509,9 @@ export function BusinessDashboardPage() {
             </div>
 
             {/* Columna derecha: Invitar clientes + Accesos rápidos */}
-            <div className="space-y-4 sm:space-y-5 lg:col-span-5">
+            <div className="space-y-3.5 sm:space-y-4 lg:col-span-5">
               <Card>
-                <CardContent className="p-4 sm:p-5">
+                <CardContent className="p-[var(--lp-pad-card)]">
                   <details
                     open={showInvite}
                     onToggle={(event) =>
@@ -515,14 +519,14 @@ export function BusinessDashboardPage() {
                     }
                     className="group"
                   >
-                    <summary className="flex cursor-pointer list-none items-center justify-between gap-2 rounded-none px-1 py-1">
-                      <span className="flex items-center gap-2.5 text-base font-bold">
-                        <span className="grid size-8 place-items-center rounded-none bg-primary/10 text-primary">
+                    <summary className="flex cursor-pointer list-none items-center justify-between gap-2 rounded-none px-0.5 py-0.5">
+                      <span className="flex items-center gap-2 text-base font-bold">
+                        <span className="grid size-8 place-items-center rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-gold)] text-[#16262e]">
                           <UserPlus className="size-4" aria-hidden="true" />
                         </span>
                         Invitar clientes
                       </span>
-                      <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2.5 py-1 text-xs font-semibold text-muted-foreground">
+                      <span className="inline-flex items-center gap-1 rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-paper-deep)] px-2 py-0.5 font-mono text-xs font-bold uppercase text-foreground shadow-[var(--lp-shadow-sm)]">
                         <span className="group-open:hidden">Mostrar QR</span>
                         <span className="hidden group-open:inline">Ocultar</span>
                         <ChevronDown
@@ -531,17 +535,17 @@ export function BusinessDashboardPage() {
                         />
                       </span>
                     </summary>
-                    <div className="space-y-4 pt-4">
-                      <p className="text-sm leading-relaxed text-muted-foreground">
+                    <div className="space-y-3 pt-3">
+                      <p className="text-sm leading-snug text-muted-foreground">
                         Comparte este enlace o QR. Quien lo abra podrá afiliarse a{" "}
                         <strong>{current.name}</strong> y empezar a acumular.
                       </p>
                       <div className="flex gap-2">
-                        <input
+                        <Input
                           readOnly
                           value={joinUrl}
                           aria-label="Enlace de invitación"
-                          className="h-10 min-w-0 flex-1 rounded-none border-2 border-input bg-card px-2.5 py-1 font-mono text-base text-foreground shadow-[2px_2px_0_var(--lp-ink)] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--lp-focus-ring)] dark:bg-[var(--lp-paper-deep)] sm:text-xs"
+                          className="min-w-0 flex-1 font-mono text-base sm:text-xs"
                           onFocus={(event) => event.currentTarget.select()}
                         />
                         <Button
@@ -551,20 +555,17 @@ export function BusinessDashboardPage() {
                           onClick={handleCopyInvite}
                         >
                           {copiedInvite ? (
-                            <Check
-                              className="text-emerald-700 dark:text-emerald-300"
-                              aria-hidden="true"
-                            />
+                            <Check className="text-[var(--lp-green-text)]" aria-hidden="true" />
                           ) : (
                             <Copy aria-hidden="true" />
                           )}
                           {copiedInvite ? "Copiado" : "Copiar"}
                         </Button>
                       </div>
-                      <div className="mx-auto w-fit rounded-none border-2 border-[var(--lp-ink)] bg-white p-3.5 shadow-[4px_4px_0_var(--lp-ink)]">
+                      <div className="mx-auto w-fit rounded-none border-2 border-[var(--lp-ink)] bg-white p-3 shadow-[var(--lp-shadow-lg)]">
                         <QRCodeCanvas
                           value={joinUrl}
-                          size={168}
+                          size={160}
                           marginSize={2}
                           level="M"
                           aria-label="QR de invitación al negocio"
@@ -576,14 +577,14 @@ export function BusinessDashboardPage() {
               </Card>
 
               <Card>
-                <CardHeader className="pb-3">
+                <CardHeader className="pb-2.5">
                   <CardTitle className="flex items-center gap-2 text-base">
-                    <QrCode className="size-4 text-primary" aria-hidden="true" />
+                    <QrCode className="size-4 text-[var(--lp-accent-link)]" aria-hidden="true" />
                     Accesos rápidos
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center justify-between gap-3 rounded-none border border-border/80 bg-muted/30 px-3 py-2 text-sm sm:px-3.5 sm:py-2.5">
+                <CardContent className="space-y-2.5">
+                  <div className="lp-subpanel flex items-center justify-between gap-3 py-2 text-sm">
                     <span className="font-semibold">Estado del programa</span>
                     <Badge
                       variant={
@@ -612,7 +613,7 @@ export function BusinessDashboardPage() {
                     </Link>
                   </Button>
 
-                  <div className="grid grid-cols-2 gap-2.5 pt-1">
+                  <div className="grid grid-cols-2 gap-2.5 pt-0.5">
                     <QuickTile
                       to="/admin/perfil?tab=programa"
                       icon={Settings2}
@@ -667,23 +668,23 @@ function KpiCard({
 }) {
   const accentStyles = {
     blue: {
-      border: "border-t-primary",
-      iconWrap: "bg-primary/10 text-primary",
+      border: "border-t-[var(--lp-blue)]",
+      iconWrap: "bg-[var(--lp-info-bg)] text-[var(--lp-accent-link)]",
       cardBg: "",
     },
     emerald: {
-      border: "border-t-emerald-500",
-      iconWrap: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300",
+      border: "border-t-[var(--lp-green-cta)]",
+      iconWrap: "bg-[var(--lp-success-bg)] text-[var(--lp-success-text)]",
       cardBg: "",
     },
     warning: {
-      border: "border-t-amber-500",
-      iconWrap: "bg-amber-100 text-amber-800 dark:bg-amber-950/70 dark:text-amber-300",
-      cardBg: "bg-amber-50/40 dark:bg-amber-950/15",
+      border: "border-t-[var(--lp-gold-dark)]",
+      iconWrap: "bg-[var(--lp-gold)] text-[#16262e]",
+      cardBg: "bg-[var(--lp-tip-bg)]",
     },
     slate: {
-      border: "border-t-muted-foreground/40",
-      iconWrap: "bg-muted text-muted-foreground",
+      border: "border-t-[var(--lp-ink-soft)]",
+      iconWrap: "bg-[var(--lp-paper-deep)] text-muted-foreground",
       cardBg: "",
     },
   }[accent];
@@ -692,21 +693,21 @@ function KpiCard({
     <Card
       className={cn("min-w-0 overflow-hidden border-t-4", accentStyles.border, accentStyles.cardBg)}
     >
-      <CardContent className="space-y-2 p-3.5 sm:space-y-2.5 sm:p-5">
+      <CardContent className="space-y-1.5 p-3 sm:p-3.5">
         <div className="flex items-start justify-between gap-2">
-          <p className="min-w-0 text-[11px] font-semibold uppercase leading-snug tracking-wider text-muted-foreground sm:text-xs">
+          <p className="min-w-0 font-mono text-[11px] font-bold uppercase leading-snug tracking-wider text-muted-foreground">
             {label}
           </p>
           <span
             className={cn(
-              "grid size-7 shrink-0 place-items-center rounded-none sm:size-8",
+              "grid size-7 shrink-0 place-items-center rounded-none border-2 border-[var(--lp-ink)]",
               accentStyles.iconWrap,
             )}
           >
-            <Icon className="size-3.5 sm:size-4" aria-hidden="true" />
+            <Icon className="size-3.5" aria-hidden="true" />
           </span>
         </div>
-        <p className="truncate font-display text-lg font-extrabold tabular-nums leading-tight tracking-tight min-[400px]:text-xl sm:text-3xl">
+        <p className="truncate font-display text-lg font-extrabold tabular-nums leading-tight tracking-tight min-[400px]:text-xl sm:text-2xl">
           {value}
         </p>
         <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
@@ -714,7 +715,7 @@ function KpiCard({
           {accent === "warning" && actionHref && actionLabel && (
             <Link
               to={actionHref}
-              className="inline-flex shrink-0 items-center gap-1 text-xs font-bold text-amber-800 hover:underline dark:text-amber-300"
+              className="inline-flex shrink-0 items-center gap-1 text-xs font-bold text-[var(--lp-tip-strong)] hover:underline"
             >
               <AlertTriangle className="size-3" aria-hidden="true" />
               {actionLabel}
@@ -740,18 +741,18 @@ function QuickTile({
   return (
     <Link
       to={to}
-      className="group flex flex-col gap-1 rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-paper)] p-3.5 shadow-[3px_3px_0_var(--lp-ink)] transition-[transform,box-shadow,background-color] duration-150 hover:translate-x-[1px] hover:translate-y-[1px] hover:bg-[var(--lp-tip-bg)] hover:shadow-[2px_2px_0_var(--lp-ink)] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--lp-focus-ring)] motion-reduce:transition-none motion-reduce:hover:translate-x-0 motion-reduce:hover:translate-y-0"
+      className="group flex flex-col gap-1 rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-paper)] p-3 shadow-[var(--lp-shadow-md)] transition-[transform,box-shadow,background-color] duration-150 hover:translate-x-[1px] hover:translate-y-[1px] hover:bg-[var(--lp-tip-bg)] hover:shadow-[var(--lp-shadow-sm)] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--lp-focus-ring)] motion-reduce:transition-none motion-reduce:hover:translate-x-0 motion-reduce:hover:translate-y-0"
     >
       <div className="flex items-center justify-between gap-2">
-        <span className="grid size-8 place-items-center rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-gold)] text-[#16262e]">
-          <Icon className="size-4" aria-hidden="true" />
+        <span className="grid size-7 place-items-center rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-gold)] text-[#16262e]">
+          <Icon className="size-3.5" aria-hidden="true" />
         </span>
         <ArrowRight
           className="size-3.5 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-foreground"
           aria-hidden="true"
         />
       </div>
-      <span className="mt-1 font-display text-sm font-bold text-foreground">{label}</span>
+      <span className="mt-0.5 font-display text-sm font-bold text-foreground">{label}</span>
       <span className="text-[11px] text-muted-foreground">{hint}</span>
     </Link>
   );

@@ -20,19 +20,17 @@ export function PageHeader({
   return (
     <div
       className={cn(
-        "flex flex-col gap-2.5 px-4 pb-1 sm:flex-row sm:items-end sm:justify-between sm:px-0",
+        "flex flex-col gap-2 px-4 pb-0.5 sm:flex-row sm:items-end sm:justify-between sm:px-0",
         className,
       )}
     >
-      <div className="min-w-0 space-y-2">
+      <div className="min-w-0 space-y-1">
         {kicker && <span className="lp-section-kicker">{kicker}</span>}
-        <Heading className="font-display text-2xl font-extrabold tracking-tight text-foreground [text-shadow:var(--lp-h1-shadow)] sm:text-3xl">
+        <Heading className="font-display text-xl font-extrabold tracking-tight text-foreground [text-shadow:var(--lp-h1-shadow)] sm:text-2xl">
           {title}
         </Heading>
         {description && (
-          <p className="max-w-2xl text-sm leading-relaxed text-[var(--lp-ink-soft)]">
-            {description}
-          </p>
+          <p className="max-w-2xl text-sm leading-snug text-[var(--lp-ink-soft)]">{description}</p>
         )}
       </div>
       {actions && (

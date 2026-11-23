@@ -4,21 +4,22 @@
    ========================================================================== */
 
 .fa-stage {
-  --fa-ink: #16262e;
-  --fa-hud-bg: #233b46;
-  --fa-cream: #fff8e6;
-  --fa-paper: #edf3f5;
-  --fa-paper-deep: #dce7ec;
-  --fa-red: #c23321;
-  --fa-gold: #fad24b;
-  --fa-gold-bright: #fad24b;
-  --fa-green: #169c35;
-  --fa-emerald: #24d04a;
-  --fa-blue: #155bc0;
-  --fa-caption-color: #16262e;
-  --fa-caption-shadow: #fff8e6;
-  --fa-caption-accent: #155bc0;
-  --fa-caption-accent-shadow: #fff8e6;
+  --fa-ink: var(--lp-ink);
+  --fa-hud-bg: var(--lp-surface-elevated-deep);
+  --fa-cream: var(--lp-surface-elevated-text);
+  --fa-paper: var(--lp-stage-paper);
+  --fa-paper-deep: var(--lp-stage-paper-deep);
+  --fa-muted: var(--lp-stage-muted);
+  --fa-red: var(--lp-red-dark);
+  --fa-gold: var(--lp-gold);
+  --fa-gold-bright: var(--lp-gold);
+  --fa-green: var(--lp-green);
+  --fa-emerald: var(--lp-green-badge);
+  --fa-blue: var(--lp-blue);
+  --fa-caption-color: var(--lp-text-main);
+  --fa-caption-shadow: var(--lp-surface-elevated-text);
+  --fa-caption-accent: var(--lp-accent-link);
+  --fa-caption-accent-shadow: var(--lp-surface-elevated-text);
 
   --fa-font-pixel: "Press Start 2P", ui-monospace, monospace;
   --fa-font-mono: "DM Mono", ui-monospace, monospace;
@@ -39,10 +40,10 @@
 }
 
 .dark .fa-stage {
-  --fa-caption-color: #fff8e6;
-  --fa-caption-shadow: #16262e;
-  --fa-caption-accent: #fad24b;
-  --fa-caption-accent-shadow: #16262e;
+  --fa-caption-color: var(--lp-surface-elevated-text);
+  --fa-caption-shadow: var(--lp-ink);
+  --fa-caption-accent: var(--lp-gold);
+  --fa-caption-accent-shadow: var(--lp-ink);
 }
 
 .fa-stage *,
@@ -100,7 +101,7 @@
   justify-content: center;
   min-width: clamp(22px, 5cqi, 28px);
   min-height: clamp(24px, 4.8cqi, 26px);
-  border: 2px solid #000000;
+  border: 2px solid var(--fa-ink);
   background: var(--fa-cream);
   color: var(--fa-ink);
   font-family: var(--fa-font-pixel);
@@ -111,7 +112,7 @@
   box-shadow:
     inset 1.5px 1.5px 0 rgba(255, 255, 255, 0.8),
     inset -1.5px -1.5px 0 rgba(0, 0, 0, 0.18),
-    0 3px 0 #000000;
+    0 3px 0 var(--fa-ink);
   translate: 0px;
   transition:
     translate 0.08s steps(2),
@@ -149,7 +150,7 @@
   border-color: var(--fa-ink);
   box-shadow:
     inset 1.5px 1.5px 0 rgba(255, 255, 255, 0.35),
-    0 3px 0 #000000;
+    0 3px 0 var(--fa-ink);
 }
 
 /* Texto descriptivo pixelado sin contenedor, integrado dentro de cada escena debajo de la barra superior */
@@ -621,7 +622,7 @@
   font-family: var(--fa-font-mono);
   font-size: clamp(7.5px, 1.8cqi, 9.5px);
   font-weight: 700;
-  color: #5c5446;
+  color: var(--fa-muted);
 }
 
 .fa-screen-amount {
@@ -862,7 +863,7 @@
 .fa-screen-kicker {
   font-family: var(--fa-font-pixel);
   font-size: clamp(6.5px, 1.6cqi, 8px);
-  color: #6b6355;
+  color: var(--fa-muted);
   text-align: center;
 }
 
@@ -911,7 +912,7 @@
   font-family: var(--fa-font-mono);
   font-size: clamp(7px, 1.7cqi, 9px);
   font-weight: 700;
-  color: #5c5446;
+  color: var(--fa-muted);
 }
 
 .fa-balance-value {
@@ -992,7 +993,7 @@
 .fa-card-kicker {
   font-family: var(--fa-font-pixel);
   font-size: clamp(6.5px, 1.6cqi, 8px);
-  color: #6b6355;
+  color: var(--fa-muted);
 }
 
 .fa-level-pill {
@@ -1062,7 +1063,7 @@
   font-family: var(--fa-font-mono);
   font-weight: 700;
   font-size: clamp(8.5px, 2.1cqi, 10.5px);
-  color: #5c5446;
+  color: var(--fa-muted);
 }
 
 .fa-m3-bar-pct {
@@ -1189,7 +1190,7 @@
   font-family: var(--fa-font-mono);
   font-size: clamp(8.5px, 2cqi, 10.5px);
   font-weight: 700;
-  color: #5c5446;
+  color: var(--fa-muted);
 }
 
 /* Mini terminal POS del encargado dentro del Momento 4 */

@@ -390,7 +390,7 @@ function EncargadoRedemptionsSection({ business }: { business: Business }) {
                 <div>
                   <CardTitle className="text-base font-bold flex items-center gap-2">
                     <PackageCheck
-                      className="size-4 text-emerald-600 dark:text-emerald-400"
+                      className="size-4 text-[var(--lp-green-text)]"
                       aria-hidden="true"
                     />
                     Aprobadas listas para entrega en mostrador
@@ -479,7 +479,7 @@ function EncargadoRedemptionsSection({ business }: { business: Business }) {
                 </div>
                 <div className="relative w-full sm:w-64">
                   <Search
-                    className="absolute left-2.5 top-2.5 size-4 text-muted-foreground"
+                    className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
                     aria-hidden="true"
                   />
                   <Input
@@ -487,7 +487,7 @@ function EncargadoRedemptionsSection({ business }: { business: Business }) {
                     placeholder="Buscar cliente…"
                     value={customerSearchInput}
                     onChange={(event) => setCustomerSearchInput(event.target.value)}
-                    className="pl-9 h-9"
+                    className="pl-9"
                   />
                 </div>
               </div>
@@ -528,20 +528,20 @@ function EncargadoRedemptionsSection({ business }: { business: Business }) {
                           }}
                           className="group cursor-pointer text-left transition-colors hover:bg-[var(--lp-tip-bg)] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--lp-focus-ring)]"
                         >
-                          <CardContent className="p-4 flex flex-col justify-between h-full space-y-3">
+                          <CardContent className="p-[var(--lp-pad-card)] flex flex-col justify-between h-full space-y-2.5">
                             <div className="space-y-2">
                               <div className="flex items-center justify-between gap-2">
-                                <span className="inline-flex items-center justify-center size-6 rounded-full font-mono text-xs font-extrabold shadow-sm bg-muted text-muted-foreground">
+                                <span className="inline-flex items-center justify-center size-6 rounded-none border-2 border-[var(--lp-ink)] font-mono text-xs font-extrabold shadow-[var(--lp-shadow-sm)] bg-[var(--lp-paper-deep)] text-foreground">
                                   {rank === 1 ? (
-                                    <span className="size-full rounded-full bg-amber-400 text-black flex items-center justify-center font-extrabold">
+                                    <span className="size-full rounded-none bg-[var(--lp-gold)] text-[#16262e] flex items-center justify-center font-extrabold">
                                       1
                                     </span>
                                   ) : rank === 2 ? (
-                                    <span className="size-full rounded-full bg-slate-300 text-black flex items-center justify-center font-extrabold">
+                                    <span className="size-full rounded-none bg-[var(--lp-paper-deep)] text-foreground flex items-center justify-center font-extrabold">
                                       2
                                     </span>
                                   ) : rank === 3 ? (
-                                    <span className="size-full rounded-full bg-amber-700 text-white flex items-center justify-center font-extrabold">
+                                    <span className="size-full rounded-none bg-[var(--lp-gold-dark)] text-[#16262e] flex items-center justify-center font-extrabold">
                                       3
                                     </span>
                                   ) : (
@@ -588,7 +588,7 @@ function EncargadoRedemptionsSection({ business }: { business: Business }) {
                               </div>
                             </div>
 
-                            <div className="border-t border-border/70 pt-2.5 flex items-center justify-between text-xs text-muted-foreground">
+                            <div className="border-t-2 border-[var(--lp-ink)] pt-2 flex items-center justify-between text-xs text-muted-foreground">
                               <span>
                                 {customer.purchase_count} compra(s) ·{" "}
                                 {formatCOP(customer.total_spent)}

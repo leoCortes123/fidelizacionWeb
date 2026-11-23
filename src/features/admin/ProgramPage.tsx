@@ -119,7 +119,13 @@ function fromProgram(program: LoyaltyProgram): FormState {
   };
 }
 
-export function ProgramPage({ headingAs = "h1" }: { headingAs?: "h1" | "h2" }) {
+export function ProgramPage({
+  headingAs = "h1",
+  embedded = false,
+}: {
+  headingAs?: "h1" | "h2";
+  embedded?: boolean;
+}) {
   return (
     <BusinessGate
       headingAs={headingAs}
@@ -128,12 +134,27 @@ export function ProgramPage({ headingAs = "h1" }: { headingAs?: "h1" | "h2" }) {
       icon={Settings2}
       emptyDescription="Registra un negocio para configurar su programa de monedas."
     >
-      {(business) => <ProgramSection key={business.id} business={business} headingAs={headingAs} />}
+      {(business) => (
+        <ProgramSection
+          key={business.id}
+          business={business}
+          headingAs={headingAs}
+          embedded={embedded}
+        />
+      )}
     </BusinessGate>
   );
 }
 
-function ProgramSection({ business, headingAs }: { business: Business; headingAs: "h1" | "h2" }) {
+function ProgramSection({
+  business,
+  headingAs,
+  embedded,
+}: {
+  business: Business;
+  headingAs: "h1" | "h2";
+  embedded: boolean;
+}) {
   const program = useLoyaltyProgram(business.id);
   const economic = useBusinessEconomicProfile(business.id);
 
@@ -151,6 +172,7 @@ function ProgramSection({ business, headingAs }: { business: Business; headingAs
       economicError={economic.isError ? economic.error : null}
       onRetryEconomic={() => void economic.refetch()}
       headingAs={headingAs}
+      embedded={embedded}
     />
   );
 }
@@ -162,6 +184,7 @@ function ProgramForm({
   economicError,
   onRetryEconomic,
   headingAs,
+  embedded,
 }: {
   business: Business;
   program: LoyaltyProgram;
@@ -169,6 +192,7 @@ function ProgramForm({
   economicError: unknown;
   onRetryEconomic: () => void;
   headingAs: "h1" | "h2";
+  embedded: boolean;
 }) {
   const configureProgram = useConfigureLoyaltyProgram();
   const expirePoints = useExpirePointsDue();
@@ -326,32 +350,46 @@ function ProgramForm({
   }
 
   return (
-    <div className="space-y-4 sm:space-y-5 animate-fade-in">
-      <PageHeader
-        as={headingAs}
-        title="Programa de monedas"
-        description="Configura cuántas monedas acumulan tus clientes por cada compra, cuánto valen al canjearlas y qué parte de tus ventas destinas a premios."
-        actions={
+    <div className="space-y-3.5 animate-fade-in">
+      {embedded ? (
+        <div className="flex flex-wrap items-center justify-between gap-2 px-4 sm:px-0">
+          <h2 className="font-display text-lg font-extrabold tracking-tight text-foreground">
+            Programa de monedas
+          </h2>
           <div className="flex flex-wrap items-center gap-2">
             {draft.hasDraft && <Badge variant="muted">Borrador guardado</Badge>}
             <Badge variant={form.isActive ? "success" : "muted"}>
               {form.isActive ? "Programa activo" : "Programa inactivo"}
             </Badge>
           </div>
-        }
-      />
+        </div>
+      ) : (
+        <PageHeader
+          as={headingAs}
+          title="Programa de monedas"
+          description="Configura cuántas monedas acumulan tus clientes por cada compra, cuánto valen al canjearlas y qué parte de tus ventas destinas a premios."
+          actions={
+            <div className="flex flex-wrap items-center gap-2">
+              {draft.hasDraft && <Badge variant="muted">Borrador guardado</Badge>}
+              <Badge variant={form.isActive ? "success" : "muted"}>
+                {form.isActive ? "Programa activo" : "Programa inactivo"}
+              </Badge>
+            </div>
+          }
+        />
+      )}
 
       {unconfigured && (
-        <div className="lp-tip-box flex items-start gap-3 rounded-none p-4 text-sm">
+        <div className="lp-tip-box flex items-start gap-2.5 rounded-none p-3 text-sm">
           <AlertTriangle
-            className="mt-0.5 size-5 shrink-0 text-[var(--lp-tip-strong)]"
+            className="mt-0.5 size-4 shrink-0 text-[var(--lp-tip-strong)]"
             aria-hidden="true"
           />
           <div>
             <p className="font-semibold text-[var(--lp-tip-strong)]">
               El programa aún no está configurado
             </p>
-            <p className="text-[var(--lp-ink-soft)]">
+            <p className="text-xs text-[var(--lp-ink-soft)]">
               Hemos cargado valores sugeridos. Revísalos, guárdalos y activa el programa para que
               tus clientes puedan acumular y canjear monedas.
             </p>
@@ -360,9 +398,9 @@ function ProgramForm({
       )}
 
       {configured && !program.is_active && (
-        <div className="flex items-start gap-3 rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-paper-deep)] p-4 text-sm">
-          <Info className="mt-0.5 size-5 shrink-0 text-muted-foreground" aria-hidden="true" />
-          <p className="text-muted-foreground">
+        <div className="lp-subpanel flex items-start gap-2.5 text-sm">
+          <Info className="mt-0.5 size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+          <p className="text-xs text-muted-foreground">
             El programa está configurado pero <strong>inactivo</strong>. Los clientes no podrán
             acumular ni solicitar recompensas hasta que lo actives.
           </p>
@@ -370,7 +408,7 @@ function ProgramForm({
       )}
 
       {economicError != null && (
-        <div className="lp-tip-box flex flex-wrap items-center justify-between gap-3 rounded-none p-3.5 text-xs">
+        <div className="lp-tip-box flex flex-wrap items-center justify-between gap-2.5 rounded-none p-3 text-xs">
           <div className="flex items-start gap-2">
             <AlertTriangle
               className="mt-0.5 size-4 shrink-0 text-[var(--lp-tip-strong)]"
@@ -387,26 +425,26 @@ function ProgramForm({
         </div>
       )}
 
-      <div className="grid gap-4 sm:gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
-              <Settings2 className="size-4 text-muted-foreground" aria-hidden="true" />
+              <Settings2 className="size-4 text-[var(--lp-accent-link)]" aria-hidden="true" />
               Reglas de acumulación y canje
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5" noValidate>
-              <div className="grid gap-4 sm:grid-cols-2">
+            <form onSubmit={handleSubmit} className="space-y-3.5" noValidate>
+              <div className="grid gap-3 sm:grid-cols-2">
                 <Field
                   id="cop-per-point"
                   label="COP por moneda ganada"
                   hint={
                     Number.isInteger(copPerPoint) && copPerPoint > 0
-                      ? `¿Cuánto debe comprar un cliente para sumar 1 moneda? Ahora mismo gana 1 moneda por cada ${formatCOP(copPerPoint)} elegibles.`
-                      : "¿Cuánto debe comprar un cliente para sumar 1 moneda? Ejemplo: con 1.000, una compra de $50.000 genera 50 monedas."
+                      ? `1 moneda / ${formatCOP(copPerPoint)} elegibles`
+                      : "Ej. 1.000 COP por 1 moneda"
                   }
-                  help="Mientras más bajo sea este valor, más rápido acumulan monedas tus clientes en caja."
+                  help="¿Cuánto debe comprar un cliente para sumar 1 moneda? Mientras más bajo sea este valor, más rápido acumulan monedas tus clientes en caja."
                   error={errors.copPerPointUnit}
                 >
                   <Input
@@ -417,14 +455,14 @@ function ProgramForm({
                     aria-invalid={Boolean(errors.copPerPointUnit)}
                   />
                 </Field>
-                <div className="space-y-1.5">
+                <div className="space-y-1">
                   <Field
                     id="points-per-cop"
                     label="Monedas que equivalen a $1.000"
                     hint={
                       validNumbers
-                        ? `Con ${formatNumber(pointsPerThousand)} monedas para $1.000, cada moneda equivale a ${formatPointValueCOP(pointValueCop)} al canjear.`
-                        : "Cantidad de monedas necesarias para cubrir $1.000 en premios."
+                        ? `1 moneda = ${formatPointValueCOP(pointValueCop)} al canjear`
+                        : "Monedas necesarias para cubrir $1.000"
                     }
                     help="Define cuánto vale cada moneda al canjear. Puedes ajustarlo manualmente o calcularlo según tu tasa de presupuesto."
                     error={errors.pointsPerCopUnit}
@@ -444,7 +482,7 @@ function ProgramForm({
                         onClick={() =>
                           update("pointsPerCopUnit", String(recommendedPointsPerThousand))
                         }
-                        className="cursor-pointer text-left text-xs font-semibold text-primary underline-offset-2 hover:underline"
+                        className="cursor-pointer text-left text-xs font-semibold text-[var(--lp-accent-link)] underline-offset-2 hover:underline"
                       >
                         Calcular según tasa de presupuesto (
                         {formatNumber(recommendedPointsPerThousand)} monedas)
@@ -454,8 +492,7 @@ function ProgramForm({
                 <Field
                   id="points-expiry-days"
                   label="Vencimiento de monedas (días)"
-                  hint="Plazo en días antes de que caduquen las monedas desde la compra que las generó (ej. 365 días = 1 año)."
-                  help="Incentiva visitas frecuentes. Cada compra crea un lote con su fecha; al vencer se descuentan primero los más antiguos."
+                  help="Plazo en días antes de que caduquen las monedas desde la compra que las generó (ej. 365 días = 1 año). Cada compra crea un lote con su fecha; al vencer se descuentan primero los más antiguos."
                   error={errors.pointsExpiryDays}
                 >
                   <Input
@@ -466,16 +503,16 @@ function ProgramForm({
                     aria-invalid={Boolean(errors.pointsExpiryDays)}
                   />
                 </Field>
-                <div className="space-y-1.5">
+                <div className="space-y-1">
                   <Field
                     id="budget-rate"
                     label="Tasa de presupuesto (%)"
                     hint={
                       referenceBudget !== null
-                        ? `Porcentaje de tus ventas mensuales destinado a recompensas (recomendado: 1 % a 5 %). Equivale a ≈ ${formatCOP(referenceBudget)}/mes sobre tus ventas estimadas.`
-                        : "Porcentaje de tus ventas mensuales destinado a recompensas (recomendado: 1 % a 5 %)."
+                        ? `≈ ${formatCOP(referenceBudget)}/mes (recomendado: 1–5 %)`
+                        : "Recomendado: 1 % a 5 % de ventas"
                     }
-                    help="Es una referencia financiera para alertarte si el costo de tus premios supera lo planeado."
+                    help="Porcentaje de tus ventas mensuales destinado a recompensas. Es una referencia financiera para alertarte si el costo de tus premios supera lo planeado."
                     error={errors.budgetRatePercent}
                   >
                     <Input
@@ -492,7 +529,7 @@ function ProgramForm({
                         <button
                           type="button"
                           onClick={() => update("budgetRatePercent", String(suggestedRateFromCap))}
-                          className="cursor-pointer text-left text-xs font-semibold text-primary underline-offset-2 hover:underline"
+                          className="cursor-pointer text-left text-xs font-semibold text-[var(--lp-accent-link)] underline-offset-2 hover:underline"
                         >
                           Ajustar al tope mensual ({suggestedRateFromCap} %)
                         </button>
@@ -509,7 +546,7 @@ function ProgramForm({
                           onClick={() =>
                             update("budgetRatePercent", String(estimatedCostRateRounded))
                           }
-                          className="cursor-pointer text-left text-xs font-semibold text-primary underline-offset-2 hover:underline"
+                          className="cursor-pointer text-left text-xs font-semibold text-[var(--lp-accent-link)] underline-offset-2 hover:underline"
                         >
                           Igualar al costo de canje ({estimatedCostRateRounded} %)
                         </button>
@@ -519,8 +556,7 @@ function ProgramForm({
                 <Field
                   id="qr-expiry-hours"
                   label="Vigencia del QR (horas)"
-                  hint="Tiempo máximo durante el cual el código QR de un canje o validación sigue vigente (ej. 24 horas)."
-                  help="Si el QR vence antes de validarse, el cliente puede reemitirlo desde Mis canjes mientras la solicitud siga pendiente."
+                  help="Tiempo máximo durante el cual el código QR de un canje o validación sigue vigente (ej. 24 horas). Si vence antes de validarse, el cliente puede reemitirlo desde Mis canjes."
                   error={errors.qrExpiryHours}
                 >
                   <Input
@@ -534,13 +570,16 @@ function ProgramForm({
               </div>
 
               {examplePurchasePoints !== null && (
-                <div className="space-y-1.5 rounded-none border border-primary/20 bg-primary/5 px-3.5 py-2.5 text-sm sm:px-4 sm:py-3">
+                <div className="lp-subpanel space-y-1 text-sm">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <span className="flex items-center gap-2 font-medium text-foreground">
-                      <Calculator className="size-4 shrink-0 text-primary" aria-hidden="true" />
+                    <span className="flex items-center gap-2 font-semibold text-foreground">
+                      <Calculator
+                        className="size-4 shrink-0 text-[var(--lp-accent-link)]"
+                        aria-hidden="true"
+                      />
                       Simulación rápida en caja
                     </span>
-                    <span className="font-mono text-xs font-bold text-primary">
+                    <span className="font-mono text-xs font-bold text-[var(--lp-accent-link)]">
                       Compra de {formatCOP(50000)} = {formatNumber(examplePurchasePoints)} monedas
                       {validNumbers &&
                         examplePurchaseCostCop !== null &&
@@ -556,9 +595,9 @@ function ProgramForm({
                 </div>
               )}
 
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 <h3 className="text-sm font-semibold">Bonos en monedas</h3>
-                <div className="grid gap-4 sm:grid-cols-3">
+                <div className="grid gap-3 sm:grid-cols-3">
                   <Field
                     id="first-purchase-bonus"
                     label="Primera compra"
@@ -601,14 +640,14 @@ function ProgramForm({
                 </p>
               </div>
 
-              <label className="flex items-start gap-3 rounded-none border p-3.5 sm:p-4">
+              <label className="lp-subpanel flex cursor-pointer items-start gap-3">
                 <input
                   type="checkbox"
                   checked={form.isActive}
                   onChange={(event) => update("isActive", event.target.checked)}
-                  className="mt-0.5 size-4 cursor-pointer rounded-none border-input accent-primary"
+                  className="mt-0.5 size-4 cursor-pointer rounded-none border-input accent-[var(--lp-accent-control)]"
                 />
-                <span className="space-y-1">
+                <span className="space-y-0.5">
                   <span className="block text-sm font-semibold">Programa activo</span>
                   <span className="block text-xs text-muted-foreground">
                     Al activarlo, tus clientes afiliados podrán acumular monedas en cada compra y
@@ -617,7 +656,7 @@ function ProgramForm({
                 </span>
               </label>
 
-              <div className="flex flex-wrap justify-between gap-3">
+              <div className="flex flex-wrap justify-between gap-3 border-t-2 border-[var(--lp-ink)] pt-3">
                 <Button type="button" variant="outline" onClick={resetToDefaults}>
                   <RotateCcw aria-hidden="true" />
                   Valores sugeridos
@@ -631,12 +670,12 @@ function ProgramForm({
           </CardContent>
         </Card>
 
-        <div className="space-y-4">
+        <div className="space-y-3.5">
           <Card>
             <CardHeader>
               <CardTitle className="text-base">Equivalencia y análisis financiero</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3 text-sm">
+            <CardContent className="space-y-2.5 text-sm">
               <SummaryRow
                 label="Acumulación"
                 value={validNumbers ? `1 moneda por cada ${formatCOP(copPerPoint)}` : "—"}
@@ -663,7 +702,7 @@ function ProgramForm({
                     : "—"
                 }
               />
-              <div className="h-px bg-border/70" />
+              <div className="h-[2px] bg-[var(--lp-paper-deep)]" />
               <SummaryRow
                 label="Ventas mensuales est."
                 value={
@@ -683,7 +722,7 @@ function ProgramForm({
                 value={netMarginAfterRewards !== null ? `${netMarginAfterRewards} %` : "Sin dato"}
               />
 
-              <div className="space-y-1.5 border-t border-border/70 pt-2 text-xs leading-relaxed text-muted-foreground">
+              <div className="space-y-1.5 border-t-2 border-[var(--lp-paper-deep)] pt-2 text-xs leading-relaxed text-muted-foreground">
                 {economic.monthlyGain !== null &&
                 effectiveProgramBudget !== null &&
                 utilityAbsorptionPct !== null ? (

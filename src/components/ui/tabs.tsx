@@ -11,7 +11,7 @@ const TabsList = React.forwardRef<
   <TabsPrimitive.List
     ref={ref}
     className={cn(
-      "inline-flex w-full items-center gap-1.5 overflow-x-auto rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-paper-deep)] p-1 text-muted-foreground shadow-[3px_3px_0_var(--lp-ink)]",
+      "inline-flex w-full items-center gap-1.5 overflow-x-auto rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-paper-deep)] p-1 text-muted-foreground shadow-[var(--lp-shadow-md)]",
       className,
     )}
     {...props}
@@ -26,7 +26,7 @@ const TabsTrigger = React.forwardRef<
   <TabsPrimitive.Trigger
     ref={ref}
     className={cn(
-      "inline-flex min-h-10 shrink-0 cursor-pointer items-center justify-center whitespace-nowrap rounded-none border-2 border-transparent px-3 py-1.5 font-mono text-xs font-bold uppercase tracking-wide transition-all focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--lp-focus-ring)] disabled:pointer-events-none disabled:opacity-50 hover:bg-card hover:text-foreground data-[state=active]:border-[var(--lp-ink)] data-[state=active]:bg-[var(--lp-gold)] data-[state=active]:text-[#16262e] data-[state=active]:shadow-[2px_2px_0_var(--lp-ink)]",
+      "inline-flex min-h-[var(--lp-btn-h-sm)] shrink-0 cursor-pointer items-center justify-center whitespace-nowrap rounded-none border-2 border-transparent px-3 py-1 font-mono text-xs font-bold uppercase tracking-wide transition-all focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--lp-focus-ring)] disabled:pointer-events-none disabled:opacity-50 hover:bg-card hover:text-foreground data-[state=active]:border-[var(--lp-ink)] data-[state=active]:bg-[var(--lp-gold)] data-[state=active]:text-[var(--lp-ink)] data-[state=active]:shadow-[var(--lp-shadow-sm)]",
       className,
     )}
     {...props}
@@ -41,7 +41,7 @@ const TabsContent = React.forwardRef<
   <TabsPrimitive.Content
     ref={ref}
     className={cn(
-      "mt-4 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--lp-focus-ring)]",
+      "mt-3 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--lp-focus-ring)]",
       className,
     )}
     {...props}

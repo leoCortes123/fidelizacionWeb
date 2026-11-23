@@ -20,7 +20,7 @@ interface FieldProps {
  */
 export function Field({ id, label, hint, help, error, required, className, children }: FieldProps) {
   return (
-    <div className={cn("space-y-1.5", className)}>
+    <div className={cn("space-y-1", className)}>
       <div className="flex items-center gap-1.5">
         <Label htmlFor={id} className="leading-tight">
           {label}

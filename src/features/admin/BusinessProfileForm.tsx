@@ -33,6 +33,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NativeSelect } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Field } from "@/components/shared/Field";
@@ -282,17 +283,17 @@ function BusinessProfileFields({
   }
 
   return (
-    <div className="space-y-4 sm:space-y-5 animate-fade-in">
+    <div className="space-y-3.5 animate-fade-in">
       <Card>
-        <CardHeader className="pb-3">
+        <CardHeader className="pb-2.5">
           <CardTitle className="flex items-center gap-2 text-base">
-            <Building2 className="size-4 text-muted-foreground" aria-hidden="true" />
+            <Building2 className="size-4 text-[var(--lp-accent-link)]" aria-hidden="true" />
             Identidad del negocio
           </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4 sm:space-y-5">
-          <div className="flex flex-col gap-4 rounded-none border bg-muted/20 p-3.5 sm:flex-row sm:items-center sm:p-4">
-            <div className="grid size-20 shrink-0 place-items-center overflow-hidden rounded-none border bg-background">
+        <CardContent className="space-y-3.5">
+          <div className="lp-subpanel flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="grid size-16 shrink-0 place-items-center overflow-hidden rounded-none border-2 border-[var(--lp-ink)] bg-card">
               {profile.logo_url ? (
                 <img
                   src={profile.logo_url}
@@ -300,7 +301,7 @@ function BusinessProfileFields({
                   className="size-full object-cover"
                 />
               ) : (
-                <ImageOff className="size-7 text-muted-foreground" aria-hidden="true" />
+                <ImageOff className="size-6 text-muted-foreground" aria-hidden="true" />
               )}
             </div>
             <div className="min-w-0 flex-1 space-y-1">
@@ -308,7 +309,7 @@ function BusinessProfileFields({
               <p className="text-xs text-muted-foreground">
                 JPEG, PNG o WebP. Se reduce a 1200 px y se sube de forma segura.
               </p>
-              <div className="flex flex-wrap gap-2 pt-1">
+              <div className="flex flex-wrap gap-2 pt-0.5">
                 <Button
                   type="button"
                   variant="outline"
@@ -338,6 +339,7 @@ function BusinessProfileFields({
                 accept="image/jpeg,image/png,image/webp"
                 className="sr-only"
                 tabIndex={-1}
+                aria-label="Subir logo del negocio"
                 data-testid="logo-input"
                 onChange={(event) => void handleLogo(event)}
               />
@@ -347,12 +349,12 @@ function BusinessProfileFields({
             )}
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-            <div className="grid gap-4 sm:grid-cols-2">
+          <form onSubmit={handleSubmit} className="space-y-3.5" noValidate>
+            <div className="grid gap-3 sm:grid-cols-2">
               <Field
                 id="business-name"
                 label="Nombre del negocio"
-                hint="Es el nombre visible para tus clientes en su billetera de monedas y códigos QR."
+                help="Es el nombre visible para tus clientes en su billetera de monedas y códigos QR."
                 error={errors.name}
                 required
               >
@@ -366,7 +368,7 @@ function BusinessProfileFields({
               <Field
                 id="business-slug"
                 label="Enlace público"
-                hint="Enlace único con el que se afilian tus clientes. No se puede cambiar para no romper los QR."
+                help="Enlace único con el que se afilian tus clientes. No se puede cambiar para no romper los QR."
               >
                 <Input id="business-slug" value={`/join/${profile.slug}`} readOnly disabled />
               </Field>
@@ -375,78 +377,75 @@ function BusinessProfileFields({
             <Field
               id="business-description"
               label="Descripción"
-              hint="Cuenta brevemente qué ofrece tu negocio; aparecerá en tu página pública de invitación."
+              help="Cuenta brevemente qué ofrece tu negocio; aparecerá en tu página pública de invitación."
               error={errors.description}
             >
               <Textarea
                 id="business-description"
                 value={form.description}
                 onChange={(event) => update("description", event.target.value)}
-                rows={3}
+                rows={2}
                 maxLength={500}
                 aria-invalid={Boolean(errors.description)}
               />
             </Field>
 
-            <div className="space-y-4 rounded-none border border-border/80 bg-muted/20 p-3.5 sm:p-4">
+            <div className="lp-subpanel space-y-3">
               <div className="flex items-center gap-2 text-sm font-semibold">
-                <CalendarDays className="size-4 text-muted-foreground" aria-hidden="true" />
+                <CalendarDays className="size-4 text-[var(--lp-accent-link)]" aria-hidden="true" />
                 Horario y zona horaria
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="business-timezone">Zona horaria</Label>
-                <select
-                  id="business-timezone"
-                  value={form.timezone}
-                  onChange={(event) => update("timezone", event.target.value)}
-                  className="flex h-10 w-full cursor-pointer rounded-none border-2 border-input bg-card px-2.5 py-1.5 text-base font-medium text-foreground shadow-[2px_2px_0_var(--lp-ink)] transition-colors hover:border-[var(--lp-focus-ring)] focus-visible:border-[var(--lp-focus-ring)] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--lp-focus-ring)] dark:bg-[var(--lp-paper-deep)] md:text-sm"
-                >
-                  {(TIMEZONES.includes(form.timezone)
-                    ? TIMEZONES
-                    : [form.timezone, ...TIMEZONES]
-                  ).map((zone) => (
-                    <option key={zone} value={zone}>
-                      {zone}
-                    </option>
-                  ))}
-                </select>
-                <div
-                  className="flex flex-wrap gap-1.5"
-                  role="group"
-                  aria-label="Zonas horarias frecuentes"
-                >
-                  {COMMON_TIMEZONES.map((zone) => {
-                    const active = form.timezone === zone.value;
-                    return (
-                      <button
-                        key={zone.value}
-                        type="button"
-                        aria-pressed={active}
-                        onClick={() => update("timezone", zone.value)}
-                        className={cn(
-                          "min-h-8 cursor-pointer rounded-none border px-2.5 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                          active
-                            ? "border-primary bg-primary/10 text-primary"
-                            : "border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground",
-                        )}
-                      >
-                        {zone.label}
-                      </button>
-                    );
-                  })}
+              <Field
+                id="business-timezone"
+                label="Zona horaria"
+                help="Se usa para mostrar las fechas en tu hora local y calcular vencimientos."
+                error={errors.timezone}
+              >
+                <div className="space-y-1.5">
+                  <NativeSelect
+                    id="business-timezone"
+                    value={form.timezone}
+                    onChange={(event) => update("timezone", event.target.value)}
+                  >
+                    {(TIMEZONES.includes(form.timezone)
+                      ? TIMEZONES
+                      : [form.timezone, ...TIMEZONES]
+                    ).map((zone) => (
+                      <option key={zone} value={zone}>
+                        {zone}
+                      </option>
+                    ))}
+                  </NativeSelect>
+                  <div
+                    className="flex flex-wrap gap-1.5"
+                    role="group"
+                    aria-label="Zonas horarias frecuentes"
+                  >
+                    {COMMON_TIMEZONES.map((zone) => {
+                      const active = form.timezone === zone.value;
+                      return (
+                        <button
+                          key={zone.value}
+                          type="button"
+                          aria-pressed={active}
+                          onClick={() => update("timezone", zone.value)}
+                          className={cn(
+                            "min-h-11 cursor-pointer rounded-none border-2 px-2.5 py-0.5 font-mono text-xs font-bold transition-colors focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--lp-focus-ring)] md:min-h-8 [@media(pointer:coarse)]:min-h-11",
+                            active
+                              ? "border-[var(--lp-ink)] bg-[var(--lp-gold)] text-[#16262e] shadow-[var(--lp-shadow-sm)]"
+                              : "border-[var(--lp-ink)] bg-card text-muted-foreground hover:bg-[var(--lp-tab-hover-bg)] hover:text-foreground",
+                          )}
+                        >
+                          {zone.label}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Se usa para mostrar las fechas en tu hora local y calcular vencimientos.
-                </p>
-                {errors.timezone && (
-                  <p className="text-xs font-medium text-destructive" role="alert">
-                    {errors.timezone}
-                  </p>
-                )}
-              </div>
+              </Field>
 
-              <div className="space-y-2.5">
+              <div className="space-y-2">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <Label>Días de operación</Label>
                   <div className="flex flex-wrap gap-1.5">
@@ -455,7 +454,7 @@ function BusinessProfileFields({
                         key={preset.label}
                         type="button"
                         onClick={() => update("operatingDays", [...preset.days])}
-                        className="cursor-pointer rounded-none border border-border bg-background px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                        className="min-h-11 cursor-pointer rounded-none border-2 border-[var(--lp-ink)] bg-card px-2 py-0.5 font-mono text-xs font-semibold text-foreground transition-colors hover:bg-[var(--lp-gold-soft)] hover:text-[#16262e] md:min-h-7 [@media(pointer:coarse)]:min-h-11"
                       >
                         {preset.label}
                       </button>
@@ -473,10 +472,10 @@ function BusinessProfileFields({
                         aria-pressed={selected}
                         onClick={() => toggleDay(value)}
                         className={cn(
-                          "min-h-10 cursor-pointer rounded-none border px-2.5 py-1.5 text-sm font-semibold transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:min-h-11 sm:px-3 sm:py-2",
+                          "min-h-11 cursor-pointer rounded-none border-2 px-2 py-1 font-mono text-xs font-bold uppercase transition-all duration-150 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--lp-focus-ring)] md:min-h-9 [@media(pointer:coarse)]:min-h-11",
                           selected
-                            ? "border-primary bg-primary text-primary-foreground shadow-sm shadow-primary/20"
-                            : "border-border bg-background text-muted-foreground hover:bg-muted hover:text-foreground",
+                            ? "border-[var(--lp-ink)] bg-[var(--lp-gold)] text-[#16262e] shadow-[var(--lp-shadow-sm)]"
+                            : "border-[var(--lp-ink)] bg-card text-muted-foreground hover:bg-[var(--lp-tab-hover-bg)] hover:text-foreground",
                         )}
                       >
                         {label}
@@ -484,10 +483,6 @@ function BusinessProfileFields({
                     );
                   })}
                 </div>
-                <p className="text-xs text-muted-foreground">
-                  Indica qué días atiende tu negocio. Ayuda a estimar los días de operación al mes
-                  en tus datos económicos.
-                </p>
                 {errors.operatingDays && (
                   <p className="text-xs font-medium text-destructive" role="alert">
                     {errors.operatingDays}
@@ -497,10 +492,10 @@ function BusinessProfileFields({
             </div>
 
             <div className="flex items-center gap-2 text-sm font-semibold">
-              <MapPin className="size-4 text-muted-foreground" aria-hidden="true" />
+              <MapPin className="size-4 text-[var(--lp-accent-link)]" aria-hidden="true" />
               Ubicación
             </div>
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-3">
               <Field id="business-address" label="Dirección" error={errors.address}>
                 <Input
                   id="business-address"
@@ -527,14 +522,14 @@ function BusinessProfileFields({
             </div>
 
             <div className="flex items-center gap-2 text-sm font-semibold">
-              <Phone className="size-4 text-muted-foreground" aria-hidden="true" />
+              <Phone className="size-4 text-[var(--lp-accent-link)]" aria-hidden="true" />
               Contacto y redes
             </div>
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-2">
               <Field
                 id="business-whatsapp"
                 label="WhatsApp"
-                hint="Con indicativo, por ejemplo +57 300 123 4567."
+                help="Con indicativo, por ejemplo +57 300 123 4567."
                 error={errors.phoneWhatsapp}
               >
                 <Input
@@ -556,7 +551,7 @@ function BusinessProfileFields({
               <Field
                 id="business-instagram"
                 label="Instagram"
-                hint="Solo el usuario, con o sin @."
+                help="Solo el usuario, con o sin @."
                 error={errors.instagram}
               >
                 <Input
@@ -570,7 +565,7 @@ function BusinessProfileFields({
               <Field
                 id="business-website"
                 label="Sitio web"
-                hint="Si no incluyes https://, lo añadimos nosotros."
+                help="Si no incluyes https://, lo añadimos nosotros."
                 error={errors.website}
               >
                 <Input
@@ -584,7 +579,7 @@ function BusinessProfileFields({
               </Field>
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t-2 border-[var(--lp-ink)] pt-3">
               <div className="flex items-center gap-2">
                 {draft.hasDraft && <Badge variant="muted">Borrador guardado</Badge>}
                 {profile.logo_url && <Badge variant="secondary">Logo activo</Badge>}

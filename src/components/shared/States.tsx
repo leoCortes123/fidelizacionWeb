@@ -76,11 +76,11 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center gap-3 rounded-none border-2 border-dashed border-[var(--lp-ink)] bg-secondary/60 px-4 py-8 text-center sm:px-6 sm:py-12",
+        "flex flex-col items-center justify-center gap-2.5 rounded-none border-2 border-dashed border-[var(--lp-ink)] bg-secondary/60 px-4 py-6 text-center sm:px-5 sm:py-8",
         className,
       )}
     >
-      <span className="grid size-12 place-items-center rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-gold)] text-[#16262e] shadow-[3px_3px_0_var(--lp-ink)]">
+      <span className="grid size-11 place-items-center rounded-none border-2 border-[var(--lp-ink)] bg-[var(--lp-gold)] text-[#16262e] shadow-[var(--lp-shadow-md)]">
         <Icon className="size-5" aria-hidden />
       </span>
       <div className="space-y-1">
@@ -96,7 +96,7 @@ export function CardSkeleton({ className }: { className?: string }) {
   return (
     <div
       className={cn(
-        "space-y-3 rounded-none border-2 border-[var(--lp-ink)] bg-card p-4 shadow-[4px_4px_0_var(--lp-ink)] sm:p-5",
+        "space-y-2.5 rounded-none border-2 border-[var(--lp-ink)] bg-card p-[var(--lp-pad-card)] shadow-[var(--lp-shadow-lg)]",
         className,
       )}
     >
@@ -110,11 +110,11 @@ export function CardSkeleton({ className }: { className?: string }) {
 
 export function ListSkeleton({ rows = 3 }: { rows?: number }) {
   return (
-    <div className="space-y-3" aria-hidden="true">
+    <div className="space-y-2.5" aria-hidden="true">
       {Array.from({ length: rows }).map((_, index) => (
         <div
           key={index}
-          className="flex items-center gap-4 rounded-none border-2 border-[var(--lp-ink)] bg-card p-3.5 shadow-[3px_3px_0_var(--lp-ink)] sm:p-4"
+          className="flex items-center gap-3.5 rounded-none border-2 border-[var(--lp-ink)] bg-card p-3 shadow-[var(--lp-shadow-md)] sm:p-3.5"
         >
           <Skeleton className="size-10 shrink-0 rounded-none" />
           <div className="flex-1 space-y-2">

@@ -107,9 +107,9 @@ function OnboardingRoute() {
     return (
       <div className="min-h-dvh text-foreground">
         <header className="sticky top-0 z-20 border-b-[3px] border-[var(--lp-ink)] bg-[var(--lp-header-bg)] backdrop-blur-[6px]">
-          <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
+          <div className="mx-auto flex h-12 max-w-[var(--lp-shell-max-w)] items-center justify-between gap-3 px-4 sm:px-5">
             <Brand compact className="sm:hidden" linkTo="/" />
-            <Brand className="hidden sm:flex" linkTo="/" />
+            <Brand compact className="hidden sm:flex" linkTo="/" />
             <div className="flex shrink-0 items-center gap-2">
               {businesses.length > 0 && (
                 <Button variant="outline" size="sm" asChild>
@@ -120,7 +120,7 @@ function OnboardingRoute() {
             </div>
           </div>
         </header>
-        <main className="mx-auto w-full max-w-6xl px-0 py-4 sm:px-6 sm:py-8">
+        <main className="mx-auto w-full max-w-[var(--lp-shell-max-w)] px-0 py-3 sm:px-5 md:py-4">
           <OnboardingWizardPage newBusinessMode />
         </main>
       </div>

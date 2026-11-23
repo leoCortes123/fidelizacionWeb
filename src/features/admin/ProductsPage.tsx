@@ -47,6 +47,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { PageHeader } from "@/components/shared/PageHeader";
+import { Field } from "@/components/shared/Field";
 import { EmptyState, ErrorState, ListSkeleton, LoadingScreen } from "@/components/shared/States";
 import type { Business, Product, ProductKind } from "@/types";
 
@@ -117,8 +118,8 @@ export function ProductsPage() {
         />
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {list.map((business) => (
-            <Card key={business.id} className="cursor-pointer transition-shadow hover:shadow-md">
-              <CardContent className="p-6 text-center">
+            <Card key={business.id} className="lp-card-interactive cursor-pointer">
+              <CardContent className="p-[var(--lp-pad-card)] text-center">
                 <Package className="mx-auto mb-3 size-12 text-primary" aria-hidden="true" />
                 <h3 className="font-semibold">{business.name}</h3>
                 <p className="text-xs text-muted-foreground">{business.slug}</p>
@@ -468,23 +469,23 @@ function ProductsSection({ business }: { business: Business }) {
             ))}
           </div>
 
-          <div className="hidden overflow-x-auto rounded-none border-2 border-[var(--lp-ink)] bg-card shadow-[4px_4px_0_var(--lp-ink)] md:block">
+          <div className="hidden overflow-x-auto rounded-none border-2 border-[var(--lp-ink)] bg-card shadow-[var(--lp-shadow-lg)] md:block">
             <table className="w-full text-sm">
               <thead className="border-b-[3px] border-[var(--lp-ink)] bg-[var(--lp-surface-elevated-deep)] text-left font-mono text-xs font-bold uppercase tracking-wide text-[var(--lp-gold)]">
                 <tr>
-                  <th scope="col" className="px-4 py-3">
+                  <th scope="col" className="h-9 px-3">
                     Producto
                   </th>
-                  <th scope="col" className="px-4 py-3 text-right">
+                  <th scope="col" className="h-9 px-3 text-right">
                     Precio
                   </th>
-                  <th scope="col" className="px-4 py-3 text-right">
+                  <th scope="col" className="h-9 px-3 text-right">
                     Costo
                   </th>
-                  <th scope="col" className="px-4 py-3">
+                  <th scope="col" className="h-9 px-3">
                     Estado
                   </th>
-                  <th scope="col" className="px-4 py-3 text-right">
+                  <th scope="col" className="h-9 px-3 text-right">
                     Acciones
                   </th>
                 </tr>
@@ -492,9 +493,9 @@ function ProductsSection({ business }: { business: Business }) {
               <tbody className="divide-y-2 divide-[var(--lp-paper-deep)]">
                 {filtered.map((product) => (
                   <tr key={product.id} className="transition-colors hover:bg-[var(--lp-row-hover)]">
-                    <td className="px-4 py-3">
-                      <div className="flex items-start gap-3">
-                        <div className="flex size-10 shrink-0 items-center justify-center overflow-hidden border bg-muted/40">
+                    <td className="px-3 py-2">
+                      <div className="flex items-start gap-2.5">
+                        <div className="flex size-9 shrink-0 items-center justify-center overflow-hidden border-2 border-[var(--lp-ink)] bg-[var(--lp-paper-deep)]">
                           {product.image_url ? (
                             <img
                               src={product.image_url}
@@ -528,26 +529,26 @@ function ProductsSection({ business }: { business: Business }) {
                         </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-right tabular-nums">
+                    <td className="px-3 py-2 text-right tabular-nums">
                       {formatCOP(product.price_cop)}
                     </td>
-                    <td className="px-4 py-3 text-right tabular-nums">
+                    <td className="px-3 py-2 text-right tabular-nums">
                       {product.cost_cop === null ? (
                         <span className="text-muted-foreground">Sin dato</span>
                       ) : (
                         formatCOP(product.cost_cop)
                       )}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-2">
                       <Badge variant={product.is_active ? "success" : "muted"}>
                         {product.is_active ? "Activo" : "Inactivo"}
                       </Badge>
                     </td>
-                    <td className="px-4 py-3">
-                      <div className="flex justify-end gap-2">
+                    <td className="px-3 py-2">
+                      <div className="flex justify-end gap-1.5">
                         <Button
                           variant="ghost"
-                          size="icon"
+                          size="icon-sm"
                           onClick={() => openEdit(product)}
                           aria-label={`Editar ${product.name}`}
                         >
@@ -555,7 +556,7 @@ function ProductsSection({ business }: { business: Business }) {
                         </Button>
                         <Button
                           variant="ghost"
-                          size="icon"
+                          size="icon-sm"
                           onClick={() => toggleProduct(product)}
                           aria-label={
                             product.is_active
@@ -591,18 +592,18 @@ function ProductsSection({ business }: { business: Business }) {
           else closeModal(false);
         }}
       >
-        <DialogContent>
+        <DialogContent className="sm:max-w-xl">
           <DialogHeader>
             <DialogTitle>{editing ? "Detalle del producto" : "Nuevo producto"}</DialogTitle>
             <DialogDescription>
               Los productos activos pueden vincularse a recompensas de producto gratis.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={saveProduct} className="min-w-0 space-y-4" noValidate>
-            <div className="space-y-2">
+          <form onSubmit={saveProduct} className="min-w-0 space-y-3" noValidate>
+            <div className="space-y-1">
               <Label>Foto del producto (opcional)</Label>
-              <div className="flex flex-wrap items-center gap-3 rounded-none border bg-muted/20 p-3">
-                <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden border bg-muted/40">
+              <div className="lp-subpanel flex flex-wrap items-center gap-3">
+                <div className="flex size-14 shrink-0 items-center justify-center overflow-hidden border-2 border-[var(--lp-ink)] bg-card">
                   {form.imageUrl ? (
                     <img
                       src={form.imageUrl}
@@ -610,10 +611,10 @@ function ProductsSection({ business }: { business: Business }) {
                       className="size-full object-cover"
                     />
                   ) : (
-                    <ImageIcon className="size-6 text-muted-foreground" aria-hidden="true" />
+                    <ImageIcon className="size-5 text-muted-foreground" aria-hidden="true" />
                   )}
                 </div>
-                <div className="min-w-0 flex-1 space-y-1.5">
+                <div className="min-w-0 flex-1 space-y-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <input
                       ref={modalPhotoInputRef}
@@ -661,57 +662,53 @@ function ProductsSection({ business }: { business: Business }) {
                 </div>
               </div>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="product-name">Nombre</Label>
-              <Input
-                id="product-name"
-                value={form.name}
-                onChange={(event) => update("name", event.target.value)}
-                maxLength={120}
-                required
-                aria-invalid={Boolean(errors.name)}
-              />
-              {errors.name && (
-                <p className="text-xs font-medium text-destructive" role="alert">
-                  {errors.name}
-                </p>
-              )}
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Field id="product-name" label="Nombre" error={errors.name}>
+                <Input
+                  id="product-name"
+                  value={form.name}
+                  onChange={(event) => update("name", event.target.value)}
+                  maxLength={120}
+                  required
+                  aria-invalid={Boolean(errors.name)}
+                />
+              </Field>
+              <Field
+                id="product-kind"
+                label="Tipo de producto"
+                help="El precio del combo es el que se cobra; el detalle muestra sus componentes."
+              >
+                <Select
+                  value={form.kind}
+                  onValueChange={(value) => update("kind", value as ProductKind)}
+                >
+                  <SelectTrigger id="product-kind">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="simple">Producto simple</SelectItem>
+                    <SelectItem value="combo">Combo (varios productos)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </Field>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="product-description">Descripción (opcional)</Label>
+
+            <Field
+              id="product-description"
+              label="Descripción (opcional)"
+              error={errors.description}
+            >
               <Textarea
                 id="product-description"
                 value={form.description}
                 onChange={(event) => update("description", event.target.value)}
                 maxLength={500}
               />
-              {errors.description && (
-                <p className="text-xs font-medium text-destructive" role="alert">
-                  {errors.description}
-                </p>
-              )}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="product-kind">Tipo de producto</Label>
-              <Select
-                value={form.kind}
-                onValueChange={(value) => update("kind", value as ProductKind)}
-              >
-                <SelectTrigger id="product-kind">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="simple">Producto simple</SelectItem>
-                  <SelectItem value="combo">Combo (varios productos)</SelectItem>
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground">
-                El precio del combo es el que se cobra; el detalle muestra sus componentes.
-              </p>
-            </div>
+            </Field>
 
             {form.kind === "combo" && (
-              <div className="space-y-2 rounded-none border p-3">
+              <div className="lp-subpanel space-y-2">
                 <Label className="flex items-center gap-2">
                   <ChefHat className="size-4 text-muted-foreground" aria-hidden="true" />
                   Componentes del combo
@@ -721,7 +718,7 @@ function ProductsSection({ business }: { business: Business }) {
                     Necesitas al menos un producto simple activo en la carta.
                   </p>
                 ) : (
-                  <ul className="max-h-56 space-y-2 overflow-y-auto">
+                  <ul className="max-h-48 space-y-1.5 overflow-y-auto">
                     {comboCandidates.map((product) => {
                       const checked = Boolean(form.comboItems[product.id]);
                       return (
@@ -769,9 +766,17 @@ function ProductsSection({ business }: { business: Business }) {
               </div>
             )}
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="min-w-0 space-y-2">
-                <Label htmlFor="product-price">Precio (COP)</Label>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Field
+                id="product-price"
+                label="Precio (COP)"
+                error={errors.priceCop}
+                hint={
+                  parseCopInput(form.priceCop) !== null
+                    ? formatCOP(parseCopInput(form.priceCop)!)
+                    : "Precio de venta al público."
+                }
+              >
                 <Input
                   id="product-price"
                   inputMode="numeric"
@@ -781,20 +786,13 @@ function ProductsSection({ business }: { business: Business }) {
                   required
                   aria-invalid={Boolean(errors.priceCop)}
                 />
-                {errors.priceCop ? (
-                  <p className="text-xs font-medium text-destructive" role="alert">
-                    {errors.priceCop}
-                  </p>
-                ) : (
-                  <p className="text-xs text-muted-foreground">
-                    {parseCopInput(form.priceCop) !== null
-                      ? formatCOP(parseCopInput(form.priceCop)!)
-                      : "Precio de venta al público."}
-                  </p>
-                )}
-              </div>
-              <div className="min-w-0 space-y-2">
-                <Label htmlFor="product-cost">Costo (COP, opcional)</Label>
+              </Field>
+              <Field
+                id="product-cost"
+                label="Costo (COP, opcional)"
+                error={errors.costCop}
+                hint={!costWarning ? "Estimado, no contable." : undefined}
+              >
                 <Input
                   id="product-cost"
                   inputMode="numeric"
@@ -803,18 +801,12 @@ function ProductsSection({ business }: { business: Business }) {
                   onChange={(event) => update("costCop", event.target.value)}
                   aria-invalid={Boolean(errors.costCop)}
                 />
-                {errors.costCop ? (
-                  <p className="text-xs font-medium text-destructive" role="alert">
-                    {errors.costCop}
-                  </p>
-                ) : costWarning ? (
+                {!errors.costCop && costWarning && (
                   <p className="text-xs font-medium text-[var(--lp-tip-strong)]" role="status">
                     El costo supera el precio de venta. Verifica el dato: es solo una estimación.
                   </p>
-                ) : (
-                  <p className="text-xs text-muted-foreground">Estimado, no contable.</p>
                 )}
-              </div>
+              </Field>
             </div>
             <label className="flex items-center gap-2 text-sm font-medium">
               <input
@@ -878,16 +870,16 @@ function ProductCard({
           type="button"
           onClick={onSelect}
           aria-label={`Ver detalle de ${product.name}`}
-          className="flex w-full min-w-0 items-start gap-3 p-4 text-left transition-colors hover:bg-primary/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring dark:hover:bg-primary/[0.14]"
+          className="flex w-full min-w-0 items-start gap-3 p-3.5 text-left transition-colors hover:bg-[var(--lp-row-hover)] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-[-3px] focus-visible:outline-[var(--lp-focus-ring)]"
         >
-          <div className="flex size-16 shrink-0 items-center justify-center overflow-hidden border border-primary/20 bg-background/80 dark:border-primary/30 dark:bg-card/80">
+          <div className="flex size-14 shrink-0 items-center justify-center overflow-hidden border-2 border-[var(--lp-ink)] bg-card">
             {product.image_url ? (
               <img src={product.image_url} alt={product.name} className="size-full object-cover" />
             ) : (
               <ImageIcon className="size-5 text-muted-foreground" aria-hidden="true" />
             )}
           </div>
-          <div className="min-w-0 flex-1 space-y-1.5">
+          <div className="min-w-0 flex-1 space-y-1">
             <div className="flex items-start justify-between gap-2">
               <p className="min-w-0 break-words font-semibold leading-snug">{product.name}</p>
               <span className="shrink-0 whitespace-nowrap font-semibold tabular-nums">
@@ -911,7 +903,7 @@ function ProductCard({
           </div>
         </button>
 
-        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-primary/15 bg-primary/[0.06] px-4 py-2.5 dark:border-primary/25 dark:bg-primary/[0.14]">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t-2 border-[var(--lp-ink)] bg-[var(--lp-paper-deep)] px-3.5 py-2">
           <div className="min-w-0">
             <input
               ref={fileInputRef}

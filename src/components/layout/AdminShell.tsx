@@ -76,10 +76,10 @@ function isItemActive(item: AdminNavItem, pathname: string) {
 
 function navClass(isActive: boolean) {
   return cn(
-    "flex min-h-11 items-center gap-3 rounded-none border-2 px-3 py-2 font-mono text-xs font-bold uppercase tracking-wide transition-all duration-150",
+    "flex min-h-9 items-center gap-2.5 rounded-none border-2 px-2.5 py-1.5 font-mono text-xs font-bold uppercase tracking-wide transition-all duration-150",
     isActive
-      ? "border-[var(--lp-ink)] bg-[var(--lp-gold)] text-[#16262e] shadow-[2px_2px_0_var(--lp-ink)]"
-      : "border-transparent text-[var(--lp-ink-soft)] hover:border-[var(--lp-ink)] hover:bg-card hover:text-foreground hover:shadow-[2px_2px_0_var(--lp-ink)]",
+      ? "border-[var(--lp-ink)] bg-[var(--lp-gold)] text-[#16262e] shadow-[var(--lp-shadow-sm)]"
+      : "border-transparent text-[var(--lp-ink-soft)] hover:border-[var(--lp-ink)] hover:bg-card hover:text-foreground hover:shadow-[var(--lp-shadow-sm)]",
   );
 }
 
@@ -104,19 +104,20 @@ export function AdminShell({ children }: { children?: ReactNode }) {
 
   return (
     <div className="flex h-dvh overflow-hidden">
-      <aside className="hidden h-dvh w-64 shrink-0 flex-col border-r-[3px] border-[var(--lp-ink)] bg-[var(--lp-paper-deep)] md:flex">
-        <div className="border-b-[3px] border-[var(--lp-ink)] bg-card p-4">
+      <aside className="hidden h-dvh w-56 shrink-0 flex-col border-r-[3px] border-[var(--lp-ink)] bg-[var(--lp-paper-deep)] md:flex xl:w-60">
+        <div className="border-b-[3px] border-[var(--lp-ink)] bg-card p-3">
           <Brand
+            compact
             name={headerBusinessName}
             tagline={headerBusinessName ? null : undefined}
             linkTo="/admin/dashboard"
           />
-          <div className="mt-2.5 flex items-center gap-2">
+          <div className="mt-1.5 flex items-center gap-2">
             <Badge variant="default">ADMIN · NEGOCIO</Badge>
           </div>
         </div>
 
-        <div className="p-3">
+        <div className="px-2.5 py-2">
           <Button asChild className="w-full justify-start">
             <Link to="/admin/purchases/new">
               <QrCode aria-hidden="true" />
@@ -125,7 +126,10 @@ export function AdminShell({ children }: { children?: ReactNode }) {
           </Button>
         </div>
 
-        <nav className="flex-1 space-y-1.5 overflow-y-auto p-3" aria-label="Panel del negocio">
+        <nav
+          className="flex-1 space-y-0.5 overflow-y-auto px-2.5 py-1.5"
+          aria-label="Panel del negocio"
+        >
           {mainNav.map((item) => {
             const Icon = item.icon;
             return (
@@ -142,7 +146,7 @@ export function AdminShell({ children }: { children?: ReactNode }) {
           })}
         </nav>
 
-        <div className="border-t-[3px] border-[var(--lp-ink)] bg-card p-3">
+        <div className="border-t-[3px] border-[var(--lp-ink)] bg-card p-2.5">
           <UserMenu />
         </div>
       </aside>
@@ -159,7 +163,7 @@ export function AdminShell({ children }: { children?: ReactNode }) {
               : "max-h-40 opacity-100",
           )}
         >
-          <div className="flex h-14 items-center justify-between gap-3 px-4">
+          <div className="flex h-12 items-center justify-between gap-3 px-4">
             <div className="min-w-0 md:hidden">
               <Brand compact name={headerBusinessName} linkTo="/admin/dashboard" />
             </div>
@@ -175,7 +179,7 @@ export function AdminShell({ children }: { children?: ReactNode }) {
               <UserMenu compact />
             </div>
           </div>
-          <div className="border-t-2 border-[var(--lp-ink)] px-4 py-2 sm:hidden">
+          <div className="border-t-2 border-[var(--lp-ink)] px-4 py-1.5 sm:hidden">
             <BusinessSwitcher />
           </div>
         </header>
@@ -185,7 +189,7 @@ export function AdminShell({ children }: { children?: ReactNode }) {
           className="min-h-0 flex-1 overflow-y-auto overscroll-contain scroll-pb-28 md:scroll-pb-10"
           id="contenido-principal"
         >
-          <div className="mx-auto w-full max-w-6xl px-0 pb-28 pt-4 sm:px-6 md:py-6 md:pb-10">
+          <div className="mx-auto w-full max-w-[var(--lp-shell-max-w)] px-0 pb-28 pt-3 sm:px-5 md:py-4 md:pb-8">
             {children ?? <Outlet />}
           </div>
         </main>
