@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { PixelDownloadIcon } from "@/features/landing/PixelIcons";
+import { PixelDownloadIcon } from "@/components/shared/PixelDownloadIcon";
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
 }
 
-function isRunningStandalone(): boolean {
+export function isRunningStandalone(): boolean {
   if (typeof window === "undefined") return false;
   const nav = window.navigator as Navigator & { standalone?: boolean };
   return (
@@ -75,6 +75,26 @@ export function resetInstallPwaStateForTests() {
     standalone: isRunningStandalone(),
   };
   emitChange();
+}
+
+/** Reactivo al modo standalone y al evento `appinstalled`. */
+export function useIsStandalone(): boolean {
+  const [standalone, setStandalone] = useState<boolean>(() => {
+    ensureWindowListeners();
+    return snapshot.standalone;
+  });
+
+  useEffect(() => {
+    ensureWindowListeners();
+    const sync = () => setStandalone(snapshot.standalone);
+    listeners.add(sync);
+    sync();
+    return () => {
+      listeners.delete(sync);
+    };
+  }, []);
+
+  return standalone;
 }
 
 interface InstallPwaButtonProps {

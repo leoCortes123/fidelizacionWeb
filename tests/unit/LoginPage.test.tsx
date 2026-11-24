@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Link, MemoryRouter, Route, Routes } from "react-router-dom";
+import { resetInstallPwaStateForTests } from "@/components/pwa/InstallPwaButton";
 import { LoginPage } from "@/features/auth/LoginPage";
 import { clearPendingClaim, pendingClaimPath, rememberPendingClaim } from "@/lib/pendingClaim";
 
@@ -38,10 +39,24 @@ vi.mock("@/lib/supabase", () => ({
   supabase: {},
 }));
 
+function mockStandalone(matches: boolean) {
+  Object.defineProperty(window, "matchMedia", {
+    writable: true,
+    value: vi.fn().mockImplementation((query: string) => ({
+      matches: query === "(display-mode: standalone)" ? matches : false,
+      media: query,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    })),
+  });
+  resetInstallPwaStateForTests();
+}
+
 describe("LoginPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     clearPendingClaim();
+    mockStandalone(false);
     auth.state.session = null;
     auth.state.user = null;
     auth.state.roles = [];
@@ -578,5 +593,94 @@ describe("LoginPage", () => {
 
     unmount();
     expect(document.documentElement.dataset.portal).toBeUndefined();
+  });
+
+  it("enlaza 'Volver al inicio' al sitio comercial externo y muestra botón para instalar la PWA", () => {
+    render(
+      <MemoryRouter initialEntries={["/login"]}>
+        <LoginPage />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole("link", { name: /Volver al inicio/i })).toHaveAttribute(
+      "href",
+      "https://fidelapp.pages.dev",
+    );
+    expect(screen.getByRole("button", { name: /Instalar app/i })).toBeInTheDocument();
+  });
+
+  it("muestra el aviso de instalación cuando llega con ?install=1 y lo oculta tras appinstalled", () => {
+    render(
+      <MemoryRouter initialEntries={["/login?install=1"]}>
+        <LoginPage />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole("region", { name: /Instalar aplicación/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Instalar Fideliapp/i })).toBeInTheDocument();
+
+    act(() => {
+      window.dispatchEvent(new Event("appinstalled"));
+    });
+
+    expect(screen.queryByRole("region", { name: /Instalar aplicación/i })).not.toBeInTheDocument();
+  });
+
+  it("con sesión activa y ?install=1 muestra la tarjeta de instalación antes de ir al portal", async () => {
+    const user = userEvent.setup();
+    auth.state.session = { user: { id: "user-1" } };
+    auth.state.user = { id: "user-1" };
+    auth.state.roles = ["customer"];
+    rpcMock.mockResolvedValue([]);
+
+    render(
+      <MemoryRouter initialEntries={["/login?install=1"]}>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/customer" element={<div>Portal cliente</div>} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole("region", { name: /Instalar aplicación/i })).toBeInTheDocument();
+    expect(screen.queryByText("Portal cliente")).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /Ir a mi portal/i }));
+    await waitFor(() => {
+      expect(screen.getByText("Portal cliente")).toBeInTheDocument();
+    });
+  });
+
+  it("en modo standalone oculta el enlace externo al sitio y redirige al portal si hay sesión con ?install=1", async () => {
+    mockStandalone(true);
+    auth.state.session = null;
+
+    const { unmount } = render(
+      <MemoryRouter initialEntries={["/login?install=1"]}>
+        <LoginPage />
+      </MemoryRouter>,
+    );
+
+    expect(screen.queryByRole("link", { name: /Volver al inicio/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("region", { name: /Instalar aplicación/i })).not.toBeInTheDocument();
+    unmount();
+
+    auth.state.session = { user: { id: "user-1" } };
+    auth.state.user = { id: "user-1" };
+    auth.state.roles = ["customer"];
+    rpcMock.mockResolvedValue([]);
+
+    render(
+      <MemoryRouter initialEntries={["/login?install=1"]}>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/customer" element={<div>Portal cliente</div>} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("Portal cliente")).toBeInTheDocument();
+    });
   });
 });

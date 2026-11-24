@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { usePortalTheme } from "@/components/theme/ThemeProvider";
+import { InstallPwaButton, useIsStandalone } from "@/components/pwa/InstallPwaButton";
 import { FullPageLoader } from "@/components/shared/States";
 import { HeroCoinSvg, LoopointCoinSvg } from "@/features/customer/pixelSprites";
 import "@/features/customer/customerRetro.css";
@@ -33,6 +34,7 @@ import {
   businessHomePath,
   isNextPathCompatibleWithRoles,
   isSupabaseConfigured,
+  publicSiteUrl,
   safeNextPath,
 } from "@/lib/config";
 import { clearPendingClaim } from "@/lib/pendingClaim";
@@ -116,6 +118,10 @@ export function LoginPage() {
   const hasNextParam = Boolean(params.get("next"));
   const inviteToken = params.get("invite")?.trim() || null;
   const hasInvite = Boolean(inviteToken);
+  const wantsInstall = params.get("install") === "1";
+  const isStandalone = useIsStandalone();
+  const showInstallCallout = wantsInstall && !isStandalone;
+  const siteUrl = publicSiteUrl();
   const navigate = useNavigate();
   const {
     session,
@@ -311,7 +317,7 @@ export function LoginPage() {
 
   useEffect(() => {
     if (loading || !session || rolesLoading || !rolesLoaded) return;
-    if (inviteToken) return;
+    if (inviteToken || showInstallCallout) return;
 
     if (mode === "register") {
       if (
@@ -341,6 +347,7 @@ export function LoginPage() {
     rolesLoaded,
     roles,
     inviteToken,
+    showInstallCallout,
     refreshRoles,
     next,
     effectiveNext,
@@ -506,25 +513,45 @@ export function LoginPage() {
   const inviteBlocked = hasInvite && Boolean(inviteUnavailableReason);
   const inviteRoleText = invitePreview ? inviteRoleLabel(invitePreview.role) : null;
 
+  const renderBrand = () =>
+    isStandalone ? (
+      <div className="brand-link">
+        <div className="brand-logo-box" aria-hidden="true">
+          <LoopointCoinSvg size={20} />
+        </div>
+        <span className="brand-name">
+          {brand.toLowerCase()}
+          <span className="brand-dot">.</span>
+        </span>
+      </div>
+    ) : (
+      <a href={siteUrl} className="brand-link" title="Ir a Inicio">
+        <div className="brand-logo-box" aria-hidden="true">
+          <LoopointCoinSvg size={20} />
+        </div>
+        <span className="brand-name">
+          {brand.toLowerCase()}
+          <span className="brand-dot">.</span>
+        </span>
+      </a>
+    );
+
   if (session && inviteToken) {
     if (inviteAcceptError) {
       return (
         <div className="retro-customer">
           <header className="app-navbar">
             <div className="navbar-inner">
-              <Link to="/" className="brand-link" title="Ir a Inicio">
-                <div className="brand-logo-box" aria-hidden="true">
-                  <LoopointCoinSvg size={20} />
-                </div>
-                <span className="brand-name">
-                  {brand.toLowerCase()}
-                  <span className="brand-dot">.</span>
-                </span>
-              </Link>
-              <Link to="/" className="pixel-btn pixel-btn-secondary py-1.5 text-[11px] shrink-0">
-                <ArrowLeft className="size-3.5" aria-hidden="true" />
-                Volver al inicio
-              </Link>
+              {renderBrand()}
+              {!isStandalone && (
+                <a
+                  href={siteUrl}
+                  className="pixel-btn pixel-btn-secondary py-1.5 text-[11px] shrink-0"
+                >
+                  <ArrowLeft className="size-3.5" aria-hidden="true" />
+                  Volver al inicio
+                </a>
+              )}
             </div>
           </header>
 
@@ -554,23 +581,79 @@ export function LoginPage() {
     return <FullPageLoader label="Aplicando invitación…" />;
   }
 
+  if (session && showInstallCallout) {
+    return (
+      <div className="retro-customer">
+        <header className="app-navbar">
+          <div className="navbar-inner">
+            {renderBrand()}
+            <a href={siteUrl} className="pixel-btn pixel-btn-secondary py-1.5 text-[11px] shrink-0">
+              <ArrowLeft className="size-3.5" aria-hidden="true" />
+              Volver al inicio
+            </a>
+          </div>
+        </header>
+
+        <main className="grid flex-1 min-h-0 place-items-center overflow-y-auto px-4 py-6">
+          <div
+            role="region"
+            aria-label="Instalar aplicación"
+            className="pixel-box w-full max-w-md space-y-4 p-5 sm:p-6"
+          >
+            <div className="space-y-1.5">
+              <span className="retro-kicker">App instalable (PWA)</span>
+              <h1 className="font-['Space_Grotesk'] text-xl font-bold text-[var(--ink)]">
+                Instala {brand} en tu dispositivo
+              </h1>
+              <p className="text-sm text-[var(--ink-muted)]">
+                Al instalarla, se abrirá directo en tu portal o inicio de sesión desde tu pantalla
+                de inicio.
+              </p>
+            </div>
+            <div className="flex flex-col gap-2.5">
+              <InstallPwaButton
+                className="pixel-btn pixel-btn-dark w-full justify-center py-2.5 text-xs"
+                label={`Instalar ${brand}`}
+              />
+              <button
+                type="button"
+                className="pixel-btn pixel-btn-secondary w-full justify-center py-2 text-xs"
+                disabled={rolesLoading || !rolesLoaded}
+                onClick={() => {
+                  void resolvePostLoginPath(roles, session.user.id).then((destination) => {
+                    navigate(destination, { replace: true });
+                  });
+                }}
+              >
+                {rolesLoading || !rolesLoaded ? "Cargando tu portal…" : "Ir a mi portal"}
+              </button>
+            </div>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="retro-customer">
       <header className="app-navbar">
         <div className="navbar-inner">
-          <Link to="/" className="brand-link" title="Ir a Inicio">
-            <div className="brand-logo-box" aria-hidden="true">
-              <LoopointCoinSvg size={20} />
-            </div>
-            <span className="brand-name">
-              {brand.toLowerCase()}
-              <span className="brand-dot">.</span>
-            </span>
-          </Link>
-          <Link to="/" className="pixel-btn pixel-btn-secondary py-1.5 text-[11px] shrink-0">
-            <ArrowLeft className="size-3.5" aria-hidden="true" />
-            Volver al inicio
-          </Link>
+          {renderBrand()}
+          <div className="flex items-center gap-2 shrink-0">
+            <InstallPwaButton
+              className="pixel-btn pixel-btn-secondary py-1.5 text-[11px] shrink-0"
+              label="Instalar app"
+            />
+            {!isStandalone && (
+              <a
+                href={siteUrl}
+                className="pixel-btn pixel-btn-secondary py-1.5 text-[11px] shrink-0"
+              >
+                <ArrowLeft className="size-3.5" aria-hidden="true" />
+                Volver al inicio
+              </a>
+            )}
+          </div>
         </div>
       </header>
 
@@ -710,6 +793,26 @@ export function LoginPage() {
             {/* Formulario principal derecho */}
             <section className="flex items-center justify-center lg:col-span-7">
               <div className="w-full max-w-[460px] space-y-2.5">
+                {showInstallCallout && (
+                  <div
+                    role="region"
+                    aria-label="Instalar aplicación"
+                    className="pixel-box flex flex-wrap items-center justify-between gap-3 p-3.5"
+                  >
+                    <div className="space-y-0.5">
+                      <p className="text-xs font-bold text-[var(--ink)]">
+                        Instala {brand} en tu dispositivo
+                      </p>
+                      <p className="text-[11px] text-[var(--ink-muted)]">
+                        Agrégala a tu pantalla de inicio para entrar directo a tu cuenta.
+                      </p>
+                    </div>
+                    <InstallPwaButton
+                      className="pixel-btn pixel-btn-dark py-2 text-[11px] shrink-0"
+                      label={`Instalar ${brand}`}
+                    />
+                  </div>
+                )}
                 <div className="pixel-box p-4 sm:p-5">
                   <div
                     role="tablist"

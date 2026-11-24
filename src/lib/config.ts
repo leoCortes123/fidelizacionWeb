@@ -1,11 +1,23 @@
 const trimSlash = (value: string) => value.replace(/\/+$/, "");
 
+function safeHttpUrl(raw: string | undefined, fallback: string): string {
+  const candidate = raw?.trim();
+  if (!candidate || !/^https?:\/\//i.test(candidate)) return trimSlash(fallback);
+  return trimSlash(candidate);
+}
+
 /**
  * Dominio publicado de la plataforma. Los QR y enlaces de invitación deben
  * abrir la web pública aunque se generen desde un entorno local, porque la
  * base de datos es la misma. Se puede sobreescribir con VITE_PUBLIC_APP_URL.
  */
 export const defaultPublicAppUrl = "https://fidelizacion01.vercel.app";
+
+/**
+ * Sitio web comercial estático (alojado en Cloudflare Pages).
+ * Se puede sobreescribir con VITE_PUBLIC_SITE_URL.
+ */
+export const defaultPublicSiteUrl = "https://fidelapp.pages.dev";
 
 export const brandName = import.meta.env.VITE_BRAND_NAME?.trim() || "Fideliapp";
 
@@ -20,7 +32,11 @@ export const isSupabaseConfigured = Boolean(
 );
 
 export function publicAppUrl(): string {
-  return trimSlash(import.meta.env.VITE_PUBLIC_APP_URL?.trim() || defaultPublicAppUrl);
+  return safeHttpUrl(import.meta.env.VITE_PUBLIC_APP_URL, defaultPublicAppUrl);
+}
+
+export function publicSiteUrl(): string {
+  return safeHttpUrl(import.meta.env.VITE_PUBLIC_SITE_URL, defaultPublicSiteUrl);
 }
 
 export function claimUrl(token: string): string {

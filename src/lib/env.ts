@@ -4,6 +4,7 @@ const envSchema = z.object({
   VITE_SUPABASE_URL: z.string().url(),
   VITE_SUPABASE_ANON_KEY: z.string().min(1),
   VITE_PUBLIC_APP_URL: z.string().url().optional(),
+  VITE_PUBLIC_SITE_URL: z.string().url().optional(),
 });
 
 export const env = envSchema.parse(import.meta.env);

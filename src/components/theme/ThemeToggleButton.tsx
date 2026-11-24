@@ -146,7 +146,7 @@ export function PixelThemeIcon({ isDark }: { isDark: boolean }) {
 }
 
 export function ThemeToggleButton({
-  variant = "landing",
+  variant = "shell",
   className,
 }: {
   variant?: "landing" | "shell";

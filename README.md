@@ -61,6 +61,7 @@ VITE_SUPABASE_ANON_KEY=reemplaza-con-tu-anon-key
 VITE_BRAND_NAME=Mi Negocio
 VITE_BRAND_TAGLINE=Puntos por tus compras
 VITE_PUBLIC_APP_URL=
+VITE_PUBLIC_SITE_URL=https://fidelapp.pages.dev
 ```
 
 - `VITE_SUPABASE_ANON_KEY` es la clave **pública** (`anon` o `publishable`). Es la
@@ -116,7 +117,7 @@ scripts/                smoke test del build
 
 | Ruta                    | Acceso            | Contenido                                                    |
 | ----------------------- | ----------------- | ------------------------------------------------------------ |
-| `/`                     | Público           | Presentación y acceso                                        |
+| `/`                     | Público           | Redirección al portal según rol (o `/login` sin sesión)      |
 | `/login`                | Público           | Google, correo/contraseña y registro simple                  |
 | `/claim/:token`         | Autenticado       | Reclamar una compra escaneando el QR                         |
 | `/join/:slug`           | Público           | Ficha del negocio y afiliación al programa                   |

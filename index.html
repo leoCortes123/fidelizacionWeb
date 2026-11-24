@@ -2,10 +2,8 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <meta
-      name="viewport"
-      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
-    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="robots" content="noindex, nofollow" />
     <meta name="color-scheme" content="light dark" />
     <meta name="theme-color" content="#edf3f5" />
     <meta name="mobile-web-app-capable" content="yes" />
@@ -14,20 +12,8 @@
     <meta name="apple-mobile-web-app-title" content="Fideliapp" />
     <meta
       name="description"
-      content="Fideliapp: software de fidelización y programa de puntos para negocios. Registra ventas con QR, tus clientes suman monedas en el celular y canjean recompensas. Sin tarjetas de papel."
+      content="Fideliapp: acceso a tu cuenta, billetera de monedas y panel de administración."
     />
-    <link rel="canonical" href="https://fidelizacion01.vercel.app/" />
-    <meta property="og:type" content="website" />
-    <meta property="og:locale" content="es_CO" />
-    <meta property="og:site_name" content="Fideliapp" />
-    <meta property="og:title" content="Fideliapp · Programa de puntos para tu negocio, desde el celular" />
-    <meta
-      property="og:description"
-      content="App de fidelización de clientes para cafeterías, restaurantes y comercios locales: QR por venta, monedas, recompensas y control de presupuesto."
-    />
-    <meta property="og:url" content="https://fidelizacion01.vercel.app/" />
-    <meta property="og:image" content="https://fidelizacion01.vercel.app/icons/icon-512.png" />
-    <meta name="twitter:card" content="summary" />
     <link rel="icon" href="/fideliapp-coin.png" type="image/png" />
     <link rel="apple-touch-icon" href="/icons/icon-192.png" />
     <script src="/theme-init.js"></script>
@@ -37,152 +23,13 @@
       href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Press+Start+2P&family=DM+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap"
       rel="stylesheet"
     />
-    <title>Fideliapp · Software de fidelización y programa de puntos para negocios</title>
-    <!-- Datos estructurados (no ejecutables; compatibles con CSP script-src 'self').
-         FAQPage debe coincidir con `faqs` de src/features/landing/webContent.ts -->
-    <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@graph": [
-          {
-            "@type": "Organization",
-            "@id": "https://fidelizacion01.vercel.app/#org",
-            "name": "Fideliapp",
-            "url": "https://fidelizacion01.vercel.app/",
-            "logo": "https://fidelizacion01.vercel.app/icons/icon-512.png"
-          },
-          {
-            "@type": "WebSite",
-            "@id": "https://fidelizacion01.vercel.app/#web",
-            "name": "Fideliapp",
-            "url": "https://fidelizacion01.vercel.app/",
-            "inLanguage": "es-CO",
-            "publisher": {
-              "@id": "https://fidelizacion01.vercel.app/#org"
-            }
-          },
-          {
-            "@type": "SoftwareApplication",
-            "name": "Fideliapp",
-            "applicationCategory": "BusinessApplication",
-            "applicationSubCategory": "Software de fidelización de clientes",
-            "operatingSystem": "Android, iOS, Web",
-            "url": "https://fidelizacion01.vercel.app/",
-            "inLanguage": "es-CO",
-            "publisher": {
-              "@id": "https://fidelizacion01.vercel.app/#org"
-            },
-            "description": "App de fidelización de clientes y programa de puntos para negocios locales: QR por venta, monedas, recompensas, campañas, equipo con permisos y control de presupuesto.",
-            "featureList": [
-              "Programa de puntos con QR único por venta",
-              "Tarjeta de fidelización digital en el celular",
-              "Recompensas y carta configurables",
-              "Campañas con multiplicador o bono",
-              "Encargados con permisos para ventas y canjes",
-              "Control de presupuesto y alertas",
-              "Vencimiento de monedas",
-              "Auditoría e historial por cliente",
-              "Multiempresa"
-            ]
-          },
-          {
-            "@type": "FAQPage",
-            "mainEntity": [
-              {
-                "@type": "Question",
-                "name": "¿Qué es Fideliapp?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "Fideliapp es un software de fidelización de clientes para negocios locales. Permite crear un programa de puntos en el que tus clientes acumulan monedas con cada compra escaneando un QR y las canjean por recompensas que tú defines, todo desde el celular."
-                }
-              },
-              {
-                "@type": "Question",
-                "name": "¿Cómo funciona el sistema de puntos para clientes?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "El encargado registra la venta y la app genera un QR único. El cliente lo escanea y recibe monedas según tus reglas. Cuando junta suficientes monedas solicita una recompensa, tu equipo aprueba el canje y entrega el premio."
-                }
-              },
-              {
-                "@type": "Question",
-                "name": "¿Qué incluye el plan Player 1 · Gratis?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "El plan Player 1 · Gratis permite operar 1 solo local con las funciones esenciales de fidelización: acumular monedas por venta con código QR y redimir recompensas en caja."
-                }
-              },
-              {
-                "@type": "Question",
-                "name": "¿Qué diferencia hay entre Level Up · Pro y Modo Arcade · Suite?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "Level Up · Pro añade creación de campañas (promociones, bonos y próximamente cumpleaños) y difusiones por los canales permitidos por el usuario. Modo Arcade · Suite sumará próximamente la plataforma de juegos para clientes y la aplicación completa de administración desde comandera hasta facturación."
-                }
-              },
-              {
-                "@type": "Question",
-                "name": "¿Mis clientes tienen que descargar una app?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "No es obligatorio. Fideliapp funciona desde el navegador del celular y además se puede instalar como app (PWA) desde la misma página, sin pasar por una tienda de aplicaciones."
-                }
-              },
-              {
-                "@type": "Question",
-                "name": "¿Necesito un lector, una impresora o integrar mi sistema POS?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "No. Basta con el celular o la tablet del negocio para generar los QR de venta y aprobar canjes. No se requiere hardware adicional ni integración con tu caja."
-                }
-              },
-              {
-                "@type": "Question",
-                "name": "¿Mis empleados pueden usarlo?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "Sí. Puedes agregar encargados con permisos para registrar ventas y aprobar canjes. Cada operación queda registrada en la auditoría con el usuario que la hizo."
-                }
-              },
-              {
-                "@type": "Question",
-                "name": "¿Las monedas vencen?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "Tú decides la vigencia en la configuración del programa. Cuando hay vencimiento, se consumen primero las monedas más antiguas (FIFO) y cada vencimiento queda registrado en el historial de movimientos."
-                }
-              },
-              {
-                "@type": "Question",
-                "name": "¿El saldo de un cliente se mezcla entre diferentes negocios?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "No. Cada negocio tiene su propia billetera de monedas, su propia carta y su catálogo de recompensas. El cliente ve todos sus negocios afiliados en un solo lugar, pero con saldos independientes."
-                }
-              },
-              {
-                "@type": "Question",
-                "name": "¿Qué pasa si un cliente intenta escanear el mismo QR de venta dos veces?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "El sistema valida que cada QR corresponda a una única venta y solo permite reclamarlo una vez. Los intentos repetidos son rechazados automáticamente en la base de datos."
-                }
-              }
-            ]
-          }
-        ]
-      }
-    </script>
+    <title>Fideliapp · Acceso a la aplicación</title>
   </head>
   <body>
     <div id="root"></div>
     <noscript>
-      <h1>Fideliapp · Software de fidelización y programa de puntos para negocios</h1>
-      <p>
-        Fideliapp es una app de fidelización de clientes para cafeterías, restaurantes y comercios
-        locales. Registras cada venta con un QR, tus clientes suman monedas en su celular y las
-        canjean por recompensas que tú defines. Activa JavaScript para usar la aplicación.
-      </p>
+      <h1>Fideliapp</h1>
+      <p>Activa JavaScript para iniciar sesión y usar Fideliapp.</p>
     </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>

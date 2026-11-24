@@ -3,7 +3,7 @@ import { LogOut } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/features/auth/AuthProvider";
 import { useMyProfile } from "@/features/profile/hooks";
-import { ThemeToggleButton } from "@/features/landing/ThemeToggleButton";
+import { ThemeToggleButton } from "@/components/theme/ThemeToggleButton";
 import { initials } from "@/lib/config";
 import { cn } from "@/lib/utils";
 
@@ -27,7 +27,7 @@ export function UserMenu({ compact = true, className }: UserMenuProps) {
   async function handleSignOut() {
     await signOut();
     toast.success("Sesión cerrada");
-    navigate("/", { replace: true });
+    navigate("/login", { replace: true });
   }
 
   return (

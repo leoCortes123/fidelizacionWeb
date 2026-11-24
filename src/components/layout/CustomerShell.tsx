@@ -45,7 +45,7 @@ export function CustomerShell() {
     setMenuOpen(false);
     await signOut();
     toast.success("Sesión cerrada");
-    navigate("/", { replace: true });
+    navigate("/login", { replace: true });
   }
 
   function renderNavLinks(idPrefix: string, linkClass: string, iconOnly = false) {

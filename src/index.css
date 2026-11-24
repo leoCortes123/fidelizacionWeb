@@ -332,7 +332,10 @@
       radial-gradient(rgba(22, 38, 46, 0.08) 0.75px, transparent 0.75px),
       linear-gradient(to right, var(--lp-grid-line) 1px, transparent 1px),
       linear-gradient(to bottom, var(--lp-grid-line) 1px, transparent 1px);
-    background-size: 6px 6px, 24px 24px, 24px 24px;
+    background-size:
+      6px 6px,
+      24px 24px,
+      24px 24px;
   }
 
   .dark .hero-glow {

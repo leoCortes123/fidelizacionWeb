@@ -10,6 +10,7 @@ export default defineConfig({
       registerType: "prompt",
       includeAssets: ["favicon.svg", "fideliapp-coin.png", "theme-init.js"],
       manifest: {
+        id: "/",
         name: "Fideliapp",
         short_name: "Fideliapp",
         description:
@@ -64,7 +65,7 @@ export default defineConfig({
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
         navigateFallback: "/index.html",
-        navigateFallbackDenylist: [/^\/(robots\.txt|sitemap\.xml|llms\.txt)$/],
+        navigateFallbackDenylist: [/^\/robots\.txt$/],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,

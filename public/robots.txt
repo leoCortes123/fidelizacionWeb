@@ -1,16 +1,4 @@
+# Permitir rastreo para que los buscadores lean `X-Robots-Tag: noindex, nofollow`
+# y desindexen cualquier ruta antigua de Vercel (el sitio comercial vive en fidelapp.pages.dev).
 User-agent: *
 Allow: /
-Allow: /como-funciona
-Allow: /funciones
-Allow: /precios
-Allow: /preguntas
-Disallow: /admin
-Disallow: /customer
-Disallow: /encargado
-Disallow: /business
-Disallow: /perfil
-Disallow: /auth/
-Disallow: /claim/
-Disallow: /scan/
-
-Sitemap: https://fidelizacion01.vercel.app/sitemap.xml

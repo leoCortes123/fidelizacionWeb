@@ -15,7 +15,7 @@ export function SignOutButton({
   async function handleSignOut() {
     await signOut();
     toast.success("Sesión cerrada");
-    navigate("/", { replace: true });
+    navigate("/login", { replace: true });
   }
 
   return (
