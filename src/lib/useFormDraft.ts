@@ -19,7 +19,9 @@ interface DraftEnvelope<T> {
   value: T;
 }
 
-const PREFIX = "loopoint:draft:";
+export const DRAFT_STORAGE_PREFIX = "fideliapp:draft:";
+// Clave heredada de la marca anterior; se migra una sola vez al leer y se elimina.
+export const LEGACY_DRAFT_STORAGE_PREFIX = "loopoint:draft:";
 
 function getStorage(kind: DraftStorage): Storage | null {
   try {
@@ -40,7 +42,8 @@ export function useFormDraft<T>({
   ttlDays = 7,
   enabled = true,
 }: UseFormDraftOptions) {
-  const storageKey = `${PREFIX}${key}`;
+  const storageKey = `${DRAFT_STORAGE_PREFIX}${key}`;
+  const legacyKey = `${LEGACY_DRAFT_STORAGE_PREFIX}${key}`;
   const [hasDraft, setHasDraft] = useState(false);
 
   const read = useCallback((): T | null => {
@@ -48,23 +51,46 @@ export function useFormDraft<T>({
     const target = getStorage(storage);
     if (!target) return null;
     try {
-      const raw = target.getItem(storageKey);
+      const currentRaw = target.getItem(storageKey);
+      const legacyRaw = target.getItem(legacyKey);
+      const raw = currentRaw ?? legacyRaw;
+      const migratedFromLegacy = !currentRaw && Boolean(legacyRaw);
+
+      if (currentRaw && legacyRaw !== null) {
+        target.removeItem(legacyKey);
+      }
       if (!raw) return null;
-      const parsed = JSON.parse(raw) as DraftEnvelope<T>;
+
+      let parsed: DraftEnvelope<T>;
+      try {
+        parsed = JSON.parse(raw) as DraftEnvelope<T>;
+      } catch {
+        target.removeItem(migratedFromLegacy ? legacyKey : storageKey);
+        return null;
+      }
+
       if (parsed.version !== version) {
-        target.removeItem(storageKey);
+        target.removeItem(migratedFromLegacy ? legacyKey : storageKey);
         return null;
       }
       const maxAge = ttlDays * 24 * 60 * 60 * 1000;
       if (!parsed.savedAt || Date.now() - parsed.savedAt > maxAge) {
-        target.removeItem(storageKey);
+        target.removeItem(migratedFromLegacy ? legacyKey : storageKey);
         return null;
+      }
+      if (migratedFromLegacy) {
+        try {
+          target.setItem(storageKey, raw);
+          target.removeItem(legacyKey);
+        } catch {
+          // Si falla escribir (p. ej. QuotaExceededError), conservamos el borrador heredado.
+        }
       }
       return parsed.value;
     } catch {
       return null;
     }
-  }, [enabled, storage, storageKey, ttlDays, version]);
+  }, [enabled, legacyKey, storage, storageKey, ttlDays, version]);
 
   const save = useCallback(
     (value: T) => {
@@ -78,23 +104,27 @@ export function useFormDraft<T>({
           value,
         };
         target.setItem(storageKey, JSON.stringify(envelope));
+        if (target.getItem(legacyKey) !== null) {
+          target.removeItem(legacyKey);
+        }
         setHasDraft(true);
       } catch {
         // Cuota llena o almacenamiento bloqueado: el formulario sigue en memoria.
       }
     },
-    [enabled, storage, storageKey, version],
+    [enabled, legacyKey, storage, storageKey, version],
   );
 
   const clear = useCallback(() => {
     const target = getStorage(storage);
     try {
       target?.removeItem(storageKey);
+      target?.removeItem(legacyKey);
     } catch {
       // Ignorado.
     }
     setHasDraft(false);
-  }, [storage, storageKey]);
+  }, [legacyKey, storage, storageKey]);
 
   useEffect(() => {
     setHasDraft(read() !== null);

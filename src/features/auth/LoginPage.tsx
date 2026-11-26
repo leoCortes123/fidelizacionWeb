@@ -8,6 +8,7 @@ import {
   EyeOff,
   Gift,
   Loader2,
+  MailCheck,
   QrCode,
   ShieldCheck,
   Sparkles,
@@ -23,7 +24,7 @@ import { Label } from "@/components/ui/label";
 import { usePortalTheme } from "@/components/theme/ThemeProvider";
 import { InstallPwaButton, useIsStandalone } from "@/components/pwa/InstallPwaButton";
 import { FullPageLoader } from "@/components/shared/States";
-import { HeroCoinSvg, LoopointCoinSvg } from "@/features/customer/pixelSprites";
+import { HeroCoinSvg, CoinSvg } from "@/features/customer/pixelSprites";
 import "@/features/customer/customerRetro.css";
 import { queryClient } from "@/app/queryClient";
 import { useAuth } from "./AuthProvider";
@@ -38,6 +39,10 @@ import {
   safeNextPath,
 } from "@/lib/config";
 import { clearPendingClaim } from "@/lib/pendingClaim";
+import { LEGAL_URLS } from "@/config/legal.config";
+import { useRecordLegalConsent } from "@/features/legal/hooks";
+import { LegalConsentCheckbox, LegalExternalLink } from "@/features/legal/LegalConsentCheckbox";
+import { LegalFooterLinks } from "@/features/legal/LegalFooterLinks";
 import { resolvePostLoginPath } from "@/lib/postLogin";
 import { errorMessage } from "@/lib/errors";
 import { queryKeys } from "@/lib/queryKeys";
@@ -52,6 +57,7 @@ type FieldErrors = {
   businessName?: string;
   email?: string;
   password?: string;
+  legal?: string;
 };
 
 function GoogleIcon() {
@@ -132,6 +138,8 @@ export function LoginPage() {
     signInWithGoogle,
     signInWithPassword,
     signUpWithPassword,
+    resendConfirmationEmail,
+    resetPasswordForEmail,
     refreshRoles,
   } = useAuth();
 
@@ -184,6 +192,15 @@ export function LoginPage() {
   const [fullName, setFullName] = useState("");
   const [businessName, setBusinessName] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [acceptedLegal, setAcceptedLegal] = useState(false);
+  const [pendingConfirmationEmail, setPendingConfirmationEmail] = useState<string | null>(null);
+  const [resendingConfirmation, setResendingConfirmation] = useState(false);
+  const [resendFeedback, setResendFeedback] = useState<string | null>(null);
+  const [unconfirmedLoginEmail, setUnconfirmedLoginEmail] = useState<string | null>(null);
+  const [forgotMode, setForgotMode] = useState(false);
+  const [recoveryEmail, setRecoveryEmail] = useState("");
+  const [recoverySent, setRecoverySent] = useState(false);
+  const recordLegalConsent = useRecordLegalConsent();
 
   const [invitePreview, setInvitePreview] = useState<MemberInvitePreview | null>(null);
   const [invitePreviewLoading, setInvitePreviewLoading] = useState(false);
@@ -316,7 +333,7 @@ export function LoginPage() {
   }, [loading, sessionUserId, inviteToken, refreshRoles, navigate]);
 
   useEffect(() => {
-    if (loading || !session || rolesLoading || !rolesLoaded) return;
+    if (submitting || loading || !session || rolesLoading || !rolesLoaded) return;
     if (inviteToken || showInstallCallout) return;
 
     if (mode === "register") {
@@ -341,6 +358,7 @@ export function LoginPage() {
       active = false;
     };
   }, [
+    submitting,
     loading,
     session,
     rolesLoading,
@@ -424,6 +442,10 @@ export function LoginPage() {
     if (password.length < 6) {
       nextFieldErrors.password = "La contraseña debe tener al menos 6 caracteres.";
     }
+    if (mode === "register" && !acceptedLegal) {
+      nextFieldErrors.legal =
+        "Debes aceptar los Términos de uso y la Política de Tratamiento de Datos.";
+    }
 
     if (Object.keys(nextFieldErrors).length > 0) {
       setFieldErrors(nextFieldErrors);
@@ -432,6 +454,7 @@ export function LoginPage() {
           nextFieldErrors.businessName ??
           nextFieldErrors.email ??
           nextFieldErrors.password ??
+          nextFieldErrors.legal ??
           "Revisa los campos marcados.",
       );
       focusErrorBanner();
@@ -439,6 +462,8 @@ export function LoginPage() {
     }
 
     setFieldErrors({});
+    setUnconfirmedLoginEmail(null);
+    setResendFeedback(null);
     setSubmitting(true);
     try {
       if (mode === "login") {
@@ -455,11 +480,67 @@ export function LoginPage() {
           nextPath: effectiveNext,
         });
         if (needsConfirmation) {
+          setPendingConfirmationEmail(email.trim());
           setNotice("Revisa tu correo para confirmar la cuenta y luego entra.");
+        } else {
+          try {
+            await recordLegalConsent.mutateAsync({
+              documents: ["terms_customer", "privacy_policy"],
+              businessId: null,
+              sourceRoute: "/login",
+            });
+          } catch {
+            // Si falla el registro inmediato, ConsentGate lo solicitará al entrar al portal.
+          }
         }
       }
     } catch (submitError) {
-      setError(errorMessage(submitError));
+      const msg = errorMessage(submitError);
+      const rawMsg = submitError instanceof Error ? submitError.message : String(submitError ?? "");
+      if (
+        mode === "login" &&
+        (rawMsg.toLowerCase().includes("email_not_confirmed") ||
+          rawMsg.toLowerCase().includes("email not confirmed"))
+      ) {
+        setUnconfirmedLoginEmail(email.trim());
+      }
+      setError(msg);
+      focusErrorBanner();
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleResendConfirmation(targetEmail: string) {
+    if (!targetEmail) return;
+    setResendingConfirmation(true);
+    setResendFeedback(null);
+    setError(null);
+    try {
+      await resendConfirmationEmail(targetEmail, effectiveNext);
+      setResendFeedback(`Reenviamos el enlace de confirmación a ${targetEmail}.`);
+    } catch (resendError) {
+      setError(errorMessage(resendError));
+    } finally {
+      setResendingConfirmation(false);
+    }
+  }
+
+  async function handleRecoverySubmit(event: React.FormEvent) {
+    event.preventDefault();
+    setError(null);
+    setRecoverySent(false);
+    if (!recoveryEmail.trim().includes("@")) {
+      setError("Escribe un correo válido para recuperar tu contraseña.");
+      focusErrorBanner();
+      return;
+    }
+    setSubmitting(true);
+    try {
+      await resetPasswordForEmail(recoveryEmail.trim());
+      setRecoverySent(true);
+    } catch (recoveryError) {
+      setError(errorMessage(recoveryError));
       focusErrorBanner();
     } finally {
       setSubmitting(false);
@@ -471,6 +552,12 @@ export function LoginPage() {
     setError(null);
     setNotice(null);
     setFieldErrors({});
+    setAcceptedLegal(false);
+    setPendingConfirmationEmail(null);
+    setResendFeedback(null);
+    setUnconfirmedLoginEmail(null);
+    setForgotMode(false);
+    setRecoverySent(false);
   }
 
   function handleTabKeyDown(event: React.KeyboardEvent, current: "login" | "register") {
@@ -517,7 +604,7 @@ export function LoginPage() {
     isStandalone ? (
       <div className="brand-link">
         <div className="brand-logo-box" aria-hidden="true">
-          <LoopointCoinSvg size={20} />
+          <CoinSvg size={20} />
         </div>
         <span className="brand-name">
           {brand.toLowerCase()}
@@ -527,7 +614,7 @@ export function LoginPage() {
     ) : (
       <a href={siteUrl} className="brand-link" title="Ir a Inicio">
         <div className="brand-logo-box" aria-hidden="true">
-          <LoopointCoinSvg size={20} />
+          <CoinSvg size={20} />
         </div>
         <span className="brand-name">
           {brand.toLowerCase()}
@@ -854,442 +941,691 @@ export function LoginPage() {
                     role="tabpanel"
                     aria-labelledby={mode === "login" ? "tab-login" : "tab-register"}
                   >
-                    <div className="mb-3.5 space-y-1.5">
-                      <span className="retro-kicker">
-                        {hasInvite
-                          ? "Invitación por código QR"
-                          : mode === "login"
-                            ? "Acceso a tu cuenta"
-                            : accountType === "admin"
-                              ? "Registro de administrador"
-                              : "Registro de cliente"}
-                      </span>
-                      <h1 className="font-['Space_Grotesk'] text-xl font-bold tracking-tight text-[var(--ink)] sm:text-2xl">
-                        {hasInvite
-                          ? mode === "login"
-                            ? "Inicia sesión para unirte"
-                            : "Crea tu cuenta para unirte"
-                          : mode === "login"
-                            ? "Entra a tus monedas"
-                            : "Crea tu cuenta"}
-                      </h1>
-                      <p className="text-sm leading-relaxed text-[var(--ink-muted)]">
-                        {hasInvite
-                          ? invitePreview && !inviteUnavailableReason
-                            ? `Te unirás a ${invitePreview.business_name} como ${inviteRoleText?.toLowerCase()}. Si ya tienes cuenta como cliente, tu rol se actualizará automáticamente.`
-                            : "Completa el acceso para aplicar tu rol en el negocio."
-                          : mode === "login"
-                            ? "Revisa tu saldo y tus recompensas desde el teléfono."
-                            : accountType === "admin"
-                              ? "Crea tu cuenta de administrador para registrar y gestionar tu negocio."
-                              : "Regístrate en segundos para empezar a acumular."}
-                      </p>
-                    </div>
+                    {pendingConfirmationEmail ? (
+                      <div className="space-y-4 py-2">
+                        <div className="space-y-1.5">
+                          <span className="retro-kicker">Confirmación pendiente</span>
+                          <h1 className="flex items-center gap-2 font-['Space_Grotesk'] text-xl font-bold tracking-tight text-[var(--ink)] sm:text-2xl">
+                            <MailCheck className="size-5 shrink-0" aria-hidden="true" />
+                            Revisa tu correo
+                          </h1>
+                          <p className="text-sm leading-relaxed text-[var(--ink-muted)]">
+                            Enviamos un enlace de confirmación a{" "}
+                            <strong className="text-[var(--ink)]">
+                              {pendingConfirmationEmail}
+                            </strong>
+                            . Ábrelo para activar tu cuenta y continuar.
+                          </p>
+                        </div>
 
-                    <div className="space-y-3">
-                      {hasInvite && (
-                        <>
-                          {invitePreviewLoading ? (
-                            <Alert className="retro-alert bg-[var(--paper-deep)]">
-                              <AlertTitle>Verificando invitación…</AlertTitle>
-                              <AlertDescription>
-                                Estamos consultando los datos del negocio y tu rol asignado.
-                              </AlertDescription>
-                            </Alert>
-                          ) : inviteUnavailableReason ? (
-                            <Alert variant="destructive" className="retro-alert">
-                              <AlertTitle>Invitación no disponible</AlertTitle>
-                              <AlertDescription className="space-y-2">
-                                <p>{inviteUnavailableReason}</p>
-                                <Link
-                                  to="/login?mode=login"
-                                  className="inline-block font-semibold underline underline-offset-4"
-                                >
-                                  Ir al acceso normal
-                                </Link>
-                              </AlertDescription>
-                            </Alert>
-                          ) : invitePreview ? (
-                            <div className="pixel-box-dark space-y-2 p-3.5 text-sm">
-                              <div className="flex flex-wrap items-center justify-between gap-2">
-                                <span className="font-bold text-[var(--ink)]">
-                                  {invitePreview.business_name}
-                                </span>
-                                <Badge
-                                  variant="secondary"
-                                  className="rounded-none border-2 border-[var(--border-color)] bg-[var(--gold)] text-[#16262e]"
-                                >
-                                  Rol: {inviteRoleText}
-                                </Badge>
-                              </div>
-                              <p className="text-xs text-[var(--ink-muted)]">
-                                {invitePreview.role === "encargado" &&
-                                invitePreview.can_approve_redemptions
-                                  ? "Incluye permiso para aprobar redenciones en caja."
-                                  : "El rol se asignará automáticamente al completar este paso."}
-                              </p>
-                            </div>
-                          ) : null}
-                        </>
-                      )}
+                        {notice && (
+                          <Alert variant="success" className="retro-alert">
+                            <AlertTitle>Cuenta creada</AlertTitle>
+                            <AlertDescription>{notice}</AlertDescription>
+                          </Alert>
+                        )}
 
-                      {!isSupabaseConfigured && (
-                        <Alert variant="warning" className="retro-alert">
-                          <AlertTitle>Configuración pendiente</AlertTitle>
-                          <AlertDescription>
-                            Define las variables de Supabase en <code>.env</code> para habilitar el
-                            inicio de sesión. Consulta <code>docs/CONFIGURACION.md</code>.
-                          </AlertDescription>
-                        </Alert>
-                      )}
+                        {resendFeedback && (
+                          <Alert variant="success" className="retro-alert">
+                            <AlertTitle>Correo reenviado</AlertTitle>
+                            <AlertDescription>{resendFeedback}</AlertDescription>
+                          </Alert>
+                        )}
 
-                      {error && (
-                        <div
-                          ref={errorBannerRef}
-                          tabIndex={-1}
-                          className="focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]"
-                        >
+                        {error && (
                           <Alert variant="destructive" className="retro-alert">
-                            <AlertTitle>No se pudo continuar</AlertTitle>
+                            <AlertTitle>No se pudo reenviar</AlertTitle>
                             <AlertDescription>{error}</AlertDescription>
                           </Alert>
-                        </div>
-                      )}
-
-                      {notice && (
-                        <Alert variant="success" className="retro-alert">
-                          <AlertTitle>Cuenta creada</AlertTitle>
-                          <AlertDescription>{notice}</AlertDescription>
-                        </Alert>
-                      )}
-
-                      {mode === "register" && !hasInvite && (
-                        <div className="space-y-2" role="radiogroup" aria-label="Tipo de cuenta">
-                          <span className="form-label block">Tipo de cuenta</span>
-                          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-                            <button
-                              ref={customerRadioRef}
-                              type="button"
-                              role="radio"
-                              aria-checked={accountType === "customer"}
-                              tabIndex={accountType === "customer" ? 0 : -1}
-                              onClick={() => handleSelectAccountType("customer")}
-                              onKeyDown={(event) => handleRadioKeyDown(event, "customer")}
-                              className={cn(
-                                "relative flex cursor-pointer flex-col gap-1.5 border-[3px] p-3 text-left transition-all duration-150 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]",
-                                accountType === "customer"
-                                  ? "border-[var(--border-color)] bg-[var(--tip-bg)] text-[var(--ink)] shadow-[4px_4px_0_var(--shadow-color)] dark:border-[var(--gold)] dark:bg-[var(--cream)]"
-                                  : "border-[var(--border-color)] bg-[var(--paper-deep)] text-[var(--ink)] shadow-[2px_2px_0_var(--shadow-color)] hover:bg-[var(--cream-alt)]",
-                              )}
-                            >
-                              <div className="flex items-center justify-between gap-2">
-                                <span
-                                  className={cn(
-                                    "grid size-8 place-items-center border-2 border-[var(--border-color)]",
-                                    accountType === "customer"
-                                      ? "bg-[var(--blue)] text-white"
-                                      : "bg-[var(--cream)] text-[var(--ink-muted)]",
-                                  )}
-                                >
-                                  <UserRound className="size-4" aria-hidden="true" />
-                                </span>
-                                {accountType === "customer" && (
-                                  <span className="grid size-5 place-items-center border-2 border-[var(--border-color)] bg-[var(--blue)] text-white">
-                                    <Check className="size-3" aria-hidden="true" />
-                                  </span>
-                                )}
-                              </div>
-                              <span className="font-['Space_Grotesk'] text-sm font-bold">
-                                Cliente
-                              </span>
-                              <span className="text-xs leading-snug text-[var(--ink-muted)]">
-                                Acumula monedas y canjea premios
-                              </span>
-                            </button>
-
-                            <button
-                              ref={adminRadioRef}
-                              type="button"
-                              role="radio"
-                              aria-checked={accountType === "admin"}
-                              tabIndex={accountType === "admin" ? 0 : -1}
-                              onClick={() => handleSelectAccountType("admin")}
-                              onKeyDown={(event) => handleRadioKeyDown(event, "admin")}
-                              className={cn(
-                                "relative flex cursor-pointer flex-col gap-1.5 border-[3px] p-3 text-left transition-all duration-150 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]",
-                                accountType === "admin"
-                                  ? "border-[var(--border-color)] bg-[var(--tip-bg)] text-[var(--ink)] shadow-[4px_4px_0_var(--shadow-color)] dark:border-[var(--gold)] dark:bg-[var(--cream)]"
-                                  : "border-[var(--border-color)] bg-[var(--paper-deep)] text-[var(--ink)] shadow-[2px_2px_0_var(--shadow-color)] hover:bg-[var(--cream-alt)]",
-                              )}
-                            >
-                              <div className="flex items-center justify-between gap-2">
-                                <span
-                                  className={cn(
-                                    "grid size-8 place-items-center border-2 border-[var(--border-color)]",
-                                    accountType === "admin"
-                                      ? "bg-[var(--gold)] text-[#16262e]"
-                                      : "bg-[var(--cream)] text-[var(--ink-muted)]",
-                                  )}
-                                >
-                                  <Building2 className="size-4" aria-hidden="true" />
-                                </span>
-                                {accountType === "admin" && (
-                                  <span className="grid size-5 place-items-center border-2 border-[#16262e] bg-[var(--gold)] text-[#16262e]">
-                                    <Check className="size-3" aria-hidden="true" />
-                                  </span>
-                                )}
-                              </div>
-                              <span className="font-['Space_Grotesk'] text-sm font-bold">
-                                Administrador
-                              </span>
-                              <span className="text-xs leading-snug text-[var(--ink-muted)]">
-                                Registra y administra tu negocio
-                              </span>
-                            </button>
-                          </div>
-                        </div>
-                      )}
-
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="w-full"
-                        onClick={handleGoogle}
-                        disabled={submitting || loading || inviteBlocked || invitePreviewLoading}
-                      >
-                        {submitting ? (
-                          <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-                        ) : (
-                          <GoogleIcon />
                         )}
-                        Continuar con Google
-                      </Button>
 
-                      <div className="relative flex items-center gap-3">
-                        <div className="flex-1 border-t-2 border-dashed border-[var(--dash-line)]" />
-                        <span className="font-['DM_Mono'] text-[11px] font-bold uppercase tracking-wider text-[var(--ink-muted)]">
-                          o con tu correo
-                        </span>
-                        <div className="flex-1 border-t-2 border-dashed border-[var(--dash-line)]" />
+                        <p className="text-xs leading-relaxed text-[var(--ink-muted)]">
+                          Si no ves el correo en unos minutos, revisa tu carpeta de spam o
+                          promociones.
+                        </p>
+
+                        <div className="flex flex-col gap-2.5">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="w-full"
+                            loading={resendingConfirmation}
+                            disabled={resendingConfirmation}
+                            onClick={() => void handleResendConfirmation(pendingConfirmationEmail)}
+                          >
+                            Reenviar correo de confirmación
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            className="w-full"
+                            onClick={() => switchMode("login")}
+                          >
+                            Volver a iniciar sesión
+                          </Button>
+                        </div>
                       </div>
-
-                      <form onSubmit={handleSubmit} className="space-y-3" noValidate>
-                        {mode === "register" && (
-                          <div className="form-field">
-                            <Label htmlFor="full-name" className="form-label">
-                              Nombre
-                            </Label>
-                            <Input
-                              id="full-name"
-                              name="name"
-                              autoComplete="name"
-                              value={fullName}
-                              onChange={(event) => {
-                                setFullName(event.target.value);
-                                if (fieldErrors.fullName) {
-                                  setFieldErrors((current) => ({
-                                    ...current,
-                                    fullName: undefined,
-                                  }));
-                                }
-                              }}
-                              onBlur={() => {
-                                const msg = validateField("fullName", fullName);
-                                if (msg)
-                                  setFieldErrors((current) => ({ ...current, fullName: msg }));
-                              }}
-                              placeholder={
-                                accountType === "admin" ? "Nombre del administrador" : "Tu nombre"
-                              }
-                              aria-invalid={Boolean(fieldErrors.fullName)}
-                              aria-describedby={
-                                fieldErrors.fullName ? "full-name-error" : undefined
-                              }
-                              required
-                            />
-                            {fieldErrors.fullName && (
-                              <p
-                                id="full-name-error"
-                                aria-live="polite"
-                                className="text-xs font-semibold text-destructive"
-                              >
-                                {fieldErrors.fullName}
-                              </p>
-                            )}
-                          </div>
-                        )}
-
-                        {mode === "register" && accountType === "admin" && !hasInvite && (
-                          <div className="form-field animate-fade-in">
-                            <Label htmlFor="business-name" className="form-label">
-                              Nombre del negocio
-                            </Label>
-                            <Input
-                              id="business-name"
-                              name="businessName"
-                              autoComplete="organization"
-                              value={businessName}
-                              onChange={(event) => {
-                                setBusinessName(event.target.value);
-                                if (fieldErrors.businessName) {
-                                  setFieldErrors((current) => ({
-                                    ...current,
-                                    businessName: undefined,
-                                  }));
-                                }
-                              }}
-                              onBlur={() => {
-                                const msg = validateField("businessName", businessName);
-                                if (msg)
-                                  setFieldErrors((current) => ({ ...current, businessName: msg }));
-                              }}
-                              placeholder="Ej. Taquería El Fogón"
-                              aria-invalid={Boolean(fieldErrors.businessName)}
-                              aria-describedby={
-                                fieldErrors.businessName ? "business-name-error" : undefined
-                              }
-                              required
-                            />
-                            {fieldErrors.businessName && (
-                              <p
-                                id="business-name-error"
-                                aria-live="polite"
-                                className="text-xs font-semibold text-destructive"
-                              >
-                                {fieldErrors.businessName}
-                              </p>
-                            )}
-                          </div>
-                        )}
-
-                        <div className="form-field">
-                          <Label htmlFor="email" className="form-label">
-                            Correo
-                          </Label>
-                          <Input
-                            id="email"
-                            name="email"
-                            type="email"
-                            inputMode="email"
-                            autoComplete="email"
-                            value={email}
-                            onChange={(event) => {
-                              setEmail(event.target.value);
-                              if (fieldErrors.email) {
-                                setFieldErrors((current) => ({ ...current, email: undefined }));
-                              }
-                            }}
-                            onBlur={() => {
-                              const msg = validateField("email", email);
-                              if (msg) setFieldErrors((current) => ({ ...current, email: msg }));
-                            }}
-                            placeholder="tu@correo.com"
-                            aria-invalid={Boolean(fieldErrors.email)}
-                            aria-describedby={fieldErrors.email ? "email-error" : undefined}
-                            required
-                          />
-                          {fieldErrors.email && (
-                            <p
-                              id="email-error"
-                              aria-live="polite"
-                              className="text-xs font-semibold text-destructive"
-                            >
-                              {fieldErrors.email}
-                            </p>
-                          )}
+                    ) : forgotMode ? (
+                      <div className="space-y-4 py-2">
+                        <div className="space-y-1.5">
+                          <span className="retro-kicker">Recuperación de acceso</span>
+                          <h1 className="font-['Space_Grotesk'] text-xl font-bold tracking-tight text-[var(--ink)] sm:text-2xl">
+                            Restablecer contraseña
+                          </h1>
+                          <p className="text-sm leading-relaxed text-[var(--ink-muted)]">
+                            Escribe tu correo y te enviaremos un enlace para elegir una nueva
+                            contraseña.
+                          </p>
                         </div>
 
-                        <div className="form-field">
-                          <Label htmlFor="password" className="form-label">
-                            Contraseña
-                          </Label>
-                          <div className="relative">
-                            <Input
-                              id="password"
-                              name="password"
-                              type={showPassword ? "text" : "password"}
-                              autoComplete={mode === "login" ? "current-password" : "new-password"}
-                              value={password}
-                              onChange={(event) => {
-                                setPassword(event.target.value);
-                                if (fieldErrors.password) {
-                                  setFieldErrors((current) => ({
-                                    ...current,
-                                    password: undefined,
-                                  }));
+                        {error && (
+                          <div
+                            ref={errorBannerRef}
+                            tabIndex={-1}
+                            className="focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]"
+                          >
+                            <Alert variant="destructive" className="retro-alert">
+                              <AlertTitle>No se pudo continuar</AlertTitle>
+                              <AlertDescription>{error}</AlertDescription>
+                            </Alert>
+                          </div>
+                        )}
+
+                        {recoverySent ? (
+                          <div className="space-y-4">
+                            <Alert variant="success" className="retro-alert">
+                              <AlertTitle>Revisa tu bandeja de entrada</AlertTitle>
+                              <AlertDescription>
+                                Si existe una cuenta con ese correo, recibirás un enlace para
+                                restablecer tu contraseña.
+                              </AlertDescription>
+                            </Alert>
+                            <Button
+                              type="button"
+                              className="w-full"
+                              onClick={() => switchMode("login")}
+                            >
+                              Volver a iniciar sesión
+                            </Button>
+                          </div>
+                        ) : (
+                          <form onSubmit={handleRecoverySubmit} className="space-y-3.5" noValidate>
+                            <div className="form-field">
+                              <Label htmlFor="recovery-email" className="form-label">
+                                Correo electrónico
+                              </Label>
+                              <Input
+                                id="recovery-email"
+                                name="recoveryEmail"
+                                type="email"
+                                autoComplete="email"
+                                value={recoveryEmail}
+                                onChange={(event) => setRecoveryEmail(event.target.value)}
+                                placeholder="tu@correo.com"
+                                required
+                              />
+                            </div>
+                            <div className="flex flex-col gap-2.5">
+                              <Button
+                                type="submit"
+                                className="w-full"
+                                loading={submitting}
+                                disabled={submitting}
+                              >
+                                Enviar enlace de recuperación
+                              </Button>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                className="w-full"
+                                onClick={() => {
+                                  setForgotMode(false);
+                                  setError(null);
+                                }}
+                              >
+                                Volver a iniciar sesión
+                              </Button>
+                            </div>
+                          </form>
+                        )}
+                      </div>
+                    ) : (
+                      <>
+                        <div className="mb-3.5 space-y-1.5">
+                          <span className="retro-kicker">
+                            {hasInvite
+                              ? "Invitación por código QR"
+                              : mode === "login"
+                                ? "Acceso a tu cuenta"
+                                : accountType === "admin"
+                                  ? "Registro de administrador"
+                                  : "Registro de cliente"}
+                          </span>
+                          <h1 className="font-['Space_Grotesk'] text-xl font-bold tracking-tight text-[var(--ink)] sm:text-2xl">
+                            {hasInvite
+                              ? mode === "login"
+                                ? "Inicia sesión para unirte"
+                                : "Crea tu cuenta para unirte"
+                              : mode === "login"
+                                ? "Entra a tus monedas"
+                                : "Crea tu cuenta"}
+                          </h1>
+                          <p className="text-sm leading-relaxed text-[var(--ink-muted)]">
+                            {hasInvite
+                              ? invitePreview && !inviteUnavailableReason
+                                ? `Te unirás a ${invitePreview.business_name} como ${inviteRoleText?.toLowerCase()}. Si ya tienes cuenta como cliente, tu rol se actualizará automáticamente.`
+                                : "Completa el acceso para aplicar tu rol en el negocio."
+                              : mode === "login"
+                                ? "Revisa tu saldo y tus recompensas desde el teléfono."
+                                : accountType === "admin"
+                                  ? "Crea tu cuenta de administrador para registrar y gestionar tu negocio."
+                                  : "Regístrate en segundos para empezar a acumular."}
+                          </p>
+                        </div>
+
+                        <div className="space-y-3">
+                          {hasInvite && (
+                            <>
+                              {invitePreviewLoading ? (
+                                <Alert className="retro-alert bg-[var(--paper-deep)]">
+                                  <AlertTitle>Verificando invitación…</AlertTitle>
+                                  <AlertDescription>
+                                    Estamos consultando los datos del negocio y tu rol asignado.
+                                  </AlertDescription>
+                                </Alert>
+                              ) : inviteUnavailableReason ? (
+                                <Alert variant="destructive" className="retro-alert">
+                                  <AlertTitle>Invitación no disponible</AlertTitle>
+                                  <AlertDescription className="space-y-2">
+                                    <p>{inviteUnavailableReason}</p>
+                                    <Link
+                                      to="/login?mode=login"
+                                      className="inline-block font-semibold underline underline-offset-4"
+                                    >
+                                      Ir al acceso normal
+                                    </Link>
+                                  </AlertDescription>
+                                </Alert>
+                              ) : invitePreview ? (
+                                <div className="pixel-box-dark space-y-2 p-3.5 text-sm">
+                                  <div className="flex flex-wrap items-center justify-between gap-2">
+                                    <span className="font-bold text-[var(--ink)]">
+                                      {invitePreview.business_name}
+                                    </span>
+                                    <Badge
+                                      variant="secondary"
+                                      className="rounded-none border-2 border-[var(--border-color)] bg-[var(--gold)] text-[#16262e]"
+                                    >
+                                      Rol: {inviteRoleText}
+                                    </Badge>
+                                  </div>
+                                  <p className="text-xs text-[var(--ink-muted)]">
+                                    {invitePreview.role === "encargado" &&
+                                    invitePreview.can_approve_redemptions
+                                      ? "Incluye permiso para aprobar redenciones en caja."
+                                      : "El rol se asignará automáticamente al completar este paso."}
+                                  </p>
+                                </div>
+                              ) : null}
+                            </>
+                          )}
+
+                          {!isSupabaseConfigured && (
+                            <Alert variant="warning" className="retro-alert">
+                              <AlertTitle>Configuración pendiente</AlertTitle>
+                              <AlertDescription>
+                                Define las variables de Supabase en <code>.env</code> para habilitar
+                                el inicio de sesión. Consulta <code>docs/CONFIGURACION.md</code>.
+                              </AlertDescription>
+                            </Alert>
+                          )}
+
+                          {error && (
+                            <div
+                              ref={errorBannerRef}
+                              tabIndex={-1}
+                              className="space-y-2 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]"
+                            >
+                              <Alert variant="destructive" className="retro-alert">
+                                <AlertTitle>No se pudo continuar</AlertTitle>
+                                <AlertDescription>{error}</AlertDescription>
+                              </Alert>
+                              {unconfirmedLoginEmail && (
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  className="w-full"
+                                  loading={resendingConfirmation}
+                                  disabled={resendingConfirmation}
+                                  onClick={() =>
+                                    void handleResendConfirmation(unconfirmedLoginEmail)
+                                  }
+                                >
+                                  Reenviar correo de confirmación
+                                </Button>
+                              )}
+                            </div>
+                          )}
+
+                          {resendFeedback && (
+                            <Alert variant="success" className="retro-alert">
+                              <AlertTitle>Correo reenviado</AlertTitle>
+                              <AlertDescription>{resendFeedback}</AlertDescription>
+                            </Alert>
+                          )}
+
+                          {notice && (
+                            <Alert variant="success" className="retro-alert">
+                              <AlertTitle>Cuenta creada</AlertTitle>
+                              <AlertDescription>{notice}</AlertDescription>
+                            </Alert>
+                          )}
+
+                          {mode === "register" && !hasInvite && (
+                            <div
+                              className="space-y-2"
+                              role="radiogroup"
+                              aria-label="Tipo de cuenta"
+                            >
+                              <span className="form-label block">Tipo de cuenta</span>
+                              <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                                <button
+                                  ref={customerRadioRef}
+                                  type="button"
+                                  role="radio"
+                                  aria-checked={accountType === "customer"}
+                                  tabIndex={accountType === "customer" ? 0 : -1}
+                                  onClick={() => handleSelectAccountType("customer")}
+                                  onKeyDown={(event) => handleRadioKeyDown(event, "customer")}
+                                  className={cn(
+                                    "relative flex cursor-pointer flex-col gap-1.5 border-[3px] p-3 text-left transition-all duration-150 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]",
+                                    accountType === "customer"
+                                      ? "border-[var(--border-color)] bg-[var(--tip-bg)] text-[var(--ink)] shadow-[4px_4px_0_var(--shadow-color)] dark:border-[var(--gold)] dark:bg-[var(--cream)]"
+                                      : "border-[var(--border-color)] bg-[var(--paper-deep)] text-[var(--ink)] shadow-[2px_2px_0_var(--shadow-color)] hover:bg-[var(--cream-alt)]",
+                                  )}
+                                >
+                                  <div className="flex items-center justify-between gap-2">
+                                    <span
+                                      className={cn(
+                                        "grid size-8 place-items-center border-2 border-[var(--border-color)]",
+                                        accountType === "customer"
+                                          ? "bg-[var(--blue)] text-white"
+                                          : "bg-[var(--cream)] text-[var(--ink-muted)]",
+                                      )}
+                                    >
+                                      <UserRound className="size-4" aria-hidden="true" />
+                                    </span>
+                                    {accountType === "customer" && (
+                                      <span className="grid size-5 place-items-center border-2 border-[var(--border-color)] bg-[var(--blue)] text-white">
+                                        <Check className="size-3" aria-hidden="true" />
+                                      </span>
+                                    )}
+                                  </div>
+                                  <span className="font-['Space_Grotesk'] text-sm font-bold">
+                                    Cliente
+                                  </span>
+                                  <span className="text-xs leading-snug text-[var(--ink-muted)]">
+                                    Acumula monedas y canjea premios
+                                  </span>
+                                </button>
+
+                                <button
+                                  ref={adminRadioRef}
+                                  type="button"
+                                  role="radio"
+                                  aria-checked={accountType === "admin"}
+                                  tabIndex={accountType === "admin" ? 0 : -1}
+                                  onClick={() => handleSelectAccountType("admin")}
+                                  onKeyDown={(event) => handleRadioKeyDown(event, "admin")}
+                                  className={cn(
+                                    "relative flex cursor-pointer flex-col gap-1.5 border-[3px] p-3 text-left transition-all duration-150 focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)]",
+                                    accountType === "admin"
+                                      ? "border-[var(--border-color)] bg-[var(--tip-bg)] text-[var(--ink)] shadow-[4px_4px_0_var(--shadow-color)] dark:border-[var(--gold)] dark:bg-[var(--cream)]"
+                                      : "border-[var(--border-color)] bg-[var(--paper-deep)] text-[var(--ink)] shadow-[2px_2px_0_var(--shadow-color)] hover:bg-[var(--cream-alt)]",
+                                  )}
+                                >
+                                  <div className="flex items-center justify-between gap-2">
+                                    <span
+                                      className={cn(
+                                        "grid size-8 place-items-center border-2 border-[var(--border-color)]",
+                                        accountType === "admin"
+                                          ? "bg-[var(--gold)] text-[#16262e]"
+                                          : "bg-[var(--cream)] text-[var(--ink-muted)]",
+                                      )}
+                                    >
+                                      <Building2 className="size-4" aria-hidden="true" />
+                                    </span>
+                                    {accountType === "admin" && (
+                                      <span className="grid size-5 place-items-center border-2 border-[#16262e] bg-[var(--gold)] text-[#16262e]">
+                                        <Check className="size-3" aria-hidden="true" />
+                                      </span>
+                                    )}
+                                  </div>
+                                  <span className="font-['Space_Grotesk'] text-sm font-bold">
+                                    Administrador
+                                  </span>
+                                  <span className="text-xs leading-snug text-[var(--ink-muted)]">
+                                    Registra y administra tu negocio
+                                  </span>
+                                </button>
+                              </div>
+                            </div>
+                          )}
+
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="w-full"
+                            onClick={handleGoogle}
+                            disabled={
+                              submitting || loading || inviteBlocked || invitePreviewLoading
+                            }
+                          >
+                            {submitting ? (
+                              <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                            ) : (
+                              <GoogleIcon />
+                            )}
+                            Continuar con Google
+                          </Button>
+
+                          <div className="relative flex items-center gap-3">
+                            <div className="flex-1 border-t-2 border-dashed border-[var(--dash-line)]" />
+                            <span className="font-['DM_Mono'] text-[11px] font-bold uppercase tracking-wider text-[var(--ink-muted)]">
+                              o con tu correo
+                            </span>
+                            <div className="flex-1 border-t-2 border-dashed border-[var(--dash-line)]" />
+                          </div>
+
+                          <form onSubmit={handleSubmit} className="space-y-3" noValidate>
+                            {mode === "register" && (
+                              <div className="form-field">
+                                <Label htmlFor="full-name" className="form-label">
+                                  Nombre
+                                </Label>
+                                <Input
+                                  id="full-name"
+                                  name="name"
+                                  autoComplete="name"
+                                  value={fullName}
+                                  onChange={(event) => {
+                                    setFullName(event.target.value);
+                                    if (fieldErrors.fullName) {
+                                      setFieldErrors((current) => ({
+                                        ...current,
+                                        fullName: undefined,
+                                      }));
+                                    }
+                                  }}
+                                  onBlur={() => {
+                                    const msg = validateField("fullName", fullName);
+                                    if (msg)
+                                      setFieldErrors((current) => ({ ...current, fullName: msg }));
+                                  }}
+                                  placeholder={
+                                    accountType === "admin"
+                                      ? "Nombre del administrador"
+                                      : "Tu nombre"
+                                  }
+                                  aria-invalid={Boolean(fieldErrors.fullName)}
+                                  aria-describedby={
+                                    fieldErrors.fullName ? "full-name-error" : undefined
+                                  }
+                                  required
+                                />
+                                {fieldErrors.fullName && (
+                                  <p
+                                    id="full-name-error"
+                                    aria-live="polite"
+                                    className="text-xs font-semibold text-destructive"
+                                  >
+                                    {fieldErrors.fullName}
+                                  </p>
+                                )}
+                              </div>
+                            )}
+
+                            {mode === "register" && accountType === "admin" && !hasInvite && (
+                              <div className="form-field animate-fade-in">
+                                <Label htmlFor="business-name" className="form-label">
+                                  Nombre del negocio
+                                </Label>
+                                <Input
+                                  id="business-name"
+                                  name="businessName"
+                                  autoComplete="organization"
+                                  value={businessName}
+                                  onChange={(event) => {
+                                    setBusinessName(event.target.value);
+                                    if (fieldErrors.businessName) {
+                                      setFieldErrors((current) => ({
+                                        ...current,
+                                        businessName: undefined,
+                                      }));
+                                    }
+                                  }}
+                                  onBlur={() => {
+                                    const msg = validateField("businessName", businessName);
+                                    if (msg)
+                                      setFieldErrors((current) => ({
+                                        ...current,
+                                        businessName: msg,
+                                      }));
+                                  }}
+                                  placeholder="Ej. Taquería El Fogón"
+                                  aria-invalid={Boolean(fieldErrors.businessName)}
+                                  aria-describedby={
+                                    fieldErrors.businessName ? "business-name-error" : undefined
+                                  }
+                                  required
+                                />
+                                {fieldErrors.businessName && (
+                                  <p
+                                    id="business-name-error"
+                                    aria-live="polite"
+                                    className="text-xs font-semibold text-destructive"
+                                  >
+                                    {fieldErrors.businessName}
+                                  </p>
+                                )}
+                              </div>
+                            )}
+
+                            <div className="form-field">
+                              <Label htmlFor="email" className="form-label">
+                                Correo
+                              </Label>
+                              <Input
+                                id="email"
+                                name="email"
+                                type="email"
+                                inputMode="email"
+                                autoComplete="email"
+                                value={email}
+                                onChange={(event) => {
+                                  setEmail(event.target.value);
+                                  if (fieldErrors.email) {
+                                    setFieldErrors((current) => ({ ...current, email: undefined }));
+                                  }
+                                }}
+                                onBlur={() => {
+                                  const msg = validateField("email", email);
+                                  if (msg)
+                                    setFieldErrors((current) => ({ ...current, email: msg }));
+                                }}
+                                placeholder="tu@correo.com"
+                                aria-invalid={Boolean(fieldErrors.email)}
+                                aria-describedby={fieldErrors.email ? "email-error" : undefined}
+                                required
+                              />
+                              {fieldErrors.email && (
+                                <p
+                                  id="email-error"
+                                  aria-live="polite"
+                                  className="text-xs font-semibold text-destructive"
+                                >
+                                  {fieldErrors.email}
+                                </p>
+                              )}
+                            </div>
+
+                            <div className="form-field">
+                              <div className="flex items-center justify-between gap-2">
+                                <Label htmlFor="password" className="form-label">
+                                  Contraseña
+                                </Label>
+                                {mode === "login" && (
+                                  <button
+                                    type="button"
+                                    className="cursor-pointer text-xs font-semibold text-[var(--accent-link)] underline underline-offset-4 hover:opacity-85"
+                                    onClick={() => {
+                                      setRecoveryEmail(email.trim());
+                                      setRecoverySent(false);
+                                      setError(null);
+                                      setNotice(null);
+                                      setForgotMode(true);
+                                    }}
+                                  >
+                                    ¿Olvidaste tu contraseña?
+                                  </button>
+                                )}
+                              </div>
+                              <div className="relative">
+                                <Input
+                                  id="password"
+                                  name="password"
+                                  type={showPassword ? "text" : "password"}
+                                  autoComplete={
+                                    mode === "login" ? "current-password" : "new-password"
+                                  }
+                                  value={password}
+                                  onChange={(event) => {
+                                    setPassword(event.target.value);
+                                    if (fieldErrors.password) {
+                                      setFieldErrors((current) => ({
+                                        ...current,
+                                        password: undefined,
+                                      }));
+                                    }
+                                  }}
+                                  onBlur={() => {
+                                    const msg = validateField("password", password);
+                                    if (msg)
+                                      setFieldErrors((current) => ({ ...current, password: msg }));
+                                  }}
+                                  placeholder="Mínimo 6 caracteres"
+                                  minLength={6}
+                                  className="pr-10"
+                                  aria-invalid={Boolean(fieldErrors.password)}
+                                  aria-describedby={
+                                    fieldErrors.password ? "password-error" : undefined
+                                  }
+                                  required
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => setShowPassword((current) => !current)}
+                                  aria-label={
+                                    showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
+                                  }
+                                  aria-pressed={showPassword}
+                                  className="absolute right-0.5 top-1/2 grid size-11 -translate-y-1/2 cursor-pointer place-items-center text-[var(--ink-muted)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)] md:size-8 [@media(pointer:coarse)]:size-11"
+                                >
+                                  {showPassword ? (
+                                    <EyeOff className="size-4" aria-hidden="true" />
+                                  ) : (
+                                    <Eye className="size-4" aria-hidden="true" />
+                                  )}
+                                </button>
+                              </div>
+                              {fieldErrors.password && (
+                                <p
+                                  id="password-error"
+                                  aria-live="polite"
+                                  className="text-xs font-semibold text-destructive"
+                                >
+                                  {fieldErrors.password}
+                                </p>
+                              )}
+                            </div>
+
+                            {mode === "register" ? (
+                              <LegalConsentCheckbox
+                                id="login-legal-consent"
+                                checked={acceptedLegal}
+                                onCheckedChange={(checked) => {
+                                  setAcceptedLegal(checked);
+                                  if (checked && fieldErrors.legal) {
+                                    setFieldErrors((current) => ({ ...current, legal: undefined }));
+                                  }
+                                }}
+                                error={fieldErrors.legal}
+                                disabled={submitting}
+                                label={
+                                  <>
+                                    Acepto los{" "}
+                                    <LegalExternalLink href={LEGAL_URLS.termsCustomer}>
+                                      Términos de uso
+                                    </LegalExternalLink>{" "}
+                                    y la{" "}
+                                    <LegalExternalLink href={LEGAL_URLS.privacyPolicy}>
+                                      Política de Tratamiento de Datos
+                                    </LegalExternalLink>
+                                    , incluida la transferencia internacional.
+                                  </>
                                 }
-                              }}
-                              onBlur={() => {
-                                const msg = validateField("password", password);
-                                if (msg)
-                                  setFieldErrors((current) => ({ ...current, password: msg }));
-                              }}
-                              placeholder="Mínimo 6 caracteres"
-                              minLength={6}
-                              className="pr-10"
-                              aria-invalid={Boolean(fieldErrors.password)}
-                              aria-describedby={fieldErrors.password ? "password-error" : undefined}
-                              required
-                            />
+                              />
+                            ) : (
+                              <p className="text-center text-xs text-[var(--ink-muted)]">
+                                Consulta nuestros{" "}
+                                <LegalExternalLink href={LEGAL_URLS.termsCustomer}>
+                                  Términos de uso
+                                </LegalExternalLink>{" "}
+                                y la{" "}
+                                <LegalExternalLink href={LEGAL_URLS.privacyPolicy}>
+                                  Política de Tratamiento de Datos
+                                </LegalExternalLink>
+                                .
+                              </p>
+                            )}
+
+                            <Button
+                              type="submit"
+                              className="w-full"
+                              loading={submitting}
+                              disabled={submitting || inviteBlocked || invitePreviewLoading}
+                            >
+                              {mode === "login"
+                                ? "Entrar con correo"
+                                : !hasInvite && accountType === "admin"
+                                  ? "Crear cuenta de administrador"
+                                  : "Crear cuenta"}
+                            </Button>
+                          </form>
+
+                          <p className="text-center text-sm text-[var(--ink-muted)]">
+                            {mode === "login" ? "¿No tienes cuenta?" : "¿Ya tienes cuenta?"}{" "}
                             <button
                               type="button"
-                              onClick={() => setShowPassword((current) => !current)}
-                              aria-label={
-                                showPassword ? "Ocultar contraseña" : "Mostrar contraseña"
-                              }
-                              aria-pressed={showPassword}
-                              className="absolute right-0.5 top-1/2 grid size-11 -translate-y-1/2 cursor-pointer place-items-center text-[var(--ink-muted)] transition-colors hover:bg-[var(--paper-deep)] hover:text-[var(--ink)] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-[var(--focus-ring)] md:size-8 [@media(pointer:coarse)]:size-11"
+                              className="cursor-pointer font-bold text-[var(--accent-link)] underline underline-offset-4 hover:opacity-85"
+                              onClick={() => switchMode(mode === "login" ? "register" : "login")}
                             >
-                              {showPassword ? (
-                                <EyeOff className="size-4" aria-hidden="true" />
-                              ) : (
-                                <Eye className="size-4" aria-hidden="true" />
-                              )}
+                              {mode === "login" ? "Regístrate" : "Inicia sesión"}
                             </button>
-                          </div>
-                          {fieldErrors.password && (
-                            <p
-                              id="password-error"
-                              aria-live="polite"
-                              className="text-xs font-semibold text-destructive"
-                            >
-                              {fieldErrors.password}
-                            </p>
-                          )}
+                          </p>
                         </div>
-
-                        <Button
-                          type="submit"
-                          className="w-full"
-                          loading={submitting}
-                          disabled={submitting || inviteBlocked || invitePreviewLoading}
-                        >
-                          {mode === "login"
-                            ? "Entrar con correo"
-                            : !hasInvite && accountType === "admin"
-                              ? "Crear cuenta de administrador"
-                              : "Crear cuenta"}
-                        </Button>
-                      </form>
-
-                      <p className="text-center text-sm text-[var(--ink-muted)]">
-                        {mode === "login" ? "¿No tienes cuenta?" : "¿Ya tienes cuenta?"}{" "}
-                        <button
-                          type="button"
-                          className="cursor-pointer font-bold text-[var(--accent-link)] underline underline-offset-4 hover:opacity-85"
-                          onClick={() => switchMode(mode === "login" ? "register" : "login")}
-                        >
-                          {mode === "login" ? "Regístrate" : "Inicia sesión"}
-                        </button>
-                      </p>
-                    </div>
+                      </>
+                    )}
                   </div>
                 </div>
 
-                <p className="px-2 text-center text-xs leading-relaxed text-[var(--ink-muted)]">
-                  {brand} · {brandTagline}. Al entrar aceptas que guardemos tu nombre y correo para
-                  asociar tus compras. No pedimos datos de tarjetas.
-                </p>
+                <div className="px-2 text-center text-xs leading-relaxed text-[var(--ink-muted)]">
+                  <p>
+                    {brand} · {brandTagline}. No pedimos datos de tarjetas.
+                  </p>
+                  <LegalFooterLinks className="mt-2 border-t-0 pt-0" />
+                </div>
               </div>
             </section>
           </div>

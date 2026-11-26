@@ -68,6 +68,23 @@ const MESSAGES: Record<string, string> = {
   invalid_business_name: "El nombre del negocio no es válido.",
   invalid_full_name: "Escribe tu nombre completo (2 a 120 caracteres).",
   invalid_birth_date: "La fecha de nacimiento no es válida.",
+  underage_birth_date: "Debes ser mayor de 18 años para registrar tu fecha de nacimiento.",
+  profiles_birth_date_range_check: "La fecha de nacimiento no es válida.",
+  profile_not_found: "No encontramos tu perfil. Vuelve a iniciar sesión.",
+  LEGAL_CONSENT_REQUIRED:
+    "Debes aceptar los Términos para Negocios y el Acuerdo de Transmisión de Datos (DPA) vigentes antes de registrar tu negocio.",
+  consent_revoke_requires_account_deletion:
+    "Para revocar Términos, Privacidad o el DPA debes eliminar tu cuenta desde «Privacidad y cuenta».",
+  invalid_legal_documents: "Selecciona al menos un documento legal válido.",
+  invalid_source_route: "No se pudo validar el origen de la aceptación legal.",
+  legal_consents_are_immutable: "El registro de consentimientos legales es inmutable.",
+  ACCOUNT_LAST_ADMIN:
+    "Eres el único administrador activo de un negocio. Nombra a otro administrador o desactiva el negocio antes de eliminar tu cuenta.",
+  invalid_delete_confirmation:
+    "Escribe exactamente ELIMINAR para confirmar la eliminación de tu cuenta.",
+  account_deleted: "Esta cuenta fue eliminada y ya no tiene acceso.",
+  account_already_deleted: "Esta cuenta ya fue eliminada.",
+  account_deletion_log_is_immutable: "El registro de eliminación de cuentas es inmutable.",
   invalid_nickname:
     "El alias debe tener entre 3 y 24 caracteres: minúsculas, números, punto, guion o guion bajo.",
   nickname_reserved: "Ese alias está reservado. Elige otro.",
@@ -149,9 +166,19 @@ const MESSAGES: Record<string, string> = {
   points_ledger_is_immutable: "El historial de monedas es inmutable.",
   invalid_credentials: "Correo o contraseña incorrectos.",
   email_not_confirmed: "Debes confirmar tu correo antes de entrar.",
+  "Email not confirmed": "Debes confirmar tu correo antes de entrar.",
   "Invalid login credentials": "Correo o contraseña incorrectos.",
   "User already registered": "Ya existe una cuenta con ese correo. Inicia sesión.",
   "Password should be at least 6 characters": "La contraseña debe tener al menos 6 caracteres.",
+  weak_password: "La contraseña debe tener al menos 6 caracteres.",
+  same_password: "La nueva contraseña debe ser diferente a la anterior.",
+  "New password should be different from the old password":
+    "La nueva contraseña debe ser diferente a la anterior.",
+  over_email_send_rate_limit: "Por seguridad, espera unos segundos antes de solicitar otro correo.",
+  "For security purposes, you can only request this after":
+    "Por seguridad, espera unos segundos antes de solicitar otro correo.",
+  otp_expired: "El enlace venció o ya fue usado. Solicita uno nuevo.",
+  "Email link is invalid or has expired": "El enlace venció o ya fue usado. Solicita uno nuevo.",
   invalid_origin: "El origen del canje no es válido.",
   redemption_requires_admin: "Un administrador debe aplicar el canje desde el panel.",
   "Auth session missing": "Tu sesión expiró. Vuelve a iniciar sesión.",

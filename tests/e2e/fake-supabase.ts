@@ -19,6 +19,7 @@ export interface FakeUser {
   phone?: string | null;
   birthDate?: string | null;
   accountType?: "customer" | "admin";
+  emailConfirmed?: boolean;
   token: string;
   roles: FakeRole[];
   balance: number;
@@ -259,8 +260,20 @@ export interface FakeMemberInvite {
   revokedAt: string | null;
 }
 
+export interface FakeLegalConsent {
+  id: string;
+  userId: string;
+  businessId: string | null;
+  documentType: string;
+  documentVersion: string;
+  acceptedAt: string;
+  revokedAt: string | null;
+  sourceRoute: string;
+}
+
 export interface FakeState {
   users: FakeUser[];
+  legalConsents: FakeLegalConsent[];
   rewards: FakeReward[];
   purchases: FakePurchase[];
   redemptions: FakeRedemption[];
@@ -409,6 +422,21 @@ export function createFakeState(): FakeState {
     campaigns: [],
     budgetSnapshots: [],
     loyaltyPrograms: {},
+    legalConsents: ["user-registrar", "user-customer", "user-customer2", "user-admin"].flatMap(
+      (userId) =>
+        (["terms_customer", "privacy_policy", "terms_business", "dpa"] as const).map(
+          (documentType) => ({
+            id: `consent-${userId}-${documentType}`,
+            userId,
+            businessId: null,
+            documentType,
+            documentVersion: "2026-11-25",
+            acceptedAt: "2026-11-25T12:00:00.000Z",
+            revokedAt: null,
+            sourceRoute: "/seed",
+          }),
+        ),
+    ),
     settings: {
       cop_per_point_unit: 1000,
       min_purchase_amount: 0,
@@ -441,8 +469,8 @@ function userFor(state: FakeState, token: string) {
 }
 
 /**
- * Saldo simulado del programa: parte de 100 loopoints y descuenta las solicitudes
- * que reservaron loopoints (pendientes, aprobadas o entregadas).
+ * Saldo simulado del programa: parte de 100 monedas y descuenta las solicitudes
+ * que reservaron monedas (pendientes, aprobadas o entregadas).
  */
 function loyaltyBalance(state: FakeState, userId: string, businessId?: string) {
   const reserved = state.redemptionRequests
@@ -498,9 +526,9 @@ export function sessionFor(user: FakeUser) {
       aud: "authenticated",
       role: "authenticated",
       email: user.email,
-      email_confirmed_at: new Date().toISOString(),
+      email_confirmed_at: user.emailConfirmed === false ? null : new Date().toISOString(),
       phone: "",
-      confirmed_at: new Date().toISOString(),
+      confirmed_at: user.emailConfirmed === false ? null : new Date().toISOString(),
       last_sign_in_at: new Date().toISOString(),
       app_metadata: { provider: "google", providers: ["google"] },
       user_metadata: {
@@ -534,7 +562,7 @@ export async function injectSession(context: BrowserContext, state: FakeState, t
 const CORS_HEADERS = {
   "access-control-allow-origin": "*",
   "access-control-allow-headers": "*",
-  "access-control-allow-methods": "GET,POST,OPTIONS",
+  "access-control-allow-methods": "GET,POST,PUT,DELETE,OPTIONS",
   "cache-control": "no-store",
 };
 
@@ -550,7 +578,7 @@ function fail(route: Route, message: string) {
   return json(route, { code: "P0001", details: null, hint: null, message }, 400);
 }
 
-/** Loopoints de una compra aplicando la campaña vigente (misma regla del backend). */
+/** Monedas de una compra aplicando la campaña vigente (misma regla del backend). */
 function purchasePoints(state: FakeState, businessId: string, amountCop: number): number {
   const program = state.loyaltyPrograms[businessId];
   if (!program) return 0;
@@ -733,7 +761,11 @@ function lookupRedemption(state: FakeState, code: string) {
   };
 }
 
-export async function installFakeSupabase(page: Page, state: FakeState) {
+export async function installFakeSupabase(
+  page: Page,
+  state: FakeState,
+  options?: { requireEmailConfirmation?: boolean },
+) {
   await page.route("**/auth/v1/**", async (route) => {
     const request = route.request();
     if (request.method() === "OPTIONS") {
@@ -747,6 +779,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
       const email = String(body.email ?? "").trim();
       const rawAccountType = String(body.data?.account_type ?? body.data?.role ?? "customer");
       const accountType = rawAccountType === "admin" ? "admin" : "customer";
+      const requireConfirmation = Boolean(options?.requireEmailConfirmation);
       const created: FakeUser = {
         id: `user-${crypto.randomUUID().slice(0, 8)}`,
         name: String(body.data?.full_name ?? email).trim() || "Nuevo Usuario",
@@ -754,13 +787,23 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
         nickname: `user_${crypto.randomUUID().slice(0, 6)}`,
         nicknameChanges: 0,
         accountType,
+        emailConfirmed: !requireConfirmation,
         token: `test-token-${crypto.randomUUID()}`,
         roles: accountType === "admin" ? ["customer", "admin"] : ["customer"],
         balance: 0,
         createdAt: now(),
       };
       state.users.push(created);
+      if (requireConfirmation) {
+        return json(route, { user: sessionFor(created).user, session: null });
+      }
       return json(route, sessionFor(created));
+    }
+    if (request.url().includes("/resend") && request.method() === "POST") {
+      return json(route, {});
+    }
+    if (request.url().includes("/recover") && request.method() === "POST") {
+      return json(route, {});
     }
     const token = (request.headers()["authorization"] ?? "").replace(/^Bearer\s+/i, "");
     const user = userFor(state, token) ?? state.users.find((u) => u.token === TOKENS.admin);
@@ -778,6 +821,17 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
         ? state.users.find((u) => u.email.toLowerCase() === tokenBody.email?.trim().toLowerCase())
         : user;
       if (loginUser) {
+        if (loginUser.emailConfirmed === false) {
+          return json(
+            route,
+            {
+              error: "email_not_confirmed",
+              error_description: "Email not confirmed",
+              message: "Email not confirmed",
+            },
+            400,
+          );
+        }
         return json(route, sessionFor(loginUser));
       }
     }
@@ -801,6 +855,13 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
         status: 200,
         headers: { ...CORS_HEADERS, "content-type": "application/json" },
         body: JSON.stringify({ Id: `obj-${crypto.randomUUID().slice(0, 8)}`, Key: objectPath }),
+      });
+    }
+    if (request.method() === "DELETE") {
+      return route.fulfill({
+        status: 200,
+        headers: { ...CORS_HEADERS, "content-type": "application/json" },
+        body: JSON.stringify([]),
       });
     }
     return route.fulfill({
@@ -853,9 +914,26 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
         });
       case "profile_avatar_set": {
         if (!user) return fail(route, "not_authenticated");
+        const previousAvatar = (user as { avatarUrl?: string | null }).avatarUrl ?? null;
         const nextAvatar = body.p_avatar_url ? String(body.p_avatar_url).trim() : null;
         (user as { avatarUrl?: string | null }).avatarUrl = nextAvatar || null;
-        return json(route, { id: user.id, avatar_url: nextAvatar || null });
+        const removedAvatar =
+          previousAvatar && previousAvatar !== nextAvatar ? previousAvatar : null;
+        const previousStoragePath = removedAvatar
+          ? removedAvatar.replace(
+              /^https?:\/\/[^/?#@\s]+\/storage\/v1\/object\/public\/business-assets\//i,
+              "",
+            )
+          : null;
+        return json(route, {
+          id: user.id,
+          avatar_url: nextAvatar || null,
+          previous_avatar_url: removedAvatar,
+          previous_storage_path:
+            previousStoragePath && previousStoragePath !== removedAvatar
+              ? previousStoragePath
+              : null,
+        });
       }
       case "profile_set_account_type": {
         if (!user) return fail(route, "not_authenticated");
@@ -880,7 +958,9 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           .trim()
           .toLowerCase();
         if (!/^[a-z0-9._-]{3,24}$/.test(candidate)) return json(route, false);
-        if (["admin", "loopoint", "soporte", "sistema"].includes(candidate)) {
+        if (
+          ["admin", "fideliapp", "loopoint", "loopoints", "soporte", "sistema"].includes(candidate)
+        ) {
           return json(route, false);
         }
         return json(
@@ -900,17 +980,57 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
         if (!/^[a-z0-9._-]{3,24}$/.test(nextNickname)) {
           return fail(route, "invalid_nickname");
         }
-        if (["admin", "loopoint", "soporte", "sistema"].includes(nextNickname)) {
+        if (
+          ["admin", "fideliapp", "loopoint", "loopoints", "soporte", "sistema"].includes(
+            nextNickname,
+          )
+        ) {
           return fail(route, "nickname_reserved");
         }
         if (state.users.some((item) => item.id !== user.id && item.nickname === nextNickname)) {
           return fail(route, "nickname_taken");
         }
         const previous = user.nickname;
-        if (previous && previous !== nextNickname) {
-          if ((user.nicknameChanges ?? 0) >= 2) {
-            return fail(route, "nickname_change_limit");
+        const nicknameChanged = Boolean(previous && previous !== nextNickname);
+        if (nicknameChanged && (user.nicknameChanges ?? 0) >= 2) {
+          return fail(route, "nickname_change_limit");
+        }
+
+        let nextBirthDate = user.birthDate ?? null;
+        if (body.p_clear_birth_date) {
+          nextBirthDate = null;
+        } else if (body.p_birth_date !== undefined && body.p_birth_date !== null) {
+          const candidateBirthDate = String(body.p_birth_date).trim();
+          if (candidateBirthDate) {
+            if (!/^\d{4}-\d{2}-\d{2}$/.test(candidateBirthDate)) {
+              return fail(route, "invalid_birth_date");
+            }
+            const [cy, cm, cd] = candidateBirthDate.split("-").map(Number);
+            const parsedDate = new Date(Date.UTC(cy, cm - 1, cd));
+            if (
+              parsedDate.getUTCFullYear() !== cy ||
+              parsedDate.getUTCMonth() !== cm - 1 ||
+              parsedDate.getUTCDate() !== cd
+            ) {
+              return fail(route, "invalid_birth_date");
+            }
+            const todayBogota = new Intl.DateTimeFormat("en-CA", {
+              timeZone: "America/Bogota",
+            }).format(new Date());
+            const [y, m, d] = todayBogota.split("-").map(Number);
+            const daysInTargetMonth = new Date(Date.UTC(y - 18, m, 0)).getUTCDate();
+            const maxAdultDate = `${String(y - 18).padStart(4, "0")}-${String(m).padStart(2, "0")}-${String(Math.min(d, daysInTargetMonth)).padStart(2, "0")}`;
+            if (candidateBirthDate > todayBogota || candidateBirthDate < "1900-01-01") {
+              return fail(route, "invalid_birth_date");
+            }
+            if (candidateBirthDate > maxAdultDate) {
+              return fail(route, "underage_birth_date");
+            }
+            nextBirthDate = candidateBirthDate;
           }
+        }
+
+        if (nicknameChanged) {
           user.nicknameChanges = (user.nicknameChanges ?? 0) + 1;
         }
         user.name = nextName;
@@ -919,11 +1039,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           const nextPhone = String(body.p_phone ?? "").trim();
           user.phone = nextPhone || null;
         }
-        if (body.p_clear_birth_date) {
-          user.birthDate = null;
-        } else if (body.p_birth_date !== undefined) {
-          user.birthDate = body.p_birth_date ? String(body.p_birth_date) : null;
-        }
+        user.birthDate = nextBirthDate;
         return json(route, {
           id: user.id,
           full_name: user.name,
@@ -933,6 +1049,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           nickname_changes_left: 2 - (user.nicknameChanges ?? 0),
           phone: user.phone ?? null,
           birth_date: user.birthDate ?? null,
+          avatar_url: (user as { avatarUrl?: string | null }).avatarUrl ?? null,
           business_count: state.memberships.filter((m) => m.userId === user.id).length,
         });
       }
@@ -1977,12 +2094,49 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           (item) => item.id === String(body.p_business_id ?? ""),
         );
         if (!business) return fail(route, "business_not_found");
-        const logoUrl = body.p_logo_url ? String(body.p_logo_url) : null;
-        if (logoUrl && !logoUrl.includes(`/business-assets/business/${business.id}/`)) {
-          return fail(route, "logo_outside_business");
+        const previousLogo = business.logoUrl ?? null;
+        const logoUrl = body.p_logo_url ? String(body.p_logo_url).trim() : null;
+        if (logoUrl) {
+          if (
+            logoUrl.length > 500 ||
+            logoUrl.includes("..") ||
+            /(%2e|%2f|%5c|\\)/i.test(logoUrl) ||
+            !/^https?:\/\/[^/?#@\s]+\/storage\/v1\/object\/public\/business-assets\/[^?#\s]+$/i.test(
+              logoUrl,
+            )
+          ) {
+            return fail(route, "invalid_logo_url");
+          }
+          if (!logoUrl.includes(`/business-assets/business/${business.id}/`)) {
+            return fail(route, "logo_outside_business");
+          }
         }
-        business.logoUrl = logoUrl;
-        return json(route, { business_id: business.id, logo_url: logoUrl });
+        business.logoUrl = logoUrl || null;
+        const removedLogo = previousLogo && previousLogo !== business.logoUrl ? previousLogo : null;
+        const stillReferenced = Boolean(
+          removedLogo &&
+          (state.products.some((p) => p.businessId === business.id && p.imageUrl === removedLogo) ||
+            state.loyaltyRewards.some(
+              (r) =>
+                r.businessId === business.id &&
+                (r as { imageUrl?: string | null }).imageUrl === removedLogo,
+            )),
+        );
+        const extractedPath =
+          removedLogo && !stillReferenced
+            ? removedLogo.replace(
+                /^https?:\/\/[^/?#@\s]+\/storage\/v1\/object\/public\/business-assets\//i,
+                "",
+              )
+            : null;
+        const expectedPrefix = `business/${business.id}/`;
+        return json(route, {
+          business_id: business.id,
+          logo_url: business.logoUrl,
+          previous_logo_url: removedLogo,
+          previous_storage_path:
+            extractedPath && extractedPath.startsWith(expectedPrefix) ? extractedPath : null,
+        });
       }
       case "businesses_list": {
         if (!user) return fail(route, "not_authenticated");
@@ -2145,8 +2299,243 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           already_member: false,
         });
       }
+      case "legal_current_versions": {
+        return json(route, {
+          terms_customer: "2026-11-25",
+          terms_business: "2026-11-25",
+          privacy_policy: "2026-11-25",
+          dpa: "2026-11-25",
+          cookies: "2026-11-25",
+        });
+      }
+      case "legal_consent_status": {
+        if (!user) return fail(route, "not_authenticated");
+        const currentVersions = {
+          terms_customer: "2026-11-25",
+          terms_business: "2026-11-25",
+          privacy_policy: "2026-11-25",
+          dpa: "2026-11-25",
+          cookies: "2026-11-25",
+        } as const;
+        const isBusinessAdmin = state.memberships.some(
+          (m) => m.userId === user.id && m.role === "admin",
+        );
+        const requiredDocuments = isBusinessAdmin
+          ? (["terms_customer", "privacy_policy", "terms_business", "dpa"] as const)
+          : (["terms_customer", "privacy_policy"] as const);
+        const acceptedDocuments: string[] = [];
+        const pendingDocuments: string[] = [];
+        for (const doc of requiredDocuments) {
+          const version = currentVersions[doc];
+          const hasGlobal = state.legalConsents.some(
+            (c) =>
+              c.userId === user.id &&
+              c.businessId === null &&
+              c.documentType === doc &&
+              c.documentVersion === version &&
+              c.revokedAt === null,
+          );
+          if (hasGlobal) {
+            acceptedDocuments.push(doc);
+          } else {
+            pendingDocuments.push(doc);
+          }
+        }
+        return json(route, {
+          has_pending: pendingDocuments.length > 0,
+          is_business_admin: isBusinessAdmin,
+          required_documents: [...requiredDocuments],
+          accepted_documents: acceptedDocuments,
+          pending_documents: pendingDocuments,
+          current_versions: currentVersions,
+        });
+      }
+      case "legal_consent_record": {
+        if (!user) return fail(route, "not_authenticated");
+        const docs = Array.isArray(body.p_documents) ? (body.p_documents as string[]) : [];
+        if (docs.length === 0) return fail(route, "invalid_legal_documents");
+        const currentVersions: Record<string, string> = {
+          terms_customer: "2026-11-25",
+          terms_business: "2026-11-25",
+          privacy_policy: "2026-11-25",
+          dpa: "2026-11-25",
+          marketing_whatsapp: "2026-11-25",
+          marketing_email: "2026-11-25",
+          marketing_push: "2026-11-25",
+        };
+        const pBusinessId = typeof body.p_business_id === "string" ? body.p_business_id : null;
+        const pSourceRoute =
+          typeof body.p_source_route === "string" && body.p_source_route.startsWith("/")
+            ? body.p_source_route
+            : "/";
+        const recorded = [];
+        for (const doc of Array.from(new Set(docs))) {
+          const version = currentVersions[doc] ?? "2026-11-25";
+          const rowBusinessId =
+            doc === "terms_customer" || doc === "privacy_policy" ? null : pBusinessId;
+          const existing = state.legalConsents.find(
+            (c) =>
+              c.userId === user.id &&
+              c.businessId === rowBusinessId &&
+              c.documentType === doc &&
+              c.documentVersion === version &&
+              c.revokedAt === null,
+          );
+          if (existing) {
+            recorded.push({
+              id: existing.id,
+              document_type: doc,
+              document_version: version,
+              business_id: rowBusinessId,
+              accepted_at: existing.acceptedAt,
+              source_route: existing.sourceRoute,
+              already_accepted: true,
+            });
+          } else {
+            const entry: FakeLegalConsent = {
+              id: `consent-${crypto.randomUUID().slice(0, 8)}`,
+              userId: user.id,
+              businessId: rowBusinessId,
+              documentType: doc,
+              documentVersion: version,
+              acceptedAt: now(),
+              revokedAt: null,
+              sourceRoute: pSourceRoute,
+            };
+            state.legalConsents.push(entry);
+            recorded.push({
+              id: entry.id,
+              document_type: doc,
+              document_version: version,
+              business_id: rowBusinessId,
+              accepted_at: entry.acceptedAt,
+              source_route: entry.sourceRoute,
+              already_accepted: false,
+            });
+          }
+        }
+        return json(route, {
+          recorded,
+          versions: {
+            terms_customer: "2026-11-25",
+            terms_business: "2026-11-25",
+            privacy_policy: "2026-11-25",
+            dpa: "2026-11-25",
+            cookies: "2026-11-25",
+          },
+        });
+      }
+      case "legal_consents_my_list": {
+        if (!user) return fail(route, "not_authenticated");
+        const currentVersions: Record<string, string> = {
+          terms_customer: "2026-11-25",
+          terms_business: "2026-11-25",
+          privacy_policy: "2026-11-25",
+          dpa: "2026-11-25",
+          marketing_whatsapp: "2026-11-25",
+          marketing_email: "2026-11-25",
+          marketing_push: "2026-11-25",
+        };
+        const rows = state.legalConsents
+          .filter((c) => c.userId === user.id)
+          .map((c) => {
+            const biz = c.businessId ? state.businesses.find((b) => b.id === c.businessId) : null;
+            return {
+              id: c.id,
+              business_id: c.businessId,
+              business_name: biz?.name ?? null,
+              document_type: c.documentType,
+              document_version: c.documentVersion,
+              is_current_version:
+                c.revokedAt === null &&
+                c.documentVersion === (currentVersions[c.documentType] ?? "2026-11-25"),
+              accepted_at: c.acceptedAt,
+              revoked_at: c.revokedAt,
+              source_route: c.sourceRoute,
+            };
+          });
+        return json(route, rows);
+      }
+      case "profile_export_my_data": {
+        if (!user) return fail(route, "not_authenticated");
+        return json(route, {
+          schema_version: "1.0",
+          exported_at: now(),
+          profile: {
+            id: user.id,
+            full_name: user.name,
+            email: user.email,
+            nickname: user.nickname ?? null,
+            phone: user.phone ?? null,
+            birth_date: user.birthDate ?? null,
+            avatar_url: null,
+            account_type: user.accountType ?? "customer",
+          },
+          consents: state.legalConsents.filter((c) => c.userId === user.id),
+          memberships: state.memberships.filter((m) => m.userId === user.id),
+          purchases: state.purchases.filter((p) => p.customerId === user.id),
+          redemptions: state.redemptions.filter((r) => r.customerId === user.id),
+          movements: [],
+        });
+      }
+      case "account_delete_my_account": {
+        if (!user) return fail(route, "not_authenticated");
+        if (body.p_confirm !== "ELIMINAR") {
+          return fail(route, "invalid_delete_confirmation");
+        }
+        const adminBizIds = state.memberships
+          .filter((m) => m.userId === user.id && m.role === "admin")
+          .map((m) => m.businessId);
+        for (const bizId of adminBizIds) {
+          const biz = state.businesses.find((b) => b.id === bizId);
+          if (!biz) continue;
+          const otherAdmin = state.memberships.some(
+            (m) => m.businessId === bizId && m.role === "admin" && m.userId !== user.id,
+          );
+          if (!otherAdmin) {
+            return fail(route, "ACCOUNT_LAST_ADMIN");
+          }
+        }
+        const removedCount = state.memberships.filter((m) => m.userId === user.id).length;
+        state.memberships = state.memberships.filter((m) => m.userId !== user.id);
+        const anonymizedEmail = `deleted+${user.id}@anonymized.invalid`;
+        user.name = "Usuario eliminado";
+        user.email = anonymizedEmail;
+        user.nickname = undefined;
+        user.phone = null;
+        user.birthDate = null;
+        return json(route, {
+          deleted: true,
+          user_id: user.id,
+          deleted_at: now(),
+          anonymized_email: anonymizedEmail,
+          businesses_affected: adminBizIds.length,
+          memberships_removed: removedCount,
+          pending_redemptions_cancelled: 0,
+          avatar_storage_paths: [],
+        });
+      }
       case "business_register": {
         if (!user) return fail(route, "not_authenticated");
+        const hasTermsBusiness = state.legalConsents.some(
+          (c) =>
+            c.userId === user.id &&
+            c.businessId === null &&
+            c.documentType === "terms_business" &&
+            c.documentVersion === "2026-11-25" &&
+            c.revokedAt === null,
+        );
+        const hasDpa = state.legalConsents.some(
+          (c) =>
+            c.userId === user.id &&
+            c.businessId === null &&
+            c.documentType === "dpa" &&
+            c.documentVersion === "2026-11-25" &&
+            c.revokedAt === null,
+        );
+        if (!hasTermsBusiness || !hasDpa) {
+          return fail(route, "LEGAL_CONSENT_REQUIRED");
+        }
         const name = String(body.p_business_name ?? "").trim();
         const slug = String(body.p_slug ?? "").trim();
         if (name.length < 2) return fail(route, "invalid_business_name");
@@ -2183,28 +2572,50 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
       case "business_search_profiles": {
         if (!user) return fail(route, "not_authenticated");
         const businessId = String(body.p_business_id ?? "");
+        const callerMembership = state.memberships.find(
+          (m) => m.businessId === businessId && m.userId === user.id,
+        );
+        if (!callerMembership) return fail(route, "business_not_found_or_no_access");
+        if (callerMembership.role !== "admin") return fail(route, "forbidden");
         const query = String(body.p_query ?? "")
           .trim()
           .toLowerCase();
-        return json(
-          route,
-          state.users
-            .filter(
-              (item) =>
-                query.length < 2 ||
+        const isExactEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(query);
+        const memberRows = state.users
+          .filter(
+            (item) =>
+              state.memberships.some((m) => m.businessId === businessId && m.userId === item.id) &&
+              (query === "" ||
                 item.name.toLowerCase().includes(query) ||
-                item.email.toLowerCase().includes(query),
-            )
-            .map((item) => ({
-              user_id: item.id,
-              full_name: item.name,
-              email: item.email,
-              already_member: state.memberships.some(
-                (membership) =>
-                  membership.businessId === businessId && membership.userId === item.id,
-              ),
-            })),
-        );
+                item.email.toLowerCase().includes(query)),
+          )
+          .slice(0, 25)
+          .map((item) => ({
+            user_id: item.id,
+            full_name: item.name,
+            email: item.email,
+            avatar_url: (item as { avatarUrl?: string | null }).avatarUrl ?? null,
+            already_member: true,
+          }));
+        const exactNonMember = isExactEmail
+          ? state.users
+              .filter(
+                (item) =>
+                  item.email.toLowerCase() === query &&
+                  !state.memberships.some(
+                    (m) => m.businessId === businessId && m.userId === item.id,
+                  ),
+              )
+              .slice(0, 1)
+              .map((item) => ({
+                user_id: null,
+                full_name: "",
+                email: item.email,
+                avatar_url: null,
+                already_member: false,
+              }))
+          : [];
+        return json(route, [...memberRows, ...exactNonMember]);
       }
       case "business_memberships_list": {
         if (!user) return fail(route, "not_authenticated");
@@ -2408,7 +2819,7 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
       }
 
       // ------------------------------------------------------------------
-      // Programa de loopoints
+      // Programa de monedas
       // ------------------------------------------------------------------
       case "loyalty_program_get": {
         if (!user) return fail(route, "not_authenticated");
@@ -2583,8 +2994,32 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           comboItems: existing?.comboItems ?? [],
           imageUrl: rawImageUrl,
         };
+        const previousImageUrl = existing?.imageUrl ?? null;
         if (existing) Object.assign(existing, product);
         else state.products.push(product);
+        const removedImage =
+          previousImageUrl && previousImageUrl !== product.imageUrl ? previousImageUrl : null;
+        const stillReferenced = Boolean(
+          removedImage &&
+          (state.products.some(
+            (p) =>
+              p.businessId === businessId && p.id !== product.id && p.imageUrl === removedImage,
+          ) ||
+            state.loyaltyRewards.some(
+              (r) =>
+                r.businessId === businessId &&
+                (r as { imageUrl?: string | null }).imageUrl === removedImage,
+            ) ||
+            state.businesses.some((b) => b.id === businessId && b.logoUrl === removedImage)),
+        );
+        const extractedPath =
+          removedImage && !stillReferenced
+            ? removedImage.replace(
+                /^https?:\/\/[^/?#@\s]+\/storage\/v1\/object\/public\/business-assets\//i,
+                "",
+              )
+            : null;
+        const expectedPrefix = `business/${businessId}/`;
         return json(route, {
           id: product.id,
           business_id: product.businessId,
@@ -2596,6 +3031,8 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           kind: product.kind,
           combo_items: comboItemsFor(state, product),
           image_url: product.imageUrl ?? null,
+          previous_storage_path:
+            extractedPath && extractedPath.startsWith(expectedPrefix) ? extractedPath : null,
           created_at: now(),
           updated_at: now(),
         });
@@ -2729,13 +3166,43 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
           isActive: Boolean(body.p_is_active ?? true),
           imageUrl: body.p_image_url ? String(body.p_image_url) : null,
         } as FakeLoyaltyReward;
+        const previousImageUrl =
+          (existing as { imageUrl?: string | null } | undefined)?.imageUrl ?? null;
         if (existing) Object.assign(existing, reward);
         else state.loyaltyRewards.push(reward);
-        return json(route, reward);
+        const nextImageUrl = (reward as { imageUrl?: string | null }).imageUrl ?? null;
+        const removedImage =
+          previousImageUrl && previousImageUrl !== nextImageUrl ? previousImageUrl : null;
+        const stillReferenced = Boolean(
+          removedImage &&
+          (state.loyaltyRewards.some(
+            (r) =>
+              r.businessId === businessId &&
+              r.id !== reward.id &&
+              (r as { imageUrl?: string | null }).imageUrl === removedImage,
+          ) ||
+            state.products.some(
+              (p) => p.businessId === businessId && p.imageUrl === removedImage,
+            ) ||
+            state.businesses.some((b) => b.id === businessId && b.logoUrl === removedImage)),
+        );
+        const extractedPath =
+          removedImage && !stillReferenced
+            ? removedImage.replace(
+                /^https?:\/\/[^/?#@\s]+\/storage\/v1\/object\/public\/business-assets\//i,
+                "",
+              )
+            : null;
+        const expectedPrefix = `business/${businessId}/`;
+        return json(route, {
+          ...reward,
+          previous_storage_path:
+            extractedPath && extractedPath.startsWith(expectedPrefix) ? extractedPath : null,
+        });
       }
 
       // ------------------------------------------------------------------
-      // Loopoints
+      // Monedas
       // ------------------------------------------------------------------
       case "loyalty_account_balance": {
         if (!user) return fail(route, "not_authenticated");
@@ -2750,6 +3217,32 @@ export async function installFakeSupabase(page: Page, state: FakeState) {
       case "loyalty_account_transactions": {
         if (!user) return fail(route, "not_authenticated");
         return json(route, []);
+      }
+      case "customer_points_expiry_summary": {
+        if (!user) return fail(route, "not_authenticated");
+        const businessId = String(body.p_business_id ?? "");
+        const membership = state.memberships.find(
+          (m) => m.businessId === businessId && m.userId === user.id,
+        );
+        if (!membership) return fail(route, "forbidden");
+        const prog = state.loyaltyPrograms[businessId];
+        const expiryDays = prog?.points_expiry_days ?? 365;
+        const balance = user.balance;
+        const nextExpiryAt =
+          balance > 0 && expiryDays
+            ? new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString()
+            : null;
+        return json(route, {
+          business_id: businessId,
+          points_expiry_days: expiryDays,
+          fifo_enabled: expiryDays !== null,
+          balance,
+          next_expiry_at: nextExpiryAt,
+          next_expiry_points: balance > 0 ? balance : 0,
+          expiring_within_30_days_points: balance > 0 ? balance : 0,
+          upcoming_lots:
+            balance > 0 && nextExpiryAt ? [{ points: balance, expires_at: nextExpiryAt }] : [],
+        });
       }
 
       // ------------------------------------------------------------------

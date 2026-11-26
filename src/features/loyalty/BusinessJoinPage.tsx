@@ -19,6 +19,8 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ErrorState, LoadingScreen } from "@/components/shared/States";
 import { useAuth } from "@/features/auth/AuthProvider";
+import { LEGAL_URLS } from "@/config/legal.config";
+import { LegalExternalLink } from "@/features/legal/LegalConsentCheckbox";
 import { useBusinessPublic, useJoinBusiness } from "./hooks";
 import { persistBusinessSelection } from "./businessContext";
 import { businessHomePath } from "@/lib/config";
@@ -259,9 +261,16 @@ export function BusinessJoinPage() {
               </Button>
             )}
 
-            <p className="text-center text-xs text-muted-foreground">
-              Al unirte aceptas que el negocio asocie tu nombre y correo a tu cuenta de monedas. No
-              compartimos datos con otros negocios.
+            <p className="text-center text-xs leading-relaxed text-muted-foreground">
+              Al unirte, <strong>{data.name}</strong> verá tu nombre, contacto registrado, saldo de
+              monedas e historial de compras y canjes en este negocio para gestionar tu cuenta de
+              fidelización (sujeto a las reglas de vencimiento de monedas si el negocio las aplica).{" "}
+              <LegalExternalLink href={LEGAL_URLS.privacyPolicy}>
+                Política de Privacidad
+              </LegalExternalLink>{" "}
+              ·{" "}
+              <LegalExternalLink href={LEGAL_URLS.termsCustomer}>Términos de uso</LegalExternalLink>
+              .
             </p>
           </CardContent>
         </Card>

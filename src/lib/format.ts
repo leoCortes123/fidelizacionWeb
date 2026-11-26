@@ -1,4 +1,4 @@
-import { loopointWord } from "./copy";
+import { coinWord } from "./copy";
 
 const copFormatter = new Intl.NumberFormat("es-CO", {
   style: "currency",
@@ -20,12 +20,12 @@ export function formatNumber(value: number): string {
   return numberFormatter.format(value);
 }
 
-export function formatLoopoints(value: number): string {
-  return `${formatNumber(value)} ${loopointWord(value)}`;
+export function formatCoins(value: number): string {
+  return `${formatNumber(value)} ${coinWord(value)}`;
 }
 
-/** @deprecated Usa `formatLoopoints`; se conserva para imports antiguos. */
-export const formatPoints = formatLoopoints;
+/** @deprecated Usa `formatCoins`; se conserva para imports antiguos. */
+export const formatPoints = formatCoins;
 
 export function digitsOnly(value: string): string {
   return value.replace(/\D/g, "");
@@ -106,6 +106,10 @@ const bogotaDayFormatter = new Intl.DateTimeFormat("es-CO", {
 
 function bogotaDayKey(date: Date): string {
   return bogotaIsoDateFormatter.format(date);
+}
+
+export function todayIsoBogota(now: Date = new Date()): string {
+  return bogotaIsoDateFormatter.format(now);
 }
 
 /**

@@ -30,7 +30,7 @@ describe("useFormDraft", () => {
     );
 
     expect(nextVersion.current.read()).toBeNull();
-    expect(localStorage.getItem("loopoint:draft:versioned")).toBeNull();
+    expect(localStorage.getItem("fideliapp:draft:versioned")).toBeNull();
   });
 
   it("limpia el borrador al guardar el formulario", () => {
@@ -48,7 +48,41 @@ describe("useFormDraft", () => {
     );
     act(() => result.current.save({ amount: "20", note: "" }));
 
-    expect(sessionStorage.getItem("loopoint:draft:session-form")).toContain("20");
-    expect(localStorage.getItem("loopoint:draft:session-form")).toBeNull();
+    expect(sessionStorage.getItem("fideliapp:draft:session-form")).toContain("20");
+    expect(localStorage.getItem("fideliapp:draft:session-form")).toBeNull();
+  });
+
+  it("migra una sola vez un borrador heredado a fideliapp:draft:* y borra la clave vieja", () => {
+    localStorage.setItem(
+      "loopoint:draft:migrated",
+      JSON.stringify({ version: 1, savedAt: Date.now(), value: { amount: "50", note: "legacy" } }),
+    );
+
+    const { result } = renderHook(() => useFormDraft<Draft>({ key: "migrated", version: 1 }));
+
+    expect(result.current.hasDraft).toBe(true);
+    expect(result.current.read()).toEqual({ amount: "50", note: "legacy" });
+    expect(localStorage.getItem("fideliapp:draft:migrated")).toContain("legacy");
+    expect(localStorage.getItem("loopoint:draft:migrated")).toBeNull();
+  });
+
+  it("conserva el borrador heredado si setItem falla al migrar (ej. QuotaExceededError)", () => {
+    const payload = JSON.stringify({
+      version: 1,
+      savedAt: Date.now(),
+      value: { amount: "75", note: "safe" },
+    });
+    localStorage.setItem("loopoint:draft:quota", payload);
+    const setItemSpy = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new DOMException("QuotaExceededError", "QuotaExceededError");
+    });
+
+    try {
+      const { result } = renderHook(() => useFormDraft<Draft>({ key: "quota", version: 1 }));
+      expect(result.current.read()).toEqual({ amount: "75", note: "safe" });
+      expect(localStorage.getItem("loopoint:draft:quota")).toBe(payload);
+    } finally {
+      setItemSpy.mockRestore();
+    }
   });
 });

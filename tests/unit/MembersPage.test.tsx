@@ -147,7 +147,7 @@ describe("MembersPage", () => {
       await dialog.findByLabelText("Código QR de invitación para miembro"),
     ).toBeInTheDocument();
     expect(dialog.getByLabelText("Enlace de invitación de miembro")).toHaveValue(
-      "https://fidelizacion01.vercel.app/login?mode=register&invite=inv_token_12345678901234567890",
+      "https://fideli-app.vercel.app/login?mode=register&invite=inv_token_12345678901234567890",
     );
 
     // Activar permiso regenera el QR con aprobación habilitada

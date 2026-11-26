@@ -11,13 +11,13 @@ function safeHttpUrl(raw: string | undefined, fallback: string): string {
  * abrir la web pública aunque se generen desde un entorno local, porque la
  * base de datos es la misma. Se puede sobreescribir con VITE_PUBLIC_APP_URL.
  */
-export const defaultPublicAppUrl = "https://fidelizacion01.vercel.app";
+export const defaultPublicAppUrl = "https://fideli-app.vercel.app";
 
 /**
  * Sitio web comercial estático (alojado en Cloudflare Pages).
  * Se puede sobreescribir con VITE_PUBLIC_SITE_URL.
  */
-export const defaultPublicSiteUrl = "https://fidelapp.pages.dev";
+export const defaultPublicSiteUrl = "https://fideliapp.pages.dev";
 
 export const brandName = import.meta.env.VITE_BRAND_NAME?.trim() || "Fideliapp";
 

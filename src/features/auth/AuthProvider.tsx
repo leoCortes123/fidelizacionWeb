@@ -10,6 +10,7 @@ import {
 } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { queryClient } from "@/app/queryClient";
+import { clearLocalUserData } from "@/lib/clearLocalUserData";
 import { supabase, rpc } from "@/lib/supabase";
 import { oauthRedirectUrl } from "@/lib/config";
 import type { AppRole } from "@/types";
@@ -33,6 +34,9 @@ interface AuthContextValue {
     accountType?: "customer" | "admin";
     nextPath?: string;
   }) => Promise<{ needsConfirmation: boolean }>;
+  resendConfirmationEmail: (email: string, nextPath?: string) => Promise<void>;
+  resetPasswordForEmail: (email: string) => Promise<void>;
+  updatePassword: (newPassword: string) => Promise<void>;
   signOut: () => Promise<void>;
   refreshRoles: () => Promise<void>;
 }
@@ -119,6 +123,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const applySession = useCallback((nextSession: Session | null) => {
     const nextUserId = nextSession?.user.id ?? null;
     if (prevUserIdRef.current !== undefined && prevUserIdRef.current !== nextUserId) {
+      // Si había sesión activa y cerró remotamente (o cambió de usuario), purgar datos locales.
+      if (prevUserIdRef.current !== null) {
+        clearLocalUserData();
+      }
       queryClient.clear();
     }
     prevUserIdRef.current = nextUserId;
@@ -309,6 +317,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+  const resendConfirmationEmail = useCallback(async (email: string, nextPath?: string) => {
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email: email.trim(),
+      options: {
+        emailRedirectTo: oauthRedirectUrl(nextPath),
+      },
+    });
+    if (error) throw error;
+  }, []);
+
+  const resetPasswordForEmail = useCallback(async (email: string) => {
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+      redirectTo: `${window.location.origin}/restablecer-clave`,
+    });
+    if (error) throw error;
+  }, []);
+
+  const updatePassword = useCallback(async (newPassword: string) => {
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword,
+    });
+    if (error) throw error;
+  }, []);
+
   const signOut = useCallback(async () => {
     clearPendingAccountType();
     try {
@@ -318,6 +351,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       await supabase.auth.signOut({ scope: "local" }).catch(() => undefined);
     } finally {
+      clearLocalUserData();
       rolesRequestIdRef.current += 1;
       prevUserIdRef.current = null;
       queryClient.clear();
@@ -352,6 +386,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signInWithGoogle,
       signInWithPassword,
       signUpWithPassword,
+      resendConfirmationEmail,
+      resetPasswordForEmail,
+      updatePassword,
       signOut,
       refreshRoles,
     }),
@@ -365,6 +402,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signInWithGoogle,
       signInWithPassword,
       signUpWithPassword,
+      resendConfirmationEmail,
+      resetPasswordForEmail,
+      updatePassword,
       signOut,
       refreshRoles,
     ],

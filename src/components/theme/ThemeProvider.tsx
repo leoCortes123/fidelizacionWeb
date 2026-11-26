@@ -11,7 +11,9 @@ import {
 export type Theme = "light" | "dark";
 export type Portal = "admin" | "customer";
 
-const THEME_STORAGE_KEY = "loopoint:theme";
+export const THEME_STORAGE_KEY = "fideliapp:theme";
+// Clave heredada de la marca anterior; se migra una sola vez al leer y se elimina.
+export const LEGACY_THEME_STORAGE_KEY = "loopoint:theme";
 
 interface ThemeContextValue {
   theme: Theme;
@@ -23,8 +25,21 @@ const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
 function readStoredTheme(): Theme | null {
   try {
-    const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
-    return stored === "light" || stored === "dark" ? stored : null;
+    const rawStored = window.localStorage.getItem(THEME_STORAGE_KEY);
+    let stored: Theme | null = rawStored === "light" || rawStored === "dark" ? rawStored : null;
+    const legacy = window.localStorage.getItem(LEGACY_THEME_STORAGE_KEY);
+    if (!stored && (legacy === "light" || legacy === "dark")) {
+      stored = legacy;
+      try {
+        window.localStorage.setItem(THEME_STORAGE_KEY, legacy);
+        window.localStorage.removeItem(LEGACY_THEME_STORAGE_KEY);
+      } catch {
+        // Conserva legacy si setItem falla.
+      }
+    } else if (legacy !== null) {
+      window.localStorage.removeItem(LEGACY_THEME_STORAGE_KEY);
+    }
+    return stored;
   } catch {
     return null;
   }

@@ -24,15 +24,22 @@ import {
 import { toast } from "sonner";
 import { z } from "zod";
 import { useAuth } from "@/features/auth/AuthProvider";
+import { MIN_AGE } from "@/config/legal.config";
 import { useMyProfile, useNicknameAvailable, useSetProfileAvatar, useUpdateProfile } from "./hooks";
 import { useBusinessProfile, useSetBusinessLogo } from "@/features/loyalty/hooks";
-import { isSupportedImage, uploadBusinessAssetImage, uploadUserAvatarImage } from "@/lib/image";
+import {
+  isSupportedImage,
+  removeBusinessAssetPath,
+  storagePathFromPublicUrl,
+  uploadBusinessAssetImage,
+  uploadUserAvatarImage,
+} from "@/lib/image";
 import { BusinessGate } from "@/features/admin/BusinessGate";
 import { BusinessProfileForm } from "@/features/admin/BusinessProfileForm";
 import { ProgramPage } from "@/features/admin/ProgramPage";
 import { EconomicPage } from "@/features/admin/EconomicPage";
 import { errorMessage } from "@/lib/errors";
-import { formatDateBogota } from "@/lib/format";
+import { formatDateBogota, todayIsoBogota } from "@/lib/format";
 import { useFormDraft } from "@/lib/useFormDraft";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -43,6 +50,7 @@ import { Field } from "@/components/shared/Field";
 import { PageHeader } from "@/components/shared/PageHeader";
 import { ErrorState, LoadingScreen } from "@/components/shared/States";
 import { ProfileAvatarSvg } from "@/features/customer/pixelSprites";
+import { PrivacyAndAccountCard } from "./PrivacyAndAccountCard";
 import type { Business, MyProfile } from "@/types";
 
 const profileTabs = [
@@ -56,9 +64,30 @@ const validProfileTabs = new Set<string>(profileTabs.map((item) => item.value));
 
 const NICKNAME_PATTERN = /^[a-z0-9._-]{3,24}$/;
 const PHONE_PATTERN = /^[0-9+\-\s()]{7,25}$/;
+const MIN_BIRTH_DATE = "1900-01-01";
 
-function todayBogota(): string {
-  return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Bogota" }).format(new Date());
+function daysInMonth(year: number, month: number): number {
+  if (month === 2) {
+    const isLeap = (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+    return isLeap ? 29 : 28;
+  }
+  return month === 4 || month === 6 || month === 9 || month === 11 ? 30 : 31;
+}
+
+function isValidIsoCalendarDate(value: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const [year, month, day] = value.split("-").map(Number);
+  if (month < 1 || month > 12) return false;
+  return day >= 1 && day <= daysInMonth(year, month);
+}
+
+export function maxAdultBirthDateBogota(now: Date = new Date()): string {
+  const today = todayIsoBogota(now);
+  const [yearStr, monthStr, dayStr] = today.split("-");
+  const targetYear = Number(yearStr) - MIN_AGE;
+  const month = Number(monthStr);
+  const day = Math.min(Number(dayStr), daysInMonth(targetYear, month));
+  return `${String(targetYear).padStart(4, "0")}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
 const profileSchema = z.object({
@@ -85,12 +114,23 @@ const profileSchema = z.object({
   birthDate: z
     .string()
     .trim()
-    .refine((value) => {
-      if (value === "") return true;
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-      const today = todayBogota();
-      return value >= "1900-01-01" && value <= today;
-    }, "Selecciona una fecha de nacimiento válida (no futura)."),
+    .superRefine((value, ctx) => {
+      if (value === "") return;
+      const today = todayIsoBogota();
+      if (!isValidIsoCalendarDate(value) || value < MIN_BIRTH_DATE || value > today) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "Selecciona una fecha de nacimiento válida (no futura).",
+        });
+        return;
+      }
+      if (value > maxAdultBirthDateBogota()) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `Debes ser mayor de ${MIN_AGE} años para registrar tu fecha de nacimiento.`,
+        });
+      }
+    }),
 });
 
 interface ProfileFormState {
@@ -99,6 +139,13 @@ interface ProfileFormState {
   phone: string;
   birthDate: string;
 }
+
+const FIELD_INPUT_IDS: Record<keyof ProfileFormState, string> = {
+  fullName: "full-name",
+  nickname: "nickname",
+  phone: "phone",
+  birthDate: "birth-date",
+};
 
 /**
  * Perfil personal y configuración del negocio estilo red social (Facebook).
@@ -186,16 +233,20 @@ export function ProfilePage() {
     const file = event.target.files?.[0];
     event.target.value = "";
     if (!file || !user) return;
-    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+    if (!isSupportedImage(file)) {
       toast.error("Usa una imagen JPEG, PNG o WebP.");
       return;
     }
     setUploadingAvatar(true);
+    let uploadedUrl: string | null = null;
     try {
-      const publicUrl = await uploadUserAvatarImage(user.id, file);
-      await setAvatar.mutateAsync({ avatarUrl: publicUrl });
+      uploadedUrl = await uploadUserAvatarImage(user.id, file);
+      await setAvatar.mutateAsync({ avatarUrl: uploadedUrl });
       toast.success("Foto de perfil actualizada.");
     } catch (error) {
+      if (uploadedUrl) {
+        await removeBusinessAssetPath(storagePathFromPublicUrl(uploadedUrl));
+      }
       toast.error(errorMessage(error) || "No pudimos subir tu foto de perfil.");
     } finally {
       setUploadingAvatar(false);
@@ -237,16 +288,28 @@ export function ProfilePage() {
     const parsed = profileSchema.safeParse(form);
     if (!parsed.success) {
       const nextErrors: Partial<Record<keyof ProfileFormState, string>> = {};
+      let firstInvalidKey: keyof ProfileFormState | undefined;
       for (const issue of parsed.error.issues) {
         const key = issue.path[0] as keyof ProfileFormState | undefined;
-        if (key && !nextErrors[key]) nextErrors[key] = issue.message;
+        if (key && !nextErrors[key]) {
+          nextErrors[key] = issue.message;
+          if (!firstInvalidKey) firstInvalidKey = key;
+        }
       }
       setErrors(nextErrors);
+      if (firstInvalidKey) {
+        document.getElementById(FIELD_INPUT_IDS[firstInvalidKey])?.focus();
+      }
       toast.error(parsed.error.issues[0]?.message ?? "Revisa tus datos.");
       return;
     }
 
     if (nicknameChanged && availability.data === false) {
+      setErrors((current) => ({
+        ...current,
+        nickname: "Ese alias no está disponible. Elige otro.",
+      }));
+      document.getElementById(FIELD_INPUT_IDS.nickname)?.focus();
       toast.error("Ese alias no está disponible. Elige otro.");
       return;
     }
@@ -460,7 +523,7 @@ export function ProfilePage() {
           <Field
             id="birth-date"
             label="Fecha de nacimiento"
-            help="Opcional. Para beneficios especiales y recordatorios."
+            help={`Opcional. Solo mayores de ${MIN_AGE} años. Para beneficios especiales y recordatorios.`}
             error={errors.birthDate}
           >
             <div className="relative">
@@ -474,8 +537,9 @@ export function ProfilePage() {
                 className="pl-8"
                 value={form?.birthDate ?? ""}
                 onChange={(event) => update("birthDate", event.target.value)}
-                max={todayBogota()}
-                min="1900-01-01"
+                max={maxAdultBirthDateBogota()}
+                min={MIN_BIRTH_DATE}
+                autoComplete="bday"
                 aria-invalid={Boolean(errors.birthDate)}
               />
             </div>
@@ -537,6 +601,7 @@ export function ProfilePage() {
 
           {renderPersonalForm(true)}
         </div>
+        <PrivacyAndAccountCard variant="customer" />
       </section>
     );
   }
@@ -626,6 +691,7 @@ export function ProfilePage() {
                 />
               )}
             </BusinessGate>
+            <PrivacyAndAccountCard />
           </TabsContent>
 
           <TabsContent value="programa" className="mt-3">
@@ -637,7 +703,10 @@ export function ProfilePage() {
           </TabsContent>
         </Tabs>
       ) : (
-        personalCard
+        <div className="space-y-4">
+          {personalCard}
+          <PrivacyAndAccountCard />
+        </div>
       )}
     </div>
   );
@@ -677,15 +746,19 @@ function SocialBusinessProfileLayout({
       return;
     }
     setUploadingCover(true);
+    let uploadedUrl: string | null = null;
     try {
-      const publicUrl = await uploadBusinessAssetImage({
+      uploadedUrl = await uploadBusinessAssetImage({
         businessId: business.id,
         folder: "logo",
         file,
       });
-      await setLogo.mutateAsync({ businessId: business.id, logoUrl: publicUrl });
+      await setLogo.mutateAsync({ businessId: business.id, logoUrl: uploadedUrl });
       toast.success("Foto del negocio actualizada.");
     } catch (error) {
+      if (uploadedUrl) {
+        await removeBusinessAssetPath(storagePathFromPublicUrl(uploadedUrl));
+      }
       toast.error(
         errorMessage(error) || "No pudimos subir la foto del negocio. Intenta nuevamente.",
       );

@@ -205,15 +205,19 @@ describe("CustomerBusinessesPage (Diseño 2 Pixel Art)", () => {
     expect(screen.getByRole("alert")).toHaveTextContent(/Pega el enlace/i);
 
     await user.clear(input);
-    await user.type(input, "https://loopoint.app/join/cafe-central");
+    await user.type(input, "https://fideli-app.vercel.app/join/cafe-central");
     await user.click(screen.getByRole("button", { name: "Abrir invitación" }));
     expect(screen.getByText("Invitación abierta")).toBeInTheDocument();
   });
 
   it("interpreta enlaces y códigos de invitación", () => {
     expect(parseInvitationSlug("cafe-central")).toBe("cafe-central");
-    expect(parseInvitationSlug(" https://loopoint.app/join/cafe-central ")).toBe("cafe-central");
-    expect(parseInvitationSlug("https://loopoint.app/join/cafe-central?x=1")).toBe("cafe-central");
+    expect(parseInvitationSlug(" https://fideli-app.vercel.app/join/cafe-central ")).toBe(
+      "cafe-central",
+    );
+    expect(parseInvitationSlug("https://fideli-app.vercel.app/join/cafe-central?x=1")).toBe(
+      "cafe-central",
+    );
     expect(parseInvitationSlug("Cafe Central")).toBeNull();
     expect(parseInvitationSlug("")).toBeNull();
   });

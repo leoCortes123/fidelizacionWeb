@@ -12,7 +12,7 @@ test("la raíz / redirige a /login sin sesión y conserva ?install=1", async ({ 
   await expect(page).toHaveURL(/\/login$/);
   await expect(page.getByRole("link", { name: /Volver al inicio/i })).toHaveAttribute(
     "href",
-    "https://fidelapp.pages.dev",
+    "https://fideliapp.pages.dev",
   );
 
   await page.goto("/?install=1");

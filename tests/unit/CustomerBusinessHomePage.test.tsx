@@ -68,6 +68,12 @@ vi.mock("@/features/loyalty/hooks", async (importOriginal) => {
       isError: false,
       refetch: vi.fn(),
     }),
+    useCustomerPointsExpirySummary: () => ({
+      data: null,
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+    }),
     useLoyaltyRewardsAvailable: () => state.rewards,
     useProducts: () => state.products,
     useLoyaltyProgram: () => ({

@@ -186,7 +186,7 @@ export interface ProgramEconomicsAnalysis {
   netMarginAfterRewards: string | null;
 }
 
-/** Calcula equivalencias de loopoints, simulación en caja e impacto en utilidad/margen del programa. */
+/** Calcula equivalencias de monedas, simulación en caja e impacto en utilidad/margen del programa. */
 export function analyzeProgramEconomics({
   economic,
   copPerPoint,

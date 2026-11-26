@@ -30,8 +30,6 @@ export const queryKeys = {
   businessProfile: (id: string) => ["business-profile", id] as const,
   businessPublic: (slug: string) => ["business-public", slug] as const,
   businessMemberships: (businessId: string) => ["business-memberships", businessId] as const,
-  profileSearch: (businessId: string, query: string) =>
-    ["profile-search", businessId, query] as const,
 
   // Programa y recompensas
   loyaltyProgram: (businessId: string) => ["loyalty-program", businessId] as const,
@@ -42,11 +40,13 @@ export const queryKeys = {
   loyaltyRewardsAvailable: (businessId: string, customerId: string) =>
     ["loyalty-rewards-available", businessId, customerId] as const,
 
-  // Loopoints y redenciones
+  // Monedas y redenciones
   loyaltyPointAccount: (businessId: string, customerId: string) =>
     ["loyalty-point-account", businessId, customerId] as const,
   loyaltyPointTransactions: (businessId: string, customerId: string) =>
     ["loyalty-point-transactions", businessId, customerId] as const,
+  customerPointsExpirySummary: (businessId: string, customerId: string) =>
+    ["customer-points-expiry-summary", businessId, customerId] as const,
   loyaltyRedemptions: (businessId: string, status: string, origin: string = "") =>
     ["loyalty-redemptions", businessId, status, origin] as const,
   myLoyaltyRedemptions: ["my-loyalty-redemptions"] as const,
@@ -97,4 +97,8 @@ export const queryKeys = {
     ["loyalty-campaigns", businessId, onlyActive] as const,
   budgetSnapshots: (businessId: string, limit: number) =>
     ["budget-snapshots", businessId, limit] as const,
+
+  // Consentimientos legales
+  legalConsentStatus: (userId: string) => ["legal-consent-status", userId] as const,
+  legalConsentsMyList: (userId: string) => ["legal-consents-my-list", userId] as const,
 };

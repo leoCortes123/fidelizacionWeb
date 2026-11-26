@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import {
   Building2,
   Calendar,
+  Clock,
   Gift,
   Globe,
   Info,
@@ -16,6 +17,7 @@ import { useAuth } from "@/features/auth/AuthProvider";
 import {
   useBusinessPublic,
   useCustomerBusinessesSummary,
+  useCustomerPointsExpirySummary,
   useLoyaltyPointAccount,
   useLoyaltyPointTransactions,
   useLoyaltyProgram,
@@ -64,6 +66,7 @@ export function CustomerBusinessHomePage() {
   const publicBiz = useBusinessPublic(business?.slug ?? "");
   const account = useLoyaltyPointAccount(activeBusinessId, customerId);
   const transactions = useLoyaltyPointTransactions(activeBusinessId, customerId);
+  const expirySummary = useCustomerPointsExpirySummary(activeBusinessId, customerId);
   const rewards = useLoyaltyRewardsAvailable(activeBusinessId, customerId);
   const products = useProducts(activeBusinessId, true);
   const program = useLoyaltyProgram(activeBusinessId);
@@ -218,6 +221,7 @@ export function CustomerBusinessHomePage() {
       void account.refetch();
       void rewards.refetch();
       void summary.refetch();
+      void expirySummary.refetch();
     } catch (error) {
       toast.error(errorMessage(error));
     }
@@ -532,6 +536,66 @@ export function CustomerBusinessHomePage() {
               role="tabpanel"
               aria-labelledby="store-tab-activity"
             >
+              {(expirySummary.data || program.data || expirySummary.isError) && (
+                <div
+                  className="mb-3 rounded-lg border border-border/70 bg-muted/30 p-3 text-xs"
+                  data-testid="points-expiry-summary"
+                >
+                  {expirySummary.isError && !expirySummary.data ? (
+                    <div className="flex flex-wrap items-center justify-between gap-2 text-muted-foreground">
+                      <span>No pudimos consultar tus próximos vencimientos.</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 px-2 text-xs"
+                        onClick={() => void expirySummary.refetch()}
+                      >
+                        Reintentar
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex items-start gap-2">
+                      <Clock className="mt-0.5 size-3.5 shrink-0 text-primary" aria-hidden="true" />
+                      <div className="min-w-0 space-y-1">
+                        <p className="font-medium text-foreground">
+                          {(expirySummary.data?.points_expiry_days ??
+                            program.data?.points_expiry_days) != null
+                            ? `Vigencia FIFO: las monedas vencen a los ${
+                                expirySummary.data?.points_expiry_days ??
+                                program.data?.points_expiry_days
+                              } días desde su acreditación (se consumen primero las más antiguas).`
+                            : "Las monedas de este negocio no tienen vencimiento."}
+                        </p>
+                        {expirySummary.data?.next_expiry_at &&
+                          expirySummary.data.next_expiry_points > 0 && (
+                            <p className="text-muted-foreground">
+                              Próximo vencimiento:{" "}
+                              <strong className="text-foreground">
+                                {expirySummary.data.next_expiry_points} monedas
+                              </strong>{" "}
+                              el {formatDateBogota(expirySummary.data.next_expiry_at)}
+                              {expirySummary.data.expiring_within_30_days_points > 0
+                                ? ` (${expirySummary.data.expiring_within_30_days_points} en los próximos 30 días)`
+                                : ""}
+                              .
+                            </p>
+                          )}
+                        {(expirySummary.data?.upcoming_lots.length ?? 0) > 1 && (
+                          <ul className="space-y-0.5 pt-0.5 text-[11px] text-muted-foreground">
+                            {expirySummary.data!.upcoming_lots.map((lot) => (
+                              <li key={lot.expires_at}>
+                                • {lot.points} monedas · vence {formatDateBogota(lot.expires_at)}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="history-list" id="profileHistoryList">
                 {transactions.isLoading ? (
                   <ListSkeleton rows={3} />

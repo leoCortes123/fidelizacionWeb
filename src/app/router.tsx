@@ -15,6 +15,8 @@ import { ErrorState, FullPageLoader } from "@/components/shared/States";
 import { Button } from "@/components/ui/button";
 import { ThemeToggleButton } from "@/components/theme/ThemeToggleButton";
 import { RootRedirect } from "@/features/auth/RootRedirect";
+import { ConsentGate } from "@/features/legal/ConsentGate";
+import { LegalFooterLinks } from "@/features/legal/LegalFooterLinks";
 import { BusinessProvider, useBusinessContext } from "@/features/loyalty/businessContext";
 import { businessHomePath } from "@/lib/config";
 import { useAuth } from "@/features/auth/AuthProvider";
@@ -100,6 +102,7 @@ function OnboardingRoute() {
         </header>
         <main className="mx-auto w-full max-w-[var(--lp-shell-max-w)] px-0 py-3 sm:px-5 md:py-4">
           <OnboardingWizardPage newBusinessMode />
+          <LegalFooterLinks variant="business" />
         </main>
       </div>
     );
@@ -123,6 +126,11 @@ const LoginPage = lazy(() =>
 const AuthCallbackPage = lazy(() =>
   import("@/features/auth/AuthCallbackPage").then((module) => ({
     default: module.AuthCallbackPage,
+  })),
+);
+const ResetPasswordPage = lazy(() =>
+  import("@/features/auth/ResetPasswordPage").then((module) => ({
+    default: module.ResetPasswordPage,
   })),
 );
 const UnauthorizedPage = lazy(() =>
@@ -255,6 +263,11 @@ const ScanRedemptionPage = lazy(() =>
     default: module.ScanRedemptionPage,
   })),
 );
+const AcceptTermsPage = lazy(() =>
+  import("@/features/legal/AcceptTermsPage").then((module) => ({
+    default: module.AcceptTermsPage,
+  })),
+);
 
 export function AppRoutes() {
   return (
@@ -263,13 +276,24 @@ export function AppRoutes() {
         <Route path="/" element={<RootRedirect />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/auth/callback" element={<AuthCallbackPage />} />
+        <Route path="/restablecer-clave" element={<ResetPasswordPage />} />
         <Route path="/claim/:token" element={<ClaimPage />} />
         <Route path="/join/:slug" element={<BusinessJoinPage />} />
+        <Route
+          path="/aceptar-terminos"
+          element={
+            <RequireAuth>
+              <AcceptTermsPage />
+            </RequireAuth>
+          }
+        />
         <Route
           path="/scan/:token"
           element={
             <RequireAuth>
-              <ScanRedemptionPage />
+              <ConsentGate>
+                <ScanRedemptionPage />
+              </ConsentGate>
             </RequireAuth>
           }
         />
@@ -278,9 +302,11 @@ export function AppRoutes() {
           path="/perfil"
           element={
             <RequireAuth>
-              <BusinessLayout>
-                <ProfilePage />
-              </BusinessLayout>
+              <ConsentGate>
+                <BusinessLayout>
+                  <ProfilePage />
+                </BusinessLayout>
+              </ConsentGate>
             </RequireAuth>
           }
         />
@@ -290,9 +316,11 @@ export function AppRoutes() {
           path="/business/select"
           element={
             <RequireAuth>
-              <BusinessLayout>
-                <BusinessSelectPage />
-              </BusinessLayout>
+              <ConsentGate>
+                <BusinessLayout>
+                  <BusinessSelectPage />
+                </BusinessLayout>
+              </ConsentGate>
             </RequireAuth>
           }
         />
@@ -308,9 +336,11 @@ export function AppRoutes() {
           path="/admin/onboarding"
           element={
             <RequireAuth>
-              <BusinessLayout>
-                <OnboardingRoute />
-              </BusinessLayout>
+              <ConsentGate>
+                <BusinessLayout>
+                  <OnboardingRoute />
+                </BusinessLayout>
+              </ConsentGate>
             </RequireAuth>
           }
         />
@@ -319,11 +349,13 @@ export function AppRoutes() {
           path="/encargado"
           element={
             <RequireAuth>
-              <BusinessLayout>
-                <RequireBusinessRole roles={["admin", "encargado"]}>
-                  <EncargadoShell />
-                </RequireBusinessRole>
-              </BusinessLayout>
+              <ConsentGate>
+                <BusinessLayout>
+                  <RequireBusinessRole roles={["admin", "encargado"]}>
+                    <EncargadoShell />
+                  </RequireBusinessRole>
+                </BusinessLayout>
+              </ConsentGate>
             </RequireAuth>
           }
         >
@@ -336,9 +368,11 @@ export function AppRoutes() {
           path="/customer"
           element={
             <RequireAuth>
-              <BusinessLayout>
-                <CustomerShell />
-              </BusinessLayout>
+              <ConsentGate>
+                <BusinessLayout>
+                  <CustomerShell />
+                </BusinessLayout>
+              </ConsentGate>
             </RequireAuth>
           }
         >
@@ -356,11 +390,13 @@ export function AppRoutes() {
           path="/admin"
           element={
             <RequireAdmin>
-              <BusinessLayout>
-                <RequireBusinessRole roles={["admin"]}>
-                  <AdminShell />
-                </RequireBusinessRole>
-              </BusinessLayout>
+              <ConsentGate>
+                <BusinessLayout>
+                  <RequireBusinessRole roles={["admin"]}>
+                    <AdminShell />
+                  </RequireBusinessRole>
+                </BusinessLayout>
+              </ConsentGate>
             </RequireAdmin>
           }
         >

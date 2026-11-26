@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { rpc } from "@/lib/supabase";
+import { removeBusinessAssetPath } from "@/lib/image";
 import { queryKeys } from "@/lib/queryKeys";
 import type { MyProfile } from "@/types";
 
@@ -42,6 +43,7 @@ export interface ProfileUpdateResult {
   nickname_changes_left: number;
   phone?: string | null;
   birth_date?: string | null;
+  avatar_url?: string | null;
   business_count: number;
 }
 
@@ -78,15 +80,26 @@ export function useUpdateProfile() {
 export function useSetProfileAvatar() {
   const queryClient = useQueryClient();
   return useMutation<
-    { id: string; avatar_url: string | null },
+    {
+      id: string;
+      avatar_url: string | null;
+      previous_avatar_url?: string | null;
+      previous_storage_path?: string | null;
+    },
     Error,
     { avatarUrl: string | null }
   >({
     mutationFn: (params) =>
-      rpc<{ id: string; avatar_url: string | null }>("profile_avatar_set", {
+      rpc<{
+        id: string;
+        avatar_url: string | null;
+        previous_avatar_url?: string | null;
+        previous_storage_path?: string | null;
+      }>("profile_avatar_set", {
         p_avatar_url: params.avatarUrl,
       }),
     onSuccess: (data) => {
+      void removeBusinessAssetPath(data.previous_storage_path);
       queryClient.setQueryData<MyProfile>(queryKeys.profile, (current) =>
         current ? { ...current, avatar_url: data.avatar_url } : current,
       );

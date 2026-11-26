@@ -36,4 +36,39 @@ describe("mensajes de error", () => {
       "tardó demasiado en responder",
     );
   });
+
+  it("explica la restricción de edad mínima en la fecha de nacimiento", () => {
+    expect(errorMessage(new Error("underage_birth_date"))).toContain("mayor de 18 años");
+    expect(isBusinessError(new Error("underage_birth_date"))).toBe(true);
+  });
+
+  it("explica los códigos de consentimiento legal y revocación", () => {
+    expect(errorMessage(new Error("LEGAL_CONSENT_REQUIRED"))).toContain("DPA");
+    expect(isBusinessError(new Error("LEGAL_CONSENT_REQUIRED"))).toBe(true);
+    expect(errorMessage(new Error("consent_revoke_requires_account_deletion"))).toContain(
+      "eliminar tu cuenta",
+    );
+    expect(isBusinessError(new Error("consent_revoke_requires_account_deletion"))).toBe(true);
+    expect(errorMessage(new Error("invalid_legal_documents"))).toContain("documento legal");
+    expect(isBusinessError(new Error("invalid_legal_documents"))).toBe(true);
+    expect(errorMessage(new Error("invalid_source_route"))).toContain("aceptación legal");
+    expect(isBusinessError(new Error("invalid_source_route"))).toBe(true);
+    expect(errorMessage(new Error("profile_not_found"))).toContain("perfil");
+    expect(isBusinessError(new Error("profile_not_found"))).toBe(true);
+    expect(errorMessage(new Error("legal_consents_are_immutable"))).toContain("inmutable");
+    expect(isBusinessError(new Error("legal_consents_are_immutable"))).toBe(true);
+  });
+
+  it("explica los códigos de exportación y eliminación de cuenta", () => {
+    expect(errorMessage(new Error("ACCOUNT_LAST_ADMIN"))).toContain("único administrador activo");
+    expect(isBusinessError(new Error("ACCOUNT_LAST_ADMIN"))).toBe(true);
+    expect(errorMessage(new Error("invalid_delete_confirmation"))).toContain("ELIMINAR");
+    expect(isBusinessError(new Error("invalid_delete_confirmation"))).toBe(true);
+    expect(errorMessage(new Error("account_deleted"))).toContain("fue eliminada");
+    expect(isBusinessError(new Error("account_deleted"))).toBe(true);
+    expect(errorMessage(new Error("account_already_deleted"))).toContain("ya fue eliminada");
+    expect(isBusinessError(new Error("account_already_deleted"))).toBe(true);
+    expect(errorMessage(new Error("account_deletion_log_is_immutable"))).toContain("inmutable");
+    expect(isBusinessError(new Error("account_deletion_log_is_immutable"))).toBe(true);
+  });
 });

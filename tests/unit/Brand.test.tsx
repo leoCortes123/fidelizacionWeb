@@ -1,28 +1,28 @@
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
 import { Brand } from "@/components/shared/Brand";
-import { loopointLabel, loopointPlural, loopointSingular, loopointWord } from "@/lib/copy";
+import { coinLabel, coinPlural, coinSingular, coinWord } from "@/lib/copy";
 import { brandName, brandTagline } from "@/lib/config";
 
 describe("copy de Fideliapp", () => {
   it('usa "moneda" en singular y "monedas" en plural', () => {
-    expect(loopointSingular).toBe("moneda");
-    expect(loopointPlural).toBe("monedas");
+    expect(coinSingular).toBe("moneda");
+    expect(coinPlural).toBe("monedas");
   });
 
   it("elige la palabra según la cantidad", () => {
-    expect(loopointWord(1)).toBe("moneda");
-    expect(loopointWord(0)).toBe("monedas");
-    expect(loopointWord(2)).toBe("monedas");
-    expect(loopointWord(-1)).toBe("moneda");
-    expect(loopointWord(-3)).toBe("monedas");
+    expect(coinWord(1)).toBe("moneda");
+    expect(coinWord(0)).toBe("monedas");
+    expect(coinWord(2)).toBe("monedas");
+    expect(coinWord(-1)).toBe("moneda");
+    expect(coinWord(-3)).toBe("monedas");
   });
 
   it("compone la etiqueta con la cantidad", () => {
-    expect(loopointLabel(1)).toBe("1 moneda");
-    expect(loopointLabel(0)).toBe("0 monedas");
-    expect(loopointLabel(250)).toBe("250 monedas");
-    expect(loopointLabel(-5)).toBe("-5 monedas");
+    expect(coinLabel(1)).toBe("1 moneda");
+    expect(coinLabel(0)).toBe("0 monedas");
+    expect(coinLabel(250)).toBe("250 monedas");
+    expect(coinLabel(-5)).toBe("-5 monedas");
   });
 });
 

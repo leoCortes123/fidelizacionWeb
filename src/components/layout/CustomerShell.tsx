@@ -3,8 +3,9 @@ import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-do
 import { Gift, Home, ReceiptText, Wrench } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/features/auth/AuthProvider";
+import { LegalFooterLinks } from "@/features/legal/LegalFooterLinks";
 import { usePortalTheme, useTheme } from "@/components/theme/ThemeProvider";
-import { LoopointCoinSvg, PixelUserSvg } from "@/features/customer/pixelSprites";
+import { CoinSvg, PixelUserSvg } from "@/features/customer/pixelSprites";
 import "@/features/customer/customerRetro.css";
 import { cn } from "@/lib/utils";
 
@@ -99,7 +100,7 @@ export function CustomerShell() {
         <div className="navbar-inner">
           <Link to="/customer" className="brand-link" title="Ir a Inicio">
             <div className="brand-logo-box" aria-hidden="true">
-              <LoopointCoinSvg size={20} />
+              <CoinSvg size={20} />
             </div>
             <span className="brand-name">
               fideliapp<span className="brand-dot">.</span>
@@ -207,6 +208,7 @@ export function CustomerShell() {
         className={cn("main-container", isScrollablePage && "scrollable-page")}
       >
         <Outlet />
+        <LegalFooterLinks />
       </main>
 
       <nav className="bottom-app-bar no-print" aria-label="Navegación del cliente">

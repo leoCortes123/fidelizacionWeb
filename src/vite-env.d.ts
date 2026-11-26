@@ -8,6 +8,7 @@ interface ImportMetaEnv {
   readonly VITE_BRAND_TAGLINE?: string;
   readonly VITE_PUBLIC_APP_URL?: string;
   readonly VITE_PUBLIC_SITE_URL?: string;
+  readonly VITE_LEGAL_SITE_URL?: string;
 }
 
 interface ImportMeta {

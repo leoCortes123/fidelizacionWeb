@@ -12,6 +12,8 @@ const auth = vi.hoisted(() => ({
   signInWithGoogle: vi.fn(),
   signInWithPassword: vi.fn(),
   signUpWithPassword: vi.fn(),
+  resendConfirmationEmail: vi.fn(),
+  resetPasswordForEmail: vi.fn(),
   refreshRoles: vi.fn(),
   state: {
     session: null as null | { user: { id: string } },
@@ -30,6 +32,8 @@ vi.mock("@/features/auth/AuthProvider", () => ({
     signInWithGoogle: auth.signInWithGoogle,
     signInWithPassword: auth.signInWithPassword,
     signUpWithPassword: auth.signUpWithPassword,
+    resendConfirmationEmail: auth.resendConfirmationEmail,
+    resetPasswordForEmail: auth.resetPasswordForEmail,
     refreshRoles: auth.refreshRoles,
   }),
 }));
@@ -107,6 +111,7 @@ describe("LoginPage", () => {
     await user.type(screen.getByLabelText(/^nombre$/i), "Carla Cliente");
     await user.type(screen.getByLabelText(/^correo$/i), "carla@example.test");
     await user.type(screen.getByLabelText(/^contraseña$/i), "secreto123");
+    await user.click(screen.getByRole("checkbox", { name: /Acepto los Términos de uso/i }));
     await user.click(screen.getByRole("button", { name: /crear cuenta/i }));
 
     expect(auth.signUpWithPassword).toHaveBeenCalledWith({
@@ -116,6 +121,36 @@ describe("LoginPage", () => {
       accountType: "customer",
       nextPath: "/customer",
     });
+    expect(rpcMock).toHaveBeenCalledWith(
+      "legal_consent_record",
+      expect.objectContaining({
+        p_documents: ["terms_customer", "privacy_policy"],
+        p_business_id: null,
+        p_source_route: "/login",
+      }),
+    );
+  });
+
+  it("bloquea el registro por correo si no se acepta el consentimiento legal", async () => {
+    const user = userEvent.setup();
+    render(
+      <MemoryRouter initialEntries={["/login?mode=register"]}>
+        <LoginPage />
+      </MemoryRouter>,
+    );
+
+    const checkbox = screen.getByRole("checkbox", { name: /Acepto los Términos de uso/i });
+    expect(checkbox).not.toBeChecked();
+
+    await user.type(screen.getByLabelText(/^nombre$/i), "Carla Cliente");
+    await user.type(screen.getByLabelText(/^correo$/i), "carla@example.test");
+    await user.type(screen.getByLabelText(/^contraseña$/i), "secreto123");
+    await user.click(screen.getByRole("button", { name: /crear cuenta/i }));
+
+    expect(auth.signUpWithPassword).not.toHaveBeenCalled();
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      /Debes aceptar los Términos de uso y la Política de Tratamiento de Datos/i,
+    );
   });
 
   it("ignora destinos externos y usa el portal por defecto", async () => {
@@ -200,6 +235,7 @@ describe("LoginPage", () => {
     await user.type(screen.getByLabelText(/nombre del negocio/i), "Taquería Ana");
     await user.type(screen.getByLabelText(/^correo$/i), "ana@negocio.test");
     await user.type(screen.getByLabelText(/^contraseña$/i), "secreto123");
+    await user.click(screen.getByRole("checkbox", { name: /Acepto los Términos de uso/i }));
     await user.click(screen.getByRole("button", { name: /crear cuenta de administrador/i }));
 
     expect(auth.signUpWithPassword).toHaveBeenCalledWith({
@@ -227,6 +263,7 @@ describe("LoginPage", () => {
     await user.type(screen.getByLabelText(/nombre del negocio/i), "Café Carlos");
     await user.type(screen.getByLabelText(/^correo$/i), "carlos@negocio.test");
     await user.type(screen.getByLabelText(/^contraseña$/i), "secreto123");
+    await user.click(screen.getByRole("checkbox", { name: /Acepto los Términos de uso/i }));
     await user.click(screen.getByRole("button", { name: /crear cuenta de administrador/i }));
 
     expect(auth.signUpWithPassword).toHaveBeenCalledWith({
@@ -287,6 +324,7 @@ describe("LoginPage", () => {
       await user.type(screen.getByLabelText(/nombre del negocio/i), "Boutique Laura");
       await user.type(screen.getByLabelText(/^correo$/i), "laura@negocio.test");
       await user.type(screen.getByLabelText(/^contraseña$/i), "secreto123");
+      await user.click(screen.getByRole("checkbox", { name: /Acepto los Términos de uso/i }));
       await user.click(screen.getByRole("button", { name: /crear cuenta de administrador/i }));
 
       expect(auth.signUpWithPassword).toHaveBeenCalledWith({
@@ -429,6 +467,7 @@ describe("LoginPage", () => {
       await user.type(screen.getByLabelText(/^nombre$/i), "Mateo Encargado");
       await user.type(screen.getByLabelText(/^correo$/i), "mateo@example.test");
       await user.type(screen.getByLabelText(/^contraseña$/i), "secreto123");
+      await user.click(screen.getByRole("checkbox", { name: /Acepto los Términos de uso/i }));
       await user.click(screen.getByRole("button", { name: /crear cuenta/i }));
 
       expect(auth.signUpWithPassword).toHaveBeenCalledWith({
@@ -537,6 +576,7 @@ describe("LoginPage", () => {
     await user.type(screen.getByLabelText("Nombre"), "Sofía Cliente");
     await user.type(screen.getByLabelText("Correo"), "sofia@example.com");
     await user.type(screen.getByLabelText(/^Contraseña$/), "secreto123");
+    await user.click(screen.getByRole("checkbox", { name: /Acepto los Términos de uso/i }));
     await user.click(screen.getByRole("button", { name: "Crear cuenta" }));
 
     await waitFor(() => {
@@ -604,7 +644,7 @@ describe("LoginPage", () => {
 
     expect(screen.getByRole("link", { name: /Volver al inicio/i })).toHaveAttribute(
       "href",
-      "https://fidelapp.pages.dev",
+      "https://fideliapp.pages.dev",
     );
     expect(screen.getByRole("button", { name: /Instalar app/i })).toBeInTheDocument();
   });
@@ -682,5 +722,82 @@ describe("LoginPage", () => {
     await waitFor(() => {
       expect(screen.getByText("Portal cliente")).toBeInTheDocument();
     });
+  });
+
+  it("muestra pantalla 'Revisa tu correo' tras registrarse cuando requiere confirmación y permite reenviar", async () => {
+    auth.signUpWithPassword.mockResolvedValue({ needsConfirmation: true });
+    auth.resendConfirmationEmail.mockResolvedValue(undefined);
+    const user = userEvent.setup();
+
+    render(
+      <MemoryRouter initialEntries={["/login?mode=register"]}>
+        <LoginPage />
+      </MemoryRouter>,
+    );
+
+    await user.type(screen.getByLabelText(/^nombre$/i), "Camila Rojas");
+    await user.type(screen.getByLabelText(/^correo$/i), "camila@fideliapp.test");
+    await user.type(screen.getByLabelText(/^contraseña$/i), "ClaveSegura1");
+    await user.click(screen.getByRole("checkbox", { name: /Acepto los Términos de uso/i }));
+    await user.click(screen.getByRole("button", { name: /^crear cuenta$/i }));
+
+    expect(await screen.findByRole("heading", { name: /revisa tu correo/i })).toBeInTheDocument();
+    expect(screen.getByText("camila@fideliapp.test")).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /reenviar correo de confirmación/i }));
+    expect(auth.resendConfirmationEmail).toHaveBeenCalledWith("camila@fideliapp.test", "/customer");
+    expect(
+      await screen.findByText(/reenviamos el enlace de confirmación a camila@fideliapp\.test/i),
+    ).toBeInTheDocument();
+  });
+
+  it("ofrece reenviar confirmación cuando el login falla con email_not_confirmed", async () => {
+    auth.signInWithPassword.mockRejectedValue(new Error("Email not confirmed"));
+    auth.resendConfirmationEmail.mockResolvedValue(undefined);
+    const user = userEvent.setup();
+
+    render(
+      <MemoryRouter initialEntries={["/login"]}>
+        <LoginPage />
+      </MemoryRouter>,
+    );
+
+    await user.type(screen.getByLabelText(/^correo$/i), "pendiente@fideliapp.test");
+    await user.type(screen.getByLabelText(/^contraseña$/i), "ClaveSegura1");
+    await user.click(screen.getByRole("button", { name: /entrar con correo/i }));
+
+    expect(
+      await screen.findByText(/debes confirmar tu correo antes de entrar/i),
+    ).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: /reenviar correo de confirmación/i }));
+    expect(auth.resendConfirmationEmail).toHaveBeenCalledWith(
+      "pendiente@fideliapp.test",
+      "/customer",
+    );
+  });
+
+  it("permite solicitar recuperación de contraseña desde el enlace '¿Olvidaste tu contraseña?'", async () => {
+    auth.resetPasswordForEmail.mockResolvedValue(undefined);
+    const user = userEvent.setup();
+
+    render(
+      <MemoryRouter initialEntries={["/login"]}>
+        <LoginPage />
+      </MemoryRouter>,
+    );
+
+    await user.type(screen.getByLabelText(/^correo$/i), "recupera@fideliapp.test");
+    await user.click(screen.getByRole("button", { name: /¿olvidaste tu contraseña\?/i }));
+
+    expect(
+      await screen.findByRole("heading", { name: /restablecer contraseña/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText(/correo electrónico/i)).toHaveValue("recupera@fideliapp.test");
+
+    await user.click(screen.getByRole("button", { name: /enviar enlace de recuperación/i }));
+    expect(auth.resetPasswordForEmail).toHaveBeenCalledWith("recupera@fideliapp.test");
+    expect(
+      await screen.findByText(/si existe una cuenta con ese correo, recibirás un enlace/i),
+    ).toBeInTheDocument();
   });
 });

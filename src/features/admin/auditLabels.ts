@@ -23,7 +23,7 @@ import {
   Wallet,
   XCircle,
 } from "lucide-react";
-import { formatCOP, formatDateTimeBogota, formatLoopoints, formatNumber } from "@/lib/format";
+import { formatCOP, formatDateTimeBogota, formatCoins, formatNumber } from "@/lib/format";
 import type { BusinessAuditLog } from "@/types";
 
 export type AuditSeverity = "success" | "info" | "warning" | "danger" | "neutral";
@@ -758,14 +758,14 @@ export function auditSubject(entry: Pick<BusinessAuditLog, "operation" | "metada
     case "purchase.qr_cancelled": {
       const parts = [
         amount !== null ? `Compra por ${formatCOP(amount)}` : null,
-        points !== null ? formatLoopoints(points) : null,
+        points !== null ? formatCoins(points) : null,
       ].filter(Boolean);
       return parts.length > 0 ? parts.join(" · ") : "Compra";
     }
     case "purchase.reverted": {
       const parts = [
         amount !== null ? `Compra por ${formatCOP(amount)}` : null,
-        points !== null ? `${formatLoopoints(points)} descontadas` : null,
+        points !== null ? `${formatCoins(points)} descontadas` : null,
       ].filter(Boolean);
       return parts.length > 0 ? parts.join(" · ") : "Compra anulada";
     }
@@ -773,14 +773,13 @@ export function auditSubject(entry: Pick<BusinessAuditLog, "operation" | "metada
     case "redemption.approved":
     case "redemption.delivered":
     case "redemption.scanned": {
-      const parts = [reward, points !== null ? formatLoopoints(points) : null].filter(Boolean);
+      const parts = [reward, points !== null ? formatCoins(points) : null].filter(Boolean);
       return parts.length > 0 ? parts.join(" · ") : "Canje";
     }
     case "redemption.cancelled": {
-      const parts = [
-        reward,
-        points !== null ? `${formatLoopoints(points)} devueltas` : null,
-      ].filter(Boolean);
+      const parts = [reward, points !== null ? `${formatCoins(points)} devueltas` : null].filter(
+        Boolean,
+      );
       return parts.length > 0 ? parts.join(" · ") : "Canje cancelado";
     }
     case "reward.created":
@@ -801,7 +800,7 @@ export function auditSubject(entry: Pick<BusinessAuditLog, "operation" | "metada
     case "points.expired": {
       const accounts = asNumber(metadata.accounts_affected);
       return [
-        points !== null ? formatLoopoints(points) : null,
+        points !== null ? formatCoins(points) : null,
         accounts !== null ? `${formatNumber(accounts)} clientes` : null,
       ]
         .filter(Boolean)
@@ -838,14 +837,14 @@ export function auditSubject(entry: Pick<BusinessAuditLog, "operation" | "metada
     case "purchase.cancelled": {
       const parts = [
         amount !== null ? `Compra por ${formatCOP(amount)}` : null,
-        points !== null ? formatLoopoints(points) : null,
+        points !== null ? formatCoins(points) : null,
       ].filter(Boolean);
       return parts.length > 0 ? parts.join(" · ") : "Compra";
     }
     case "redemption.created":
     case "redemption.applied_by_admin":
     case "redemption.cancelled_by_admin": {
-      const parts = [reward, points !== null ? formatLoopoints(points) : null].filter(Boolean);
+      const parts = [reward, points !== null ? formatCoins(points) : null].filter(Boolean);
       return parts.length > 0 ? parts.join(" · ") : "Canje";
     }
     case "role.granted":
@@ -953,7 +952,7 @@ function formatAuditValue(key: string, value: unknown): string | null {
 
   if (typeof value === "number") {
     if (key.endsWith("_cop") || key === "amount_cop") return formatCOP(value);
-    if (POINT_KEYS.has(key)) return formatLoopoints(value);
+    if (POINT_KEYS.has(key)) return formatCoins(value);
     if (key === "budget_rate") return `${(value * 100).toFixed(2)} %`;
     if (key === "discount_percentage" || key === "gross_margin") {
       return `${formatNumber(value)} %`;

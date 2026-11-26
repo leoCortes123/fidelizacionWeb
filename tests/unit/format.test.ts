@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   digitsOnly,
+  formatCoins,
   formatCOP,
   formatCopInput,
   formatDateBogota,
@@ -10,7 +11,7 @@ import {
   pointsPreview,
 } from "@/lib/format";
 
-describe("formato de dinero y loopoints", () => {
+describe("formato de dinero y monedas", () => {
   it("formatea COP sin decimales", () => {
     expect(formatCOP(15500)).toContain("15.500");
     expect(formatCOP(0)).toContain("0");
@@ -29,17 +30,19 @@ describe("formato de dinero y loopoints", () => {
     expect(formatCopInput("")).toBe("");
   });
 
-  it("calcula loopoints por miles completos", () => {
+  it("calcula monedas por miles completos", () => {
     expect(pointsPreview(15500, 1000, 500)).toBe(15);
     expect(pointsPreview(999, 1000, 500)).toBe(0);
     expect(pointsPreview(15499, 1000, 500)).toBe(15);
   });
 
-  it("aplica el máximo de loopoints por compra", () => {
+  it("aplica el máximo de monedas por compra", () => {
     expect(pointsPreview(100000, 1000, 20)).toBe(20);
   });
 
   it("pluraliza monedas", () => {
+    expect(formatCoins(1)).toContain("1 moneda");
+    expect(formatCoins(15)).toContain("15 monedas");
     expect(formatPoints(1)).toContain("1 moneda");
     expect(formatPoints(15)).toContain("15 monedas");
   });

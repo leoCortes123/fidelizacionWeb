@@ -385,7 +385,7 @@ export interface BusinessRegisterResult {
 }
 
 // ---------------------------------------------------------------------
-// Programa de loopoints y productos (por negocio)
+// Programa de monedas y productos (por negocio)
 // ---------------------------------------------------------------------
 export interface LoyaltyProgram {
   id: string;
@@ -434,6 +434,7 @@ export interface LoyaltyReward {
   redemption_period_days: number | null;
   total_redemption_limit: number | null;
   image_url?: string | null;
+  previous_storage_path?: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
@@ -479,6 +480,7 @@ export interface Product {
   kind: ProductKind;
   combo_items: ComboItem[];
   image_url?: string | null;
+  previous_storage_path?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -580,7 +582,7 @@ export interface RecentActivity {
 }
 
 // ---------------------------------------------------------------------
-// Cuenta y movimientos de loopoints
+// Cuenta y movimientos de monedas
 // ---------------------------------------------------------------------
 export interface LoyaltyPointAccount {
   id: string;
@@ -901,14 +903,6 @@ export interface BusinessJoinResult {
   already_member: boolean;
 }
 
-export interface ProfileLookup {
-  user_id: string;
-  full_name: string;
-  email: string;
-  avatar_url?: string | null;
-  already_member: boolean;
-}
-
 /** Fila del resumen multi-negocio del cliente (RPC customer_businesses_summary). */
 export interface CustomerBusinessSummary {
   business_id: string;
@@ -947,4 +941,76 @@ export interface RedemptionTokenReissueResult {
   redemption_id: string;
   token: string;
   expires_at: string;
+}
+
+export type LegalDocumentType =
+  | "terms_customer"
+  | "terms_business"
+  | "privacy_policy"
+  | "dpa"
+  | "marketing_whatsapp"
+  | "marketing_email"
+  | "marketing_push";
+
+export interface LegalConsentStatus {
+  has_pending: boolean;
+  is_business_admin: boolean;
+  required_documents: LegalDocumentType[];
+  accepted_documents: LegalDocumentType[];
+  pending_documents: LegalDocumentType[];
+  current_versions: Record<string, string>;
+}
+
+export interface LegalConsentRecordItem {
+  id: string;
+  document_type: LegalDocumentType;
+  document_version: string;
+  business_id: string | null;
+  accepted_at: string;
+  source_route: string;
+  already_accepted: boolean;
+}
+
+export interface LegalConsentRecordResult {
+  recorded: LegalConsentRecordItem[];
+  versions: Record<string, string>;
+}
+
+export interface LegalConsentHistoryItem {
+  id: string;
+  business_id: string | null;
+  business_name: string | null;
+  document_type: LegalDocumentType;
+  document_version: string;
+  is_current_version: boolean;
+  accepted_at: string;
+  revoked_at: string | null;
+  source_route: string;
+}
+
+export interface AccountDeletionResult {
+  deleted: boolean;
+  user_id: string;
+  deleted_at: string;
+  anonymized_email: string;
+  businesses_affected: number;
+  memberships_removed: number;
+  pending_redemptions_cancelled: number;
+  avatar_storage_paths: string[];
+}
+
+export interface CustomerPointsExpiryLot {
+  points: number;
+  expires_at: string;
+}
+
+export interface CustomerPointsExpirySummary {
+  business_id: string;
+  points_expiry_days: number | null;
+  fifo_enabled: boolean;
+  balance: number;
+  next_expiry_at: string | null;
+  next_expiry_points: number;
+  expiring_within_30_days_points: number;
+  upcoming_lots: CustomerPointsExpiryLot[];
 }

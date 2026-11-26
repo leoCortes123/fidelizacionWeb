@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import type { BusinessClosestRewardInfo } from "@/features/loyalty/hooks";
-import { formatLoopoints, formatNumber } from "@/lib/format";
+import { formatCoins, formatNumber } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -193,7 +193,7 @@ export function PlayerCard({ items }: { items: BusinessClosestRewardInfo[] }) {
               </strong>
               <small className="block truncate font-mono text-xs text-[var(--ink-soft)]">
                 {nextReward
-                  ? `Canjea con ${formatLoopoints(nextReward.points_required)}`
+                  ? `Canjea con ${formatCoins(nextReward.points_required)}`
                   : "Revisa el catálogo y tus movimientos"}
               </small>
             </div>

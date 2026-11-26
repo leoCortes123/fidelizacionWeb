@@ -152,7 +152,7 @@ describe("PurchaseRegistrationPage (venta con QR)", () => {
     programState.active = true;
   });
 
-  it("valida el importe, previsualiza loopoints y genera el QR de la venta en modal", async () => {
+  it("valida el importe, previsualiza monedas y genera el QR de la venta en modal", async () => {
     createMutate.mockImplementation((_amount, options) => {
       options?.onSuccess?.(result);
     });
@@ -174,7 +174,7 @@ describe("PurchaseRegistrationPage (venta con QR)", () => {
     expect(within(dialog).getByText(/escanéalo para sumar monedas/i)).toBeInTheDocument();
     expect(within(dialog).getByTestId("qr")).toHaveAttribute(
       "data-value",
-      "https://fidelizacion01.vercel.app/claim/tok_123456789012345678901234567890",
+      "https://fideli-app.vercel.app/claim/tok_123456789012345678901234567890",
     );
     expect(within(dialog).getByTestId("claim-url").textContent).toContain(
       "/claim/tok_123456789012345678901234567890",

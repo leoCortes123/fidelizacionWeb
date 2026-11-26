@@ -17,6 +17,7 @@ import {
   Users,
 } from "lucide-react";
 import { Brand } from "@/components/shared/Brand";
+import { LegalFooterLinks } from "@/features/legal/LegalFooterLinks";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -186,6 +187,7 @@ export function AdminShell({ children }: { children?: ReactNode }) {
         >
           <div className="mx-auto w-full max-w-[var(--lp-shell-max-w)] px-0 pb-28 pt-3 sm:px-5 md:py-4 md:pb-8">
             {children ?? <Outlet />}
+            <LegalFooterLinks variant="business" />
           </div>
         </main>
       </div>

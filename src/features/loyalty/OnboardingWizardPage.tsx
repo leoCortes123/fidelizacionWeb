@@ -30,6 +30,9 @@ import {
   useUpsertLoyaltyReward,
 } from "@/features/loyalty/hooks";
 import { publicAppUrl } from "@/lib/config";
+import { LEGAL_URLS } from "@/config/legal.config";
+import { useRecordLegalConsent } from "@/features/legal/hooks";
+import { LegalConsentCheckbox, LegalExternalLink } from "@/features/legal/LegalConsentCheckbox";
 import { errorMessage } from "@/lib/errors";
 import { formatCOP, formatNumber, formatPointValueCOP } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -353,7 +356,12 @@ function Wizard({
   const [draftDirty, setDraftDirty] = useState(Boolean(restoredDraft));
   const [error, setError] = useState<string | null>(null);
   const [activating, setActivating] = useState(false);
+  const [acceptedB2bTerms, setAcceptedB2bTerms] = useState(false);
+  const [acceptedAuthority, setAcceptedAuthority] = useState(false);
+  const [b2bError, setB2bError] = useState<string | undefined>();
+  const [authorityError, setAuthorityError] = useState<string | undefined>();
 
+  const recordLegalConsent = useRecordLegalConsent();
   const registerBusiness = useRegisterBusiness();
   const updateBusiness = useUpdateBusiness();
   const upsertReward = useUpsertLoyaltyReward();
@@ -469,8 +477,34 @@ function Wizard({
       return;
     }
 
+    if (!business) {
+      setB2bError(undefined);
+      setAuthorityError(undefined);
+      let consentMissing = false;
+      if (!acceptedB2bTerms) {
+        setB2bError(
+          "Debes aceptar los Términos para Negocios y el Acuerdo de Transmisión de Datos (DPA).",
+        );
+        consentMissing = true;
+      }
+      if (!acceptedAuthority) {
+        setAuthorityError("Confirma que tienes facultad legal para representar al comercio.");
+        consentMissing = true;
+      }
+      if (consentMissing) {
+        setError("Acepta los documentos legales para negocios antes de continuar.");
+        return;
+      }
+    }
+
+    setError(null);
     try {
       if (!business) {
+        await recordLegalConsent.mutateAsync({
+          documents: ["terms_business", "dpa"],
+          businessId: null,
+          sourceRoute: "/admin/onboarding",
+        });
         const created = await registerBusiness.mutateAsync({
           name: cleanName,
           slug: cleanSlug,
@@ -689,7 +723,8 @@ function Wizard({
   const previewSlug = (business?.slug ?? draft.slug.trim()) || "mi-negocio";
   const slugValid = draft.slug.trim().length === 0 || SLUG_REGEX.test(draft.slug.trim());
   const joinPreviewUrl = `${publicAppUrl().replace(/^https?:\/\//, "")}/join/${previewSlug}`;
-  const isSavingBusiness = registerBusiness.isPending || updateBusiness.isPending;
+  const isSavingBusiness =
+    registerBusiness.isPending || updateBusiness.isPending || recordLegalConsent.isPending;
 
   return (
     <div className="space-y-3.5 sm:space-y-4 animate-fade-in">
@@ -948,6 +983,45 @@ function Wizard({
                     operación al mes para proyectar tus ventas. Puedes ajustarlos después.
                   </p>
                 </div>
+
+                {!business && (
+                  <div className="space-y-3 border-t-2 border-[var(--lp-ink)] pt-3.5">
+                    <LegalConsentCheckbox
+                      id="onboarding-b2b-terms"
+                      checked={acceptedB2bTerms}
+                      onCheckedChange={(checked) => {
+                        setAcceptedB2bTerms(checked);
+                        if (checked) setB2bError(undefined);
+                      }}
+                      error={b2bError}
+                      disabled={isSavingBusiness}
+                      label={
+                        <>
+                          Acepto los{" "}
+                          <LegalExternalLink href={LEGAL_URLS.termsBusiness}>
+                            Términos para Negocios
+                          </LegalExternalLink>{" "}
+                          y el{" "}
+                          <LegalExternalLink href={LEGAL_URLS.dpa}>
+                            Acuerdo de Transmisión de Datos (DPA)
+                          </LegalExternalLink>
+                          .
+                        </>
+                      }
+                    />
+                    <LegalConsentCheckbox
+                      id="onboarding-b2b-authority"
+                      checked={acceptedAuthority}
+                      onCheckedChange={(checked) => {
+                        setAcceptedAuthority(checked);
+                        if (checked) setAuthorityError(undefined);
+                      }}
+                      error={authorityError}
+                      disabled={isSavingBusiness}
+                      label="Declaro que tengo facultad legal para representar a este comercio y aceptar estos acuerdos en su nombre."
+                    />
+                  </div>
+                )}
 
                 <div className="flex justify-end border-t-2 border-[var(--lp-ink)] pt-3.5">
                   <Button

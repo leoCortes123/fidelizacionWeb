@@ -6,6 +6,7 @@ import { OnboardingWizardPage } from "@/features/loyalty/OnboardingWizardPage";
 import type { Business, BusinessEconomicProfile, LoyaltyProgram, Product } from "@/types";
 
 const registerBusiness = vi.hoisted(() => vi.fn());
+const rpcMock = vi.hoisted(() => vi.fn());
 const saveBusiness = vi.hoisted(() => vi.fn());
 const saveReward = vi.hoisted(() => vi.fn());
 const configure = vi.hoisted(() => vi.fn());
@@ -155,6 +156,11 @@ vi.mock("@/features/loyalty/businessContext", () => ({
   }),
 }));
 
+vi.mock("@/lib/supabase", () => ({
+  rpc: rpcMock,
+  supabase: {},
+}));
+
 function renderPage(props: { newBusinessMode?: boolean; initialEntry?: string } = {}) {
   return render(
     <MemoryRouter initialEntries={[props.initialEntry ?? "/admin/onboarding"]}>
@@ -236,7 +242,22 @@ describe("OnboardingWizardPage", () => {
     expect(screen.getByText(/análisis financiero/i)).toBeInTheDocument();
   });
 
+  it("bloquea el registro de nuevo negocio si faltan los consentimientos B2B o la declaración de facultad", async () => {
+    const user = userEvent.setup();
+    renderPage({ newBusinessMode: true });
+
+    await user.type(screen.getByLabelText("Nombre del negocio"), "Café Aurora");
+    await user.click(screen.getByRole("button", { name: /Guardar y continuar/i }));
+
+    expect(registerBusiness).not.toHaveBeenCalled();
+    expect(rpcMock).not.toHaveBeenCalled();
+    expect(
+      screen.getByText(/Acepta los documentos legales para negocios antes de continuar/i),
+    ).toBeInTheDocument();
+  });
+
   it("registra un nuevo negocio directamente desde el paso 1 del onboarding", async () => {
+    rpcMock.mockResolvedValue({ recorded: [], versions: {} });
     const user = userEvent.setup();
     renderPage({ newBusinessMode: true });
 
@@ -244,9 +265,19 @@ describe("OnboardingWizardPage", () => {
     expect(screen.getByLabelText("Slug (identificador en URL)")).toHaveValue("cafe-aurora");
 
     await user.click(screen.getByRole("button", { name: "Lun–Vie" }));
+    await user.click(screen.getByRole("checkbox", { name: /Acepto los Términos para Negocios/i }));
+    await user.click(screen.getByRole("checkbox", { name: /Declaro que tengo facultad legal/i }));
     await user.click(screen.getByRole("button", { name: /Guardar y continuar/i }));
 
     await waitFor(() => expect(registerBusiness).toHaveBeenCalledTimes(1));
+    expect(rpcMock).toHaveBeenCalledWith(
+      "legal_consent_record",
+      expect.objectContaining({
+        p_documents: ["terms_business", "dpa"],
+        p_business_id: null,
+        p_source_route: "/admin/onboarding",
+      }),
+    );
     expect(registerBusiness).toHaveBeenCalledWith({
       name: "Café Aurora",
       slug: "cafe-aurora",

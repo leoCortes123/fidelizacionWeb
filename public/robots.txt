@@ -1,4 +1,4 @@
 # Permitir rastreo para que los buscadores lean `X-Robots-Tag: noindex, nofollow`
-# y desindexen cualquier ruta antigua de Vercel (el sitio comercial vive en fidelapp.pages.dev).
+# y desindexen cualquier ruta antigua de Vercel (el sitio comercial vive en fideliapp.pages.dev).
 User-agent: *
 Allow: /

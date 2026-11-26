@@ -10,8 +10,8 @@ const setLogo = vi.hoisted(() => vi.fn());
 
 const business: Business = {
   id: "biz-1",
-  name: "Café Loopoint",
-  slug: "cafe-loopoint",
+  name: "Café Fideliapp",
+  slug: "cafe-fideliapp",
   timezone: "America/Bogota",
   operating_days: [1, 2, 3, 4, 5, 6],
   is_active: true,
@@ -24,8 +24,8 @@ const business: Business = {
 
 const profile: BusinessProfile = {
   id: "biz-1",
-  name: "Café Loopoint",
-  slug: "cafe-loopoint",
+  name: "Café Fideliapp",
+  slug: "cafe-fideliapp",
   timezone: "America/Bogota",
   operating_days: [1, 2, 3, 4, 5, 6],
   is_active: true,
@@ -35,8 +35,8 @@ const profile: BusinessProfile = {
   city: "Bogotá",
   phone_whatsapp: "+573001234567",
   phone: null,
-  instagram: "cafeloopoint",
-  website: "https://cafeloopoint.co",
+  instagram: "cafefideliapp",
+  website: "https://cafefideliapp.co",
   logo_url: null,
   updated_at: "2026-01-01T12:00:00.000Z",
 };
@@ -83,10 +83,10 @@ describe("BusinessProfileForm", () => {
   it("carga la ficha con los datos públicos", () => {
     render(<BusinessProfileForm business={business} />);
 
-    expect(screen.getByLabelText(/Nombre del negocio/)).toHaveValue("Café Loopoint");
+    expect(screen.getByLabelText(/Nombre del negocio/)).toHaveValue("Café Fideliapp");
     expect(screen.getByLabelText(/Descripción/)).toHaveValue("Café de especialidad.");
     expect(screen.getByLabelText(/WhatsApp/)).toHaveValue("+573001234567");
-    expect(screen.getByLabelText(/Enlace público/)).toHaveValue("/join/cafe-loopoint");
+    expect(screen.getByLabelText(/Enlace público/)).toHaveValue("/join/cafe-fideliapp");
   });
 
   it("guarda los cambios de la ficha", async () => {
@@ -95,23 +95,23 @@ describe("BusinessProfileForm", () => {
 
     const name = screen.getByLabelText(/Nombre del negocio/);
     await user.clear(name);
-    await user.type(name, "Café Loopoint Centro");
-    await user.type(screen.getByLabelText(/Facebook/i), "facebook.com/cafeloopoint");
-    await user.type(screen.getByLabelText(/TikTok/i), "@cafeloopoint");
-    await user.type(screen.getByLabelText(/X \(Twitter\)/i), "@cafeloopoint");
-    await user.type(screen.getByLabelText(/YouTube/i), "@cafeloopoint");
+    await user.type(name, "Café Fideliapp Centro");
+    await user.type(screen.getByLabelText(/Facebook/i), "facebook.com/cafefideliapp");
+    await user.type(screen.getByLabelText(/TikTok/i), "@cafefideliapp");
+    await user.type(screen.getByLabelText(/X \(Twitter\)/i), "@cafefideliapp");
+    await user.type(screen.getByLabelText(/YouTube/i), "@cafefideliapp");
     await user.click(screen.getByRole("button", { name: /Guardar datos del negocio/i }));
 
     await waitFor(() => {
       expect(updateProfile).toHaveBeenCalledWith(
         expect.objectContaining({
           businessId: "biz-1",
-          name: "Café Loopoint Centro",
+          name: "Café Fideliapp Centro",
           description: "Café de especialidad.",
-          facebook: "facebook.com/cafeloopoint",
-          tiktok: "@cafeloopoint",
-          twitter: "@cafeloopoint",
-          youtube: "@cafeloopoint",
+          facebook: "facebook.com/cafefideliapp",
+          tiktok: "@cafefideliapp",
+          twitter: "@cafefideliapp",
+          youtube: "@cafefideliapp",
         }),
       );
     });
@@ -143,7 +143,7 @@ describe("BusinessProfileForm", () => {
     await waitFor(() => {
       expect(updateBusiness).toHaveBeenCalledWith({
         businessId: "biz-1",
-        name: "Café Loopoint",
+        name: "Café Fideliapp",
         timezone: "America/Lima",
         operatingDays: [1, 2, 3, 4, 5],
       });
@@ -154,20 +154,20 @@ describe("BusinessProfileForm", () => {
   it("habilita guardar cuando restaura un borrador previo desde localStorage", async () => {
     const user = userEvent.setup({ delay: null });
     window.localStorage.setItem(
-      "loopoint:draft:admin:business-profile:biz-1",
+      "fideliapp:draft:admin:business-profile:biz-1",
       JSON.stringify({
         version: 1,
         savedAt: Date.now(),
         value: {
-          name: "Café Loopoint Borrador",
+          name: "Café Fideliapp Borrador",
           description: "Café de especialidad.",
           address: "Calle 10 # 5-20",
           neighborhood: "Centro",
           city: "Bogotá",
           phoneWhatsapp: "+573001234567",
           phone: "",
-          instagram: "cafeloopoint",
-          website: "https://cafeloopoint.co",
+          instagram: "cafefideliapp",
+          website: "https://cafefideliapp.co",
           timezone: "America/Bogota",
           operatingDays: [1, 2, 3, 4, 5, 6],
         },
@@ -184,7 +184,7 @@ describe("BusinessProfileForm", () => {
     await waitFor(() => {
       expect(updateProfile).toHaveBeenCalledWith(
         expect.objectContaining({
-          name: "Café Loopoint Borrador",
+          name: "Café Fideliapp Borrador",
         }),
       );
     });

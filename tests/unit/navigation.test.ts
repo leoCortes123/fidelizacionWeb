@@ -30,7 +30,7 @@ describe("navegación segura y OAuth", () => {
   });
 
   it("construye la URL de reclamación del QR contra la web publicada", () => {
-    expect(claimUrl("abc_123")).toBe("https://fidelizacion01.vercel.app/claim/abc_123");
+    expect(claimUrl("abc_123")).toBe("https://fideli-app.vercel.app/claim/abc_123");
     expect(claimUrl("abc_123")).not.toContain("127.0.0.1");
     expect(claimUrl("abc_123")).not.toContain("localhost");
   });

@@ -1,6 +1,7 @@
 import { Link, NavLink, Outlet } from "react-router-dom";
 import { Home, QrCode, Sparkles, TicketCheck, Wrench } from "lucide-react";
 import { Brand } from "@/components/shared/Brand";
+import { LegalFooterLinks } from "@/features/legal/LegalFooterLinks";
 import { Button } from "@/components/ui/button";
 import { BusinessSwitcher } from "@/features/loyalty/BusinessSwitcher";
 import { useOptionalBusinessContext } from "@/features/loyalty/businessContext";
@@ -114,6 +115,7 @@ export function EncargadoShell() {
       >
         <div className="mx-auto w-full max-w-[var(--lp-shell-max-w)] px-4 pb-24 pt-3 sm:px-5 md:py-4 md:pb-10">
           <Outlet />
+          <LegalFooterLinks />
         </div>
       </main>
 

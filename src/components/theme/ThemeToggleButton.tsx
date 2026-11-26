@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
-import { useOptionalTheme } from "@/components/theme/ThemeProvider";
+import {
+  LEGACY_THEME_STORAGE_KEY,
+  THEME_STORAGE_KEY,
+  useOptionalTheme,
+} from "@/components/theme/ThemeProvider";
 
-const STORAGE_KEY = "loopoint:theme";
+const STORAGE_KEY = THEME_STORAGE_KEY;
 
 function getSystemPrefersDark(): boolean {
   if (typeof window === "undefined") return false;
@@ -32,6 +36,7 @@ function syncDocumentTheme(target: "light" | "dark", persist: boolean) {
 
   if (!persist) return;
   try {
+    localStorage.removeItem(LEGACY_THEME_STORAGE_KEY);
     if (target === systemScheme) {
       localStorage.removeItem(STORAGE_KEY);
     } else {
@@ -176,9 +181,10 @@ export function ThemeToggleButton({
     const nextScheme = isDark ? "light" : "dark";
     if (themeContext) {
       themeContext.setTheme(nextScheme);
+    } else {
+      syncDocumentTheme(nextScheme, true);
+      setLocalDark(nextScheme === "dark");
     }
-    syncDocumentTheme(nextScheme, !themeContext);
-    setLocalDark(nextScheme === "dark");
   };
 
   const shellClasses =

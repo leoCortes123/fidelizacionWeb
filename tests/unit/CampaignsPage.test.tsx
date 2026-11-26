@@ -26,7 +26,7 @@ const fixture = vi.hoisted(() => ({
     {
       id: "camp-1",
       business_id: "biz-1",
-      name: "Doble loopoints",
+      name: "Doble monedas",
       description: "De lunes a jueves",
       multiplier: 2,
       bonus_points: 0,
@@ -105,7 +105,7 @@ describe("CampaignsPage", () => {
     renderPage();
 
     const table = within(screen.getByRole("table"));
-    expect(table.getByText("Doble loopoints")).toBeInTheDocument();
+    expect(table.getByText("Doble monedas")).toBeInTheDocument();
     expect(table.getByText("x2")).toBeInTheDocument();
     expect(table.getByText("En vigencia")).toBeInTheDocument();
     expect(table.getByText("Bono de bienvenida")).toBeInTheDocument();
@@ -113,12 +113,12 @@ describe("CampaignsPage", () => {
     expect(table.getByText("Inactiva")).toBeInTheDocument();
 
     const cards = within(screen.getByTestId("campaigns-cards"));
-    expect(cards.getByText("Doble loopoints")).toBeInTheDocument();
+    expect(cards.getByText("Doble monedas")).toBeInTheDocument();
     expect(cards.getByText("x2")).toBeInTheDocument();
     expect(cards.getByText("Sin mínimo")).toBeInTheDocument();
     expect(cards.getByText("+10 monedas")).toBeInTheDocument();
 
-    await user.click(cards.getByRole("button", { name: "Ver detalle de Doble loopoints" }));
+    await user.click(cards.getByRole("button", { name: "Ver detalle de Doble monedas" }));
     const dialog = within(screen.getByRole("dialog"));
     expect(dialog.getByText("Detalle de la campaña")).toBeInTheDocument();
   });
@@ -202,13 +202,13 @@ describe("CampaignsPage", () => {
     renderPage();
 
     const table = within(screen.getByRole("table"));
-    await user.click(table.getByRole("button", { name: "Desactivar Doble loopoints" }));
+    await user.click(table.getByRole("button", { name: "Desactivar Doble monedas" }));
 
     await waitFor(() => expect(upsert).toHaveBeenCalledTimes(1));
     expect(upsert).toHaveBeenCalledWith(
       expect.objectContaining({
         id: "camp-1",
-        name: "Doble loopoints",
+        name: "Doble monedas",
         multiplier: 2,
         isActive: false,
       }),
@@ -220,7 +220,7 @@ describe("CampaignsPage", () => {
     renderPage();
 
     const table = within(screen.getByRole("table"));
-    await user.click(table.getByRole("button", { name: "Eliminar Doble loopoints" }));
+    await user.click(table.getByRole("button", { name: "Eliminar Doble monedas" }));
     const dialog = within(screen.getByRole("dialog"));
     await user.click(dialog.getByRole("button", { name: "Eliminar" }));
 

@@ -28,7 +28,12 @@ import {
 } from "@/features/loyalty/programEconomics";
 import { errorMessage } from "@/lib/errors";
 import { useFormDraft } from "@/lib/useFormDraft";
-import { isSupportedImage, uploadBusinessAssetImage } from "@/lib/image";
+import {
+  isSupportedImage,
+  removeBusinessAssetPath,
+  storagePathFromPublicUrl,
+  uploadBusinessAssetImage,
+} from "@/lib/image";
 import { cn } from "@/lib/utils";
 import type { Business, BusinessProfile } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -296,18 +301,22 @@ function BusinessProfileFields({
     }
 
     setUploading(true);
+    let uploadedUrl: string | null = null;
     try {
-      const publicUrl = await uploadBusinessAssetImage({
+      uploadedUrl = await uploadBusinessAssetImage({
         businessId: business.id,
         folder: "logo",
         file,
       });
       await setLogo.mutateAsync({
         businessId: business.id,
-        logoUrl: publicUrl,
+        logoUrl: uploadedUrl,
       });
       toast.success("Logo actualizado.");
     } catch (error) {
+      if (uploadedUrl) {
+        void removeBusinessAssetPath(storagePathFromPublicUrl(uploadedUrl));
+      }
       toast.error(
         errorMessage(error) || "No pudimos subir el logo. Revisa el almacenamiento del negocio.",
       );

@@ -31,10 +31,22 @@ describe("ThemeProvider", () => {
 
     expect(screen.getByRole("button")).toHaveTextContent("Tema: dark");
     expect(document.documentElement).toHaveClass("dark");
-    expect(localStorage.getItem("loopoint:theme")).toBe("dark");
+    expect(localStorage.getItem("fideliapp:theme")).toBe("dark");
   });
 
   it("restaura el tema guardado", () => {
+    localStorage.setItem("fideliapp:theme", "dark");
+    render(
+      <ThemeProvider>
+        <ThemeProbe />
+      </ThemeProvider>,
+    );
+
+    expect(screen.getByRole("button")).toHaveTextContent("Tema: dark");
+    expect(document.documentElement).toHaveClass("dark");
+  });
+
+  it("migra una sola vez la clave heredada de tema y la elimina", () => {
     localStorage.setItem("loopoint:theme", "dark");
     render(
       <ThemeProvider>
@@ -44,6 +56,22 @@ describe("ThemeProvider", () => {
 
     expect(screen.getByRole("button")).toHaveTextContent("Tema: dark");
     expect(document.documentElement).toHaveClass("dark");
+    expect(localStorage.getItem("fideliapp:theme")).toBe("dark");
+    expect(localStorage.getItem("loopoint:theme")).toBeNull();
+  });
+
+  it("migra la clave heredada incluso si fideliapp:theme contiene un valor corrupto", () => {
+    localStorage.setItem("fideliapp:theme", "sepia");
+    localStorage.setItem("loopoint:theme", "dark");
+    render(
+      <ThemeProvider>
+        <ThemeProbe />
+      </ThemeProvider>,
+    );
+
+    expect(screen.getByRole("button")).toHaveTextContent("Tema: dark");
+    expect(localStorage.getItem("fideliapp:theme")).toBe("dark");
+    expect(localStorage.getItem("loopoint:theme")).toBeNull();
   });
 
   it("quita el portal al desmontar el shell", () => {
@@ -75,7 +103,8 @@ describe("ThemeProvider", () => {
     );
 
     const scriptContent = readFileSync(scriptPath, "utf8");
-    expect(scriptContent).toContain('localStorage.getItem("loopoint:theme")');
+    expect(scriptContent).toContain('"fideliapp:theme"');
+    expect(scriptContent).toContain("localStorage.removeItem");
     expect(scriptContent).toContain("#2b4652");
     expect(scriptContent).toContain("#edf3f5");
   });

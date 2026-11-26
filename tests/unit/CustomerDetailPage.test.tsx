@@ -7,8 +7,8 @@ import type { Business, CustomerDetail, LoyaltyRedemptionWithCustomer } from "@/
 
 const business: Business = {
   id: "biz-1",
-  name: "Café Loopoint",
-  slug: "cafe-loopoint",
+  name: "Café Fideliapp",
+  slug: "cafe-fideliapp",
   timezone: "America/Bogota",
   operating_days: [1, 2, 3, 4, 5, 6],
   is_active: true,

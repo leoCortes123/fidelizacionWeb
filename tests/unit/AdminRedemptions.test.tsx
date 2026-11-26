@@ -161,7 +161,7 @@ describe("RedemptionsPage del administrador", () => {
     });
   });
 
-  it("rechaza una solicitud y devuelve los loopoints", async () => {
+  it("rechaza una solicitud y devuelve las monedas", async () => {
     const user = userEvent.setup();
     renderPage();
 

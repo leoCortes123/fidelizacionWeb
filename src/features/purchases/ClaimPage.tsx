@@ -17,6 +17,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { FullPageLoader } from "@/components/shared/States";
 import { useAuth } from "@/features/auth/AuthProvider";
+import { LEGAL_URLS } from "@/config/legal.config";
+import { LegalExternalLink } from "@/features/legal/LegalConsentCheckbox";
 import { persistBusinessSelection } from "@/features/loyalty/businessContext";
 import { useClaimPurchase, usePurchaseQrPreview } from "./hooks";
 import { errorMessage } from "@/lib/errors";
@@ -340,8 +342,14 @@ function ClaimLayout({ children }: { children: React.ReactNode }) {
           <Brand />
         </div>
         {children}
-        <p className={cn("px-4 text-center text-xs text-muted-foreground sm:px-0")}>
-          Tus datos se usan solo para el programa de monedas del negocio.
+        <p className={cn("px-4 text-center text-xs leading-relaxed text-muted-foreground sm:px-0")}>
+          El comercio verá tu nombre, contacto registrado, saldo de monedas e historial de esta
+          compra para acreditar tus monedas y gestionar canjes (sujeto a las reglas de vencimiento
+          del programa).{" "}
+          <LegalExternalLink href={LEGAL_URLS.privacyPolicy}>
+            Política de Privacidad
+          </LegalExternalLink>{" "}
+          · <LegalExternalLink href={LEGAL_URLS.termsCustomer}>Términos de uso</LegalExternalLink>.
         </p>
       </div>
     </div>

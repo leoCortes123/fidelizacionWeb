@@ -528,7 +528,7 @@ export function PixelBusiness32Svg({
   }
 }
 
-export function LoopointCoinSvg({ size = 20 }: { size?: number }) {
+export function CoinSvg({ size = 20 }: { size?: number }) {
   return (
     <img
       src="/fideliapp-coin.png"

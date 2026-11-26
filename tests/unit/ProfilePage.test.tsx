@@ -2,10 +2,13 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
-import { ProfilePage } from "@/features/profile/ProfilePage";
+import { maxAdultBirthDateBogota, ProfilePage } from "@/features/profile/ProfilePage";
 import type { MyProfile } from "@/types";
 
 const updateProfile = vi.hoisted(() => vi.fn());
+const setAvatarMock = vi.hoisted(() => vi.fn());
+const uploadAvatarMock = vi.hoisted(() => vi.fn());
+const removeAssetMock = vi.hoisted(() => vi.fn());
 const availability = vi.hoisted(() => ({ data: true as boolean | undefined }));
 
 const profile = vi.hoisted(() => ({
@@ -32,8 +35,17 @@ vi.mock("@/features/profile/hooks", () => ({
     isFetching: false,
   }),
   useUpdateProfile: () => ({ mutateAsync: updateProfile, isPending: false }),
-  useSetProfileAvatar: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useSetProfileAvatar: () => ({ mutateAsync: setAvatarMock, isPending: false }),
 }));
+
+vi.mock("@/lib/image", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/image")>();
+  return {
+    ...actual,
+    uploadUserAvatarImage: uploadAvatarMock,
+    removeBusinessAssetPath: removeAssetMock,
+  };
+});
 
 vi.mock("@/features/auth/AuthProvider", () => ({
   useAuth: () => ({ user: { id: "user-1" } }),
@@ -231,7 +243,7 @@ describe("ProfilePage", () => {
   it("habilita Guardar perfil al restaurar un borrador personal desde localStorage", async () => {
     const user = userEvent.setup();
     window.localStorage.setItem(
-      "loopoint:draft:profile:user-1",
+      "fideliapp:draft:profile:user-1",
       JSON.stringify({
         version: 1,
         savedAt: Date.now(),
@@ -251,6 +263,51 @@ describe("ProfilePage", () => {
         fullName: "Carla Borrador",
         nickname: "carlacliente",
       });
+    });
+  });
+
+  it("limita la fecha de nacimiento a mayores de 18 años y bloquea menores en cliente", async () => {
+    const user = userEvent.setup();
+    renderPage("/customer/perfil");
+
+    const birthDate = screen.getByLabelText(/Fecha de nacimiento/i);
+    expect(birthDate).toHaveAttribute("max", maxAdultBirthDateBogota());
+    expect(birthDate).toHaveAttribute("min", "1900-01-01");
+
+    // Calcula una fecha de 15 años atrás para garantizar menor de edad sin importar el año actual.
+    const maxDate = maxAdultBirthDateBogota();
+    const underageYear = Number(maxDate.slice(0, 4)) + 3;
+    const underageDate = `${underageYear}-06-15`;
+
+    await user.type(birthDate, underageDate);
+    await user.click(screen.getByRole("button", { name: /Guardar perfil/i }));
+
+    expect(
+      await screen.findByText(/Debes ser mayor de 18 años para registrar tu fecha de nacimiento/i),
+    ).toBeInTheDocument();
+    expect(updateProfile).not.toHaveBeenCalled();
+    expect(document.activeElement).toBe(birthDate);
+  });
+
+  it("maxAdultBirthDateBogota ajusta años bisiestos sin desfase de zona horaria", () => {
+    expect(maxAdultBirthDateBogota(new Date("2024-02-29T18:00:00Z"))).toBe("2006-02-28");
+    expect(maxAdultBirthDateBogota(new Date("2026-11-25T15:00:00Z"))).toBe("2008-11-25");
+  });
+
+  it("limpia el archivo recién subido si falla profile_avatar_set", async () => {
+    const user = userEvent.setup();
+    uploadAvatarMock.mockResolvedValueOnce(
+      "https://demo.supabase.co/storage/v1/object/public/business-assets/avatars/user-1/avatar-new.jpg",
+    );
+    setAvatarMock.mockRejectedValueOnce(new Error("rpc_failed"));
+
+    renderPage("/perfil");
+    const fileInput = screen.getByLabelText(/Subir foto de perfil/i);
+    const file = new File(["img"], "avatar.jpg", { type: "image/jpeg" });
+    await user.upload(fileInput, file);
+
+    await waitFor(() => {
+      expect(removeAssetMock).toHaveBeenCalledWith("avatars/user-1/avatar-new.jpg");
     });
   });
 });

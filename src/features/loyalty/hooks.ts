@@ -1,5 +1,6 @@
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { rpc } from "@/lib/supabase";
+import { removeBusinessAssetPath } from "@/lib/image";
 import { queryKeys } from "@/lib/queryKeys";
 import type {
   Business,
@@ -10,6 +11,7 @@ import type {
   BusinessProfile,
   BusinessRegisterResult,
   CustomerBusinessSummary,
+  CustomerPointsExpirySummary,
   LoyaltyProgram,
   LoyaltyReward,
   LoyaltyRewardAvailable,
@@ -21,7 +23,6 @@ import type {
   MyLoyaltyRedemption,
   Product,
   ProductKind,
-  ProfileLookup,
   RedemptionRequestResult,
   RedemptionRedeemResult,
   RedemptionScanContext,
@@ -191,7 +192,12 @@ export function useUpdateBusinessProfile() {
 export function useSetBusinessLogo() {
   const queryClient = useQueryClient();
   return useMutation<
-    { business_id: string; logo_url: string | null },
+    {
+      business_id: string;
+      logo_url: string | null;
+      previous_logo_url?: string | null;
+      previous_storage_path?: string | null;
+    },
     Error,
     {
       businessId: string;
@@ -199,11 +205,17 @@ export function useSetBusinessLogo() {
     }
   >({
     mutationFn: (params) =>
-      rpc<{ business_id: string; logo_url: string | null }>("business_logo_set", {
+      rpc<{
+        business_id: string;
+        logo_url: string | null;
+        previous_logo_url?: string | null;
+        previous_storage_path?: string | null;
+      }>("business_logo_set", {
         p_business_id: params.businessId,
         p_logo_url: params.logoUrl,
       }),
-    onSuccess: (_, vars) => {
+    onSuccess: (data, vars) => {
+      void removeBusinessAssetPath(data.previous_storage_path);
       void queryClient.invalidateQueries({
         queryKey: queryKeys.businessProfile(vars.businessId),
       });
@@ -316,19 +328,6 @@ export function useUpdateBusinessMembership() {
   });
 }
 
-export function useSearchProfiles(businessId: string, query: string) {
-  const trimmed = query.trim();
-  return useQuery<ProfileLookup[]>({
-    queryKey: queryKeys.profileSearch(businessId, trimmed),
-    queryFn: () =>
-      rpc<ProfileLookup[]>("business_search_profiles", {
-        p_business_id: businessId,
-        p_query: trimmed,
-      }),
-    enabled: Boolean(businessId) && trimmed.length >= 2,
-  });
-}
-
 export function useCreateMemberInvite() {
   const queryClient = useQueryClient();
   return useMutation<
@@ -358,7 +357,7 @@ export function useCreateMemberInvite() {
 }
 
 /* ------------------------------------------------------------------ */
-/* Programa de loopoints                                                 */
+/* Programa de monedas                                                */
 /* ------------------------------------------------------------------ */
 
 export function useLoyaltyProgram(businessId: string) {
@@ -402,6 +401,9 @@ export function useConfigureLoyaltyProgram() {
       }),
     onSuccess: (_, vars) => {
       void queryClient.invalidateQueries({ queryKey: queryKeys.loyaltyProgram(vars.businessId) });
+      void queryClient.invalidateQueries({
+        queryKey: ["customer-points-expiry-summary", vars.businessId],
+      });
       void queryClient.invalidateQueries({
         queryKey: queryKeys.businessEconomicDashboard(vars.businessId),
       });
@@ -501,7 +503,8 @@ export function useUpsertProduct() {
         p_kind: params.kind ?? "simple",
         p_image_url: params.imageUrl ?? null,
       }),
-    onSuccess: (_, vars) => {
+    onSuccess: (data, vars) => {
+      void removeBusinessAssetPath(data.previous_storage_path);
       void queryClient.invalidateQueries({ queryKey: queryKeys.products(vars.businessId, true) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.products(vars.businessId, false) });
     },
@@ -719,7 +722,8 @@ export function useUpsertLoyaltyReward() {
         p_is_active: params.isActive,
         p_image_url: params.imageUrl ?? null,
       }),
-    onSuccess: (_, vars) => {
+    onSuccess: (data, vars) => {
+      void removeBusinessAssetPath(data.previous_storage_path);
       void queryClient.invalidateQueries({
         queryKey: queryKeys.loyaltyRewards(vars.businessId, true),
       });
@@ -732,7 +736,7 @@ export function useUpsertLoyaltyReward() {
 }
 
 /* ------------------------------------------------------------------ */
-/* Loopoints y cuenta                                                    */
+/* Monedas y cuenta                                                   */
 /* ------------------------------------------------------------------ */
 
 export function useLoyaltyPointAccount(businessId: string, customerId: string) {
@@ -761,6 +765,17 @@ export function useLoyaltyPointTransactions(businessId: string, customerId: stri
       rpc<LoyaltyPointTransaction[]>("loyalty_account_transactions", {
         p_business_id: businessId,
         p_customer_id: customerId,
+      }),
+    enabled: Boolean(businessId) && Boolean(customerId),
+  });
+}
+
+export function useCustomerPointsExpirySummary(businessId: string, customerId: string) {
+  return useQuery<CustomerPointsExpirySummary>({
+    queryKey: queryKeys.customerPointsExpirySummary(businessId, customerId),
+    queryFn: () =>
+      rpc<CustomerPointsExpirySummary>("customer_points_expiry_summary", {
+        p_business_id: businessId,
       }),
     enabled: Boolean(businessId) && Boolean(customerId),
   });
@@ -800,6 +815,9 @@ export function useRequestRedemption() {
       });
       void queryClient.invalidateQueries({
         queryKey: ["loyalty-point-transactions", vars.businessId],
+      });
+      void queryClient.invalidateQueries({
+        queryKey: ["customer-points-expiry-summary", vars.businessId],
       });
       void queryClient.invalidateQueries({ queryKey: queryKeys.myLoyaltyRedemptions });
       void queryClient.invalidateQueries({
@@ -897,6 +915,9 @@ export function useRedeemRedemptionByToken() {
       void queryClient.invalidateQueries({
         queryKey: ["loyalty-point-transactions", result.business_id],
       });
+      void queryClient.invalidateQueries({
+        queryKey: ["customer-points-expiry-summary", result.business_id],
+      });
       void queryClient.invalidateQueries({ queryKey: queryKeys.myLoyaltyRedemptions });
       void queryClient.invalidateQueries({
         queryKey: queryKeys.customerBusinessesSummary,
@@ -959,6 +980,9 @@ export function useDeliverRedemption() {
       void queryClient.invalidateQueries({
         queryKey: ["loyalty-point-transactions", vars.businessId],
       });
+      void queryClient.invalidateQueries({
+        queryKey: ["customer-points-expiry-summary", vars.businessId],
+      });
       void queryClient.invalidateQueries({ queryKey: queryKeys.myLoyaltyRedemptions });
       void queryClient.invalidateQueries({
         queryKey: queryKeys.customerBusinessesSummary,
@@ -993,6 +1017,9 @@ export function useCancelRedemption() {
       });
       void queryClient.invalidateQueries({
         queryKey: ["loyalty-point-transactions", vars.businessId],
+      });
+      void queryClient.invalidateQueries({
+        queryKey: ["customer-points-expiry-summary", vars.businessId],
       });
       void queryClient.invalidateQueries({ queryKey: queryKeys.myLoyaltyRedemptions });
       void queryClient.invalidateQueries({
@@ -1186,7 +1213,7 @@ export function useDeleteLoyaltyCampaign() {
 }
 
 /* ------------------------------------------------------------------ */
-/* Vencimiento de loopoints                                              */
+/* Vencimiento de monedas                                             */
 /* ------------------------------------------------------------------ */
 
 export interface PointsExpiryResult {
@@ -1208,6 +1235,9 @@ export function useExpirePointsDue() {
       });
       void queryClient.invalidateQueries({
         queryKey: ["loyalty-point-transactions", vars.businessId],
+      });
+      void queryClient.invalidateQueries({
+        queryKey: ["customer-points-expiry-summary", vars.businessId],
       });
       void queryClient.invalidateQueries({
         queryKey: queryKeys.businessEconomicDashboard(vars.businessId),

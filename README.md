@@ -58,10 +58,10 @@ local, sigue el README de [`fidelizacionApi`](https://github.com/leoCortes123/fi
 ```dotenv
 VITE_SUPABASE_URL=http://127.0.0.1:54321
 VITE_SUPABASE_ANON_KEY=reemplaza-con-tu-anon-key
-VITE_BRAND_NAME=Mi Negocio
+VITE_BRAND_NAME=Fideliapp
 VITE_BRAND_TAGLINE=Puntos por tus compras
 VITE_PUBLIC_APP_URL=
-VITE_PUBLIC_SITE_URL=https://fidelapp.pages.dev
+VITE_PUBLIC_SITE_URL=https://fideliapp.pages.dev
 ```
 
 - `VITE_SUPABASE_ANON_KEY` es la clave **pública** (`anon` o `publishable`). Es la

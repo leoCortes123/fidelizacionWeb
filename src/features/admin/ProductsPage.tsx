@@ -23,7 +23,12 @@ import {
 import { useBusinessContext } from "@/features/loyalty/businessContext";
 import { errorMessage } from "@/lib/errors";
 import { formatCOP, parseCopInput } from "@/lib/format";
-import { isSupportedImage, uploadBusinessAssetImage } from "@/lib/image";
+import {
+  isSupportedImage,
+  removeBusinessAssetPath,
+  storagePathFromPublicUrl,
+  uploadBusinessAssetImage,
+} from "@/lib/image";
 import { useFormDraft } from "@/lib/useFormDraft";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -269,9 +274,10 @@ function ProductsSection({ business }: { business: Business }) {
     if (!file) return;
 
     setUploadingIds((previous) => ({ ...previous, [product.id]: true }));
+    let uploadedUrl: string | null = null;
     try {
-      const publicUrl = await uploadPhotoFile(file, product.id);
-      if (!publicUrl) return;
+      uploadedUrl = await uploadPhotoFile(file, product.id);
+      if (!uploadedUrl) return;
       await upsertProduct.mutateAsync({
         businessId: business.id,
         id: product.id,
@@ -281,13 +287,16 @@ function ProductsSection({ business }: { business: Business }) {
         costCop: product.cost_cop,
         isActive: product.is_active,
         kind: product.kind,
-        imageUrl: publicUrl,
+        imageUrl: uploadedUrl,
       });
       if (editing?.id === product.id) {
-        update("imageUrl", publicUrl);
+        update("imageUrl", uploadedUrl);
       }
       toast.success("Foto del producto actualizada.");
     } catch (error) {
+      if (uploadedUrl) {
+        void removeBusinessAssetPath(storagePathFromPublicUrl(uploadedUrl));
+      }
       toast.error(errorMessage(error) || "No pudimos subir la foto del producto.");
     } finally {
       setUploadingIds((previous) => {
@@ -307,7 +316,11 @@ function ProductsSection({ business }: { business: Business }) {
     setUploadingModalPhoto(true);
     try {
       const publicUrl = await uploadPhotoFile(file, editing?.id ?? null);
-      if (!publicUrl || modalSessionRef.current !== uploadSession) return;
+      if (!publicUrl) return;
+      if (modalSessionRef.current !== uploadSession) {
+        void removeBusinessAssetPath(storagePathFromPublicUrl(publicUrl));
+        return;
+      }
       update("imageUrl", publicUrl);
       toast.success("Foto cargada. Guarda para aplicar los cambios.");
     } catch (error) {

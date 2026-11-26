@@ -199,6 +199,8 @@ test("registro de negocio como administrador", async ({ browser }) => {
 
   await admin.page.getByLabel("Nombre del negocio").fill("Mi Negocio Test");
   await expect(admin.page.getByLabel("Slug (identificador en URL)")).toHaveValue("mi-negocio-test");
+  await admin.page.getByRole("checkbox", { name: /Acepto los Términos para Negocios/i }).check();
+  await admin.page.getByRole("checkbox", { name: /Declaro que tengo facultad legal/i }).check();
   await admin.page.getByRole("button", { name: "Guardar y continuar" }).click();
 
   await expect(
@@ -896,6 +898,7 @@ test("admin invita clientes con enlace y QR, y genera QR de miembro para registr
   await newMemberPage.getByLabel(/^nombre$/i).fill("Sofía Caja");
   await newMemberPage.getByLabel(/^correo$/i).fill("sofia@example.test");
   await newMemberPage.getByLabel(/^contraseña$/i).fill("secreto123");
+  await newMemberPage.getByRole("checkbox", { name: /Acepto los/i }).check();
   await newMemberPage.getByRole("button", { name: /crear cuenta/i }).click();
 
   await expect(newMemberPage).toHaveURL(/\/encargado/);
@@ -967,7 +970,7 @@ test("genera una venta con QR, el cliente la reclama y queda auditada", async ({
   await expect(page.getByText(/Escanéalo para sumar monedas/i)).toBeVisible();
 
   const claimUrl = await page.getByTestId("claim-url").textContent();
-  expect(claimUrl).toContain("https://fidelizacion01.vercel.app/claim/");
+  expect(claimUrl).toContain("https://fideli-app.vercel.app/claim/");
   const token = claimUrl!.split("/claim/")[1];
 
   await expect.poll(() => state.purchases.length).toBe(1);
@@ -1376,6 +1379,79 @@ test("perfil: edita nombre y alias, y persiste tras recargar", async ({ browser 
   await customer.context.close();
 });
 
+test("perfil: exige 18+, borra avatar previo en Storage y purga borradores al cerrar sesión", async ({
+  browser,
+}) => {
+  const state = createFakeState();
+  const customer = await openAs(browser, state, TOKENS.customer, "/customer/perfil");
+
+  const deletedStoragePaths: string[] = [];
+  customer.page.on("request", (req) => {
+    if (req.method() === "DELETE" && req.url().includes("/storage/v1/object/business-assets")) {
+      const payload = req.postDataJSON() as { prefixes?: string[] } | null;
+      if (Array.isArray(payload?.prefixes)) {
+        deletedStoragePaths.push(...payload.prefixes);
+      }
+    }
+  });
+
+  // 1. Menor de 18 años rechazado en cliente.
+  const birthDate = customer.page.getByLabel(/Fecha de nacimiento/i);
+  const maxDate = await birthDate.getAttribute("max");
+  expect(maxDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  const underageDate = `${Number(maxDate!.slice(0, 4)) + 3}-06-15`;
+  await birthDate.fill(underageDate);
+  await customer.page.getByRole("button", { name: /Guardar perfil/i }).click();
+  await expect(customer.page.getByText(/Debes ser mayor de 18 años/i).first()).toBeVisible();
+
+  // 2. Subir avatar (pasa por canvas en Chromium) y quitarlo dispara DELETE en Storage.
+  const tinyPng = Buffer.from(
+    "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+    "base64",
+  );
+  await customer.page.getByLabel("Subir foto de perfil").setInputFiles({
+    name: "avatar.png",
+    mimeType: "image/png",
+    buffer: tinyPng,
+  });
+  await expect(customer.page.getByText("Foto de perfil actualizada.")).toBeVisible();
+
+  await customer.page.getByRole("button", { name: /^Quitar$/i }).click();
+  await expect(customer.page.getByText("Foto de perfil eliminada.")).toBeVisible();
+  await expect.poll(() => deletedStoragePaths.some((p) => p.startsWith("avatars/"))).toBe(true);
+
+  // 3. Dejar borrador sin guardar + tema, y cerrar sesión purga datos locales conservando tema.
+  await customer.page.getByLabel(/Número de teléfono/i).fill("+57 300 999 8877");
+  await customer.page.evaluate(() => {
+    window.localStorage.setItem("fideliapp:theme", "dark");
+    window.localStorage.setItem(
+      "fidelizacion:pending-claim",
+      '{"token":"tok12345678901234567890"}',
+    );
+    window.sessionStorage.setItem("loyalty:token:red-1", '{"token":"secret"}');
+  });
+
+  await customer.page.getByRole("button", { name: /Abrir menú de configuración/i }).click();
+  await customer.page.getByRole("menuitem", { name: /Cerrar sesión/i }).click();
+  await expect(customer.page).toHaveURL(/\/login/);
+
+  const afterLogout = await customer.page.evaluate(() => ({
+    localKeys: Object.keys(window.localStorage),
+    theme: window.localStorage.getItem("fideliapp:theme"),
+    sessionLength: window.sessionStorage.length,
+  }));
+
+  expect(afterLogout.localKeys.some((k) => k.startsWith("fideliapp:draft:"))).toBe(false);
+  expect(afterLogout.localKeys.some((k) => k.startsWith("fidelizacion:selected-business"))).toBe(
+    false,
+  );
+  expect(afterLogout.localKeys.includes("fidelizacion:pending-claim")).toBe(false);
+  expect(afterLogout.theme).toBe("dark");
+  expect(afterLogout.sessionLength).toBe(0);
+
+  await customer.context.close();
+});
+
 test("negocio: edita la ficha pública y persiste tras recargar", async ({ browser }) => {
   const state = createFakeState();
   seedBusiness(state);
@@ -1768,6 +1844,7 @@ test("crear cuenta de administrador tras cerrar sesión no dispara RPCs del nego
   await page.getByLabel(/^Nombre del negocio$/i).fill("Café Lucía");
   await page.getByLabel(/^Correo$/i).fill("lucia@nuevonegocio.test");
   await page.getByLabel(/^Contraseña$/i).fill("secreto123");
+  await page.getByRole("checkbox", { name: /Acepto los/i }).check();
   await page.getByRole("button", { name: /Crear cuenta de administrador/i }).click();
 
   await expect(page).toHaveURL(/\/admin\/onboarding/);

@@ -10,8 +10,8 @@ const purchasesHolder = vi.hoisted(() => ({ rows: [] as BusinessPurchasePageRow[
 
 const business: Business = {
   id: "biz-1",
-  name: "Café Loopoint",
-  slug: "cafe-loopoint",
+  name: "Café Fideliapp",
+  slug: "cafe-fideliapp",
   timezone: "America/Bogota",
   operating_days: [1, 2, 3, 4, 5, 6],
   is_active: true,
@@ -143,7 +143,7 @@ describe("PurchasesPage (Ventas)", () => {
       purchase_id: "pur-pending",
       token: "tok_regenerated_1234567890123456",
       business_id: "biz-1",
-      business_name: "Café Loopoint",
+      business_name: "Café Fideliapp",
       amount_cop: 30000,
       points_preview: 30,
       expires_at: new Date(now + 4 * 3600 * 1000).toISOString(),
